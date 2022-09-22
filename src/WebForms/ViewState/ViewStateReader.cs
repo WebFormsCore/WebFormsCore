@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System.Web.Serializer;
+﻿using System;
+using Microsoft.Extensions.DependencyInjection;
+using WebFormsCore.Serializer;
 
-namespace System.Web;
+namespace WebFormsCore;
 
 public static class ViewStateReaderExtensions
 {

@@ -1,6 +1,6 @@
-﻿using WebForms.Nodes;
+﻿using WebFormsCore.Nodes;
 
-namespace WebForms.Collections;
+namespace WebFormsCore.Collections.Comparers;
 
 public class HitRangeComparer : IComparer<HitRange>, IEqualityComparer<HitRange>
 {

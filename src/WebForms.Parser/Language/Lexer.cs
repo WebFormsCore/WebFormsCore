@@ -1,7 +1,6 @@
-﻿using System.Text;
-using WebForms.Models;
+﻿using WebFormsCore.Models;
 
-namespace WebForms;
+namespace WebFormsCore.Language;
 
 public ref struct Lexer
 {

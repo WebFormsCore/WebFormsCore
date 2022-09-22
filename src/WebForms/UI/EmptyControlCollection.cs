@@ -1,4 +1,6 @@
-﻿namespace System.Web.UI;
+﻿using System;
+
+namespace WebFormsCore.UI;
 
 public class EmptyControlCollection : ControlCollection
 {

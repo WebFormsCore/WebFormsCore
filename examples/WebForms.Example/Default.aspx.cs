@@ -1,8 +1,6 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
-using System.Web.UI;
+using WebFormsCore.UI;
 
 namespace WebForms.Example;
 
@@ -19,4 +17,3 @@ public partial class Default : Page
         return default;
     }
 }
-

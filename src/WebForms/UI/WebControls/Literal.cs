@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace System.Web.UI.WebControls;
+namespace WebFormsCore.UI.WebControls;
 
 
 public partial class Literal : Control

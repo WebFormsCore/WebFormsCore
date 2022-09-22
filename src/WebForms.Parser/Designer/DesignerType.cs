@@ -1,7 +1,9 @@
 using Microsoft.CodeAnalysis;
-using WebForms.Nodes;
+using WebFormsCore.Language;
+using WebFormsCore.Models;
+using WebFormsCore.Nodes;
 
-namespace WebForms.Designer;
+namespace WebFormsCore.Designer;
 
 public record DesignerType(
     string? Namespace,
@@ -94,8 +96,8 @@ public record DesignerType(
         {
             return htmlNode.Name.Value.ToUpperInvariant() switch
             {
-                "FORM" => compilation.GetTypeByMetadataName("System.Web.UI.WebControls.HtmlForm"),
-                _ => compilation.GetTypeByMetadataName("System.Web.UI.HtmlControls.HtmlGenericControl")
+                "FORM" => compilation.GetTypeByMetadataName("WebFormsCore.UI.WebControls.HtmlForm"),
+                _ => compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlGenericControl")
             };
         }
 

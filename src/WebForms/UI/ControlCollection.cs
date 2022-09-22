@@ -1,7 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
-namespace System.Web.UI;
+namespace WebFormsCore.UI;
 
 public class ControlCollection : ICollection, ICollection<Control>
 {

@@ -1,19 +1,24 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web.UI.WebControls;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Http;
+using WebFormsCore.UI.WebControls;
+using HttpContext = System.Web.HttpContext;
 
-namespace System.Web.UI;
+namespace WebFormsCore.UI;
 
 public class Page : Control, INamingContainer
 {
-    private IHttpContext? _context;
-    
-    protected override IHttpContext Context => _context ??= HttpContextAccessor.Current ?? throw new InvalidOperationException("No HttpContext available.");
+    private HttpContext? _context;
+    private IServiceProvider? _serviceProvider;
+
+    protected override HttpContext Context => _context ??= HttpContext.Current ?? throw new InvalidOperationException("No HttpContext available.");
 
     public bool IsPostBack { get; set; }
+
+    protected override IServiceProvider ServiceProvider => _serviceProvider ?? throw new InvalidOperationException("Service provider not available.");
 
     public List<HtmlForm> Forms { get; set; } = new();
 
@@ -53,5 +58,10 @@ public class Page : Control, INamingContainer
         await InvokeLoadAsync(token, form);
 
         return target;
+    }
+
+    public void SetServiceProvider(IServiceProvider provider)
+    {
+        _serviceProvider = provider;
     }
 }

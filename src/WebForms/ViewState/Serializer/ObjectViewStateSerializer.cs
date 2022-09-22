@@ -1,7 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace System.Web.Serializer;
+namespace WebFormsCore.Serializer;
 
 public class ObjectViewStateSerializer : ViewStateSerializer<object?>
 {

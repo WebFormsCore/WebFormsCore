@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.Text;
 
-namespace WebForms.Models;
+namespace WebFormsCore.Models;
 
 public readonly record struct TokenPosition(int Offset, int Line, int Column)
 {

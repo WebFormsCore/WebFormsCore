@@ -1,8 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using WebForms.Nodes;
 
-namespace WebForms;
+namespace WebFormsCore;
 
 public static class ContextExtensions
 {

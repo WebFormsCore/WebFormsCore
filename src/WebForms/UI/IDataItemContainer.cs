@@ -1,4 +1,4 @@
-﻿namespace System.Web.UI;
+﻿namespace WebFormsCore.UI;
 
 /// <summary>Enables data-bound control containers to identify a data item object for simplified data-binding operations.</summary>
 public interface IDataItemContainer : INamingContainer

@@ -4,6 +4,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+	    <RootNamespace>WebFormsCore</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -11,7 +12,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\WebForms.Parser\WebForms.Parser.csproj" />
       <ProjectReference Include="..\WebForms\WebForms.csproj" />
     </ItemGroup>
 

@@ -1,8 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace System.Web.UI;
+namespace WebFormsCore.UI;
 
 public sealed class StateBag : IDictionary<string, object?>, IDictionary
 {

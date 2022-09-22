@@ -1,4 +1,4 @@
-using System.Web.Serializer;
+using WebFormsCore.Serializer;
 
 namespace WebForms.Tests
 {

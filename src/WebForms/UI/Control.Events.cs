@@ -1,8 +1,9 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Web.UI.WebControls;
+using WebFormsCore.UI.WebControls;
 
-namespace System.Web.UI;
+namespace WebFormsCore.UI;
 
 public partial class Control
 {

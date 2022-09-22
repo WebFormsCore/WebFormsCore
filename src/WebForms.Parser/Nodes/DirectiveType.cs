@@ -1,4 +1,4 @@
-﻿namespace WebForms.Nodes;
+﻿namespace WebFormsCore.Nodes;
 
 public enum DirectiveType
 {

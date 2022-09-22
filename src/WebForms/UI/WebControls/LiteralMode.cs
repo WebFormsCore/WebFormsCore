@@ -1,4 +1,4 @@
-namespace System.Web.UI.WebControls;
+namespace WebFormsCore.UI.WebControls;
 
 public enum LiteralMode
 {

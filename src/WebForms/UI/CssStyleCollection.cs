@@ -1,9 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace System.Web.UI;
+namespace WebFormsCore.UI;
 
 public sealed class CssStyleCollection
 {

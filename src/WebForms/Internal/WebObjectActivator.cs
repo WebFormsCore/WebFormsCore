@@ -1,11 +1,11 @@
-﻿using System.Web;
-using System.Web.UI;
-using System.Web.UI.HtmlControls;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
-using static System.Net.Mime.MediaTypeNames;
+using WebFormsCore.UI.HtmlControls;
+using WebFormsCore.UI.WebControls;
 
-namespace WebForms.AspNetCore;
+namespace WebFormsCore;
 
 internal sealed class WebObjectActivator : IWebObjectActivator, IDisposable
 {

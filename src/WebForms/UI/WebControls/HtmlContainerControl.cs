@@ -1,22 +1,23 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web.UI.WebControls;
+using System.Web;
 
-namespace System.Web.UI.HtmlControls
+namespace WebFormsCore.UI.WebControls
 {
     /// <summary>Serves as the abstract base class for HTML server controls that map to HTML elements that are required to have an opening and a closing tag.</summary>
     public abstract partial class HtmlContainerControl : HtmlControl
     {
         [ViewState] private string? _innerHtml;
 
-        /// <summary>Initializes a new instance of the <see cref="T:System.Web.UI.HtmlControls.HtmlContainerControl" /> class using default values.</summary>
+        /// <summary>Initializes a new instance of the <see cref="T:WebFormsCore.UI.WebControls.HtmlContainerControl" /> class using default values.</summary>
         protected HtmlContainerControl()
             : this("span")
         {
         }
 
-        /// <summary>Initializes a new instance of the <see cref="T:System.Web.UI.HtmlControls.HtmlContainerControl" /> class using the specified tag name.</summary>
+        /// <summary>Initializes a new instance of the <see cref="T:WebFormsCore.UI.WebControls.HtmlContainerControl" /> class using the specified tag name.</summary>
         /// <param name="tag">A string that specifies the tag name of the control. </param>
         public HtmlContainerControl(string tag)
             : base(tag)
@@ -37,7 +38,7 @@ namespace System.Web.UI.HtmlControls
                     return textControl.Text;
                 }
 
-                throw new InvalidOperationException(SR.GetString("Inner_Content_not_literal", ID));
+                throw new InvalidOperationException("InnerHtml can only be set when there is a single LiteralControl child.");
             }
             set
             {
@@ -67,12 +68,12 @@ namespace System.Web.UI.HtmlControls
             set => InnerHtml = HttpUtility.HtmlEncode(value);
         }
 
-        /// <summary>Creates a new <see cref="T:System.Web.UI.ControlCollection" /> object to hold the child controls (both literal and server) of the server control.</summary>
-        /// <returns>A <see cref="T:System.Web.UI.ControlCollection" /> that contains the <see cref="T:System.Web.UI.HtmlControls.HtmlControl" /> child server controls.</returns>
+        /// <summary>Creates a new <see cref="T:WebFormsCore.UI.ControlCollection" /> object to hold the child controls (both literal and server) of the server control.</summary>
+        /// <returns>A <see cref="T:WebFormsCore.UI.ControlCollection" /> that contains the <see cref="T:WebFormsCore.UI.WebControls.HtmlControl" /> child server controls.</returns>
         protected override ControlCollection CreateControlCollection() => new(this);
 
-        /// <summary>Renders the <see cref="T:System.Web.UI.HtmlControls.HtmlContainerControl" /> control to the specified <see cref="T:System.Web.UI.HtmlTextWriter" /> object.</summary>
-        /// <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter" /> that receives the <see cref="T:System.Web.UI.HtmlControls.HtmlContainerControl" /> content.</param>
+        /// <summary>Renders the <see cref="T:WebFormsCore.UI.WebControls.HtmlContainerControl" /> control to the specified <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object.</summary>
+        /// <param name="writer">The <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> that receives the <see cref="T:WebFormsCore.UI.WebControls.HtmlContainerControl" /> content.</param>
         public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
         {
             await RenderBeginTagAsync(writer, token);
@@ -80,12 +81,12 @@ namespace System.Web.UI.HtmlControls
             await RenderEndTagAsync(writer, token);
         }
 
-        /// <summary>Renders the closing tag for the <see cref="T:System.Web.UI.HtmlControls.HtmlContainerControl" /> control to the specified <see cref="T:System.Web.UI.HtmlTextWriter" /> object.</summary>
-        /// <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter" /> that receives the rendered content.</param>
+        /// <summary>Renders the closing tag for the <see cref="T:WebFormsCore.UI.WebControls.HtmlContainerControl" /> control to the specified <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object.</summary>
+        /// <param name="writer">The <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> that receives the rendered content.</param>
         protected virtual void RenderEndTag(HtmlTextWriter writer) => writer.WriteEndTag(TagName);
 
-        /// <summary>Renders the closing tag for the <see cref="T:System.Web.UI.HtmlControls.HtmlContainerControl" /> control to the specified <see cref="T:System.Web.UI.HtmlTextWriter" /> object.</summary>
-        /// <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter" /> that receives the rendered content.</param>
+        /// <summary>Renders the closing tag for the <see cref="T:WebFormsCore.UI.WebControls.HtmlContainerControl" /> control to the specified <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object.</summary>
+        /// <param name="writer">The <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> that receives the rendered content.</param>
         /// <param name="cancellationToken"></param>
         protected virtual ValueTask RenderEndTagAsync(HtmlTextWriter writer, CancellationToken cancellationToken) => writer.WriteEndTagAsync(TagName);
     }

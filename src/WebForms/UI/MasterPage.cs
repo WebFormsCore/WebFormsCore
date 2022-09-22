@@ -1,4 +1,4 @@
-﻿namespace System.Web.UI;
+﻿namespace WebFormsCore.UI;
 
 public class MasterPage : Control
 {

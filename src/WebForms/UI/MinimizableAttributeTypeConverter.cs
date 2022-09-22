@@ -1,7 +1,8 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Globalization;
 
-namespace System.Web.UI;
+namespace WebFormsCore.UI;
 
 internal class MinimizableAttributeTypeConverter : BooleanConverter
 {

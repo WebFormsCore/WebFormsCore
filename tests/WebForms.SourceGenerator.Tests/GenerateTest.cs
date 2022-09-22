@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using System.Web.UI;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using VerifyTests;
 using VerifyXunit;
+using WebForms.SourceGenerator.Tests.Utils;
+using WebFormsCore.UI;
 
 namespace WebForms.SourceGenerator.Tests;
 

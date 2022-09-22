@@ -1,4 +1,4 @@
-﻿namespace System.Web.UI;
+﻿namespace WebFormsCore.UI;
 
 public interface INamingContainer
 {

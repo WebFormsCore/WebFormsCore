@@ -1,7 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.Text;
-
-namespace WebForms.Nodes;
+﻿namespace WebFormsCore.Nodes;
 
 public abstract class ContainerNode : Node
 {

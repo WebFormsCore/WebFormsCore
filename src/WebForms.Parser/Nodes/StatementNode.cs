@@ -1,7 +1,6 @@
-﻿using System.Text;
-using WebForms.Models;
+﻿using WebFormsCore.Models;
 
-namespace WebForms.Nodes;
+namespace WebFormsCore.Nodes;
 
 public class StatementNode : Node
 {

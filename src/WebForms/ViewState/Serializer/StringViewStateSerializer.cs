@@ -1,8 +1,8 @@
-﻿using System.Buffers.Binary;
+﻿using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace System.Web.Serializer;
+namespace WebFormsCore.Serializer;
 
 public class StringViewStateSerializer : ViewStateSerializer<string?>
 {

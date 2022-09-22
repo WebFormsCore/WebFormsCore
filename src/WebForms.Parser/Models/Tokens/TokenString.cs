@@ -1,7 +1,7 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp;
 
-namespace WebForms.Models;
+namespace WebFormsCore.Models;
 
 [DebuggerDisplay("{Value} [{Range}]")]
 public readonly struct TokenString : IEquatable<TokenString>

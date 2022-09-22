@@ -2,7 +2,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace WebForms.SourceGenerator.Tests;
+namespace WebForms.SourceGenerator.Tests.Utils;
 
 public class MemoryAdditionalText : AdditionalText
 {

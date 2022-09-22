@@ -1,8 +1,4 @@
-﻿using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using WebForms.Models;
-
-namespace WebForms.Nodes;
+﻿namespace WebFormsCore.Nodes;
 
 public class RootNode : ContainerNode
 {

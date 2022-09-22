@@ -1,0 +1,17 @@
+﻿<Project Sdk="MSBuild.SDK.SystemWeb/4.0.82">
+
+	<PropertyGroup>
+		<TargetFramework>net472</TargetFramework>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<AdditionalFiles Include="Default.aspx" />
+		<AdditionalFiles Include="web.config" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\WebForms.AspNet\WebForms.AspNet.csproj" />
+		<ProjectReference Include="..\..\src\WebForms.SourceGenerator\WebForms.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+	</ItemGroup>
+
+</Project>

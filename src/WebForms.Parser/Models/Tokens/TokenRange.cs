@@ -1,8 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using WebForms.Nodes;
 
-namespace WebForms.Models;
+namespace WebFormsCore.Models;
 
 public record struct OffsetRange(int Start, int End);
 

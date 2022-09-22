@@ -1,4 +1,4 @@
-﻿namespace WebForms.Nodes;
+﻿namespace WebFormsCore.Models;
 
 public enum RunAt
 {

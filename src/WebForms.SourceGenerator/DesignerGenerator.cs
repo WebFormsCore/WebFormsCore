@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Scriban;
-using WebForms.Designer;
+using WebFormsCore.Designer;
 
 namespace WebForms.SourceGenerator;
 

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace WebForms.SourceGenerator.Tests;
+namespace WebForms.SourceGenerator.Tests.Utils;
 
 public class TestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
 {

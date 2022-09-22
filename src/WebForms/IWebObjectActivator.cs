@@ -1,7 +1,8 @@
-﻿using System.Web.UI;
-using System.Web.UI.HtmlControls;
+﻿using System;
+using WebFormsCore.UI.HtmlControls;
+using WebFormsCore.UI.WebControls;
 
-namespace System.Web;
+namespace WebFormsCore;
 
 public interface IWebObjectActivator
 {

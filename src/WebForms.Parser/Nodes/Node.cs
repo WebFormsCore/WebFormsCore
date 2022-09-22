@@ -1,9 +1,8 @@
 ﻿using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-using WebForms.Models;
+using WebFormsCore.Models;
 
-namespace WebForms.Nodes;
+namespace WebFormsCore.Nodes;
 
 public record HitRange(TokenRange Range, int Type = 0, TokenString? Value = null)
 {

@@ -1,5 +1,5 @@
 <%@ Page language="C#" Inherits="WebForms.Example.Default" %>
-<%@ Register TagPrefix="asp" Namespace="System.Web.UI.WebControls" Assembly="WebForms" %>
+<%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI.WebControls" Assembly="WebForms" %>
 
 <!DOCTYPE html>
 <html>
@@ -9,16 +9,16 @@
 <body id="Body" runat="server">
     <form ID="Form" runat="server" method="post">
         <div>
-            <asp:Literal runat="server" ID="litText" />
+            <wfc:Literal runat="server" ID="litText" />
         </div>
-        <asp:Button runat="server" ID="btnTest">Test</asp:Button>
+        <wfc:Button runat="server" ID="btnTest">Test</wfc:Button>
     </form>
 
     <form ID="Form2" runat="server" method="post">
         <div>
-            <asp:Literal runat="server" ID="litText2" />
+            <wfc:Literal runat="server" ID="litText2" />
         </div>
-        <asp:Button runat="server" ID="btnTest2">Test</asp:Button>
+        <wfc:Button runat="server" ID="btnTest2">Test</wfc:Button>
     </form>
 
 <script type="module">

@@ -1,5 +1,5 @@
 ## What is WebForms Core?
-WebForms Core is a framework for ASP.NET Core and OWIN.
+WebForms Core is a framework for ASP.NET Core and ASP.NET.
 
 It's heavily inspired by WebForms but is not a direct port. There are a lot of breaking changes. The goal is to provide a framework that is easy to use and provides a familiar experience for developers who are used to WebForms.
 
@@ -8,10 +8,12 @@ It's heavily inspired by WebForms but is not a direct port. There are a lot of b
 ## Changes
 In comparison to WebForms there are a few changes:
 
-- **Targets .NET Standard 2.0 and NET 6.0**  
+- **Targets .NET Framework 4.7.2 and NET 6.0**  
   You can use WebForms Core on .NET and .NET Framework 🎉
   
-  > **Note:** WebForms Core uses the same namespace as WebForms (`System.Web.UI`). This means that you can't use the reference `System.Web` in the same project. It's recommended to use a separate project that targets .NET Standard 2.0 (and .NET 6.0).
+  > **Note:** The WebForms designer in Visual Studio (with ReSharper) and Rider gives an error that the page doesn't extend `System.Web.UI.Page`. This can be ignored.
+
+  > **Note:** .NET Framework doesn't support Brotoli view state compression.
 - **Rendering is asynchronous**  
   By default, ASP.NET Core doesn't allow synchronous operations. This is done [to prevent thread starvation and app hangs](https://makolyte.com/aspnet-invalidoperationexception-synchronous-operations-are-disallowed/).
 - **Designer source generators**  

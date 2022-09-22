@@ -1,11 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using WebForms.Collections;
-using WebForms.Models;
-using static System.Net.Mime.MediaTypeNames;
+using WebFormsCore.Collections.Comparers;
+using WebFormsCore.Models;
 
-namespace WebForms.Nodes;
+namespace WebFormsCore.Nodes;
 
 public class HtmlNode : ContainerNode, IAttributeNode
 {

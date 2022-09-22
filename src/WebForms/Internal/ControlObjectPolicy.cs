@@ -1,7 +1,7 @@
-﻿using System.Web.UI;
-using Microsoft.Extensions.ObjectPool;
+﻿using Microsoft.Extensions.ObjectPool;
+using WebFormsCore.UI;
 
-namespace WebForms.AspNetCore;
+namespace WebFormsCore;
 
 internal class ControlObjectPolicy<T> : PooledObjectPolicy<T>
     where T : Control, new()

@@ -1,17 +1,14 @@
-﻿using System.Collections;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Web.UI;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using WebForms;
-using WebForms.Designer;
-using WebForms.Nodes;
-using static System.Net.Mime.MediaTypeNames;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using WebFormsCore.Designer;
+using WebFormsCore.Nodes;
 
-namespace System.Web.Compiler;
+namespace WebFormsCore.Compiler;
 
 public record struct CompileResult(CSharpCompilation Compilation, string Type);
 
@@ -33,7 +30,7 @@ public class PageCompiler
             platform: Platform.AnyCpu
         );
 
-        var references = new List<MetadataReference>();
+        var references = new HashSet<MetadataReference>();
         var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
 
         references.Add(MetadataReference.CreateFromFile(assembly.Location));
@@ -42,6 +39,16 @@ public class PageCompiler
         {
             references.Add(MetadataReference.CreateFromFile(referencedAssembly.Location));
         }
+
+#if NETFRAMEWORK
+        if (System.Web.HttpRuntime.BinDirectory is {} binDirectory)
+        {
+            foreach (var dllFile in Directory.GetFiles(binDirectory, "*.dll"))
+            {
+                references.Add(MetadataReference.CreateFromFile(dllFile));
+            }
+        }
+#endif
 
         var compilation = CSharpCompilation.Create(
             $"WebForms_{assemblyName}",
@@ -110,8 +117,8 @@ public class PageCompiler
 
         sb.AppendLine("using System;");
         sb.AppendLine("using System.Threading.Tasks;");
-        sb.AppendLine("using System.Web.UI;");
-        sb.AppendLine("using System.Web.UI.WebControls;");
+        sb.AppendLine("using WebFormsCore.UI;");
+        sb.AppendLine("using WebFormsCore.UI.WebControls;");
         sb.AppendLine();
         
         sb.Append("namespace ");

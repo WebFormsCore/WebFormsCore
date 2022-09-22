@@ -1,4 +1,4 @@
-﻿namespace System.Web
+﻿namespace WebFormsCore
 {
     public interface IViewStateObject
     {

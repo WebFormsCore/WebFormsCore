@@ -1,4 +1,4 @@
-﻿namespace WebForms.Models;
+﻿namespace WebFormsCore.Models;
 
 public enum TokenType
 {

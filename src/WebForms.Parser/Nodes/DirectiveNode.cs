@@ -1,8 +1,7 @@
-﻿using System.Text;
-using WebForms.Collections;
-using WebForms.Models;
+﻿using WebFormsCore.Collections.Comparers;
+using WebFormsCore.Models;
 
-namespace WebForms.Nodes;
+namespace WebFormsCore.Nodes;
 
 public class DirectiveNode : Node, IAttributeNode
 {

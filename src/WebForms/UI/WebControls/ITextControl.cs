@@ -1,4 +1,4 @@
-namespace System.Web.UI.WebControls;
+namespace WebFormsCore.UI.WebControls;
 
 /// <summary>Defines the interface a control implements to get or set its text content.</summary>
 public interface ITextControl

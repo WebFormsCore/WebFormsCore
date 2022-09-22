@@ -1,11 +1,11 @@
-﻿using System.Buffers.Text;
+﻿using System;
 using System.Text;
 
-namespace System.Web
+namespace WebFormsCore
 {
     internal static class EncodingExtensions
     {
-#if NETSTANDARD
+#if NETFRAMEWORK
         public static unsafe string GetString(this Encoding encoding, ReadOnlySpan<byte> bytes)
         {
             fixed (byte* bytesPtr = bytes)

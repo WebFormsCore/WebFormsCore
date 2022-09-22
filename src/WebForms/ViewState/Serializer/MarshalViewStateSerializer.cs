@@ -1,8 +1,8 @@
-﻿using System.Buffers.Binary;
+﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace System.Web.Serializer;
+namespace WebFormsCore.Serializer;
 
 public class MarshalViewStateSerializer<T> : ViewStateSerializer<T>
     where T : struct

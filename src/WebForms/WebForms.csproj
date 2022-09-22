@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
+        <TargetFrameworks>net6.0;net472</TargetFrameworks>
 		<LangVersion>10</LangVersion>
         <Nullable>enable</Nullable>
-        <RootNamespace>System.Web</RootNamespace>
+        <RootNamespace>WebFormsCore</RootNamespace>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
@@ -20,13 +20,20 @@
 		<PackageReference Include="IsExternalInit" Version="1.0.2" PrivateAssets="all" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="Microsoft.AspNetCore.SystemWebAdapters" Version="1.0.0-rc.1.22464.1" />
+		<ProjectReference Include="..\WebForms.Adapters\WebForms.Adapters.csproj" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net472'">
 		<PackageReference Include="System.Memory" Version="4.5.4" />
 		<PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+		<PackageReference Include="Microsoft.AspNetCore.SystemWebAdapters.FrameworkServices" Version="1.0.0-rc.1.22464.1" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\WebForms.SourceGenerator\WebForms.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\WebForms.Parser\WebForms.Parser.csproj" />
 	</ItemGroup>
 
 </Project>

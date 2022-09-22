@@ -1,6 +1,6 @@
-﻿using WebForms.Models;
+﻿using WebFormsCore.Models;
 
-namespace WebForms.Collections;
+namespace WebFormsCore.Collections.Comparers;
 
 public class AttributeCompare : IComparer<TokenString>, IEqualityComparer<TokenString>
 {

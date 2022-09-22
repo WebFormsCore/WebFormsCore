@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace System.Web.UI
+namespace WebFormsCore.UI
 {
     public enum HtmlTextWriterTag
     {

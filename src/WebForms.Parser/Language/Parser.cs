@@ -1,13 +1,9 @@
-﻿using System.Text;
-using System.Xml.Linq;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using WebForms.Models;
-using WebForms.Nodes;
+using WebFormsCore.Models;
+using WebFormsCore.Nodes;
 
-namespace WebForms;
+namespace WebFormsCore.Language;
 
 public class Parser
 {

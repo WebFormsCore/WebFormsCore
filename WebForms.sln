@@ -19,7 +19,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebForms.Example", "example
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebForms.AspNetCore", "src\WebForms.AspNetCore\WebForms.AspNetCore.csproj", "{83FD23DA-B242-4D59-B1A6-D8C1BF2916B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebForms.Tests", "tests\WebForms.Tests\WebForms.Tests.csproj", "{1BF92442-DB6E-468C-8070-3736A855677B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebForms.Tests", "tests\WebForms.Tests\WebForms.Tests.csproj", "{1BF92442-DB6E-468C-8070-3736A855677B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebForms.NetFx.Example", "examples\WebForms.NetFx.Example\WebForms.NetFx.Example.csproj", "{41A1D892-1609-43AA-AE9D-966EFA7FED0C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebForms.AspNet", "src\WebForms.AspNet\WebForms.AspNet.csproj", "{537989AF-860A-4A92-A68A-93BCDE17310A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebForms.Adapters", "src\WebForms.Adapters\WebForms.Adapters.csproj", "{CBDD370A-2252-4BB6-9409-EBA77003ABFF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +61,18 @@ Global
 		{1BF92442-DB6E-468C-8070-3736A855677B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1BF92442-DB6E-468C-8070-3736A855677B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1BF92442-DB6E-468C-8070-3736A855677B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41A1D892-1609-43AA-AE9D-966EFA7FED0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41A1D892-1609-43AA-AE9D-966EFA7FED0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41A1D892-1609-43AA-AE9D-966EFA7FED0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41A1D892-1609-43AA-AE9D-966EFA7FED0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{537989AF-860A-4A92-A68A-93BCDE17310A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{537989AF-860A-4A92-A68A-93BCDE17310A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{537989AF-860A-4A92-A68A-93BCDE17310A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{537989AF-860A-4A92-A68A-93BCDE17310A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBDD370A-2252-4BB6-9409-EBA77003ABFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBDD370A-2252-4BB6-9409-EBA77003ABFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBDD370A-2252-4BB6-9409-EBA77003ABFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBDD370A-2252-4BB6-9409-EBA77003ABFF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -63,6 +81,7 @@ Global
 		{08DE48DE-29C0-4F46-947C-C6F470475A2A} = {726D3801-795C-4C82-8B50-4AB15C7F004B}
 		{C3CC0944-3BB8-449F-97AF-27D574160E65} = {210D9008-25A9-4ABE-8C8C-A7FDDC3381F6}
 		{1BF92442-DB6E-468C-8070-3736A855677B} = {726D3801-795C-4C82-8B50-4AB15C7F004B}
+		{41A1D892-1609-43AA-AE9D-966EFA7FED0C} = {210D9008-25A9-4ABE-8C8C-A7FDDC3381F6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {022403F7-A5A6-4639-8579-D9B56627AE73}

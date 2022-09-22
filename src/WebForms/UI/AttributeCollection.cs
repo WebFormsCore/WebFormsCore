@@ -1,29 +1,14 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Threading.Tasks;
 
-namespace System.Web.UI;
+namespace WebFormsCore.UI;
 
-/*
-* The AttributeCollection represents Attributes on an Html control.
-*/
-
-/// <devdoc>
-///    <para>
-///       The <see langword='AttributeCollection'/> class provides object-model access
-///       to all attributes declared on an HTML server control element.
-///    </para>
-/// </devdoc>
 public sealed class AttributeCollection
 {
     private readonly StateBag _bag;
     private CssStyleCollection? _styleColl;
 
-    /*
-     *      Constructs an AttributeCollection given a StateBag.
-     */
-
-    /// <devdoc>
-    /// </devdoc>
     public AttributeCollection(StateBag bag)
     {
         _bag = bag;

@@ -1,4 +1,6 @@
-﻿namespace System.Web.Serializer;
+﻿using System;
+
+namespace WebFormsCore.Serializer;
 
 public interface IViewStateSerializer
 {

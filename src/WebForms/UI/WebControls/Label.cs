@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace System.Web.UI.WebControls
+﻿namespace WebFormsCore.UI.WebControls
 {
     public class Label : Control
     {

@@ -1,6 +1,6 @@
-﻿using WebForms.Nodes;
+﻿using WebFormsCore.Nodes;
 
-namespace WebForms;
+namespace WebFormsCore.Language;
 
 internal class ParserContainer
 {

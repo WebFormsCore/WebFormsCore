@@ -1,6 +1,6 @@
-using System.Web.UI.HtmlControls;
+using WebFormsCore.UI.HtmlControls;
 
-namespace System.Web.UI.WebControls;
+namespace WebFormsCore.UI.WebControls;
 
 public class Button : HtmlGenericControl
 {

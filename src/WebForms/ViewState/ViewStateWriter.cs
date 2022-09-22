@@ -1,9 +1,9 @@
-﻿using System.Buffers;
-using System.Drawing;
-using System.Web.Serializer;
+﻿using System;
+using System.Buffers;
 using Microsoft.Extensions.DependencyInjection;
+using WebFormsCore.Serializer;
 
-namespace System.Web;
+namespace WebFormsCore;
 
 public static class ViewStateWriterExtensions
 {

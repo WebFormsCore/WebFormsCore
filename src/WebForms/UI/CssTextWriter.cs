@@ -1,9 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Web;
 
-namespace System.Web.UI;
+namespace WebFormsCore.UI;
 
 /// <devdoc>
 /// Derived TextWriter that provides CSS rendering API.
