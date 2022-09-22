@@ -15,18 +15,21 @@ using System.Web;
 
 namespace Tests
 {
-    public partial class Example
+    public partial class Example : IViewStateObject
     {
-		protected override void WriteViewState(IViewStateWriter writer)
+		protected override void OnWriteViewState(ref ViewStateWriter writer)
         {
-            base.WriteViewState(writer);
+            base.OnWriteViewState(ref writer);
 			writer.Write<string>(test);
         }
 
-		protected override void ReadViewState(IViewStateReader reader)
+		protected override void OnReadViewState(ref ViewStateReader reader)
         {
-            base.ReadViewState(reader);
+            base.OnReadViewState(ref reader);
 			test = reader.Read<string>();
         }
+
+        void IViewStateObject.WriteViewState(ref ViewStateWriter writer) => OnWriteViewState(ref writer);
+        void IViewStateObject.ReadViewState(ref ViewStateReader reader) => OnReadViewState(ref reader);
     }
 }

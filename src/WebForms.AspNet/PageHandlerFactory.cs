@@ -54,6 +54,7 @@ namespace WebFormsCore
 
                     var services = new ServiceCollection();
                     services.AddWebForms();
+                    services.AddLogging();
                     _provider = services.BuildServiceProvider();
                 }
             }

@@ -26,6 +26,11 @@ public abstract class Node
     {
     }
 
+    public virtual void WriteRaw(CompileContext context)
+    {
+        Write(context);
+    }
+
     public abstract void Write(CompileContext builder);
 }
 
@@ -43,6 +48,8 @@ public class CompileContext
     public string ParentNode { get; set; } = "this";
 
     public INamedTypeSymbol? Type { get; set; }
+
+    public bool GenerateFields { get; set; }
 
     public string GetNext()
     {

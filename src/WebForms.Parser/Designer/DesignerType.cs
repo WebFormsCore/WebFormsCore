@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using WebFormsCore.Language;
 using WebFormsCore.Models;
@@ -5,13 +7,53 @@ using WebFormsCore.Nodes;
 
 namespace WebFormsCore.Designer;
 
-public record DesignerType(
-    string? Namespace,
+public record DesignerType(string? Namespace,
     string Name,
     List<DesignerField> Fields,
     List<DesignerEvent> Events,
-    RootNode Root)
+    RootNode Root,
+    INamedTypeSymbol? Type,
+    string Hash)
 {
+    private string? _classCode;
+    private string? _initializeCode;
+
+    public string ClassCode
+    {
+        get
+        {
+            if (_classCode == null) CreateCode();
+            return _classCode!;
+        }
+    }
+
+    public string InitializeCode
+    {
+        get
+        {
+            if (_initializeCode == null) CreateCode();
+            return _initializeCode!;
+        }
+    }
+
+    private void CreateCode()
+    {
+        var sb = new StringBuilder();
+        var context = new CompileContext(sb)
+        {
+            Type = Type,
+            GenerateFields = true
+        };
+
+        Root.WriteClass(context);
+        _classCode = sb.ToString();
+
+        sb.Clear();
+
+        Root.Write(context);
+        _initializeCode = sb.ToString();
+    }
+
     public static DesignerType? Parse(Compilation compilation, string path, string? text)
     {
         if (text == null) return null;
@@ -81,12 +123,31 @@ public record DesignerType(
             }
         }
 
+        string hash;
+
+        using (var md5 = MD5.Create())
+        {
+            var inputBytes = Encoding.UTF8.GetBytes(text);
+            var hashBytes = md5.ComputeHash(inputBytes);
+            var sb = new StringBuilder();
+
+            foreach (var c in hashBytes)
+            {
+                sb.Append(c.ToString("X2"));
+            }
+
+            hash = sb.ToString();
+        }
+
         return new DesignerType(
+
             inheritNamespace,
             inheritName,
             fields,
             events,
-            parser.Root
+            parser.Root,
+            inheritsType,
+            hash
         );
     }
 

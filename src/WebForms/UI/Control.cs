@@ -525,6 +525,11 @@ public partial class Control
         return default;
     }
 
+    protected virtual ValueTask OnPreRenderAsync(CancellationToken token)
+    {
+        return default;
+    }
+
     protected virtual void OnWriteViewState(ref ViewStateWriter writer)
     {
         if (!EnableViewState) return;

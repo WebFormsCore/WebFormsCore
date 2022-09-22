@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Scriban;
+using WebFormsCore;
 using WebFormsCore.Designer;
 
 namespace WebForms.SourceGenerator;
@@ -13,7 +14,7 @@ public class DesignerGenerator : IIncrementalGenerator
         var files = context.AdditionalTextsProvider
             .Where(a => a.Path.EndsWith(".aspx", StringComparison.OrdinalIgnoreCase) ||
                         a.Path.EndsWith(".ascx", StringComparison.OrdinalIgnoreCase))
-            .Select((a, c) => (a.Path, a.GetText(c)!.ToString()));
+            .Select((a, c) => (a.Path, a.GetText(c)!.ToString().ReplaceLineEndings("\n")));
 
         var compilationAndFiles = context.CompilationProvider.Combine(files.Collect());
 
@@ -24,10 +25,13 @@ public class DesignerGenerator : IIncrementalGenerator
     {
         var (compilation, files) = sourceContext;
         var types = new List<DesignerType>();
+        var visited = new HashSet<string>();
 
         foreach (var (path, text) in files)
         {
-            if (DesignerType.Parse(compilation, path, text) is { Fields.Count: > 0 } type)
+            if (!visited.Add(path)) continue;
+
+            if (DesignerType.Parse(compilation, path, text) is {} type)
             {
                 types.Add(type);
             }

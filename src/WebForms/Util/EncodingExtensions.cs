@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace WebFormsCore
 {
@@ -20,6 +21,15 @@ namespace WebFormsCore
             fixed (byte* bytesPtr = bytes)
             {
                 return encoding.GetBytes(chars, s.Length, bytesPtr, bytes.Length);
+            }
+        }
+
+        public static unsafe int GetChars(this Encoding encoding, ReadOnlySpan<byte> bytes, Span<char> chars)
+        {
+            fixed (byte* bytesPtr = bytes)
+            fixed (char* charsPtr = chars)
+            {
+                return encoding.GetChars(bytesPtr, bytes.Length, charsPtr, chars.Length);
             }
         }
 

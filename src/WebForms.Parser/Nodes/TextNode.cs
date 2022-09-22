@@ -10,6 +10,11 @@ public class TextNode : Node
 
     public TokenString Text { get; set; }
 
+    public override void WriteRaw(CompileContext context)
+    {
+        context.Builder.Append(Text.Value);
+    }
+
     public override void Write(CompileContext context)
     {
         var builder = context.Builder;

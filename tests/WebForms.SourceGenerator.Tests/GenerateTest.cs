@@ -28,7 +28,7 @@ public class GenerateTest
 
         var syntaxTree = CSharpSyntaxTree.ParseText(
             """
-            using System.Web.UI.WebControls;
+            using WebFormsCore.UI.WebControls;
 
             namespace Tests
             {
@@ -51,13 +51,19 @@ public class GenerateTest
                     "Example.aspx",
                     """
                     <%@ Page language="C#" Inherits="Tests.Example" %>
-                    <%@ Register TagPrefix="asp" Namespace="System.Web.UI.WebControls" %>
+                    <%@ Register TagPrefix="asp" Namespace="WebFormsCore.UI.WebControls" %>
                     <!DOCTYPE htm>
                     <html>
                     <head runat="server">
                         <title></title>
                     </head>
                     <body>
+                        <script runat="server">
+                            private string Test => "Test";
+                        </script>
+
+                        <%= Test %>
+
                         <form id="form1" runat="server">
                             <div>
                                 <asp:TextBox id="tbUsername" runat="server" /><br />

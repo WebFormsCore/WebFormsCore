@@ -10,7 +10,7 @@ using WebFormsCore.Nodes;
 
 namespace WebFormsCore.Compiler;
 
-public record struct CompileResult(CSharpCompilation Compilation, string Type);
+public record struct CompileResult(CSharpCompilation Compilation, string TypeName, DesignerType Type);
 
 public class PageCompiler
 {
@@ -56,7 +56,7 @@ public class PageCompiler
             options: defaultCompilationOptions
         );
 
-        var text= File.ReadAllText(path);
+        var text = File.ReadAllText(path).ReplaceLineEndings("\n");
         var type = DesignerType.Parse(compilation, path, text);
 
         if (type == null)
@@ -72,7 +72,7 @@ public class PageCompiler
             CSharpSyntaxTree.ParseText(code)
         );
 
-        return new CompileResult(compilation, $"{ns}.{assemblyName}");
+        return new CompileResult(compilation, $"{ns}.{assemblyName}", type);
     }
 
     public static List<Assembly> GetAssemblies()

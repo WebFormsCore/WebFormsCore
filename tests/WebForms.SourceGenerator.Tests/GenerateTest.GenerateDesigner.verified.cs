@@ -13,8 +13,71 @@ namespace Tests
 {
     partial class Example
     {
-        public global::System.Web.UI.WebControls.TextBox tbUsername;
-        public global::System.Web.UI.WebControls.TextBox tbPassword;
-        public global::System.Web.UI.WebControls.Button btnLogin;
+        public global::WebFormsCore.UI.WebControls.TextBox tbUsername;
+        public global::WebFormsCore.UI.WebControls.TextBox tbPassword;
+        public global::WebFormsCore.UI.WebControls.Button btnLogin;
+
+        [WebFormsCore.CompiledView("283B4BAE348F35E36AE966BDEC900D52")]
+        public class CompiledView : Example
+        {
+
+        private string Test => "Test";
+    
+            protected override void FrameworkInitialize()
+            {
+                base.FrameworkInitialize();
+this.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
+this.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
+this.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
+var @ctrl0 = WebActivator.CreateHtml("html");
+@ctrl0.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
+var @ctrl1 = WebActivator.CreateHtml("head");
+@ctrl1.AddParsedSubObject(WebActivator.CreateLiteral("\n    "));
+var @ctrl2 = WebActivator.CreateHtml("title");
+@ctrl1.AddParsedSubObject(@ctrl2);
+@ctrl1.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
+@ctrl0.AddParsedSubObject(@ctrl1);
+@ctrl0.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
+var @ctrl3 = WebActivator.CreateHtml("body");
+@ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("\n    "));
+@ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("\n\n    "));
+@ctrl3.AddParsedSubObject(WebActivator.CreateLiteral( Test ));
+@ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("\n\n    "));
+var @ctrl4 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.HtmlForm>();
+@ctrl4.ID = "form1";
+this.form1 = @ctrl4;
+@ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("\n        "));
+var @ctrl5 = WebActivator.CreateHtml("div");
+@ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("\n            "));
+var @ctrl6 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.TextBox>();
+@ctrl6.ID = "tbUsername";
+this.tbUsername = @ctrl6;
+@ctrl5.AddParsedSubObject(@ctrl6);
+var @ctrl7 = WebActivator.CreateHtml("br");
+@ctrl5.AddParsedSubObject(@ctrl7);
+@ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("\n            "));
+var @ctrl8 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.TextBox>();
+@ctrl8.ID = "tbPassword";
+this.tbPassword = @ctrl8;
+@ctrl5.AddParsedSubObject(@ctrl8);
+var @ctrl9 = WebActivator.CreateHtml("br");
+@ctrl5.AddParsedSubObject(@ctrl9);
+@ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("\n            "));
+var @ctrl10 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.Button>();
+@ctrl10.ID = "btnLogin";
+@ctrl10.Attributes["click"] = "btnLogin_Click";
+@ctrl10.Attributes["text"] = "Login";
+this.btnLogin = @ctrl10;
+@ctrl5.AddParsedSubObject(@ctrl10);
+@ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("\n        "));
+@ctrl4.AddParsedSubObject(@ctrl5);
+@ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("\n    "));
+@ctrl3.AddParsedSubObject(@ctrl4);
+@ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
+@ctrl0.AddParsedSubObject(@ctrl3);
+@ctrl0.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
+this.AddParsedSubObject(@ctrl0);
+            }
+        }
     }
 }

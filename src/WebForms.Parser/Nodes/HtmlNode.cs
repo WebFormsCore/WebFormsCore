@@ -39,7 +39,7 @@ public class HtmlNode : ContainerNode, IAttributeNode
         {
             foreach (var child in Children)
             {
-                child.Write(context);
+                child.WriteRaw(context);
             }
         }
         else
@@ -51,6 +51,8 @@ public class HtmlNode : ContainerNode, IAttributeNode
 
     public override void Write(CompileContext context)
     {
+        if (IsServerScript) return;
+
         Debug.Assert(ControlId != null);
 
         var builder = context.Builder;
@@ -127,10 +129,10 @@ public class HtmlNode : ContainerNode, IAttributeNode
         {
             var parentField = context.Type?.GetMemberDeep(id.Value);
 
-            if (parentField is { CanWrite: true })
+            if (parentField is { CanWrite: true } || parentField == null && context.GenerateFields)
             {
                 builder.Append("this.");
-                builder.Append(parentField.Name);
+                builder.Append(parentField?.Name ?? id.Value);
                 builder.Append(" = ");
                 builder.Append(ControlId);
                 builder.AppendLine(";");

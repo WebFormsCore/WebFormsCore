@@ -1,4 +1,9 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
+using System.IO;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI.HtmlControls
@@ -6,6 +11,8 @@ namespace WebFormsCore.UI.HtmlControls
     /// <summary>Defines the methods, properties, and events for all HTML server control elements not represented by a specific .NET Framework class.</summary>
     public class HtmlGenericControl : HtmlContainerControl
     {
+        private string? _preRenderedContent;
+
         /// <summary>Initializes a new instance of the <see cref="T:WebFormsCore.UI.HtmlControls.HtmlGenericControl" /> class with default values.</summary>
         public HtmlGenericControl()
             : this("span")
@@ -27,6 +34,40 @@ namespace WebFormsCore.UI.HtmlControls
         {
             get => _tagName;
             set => _tagName = value;
+        }
+
+        protected override async ValueTask OnPreRenderAsync(CancellationToken token)
+        {
+            await base.OnPreRenderAsync(token);
+
+            if (!_tagName.Equals("script", StringComparison.OrdinalIgnoreCase) || !Page.Csp.Enabled)
+            {
+                return;
+            }
+
+            await using var subWriter = new HtmlTextWriter();
+
+            await base.RenderChildrenAsync(subWriter, token);
+            await subWriter.FlushAsync();
+
+            var script = subWriter.ToString();
+            _preRenderedContent = script;
+
+            Page.Csp.ScriptSrc.AddInlineHash(script);
+        }
+
+        protected override ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
+        {
+            return _preRenderedContent != null
+                ? new ValueTask(writer.WriteAsync(_preRenderedContent))
+                : base.RenderChildrenAsync(writer, token);
+        }
+
+        public override void ClearControl()
+        {
+            base.ClearControl();
+
+            _preRenderedContent = null;
         }
     }
 }

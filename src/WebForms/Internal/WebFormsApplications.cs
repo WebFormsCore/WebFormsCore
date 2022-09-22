@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -12,28 +13,39 @@ namespace WebFormsCore.Internal;
 
 internal class WebFormsApplications : IWebFormsApplication
 {
+    private readonly PageFactory _pageFactory;
     private readonly IWebFormsEnvironment _environment;
 
-    public WebFormsApplications(IWebFormsEnvironment environment)
+    public WebFormsApplications(IWebFormsEnvironment environment, PageFactory pageFactory)
     {
         _environment = environment;
+        _pageFactory = pageFactory;
     }
 
     public async Task<bool> ProcessAsync(HttpContext context, IServiceProvider provider, CancellationToken token)
     {
         var path = Path.Combine(_environment.ContentRootPath, "Default.aspx");
-        var page = CreatePage(path);
+        var pageType = await _pageFactory.GetTypeAsync(path);
+        var page = (Page)Activator.CreateInstance(pageType)!;
 
-        page.SetServiceProvider(provider);
+        page.Initialize(provider, context);
 
         var control = await page.ProcessRequestAsync(token);
-        var stream = context.Response.OutputStream;
+
+        var response = context.Response;
+
+        if (page.Csp.Enabled)
+        {
+            response.Headers["Content-Security-Policy"] = page.Csp.ToString();
+        }
+
+        var stream = response.OutputStream;
 
 #if NETFRAMEWORK
-        using var textWriter = new StreamWriter(stream);
+        using var textWriter = new StreamWriter(stream) { NewLine = "\n" };
         using var writer = new HtmlTextWriter(textWriter, stream);
 #else
-        await using var textWriter = new StreamWriter(stream);
+        await using var textWriter = new StreamWriter(stream) { NewLine = "\n" };
         await using var writer = new HtmlTextWriter(textWriter, stream);
 #endif
 
@@ -42,32 +54,5 @@ internal class WebFormsApplications : IWebFormsApplication
         await writer.FlushAsync();
 
         return true;
-    }
-
-    public static Page CreatePage(string path)
-    {
-        var rootPath = AppContext.BaseDirectory;
-
-        var (compilation, typeName) = PageCompiler.Compile(path);
-
-        using var assemblyStream = new MemoryStream();
-        using var symbolsStream = new MemoryStream();
-
-        var emitOptions = new EmitOptions();
-
-        var result = compilation.Emit(
-            peStream: assemblyStream,
-            pdbStream: symbolsStream,
-            options: emitOptions);
-
-        if (!result.Success)
-        {
-            throw new InvalidOperationException();
-        }
-
-        var assembly = Assembly.Load(assemblyStream.ToArray(), symbolsStream.ToArray());
-        var type = assembly.GetType(typeName)!;
-
-        return (Page)Activator.CreateInstance(type)!;
     }
 }

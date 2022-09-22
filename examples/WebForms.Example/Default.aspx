@@ -1,12 +1,14 @@
 <%@ Page language="C#" Inherits="WebForms.Example.Default" %>
-<%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI.WebControls" Assembly="WebForms" %>
+<%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI.WebControls" %>
 
 <!DOCTYPE html>
 <html>
 <head id="Head" runat="server">
+    <meta charset="UTF-8" />
     <title runat="server" ID="title"></title>
 </head>
 <body id="Body" runat="server">
+
     <form ID="Form" runat="server" method="post">
         <div>
             <wfc:Literal runat="server" ID="litText" />
@@ -32,11 +34,11 @@ for (const element of elements) {
         const form = e.target;
         const url = location.pathname + location.search;
         const data = new FormData(form);
-        
+
         for (const pair of form) {
             data.append(pair[0], pair[1]);
         }
-        
+
         fetch(url, {
             method: 'post',
             body: data,

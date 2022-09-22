@@ -19,6 +19,18 @@ namespace {{ type.Namespace }}
         public {{ prop.Type }} {{ prop.Name }};
     {{- end }}
     {{- end }}
+
+        [WebFormsCore.CompiledView("{{ type.Hash }}")]
+        public class CompiledView : {{ type.Name }}
+        {
+            {{~ type.ClassCode ~}}
+
+            protected override void FrameworkInitialize()
+            {
+                base.FrameworkInitialize();
+                {{~ type.InitializeCode ~}}
+            }
+        }
     }
 {{- if type.Namespace }}
 }

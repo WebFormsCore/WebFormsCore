@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -11,6 +13,9 @@ using System.Threading.Tasks;
 namespace WebFormsCore.UI;
 
 public class HtmlTextWriter : TextWriter
+#if NETFRAMEWORK
+    , IAsyncDisposable
+#endif
 {
     public const string DefaultTabString = "\t";
     public const char DoubleQuoteChar = '"';
@@ -33,7 +38,8 @@ public class HtmlTextWriter : TextWriter
     private readonly List<KeyValuePair<string, string?>> _styleAttributes = new();
 
     private TextWriter? _innerWriter;
-    private readonly Stream _stream;
+    private bool _disposeInnerWriter;
+    private readonly Stream? _stream;
 
     internal void Initialize(TextWriter writer)
     {
@@ -48,7 +54,13 @@ public class HtmlTextWriter : TextWriter
         _innerWriter = null;
     }
 
-    public HtmlTextWriter(TextWriter writer, Stream stream)
+    public HtmlTextWriter()
+    {
+        _innerWriter = new StringWriter();
+        _disposeInnerWriter = true;
+    }
+
+    public HtmlTextWriter(TextWriter writer, Stream? stream = null)
     {
         _stream = stream;
         _innerWriter = writer;
@@ -67,9 +79,12 @@ public class HtmlTextWriter : TextWriter
     public override Encoding Encoding => InnerWriter.Encoding;
 
     public void AddAttribute(HtmlTextWriterAttribute key, string value) => AddAttribute(key, value, true);
-    public void AddAttribute(HtmlTextWriterAttribute key, string value, bool encode) => AddAttribute(key.ToName(), value, encode);
+
+    public void AddAttribute(HtmlTextWriterAttribute key, string value, bool encode) =>
+        AddAttribute(key.ToName(), value, encode);
 
     public void AddAttribute(string name, string? value) => AddAttribute(name, value, true);
+
     public void AddAttribute(string name, string? value, bool encode)
     {
         if (encode) value = WebUtility.HtmlEncode(value);
@@ -78,9 +93,12 @@ public class HtmlTextWriter : TextWriter
     }
 
     public void AddStyleAttribute(HtmlTextWriterStyle key, string? value) => AddStyleAttribute(key, value, true);
-    public void AddStyleAttribute(HtmlTextWriterStyle key, string? value, bool encode) => AddStyleAttribute(key.ToName(), value, encode);
+
+    public void AddStyleAttribute(HtmlTextWriterStyle key, string? value, bool encode) =>
+        AddStyleAttribute(key.ToName(), value, encode);
 
     public void AddStyleAttribute(string name, string? value) => AddStyleAttribute(name, value, true);
+
     public void AddStyleAttribute(string name, string? value, bool encode)
     {
         if (encode)
@@ -189,7 +207,6 @@ public class HtmlTextWriter : TextWriter
 
     void BeforeWrite()
     {
-
     }
 
     Task BeforeWriteAsync()
@@ -290,6 +307,7 @@ public class HtmlTextWriter : TextWriter
     }
 
     public void WriteEncodedText(string text) => Write(WebUtility.HtmlEncode(text));
+
     public void WriteEncodedUrl(string url)
     {
         var index = url.IndexOf('?');
@@ -464,19 +482,22 @@ public class HtmlTextWriter : TextWriter
     }
 
 #if NET
-    public override async Task WriteAsync(StringBuilder? value, CancellationToken cancellationToken = new CancellationToken())
+    public override async Task WriteAsync(StringBuilder? value,
+        CancellationToken cancellationToken = new CancellationToken())
     {
         await BeforeWriteAsync();
         await InnerWriter.WriteAsync(value, cancellationToken);
     }
 
-    public override async Task WriteAsync(ReadOnlyMemory<char> buffer, CancellationToken cancellationToken = new CancellationToken())
+    public override async Task WriteAsync(ReadOnlyMemory<char> buffer,
+        CancellationToken cancellationToken = new CancellationToken())
     {
         await BeforeWriteAsync();
         await InnerWriter.WriteAsync(buffer, cancellationToken);
     }
 
-    public override async Task WriteLineAsync(ReadOnlyMemory<char> buffer, CancellationToken cancellationToken = new CancellationToken())
+    public override async Task WriteLineAsync(ReadOnlyMemory<char> buffer,
+        CancellationToken cancellationToken = new CancellationToken())
     {
         await BeforeWriteAsync();
         await InnerWriter.WriteAsync(buffer, cancellationToken);
@@ -506,7 +527,8 @@ public class HtmlTextWriter : TextWriter
         base.WriteLine(value);
     }
 
-    public override async Task WriteLineAsync(StringBuilder? value, CancellationToken cancellationToken = new CancellationToken())
+    public override async Task WriteLineAsync(StringBuilder? value,
+        CancellationToken cancellationToken = new CancellationToken())
     {
         await BeforeWriteAsync();
         await base.WriteLineAsync(value, cancellationToken);
@@ -681,10 +703,71 @@ public class HtmlTextWriter : TextWriter
     {
         await BeforeWriteAsync();
         await InnerWriter.FlushAsync();
+
+        if (_stream == null)
+        {
+            var (owner, count) = ByteToChars(buffer);
+
+            try
+            {
+#if NET
+                await InnerWriter.WriteAsync(owner.Memory, token);
+#else
+                await InnerWriter.WriteAsync(owner.Memory.Span.ToString());
+#endif
+            }
+            finally
+            {
+                owner.Dispose();
+            }
+
+            return;
+        }
+
 #if NET
         await _stream.WriteAsync(buffer, token);
 #else
         await _stream.WriteAsync(buffer.ToArray(), 0, buffer.Length, token);
 #endif
     }
+
+    private static (IMemoryOwner<char> Owner, int Length) ByteToChars(Memory<byte> buffer)
+    {
+        var encoding = Encoding.UTF8;
+        var maxCharCount = encoding.GetMaxCharCount(buffer.Length);
+
+        var owner = MemoryPool<char>.Shared.Rent(maxCharCount);
+        var chars = owner.Memory.Span;
+
+        var charCount = encoding.GetChars(buffer.Span, chars);
+
+        return (owner, charCount);
+    }
+
+    public override string ToString()
+    {
+        return InnerWriter.ToString()!;
+    }
+
+#if NET
+    public override async ValueTask DisposeAsync()
+    {
+        await base.DisposeAsync();
+
+        if (_disposeInnerWriter)
+        {
+            await InnerWriter.DisposeAsync();
+        }
+    }
+#else
+    public ValueTask DisposeAsync()
+    {
+        if (_disposeInnerWriter)
+        {
+            InnerWriter.Dispose();
+        }
+
+        return default;
+    }
+#endif
 }

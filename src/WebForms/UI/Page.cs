@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using WebFormsCore.Security;
 using WebFormsCore.UI.WebControls;
 using HttpContext = System.Web.HttpContext;
 
@@ -13,6 +14,8 @@ public class Page : Control, INamingContainer
 {
     private HttpContext? _context;
     private IServiceProvider? _serviceProvider;
+
+    public Csp Csp { get; set; } = new();
 
     protected override HttpContext Context => _context ??= HttpContext.Current ?? throw new InvalidOperationException("No HttpContext available.");
 
@@ -56,12 +59,14 @@ public class Page : Control, INamingContainer
         }
 
         await InvokeLoadAsync(token, form);
+        await InvokePreRenderAsync(token, form);
 
         return target;
     }
 
-    public void SetServiceProvider(IServiceProvider provider)
+    public void Initialize(IServiceProvider provider, HttpContext context)
     {
         _serviceProvider = provider;
+        _context = context;
     }
 }

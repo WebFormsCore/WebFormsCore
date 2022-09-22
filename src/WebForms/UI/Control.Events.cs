@@ -80,12 +80,23 @@ public partial class Control
 
         foreach (var control in Controls)
         {
-            if (form != null && control is HtmlForm && control != form)
-            {
-                continue;
-            }
+            if (form != null && control is HtmlForm && control != form) continue;
 
             await control.InvokeLoadAsync(token, form);
+        }
+    }
+
+    internal async ValueTask InvokePreRenderAsync(CancellationToken token, HtmlForm? form)
+    {
+        if (token.IsCancellationRequested) return;
+
+        await OnPreRenderAsync(token);
+
+        foreach (var control in Controls)
+        {
+            if (form != null && control is HtmlForm && control != form) continue;
+
+            await control.InvokePreRenderAsync(token, form);
         }
     }
 }

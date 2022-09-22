@@ -13,6 +13,7 @@ public static class ServiceExtensions
 {
     public static IServiceCollection AddWebFormsCore(this IServiceCollection services)
     {
+        services.AddSingleton<PageFactory>();
         services.AddSingleton<IWebFormsApplication, WebFormsApplications>();
         services.AddScoped<IWebObjectActivator, WebObjectActivator>();
 
