@@ -1,0 +1,92 @@
+﻿using System.ComponentModel;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Web.UI.WebControls;
+
+namespace System.Web.UI.HtmlControls
+{
+    /// <summary>Serves as the abstract base class for HTML server controls that map to HTML elements that are required to have an opening and a closing tag.</summary>
+    public abstract partial class HtmlContainerControl : HtmlControl
+    {
+        [ViewState] private string? _innerHtml;
+
+        /// <summary>Initializes a new instance of the <see cref="T:System.Web.UI.HtmlControls.HtmlContainerControl" /> class using default values.</summary>
+        protected HtmlContainerControl()
+            : this("span")
+        {
+        }
+
+        /// <summary>Initializes a new instance of the <see cref="T:System.Web.UI.HtmlControls.HtmlContainerControl" /> class using the specified tag name.</summary>
+        /// <param name="tag">A string that specifies the tag name of the control. </param>
+        public HtmlContainerControl(string tag)
+            : base(tag)
+        {
+        }
+
+        /// <summary>Gets or sets the content found between the opening and closing tags of the specified HTML server control.</summary>
+        /// <returns>The HTML content between opening and closing tags of an HTML server control.</returns>
+        /// <exception cref="T:System.Web.HttpException">There is more than one HTML server control.- or -The HTML server control is not a <see cref="T:System.Web.UI.LiteralControl" /> or a <see cref="T:System.Web.UI.DataBoundLiteralControl" />. </exception>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual string InnerHtml
+        {
+            get
+            {
+                if (Controls.Count == 1 && Controls[0] is LiteralControl textControl)
+                {
+                    return textControl.Text;
+                }
+
+                throw new InvalidOperationException(SR.GetString("Inner_Content_not_literal", ID));
+            }
+            set
+            {
+                if (Controls.Count == 1 && Controls[0] is LiteralControl textControl)
+                {
+                    textControl.Text = value;
+                }
+                else if (Controls.Count > 0)
+                {
+                    throw new InvalidOperationException();
+                }
+                else
+                {
+                    Controls.Add(WebActivator.CreateLiteral(value));
+                }
+            }
+        }
+
+        /// <summary>Gets or sets the text between the opening and closing tags of the specified HTML server control.</summary>
+        /// <returns>The text between the opening and closing tags of an HTML server control.</returns>
+        /// <exception cref="T:System.Web.HttpException">There is more than one HTML server control.- or - The HTML server control is not a <see cref="T:System.Web.UI.LiteralControl" /> or a <see cref="T:System.Web.UI.DataBoundLiteralControl" />. </exception>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual string InnerText
+        {
+            get => HttpUtility.HtmlDecode(InnerHtml);
+            set => InnerHtml = HttpUtility.HtmlEncode(value);
+        }
+
+        /// <summary>Creates a new <see cref="T:System.Web.UI.ControlCollection" /> object to hold the child controls (both literal and server) of the server control.</summary>
+        /// <returns>A <see cref="T:System.Web.UI.ControlCollection" /> that contains the <see cref="T:System.Web.UI.HtmlControls.HtmlControl" /> child server controls.</returns>
+        protected override ControlCollection CreateControlCollection() => new(this);
+
+        /// <summary>Renders the <see cref="T:System.Web.UI.HtmlControls.HtmlContainerControl" /> control to the specified <see cref="T:System.Web.UI.HtmlTextWriter" /> object.</summary>
+        /// <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter" /> that receives the <see cref="T:System.Web.UI.HtmlControls.HtmlContainerControl" /> content.</param>
+        public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
+        {
+            await RenderBeginTagAsync(writer, token);
+            await RenderChildrenAsync(writer, token);
+            await RenderEndTagAsync(writer, token);
+        }
+
+        /// <summary>Renders the closing tag for the <see cref="T:System.Web.UI.HtmlControls.HtmlContainerControl" /> control to the specified <see cref="T:System.Web.UI.HtmlTextWriter" /> object.</summary>
+        /// <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter" /> that receives the rendered content.</param>
+        protected virtual void RenderEndTag(HtmlTextWriter writer) => writer.WriteEndTag(TagName);
+
+        /// <summary>Renders the closing tag for the <see cref="T:System.Web.UI.HtmlControls.HtmlContainerControl" /> control to the specified <see cref="T:System.Web.UI.HtmlTextWriter" /> object.</summary>
+        /// <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter" /> that receives the rendered content.</param>
+        /// <param name="cancellationToken"></param>
+        protected virtual ValueTask RenderEndTagAsync(HtmlTextWriter writer, CancellationToken cancellationToken) => writer.WriteEndTagAsync(TagName);
+    }
+}

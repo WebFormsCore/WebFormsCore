@@ -1,0 +1,9 @@
+﻿@using WebForms.Example
+
+Hello from Razor! @DateTime.Now
+
+<hr />
+
+@(await Html.RenderComponentAsync<Component>(RenderMode.ServerPrerendered))
+    
+<script src="_framework/blazor.server.js"></script>
