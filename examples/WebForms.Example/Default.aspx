@@ -1,37 +1,32 @@
 <%@ Page language="C#" Inherits="WebForms.Example.Default" %>
-<%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI.WebControls" %>
+<%@ Register TagPrefix="app" Namespace="WebForms.Example.Controls" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head id="Head" runat="server">
     <meta charset="UTF-8" />
-    <title runat="server" ID="title"></title>
+    <title runat="server" id="title"></title>
 </head>
 <body id="Body" runat="server">
 
-    <form ID="Form" runat="server" method="post">
-        <div>
-            <wfc:Literal runat="server" ID="litText" />
-        </div>
-        <wfc:Button runat="server" ID="btnTest">Test</wfc:Button>
+    <form runat="server" method="post">
+        <app:Counter runat="server" />
     </form>
 
-    <form ID="Form2" runat="server" method="post">
-        <div>
-            <wfc:Literal runat="server" ID="litText2" />
-        </div>
-        <wfc:Button runat="server" ID="btnTest2">Test</wfc:Button>
+    <form runat="server" method="post">
+        <app:Counter runat="server" />
     </form>
 
 <script type="module">
 import morphdom from 'https://cdn.jsdelivr.net/npm/morphdom@2.6.1/dist/morphdom-esm.js';
 
-const elements = document.querySelectorAll('[data-wf-form]');
+const elements = document.querySelectorAll('[data-wfc-form]');
 
 for (const element of elements) {
     element.addEventListener('submit', function(e) {
         e.preventDefault();
         const form = e.target;
+        const scope = form.getAttribute('data-wfc-form');
         const url = location.pathname + location.search;
         const data = new FormData(form);
 
@@ -48,7 +43,7 @@ for (const element of elements) {
             const newElements = [];
 
             const options = {
-                onNodeAdded: function(node) {
+                onNodeAdded(node) {
                     newElements.push(node);
                 }
             };
@@ -58,15 +53,19 @@ for (const element of elements) {
                     return !fromEl.isEqualNode(toEl);
                 };
             }
+
             const parser = new DOMParser();
             const htmlDoc = parser.parseFromString(r, 'text/html');
-            const newForm = htmlDoc.querySelector('form');
 
-            morphdom(form, newForm);
+            if (scope === 'global') {
+                morphdom(document.head, htmlDoc.querySelector('head'));
+                morphdom(document.body, htmlDoc.querySelector('body'));
+            } else {
+                morphdom(form, htmlDoc.querySelector('form'));
+            }
         });
     });
 }
-
 </script>
 </body>
 </html>

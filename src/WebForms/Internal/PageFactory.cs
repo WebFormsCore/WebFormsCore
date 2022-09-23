@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -16,28 +17,44 @@ namespace WebFormsCore;
 internal class PageFactory : IDisposable
 {
     private readonly ConcurrentDictionary<string, PageEntry> _pages = new();
-    private readonly FileSystemWatcher _watcher;
+    private readonly List<FileSystemWatcher> _watchers;
+    private readonly IWebFormsEnvironment _environment;
     private readonly ILogger<PageFactory> _logger;
 
     public PageFactory(IWebFormsEnvironment environment, ILogger<PageFactory> logger)
     {
+        _environment = environment;
         _logger = logger;
-        _watcher = new FileSystemWatcher(environment.ContentRootPath, "*.aspx")
-        {
-            IncludeSubdirectories = true,
-            EnableRaisingEvents = true
-        };
+        _watchers = new List<FileSystemWatcher>();
 
-        _watcher.Changed += OnChanged;
-        _watcher.Deleted += OnChanged;
-        _watcher.Renamed += OnChanged;
+        foreach (var extension in new[] { "*.aspx", "*.ascx" })
+        {
+            var watcher = new FileSystemWatcher(environment.ContentRootPath, extension)
+            {
+                IncludeSubdirectories = true,
+                EnableRaisingEvents = true
+            };
+
+            watcher.Changed += OnChanged;
+            watcher.Deleted += OnChanged;
+            watcher.Renamed += OnChanged;
+
+            _watchers.Add(watcher);
+        }
     }
 
     private void OnChanged(object sender, FileSystemEventArgs e)
     {
         var modifyTime = File.GetLastWriteTimeUtc(e.FullPath);
 
-        if (!_pages.TryGetValue(e.FullPath, out var entry) || entry.LastModified >= modifyTime)
+        if (!e.FullPath.StartsWith(_environment.ContentRootPath))
+        {
+            return;
+        }
+
+        var path = e.FullPath.Substring(_environment.ContentRootPath.Length).TrimStart('\\', '/');
+
+        if (!_pages.TryGetValue(path, out var entry) || entry.LastModified >= modifyTime)
         {
             return;
         }
@@ -62,34 +79,58 @@ internal class PageFactory : IDisposable
     {
         var entry = _pages.GetOrAdd(path, p => new PageEntry(p));
 
-        if (entry.Type != null)
-        {
-            return entry.Type;
-        }
+        if (entry.Type != null) return entry.Type;
 
         await entry.Lock.WaitAsync();
 
         try
         {
-            if (entry.Type == null)
-            {
-                entry.Type = CompilePage(path);
-                entry.LastModified = File.GetLastWriteTimeUtc(entry.Path);
-                entry.NextCheck = DateTimeOffset.Now.AddSeconds(5);
-            }
+            return UpdateType(path, entry);
         }
         finally
         {
             entry.Lock.Release();
         }
+    }
+
+    public Type GetType(string path)
+    {
+        var entry = _pages.GetOrAdd(path, p => new PageEntry(p));
+
+        if (entry.Type != null) return entry.Type;
+
+        entry.Lock.Wait();
+
+        try
+        {
+            return UpdateType(path, entry);
+        }
+        finally
+        {
+            entry.Lock.Release();
+        }
+    }
+
+    private Type UpdateType(string path, PageEntry entry)
+    {
+        if (entry.Type != null)
+        {
+            return entry.Type;
+        }
+
+        entry.Type = CompilePage(path);
+        entry.LastModified = File.GetLastWriteTimeUtc(entry.Path);
+        entry.NextCheck = DateTimeOffset.Now.AddSeconds(5);
 
         return entry.Type;
     }
 
     private Type CompilePage(string path)
     {
+        var fullPath = Path.Combine(_environment.ContentRootPath, path);
+
         var sw = Stopwatch.StartNew();
-        var (compilation, typeName, designerType) = PageCompiler.Compile(path);
+        var (compilation, typeName, designerType) = PageCompiler.Compile(fullPath);
 
         Type? type = null;
 
@@ -105,7 +146,7 @@ internal class PageFactory : IDisposable
 
                 if (attribute?.Hash == designerType.Hash)
                 {
-                    _logger.LogDebug("Using pre-compiled view of page {Path}, time spend: {Time}ms", path, sw.ElapsedMilliseconds);
+                    _logger.LogDebug("Using pre-compiled view of page {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
                     return type;
                 }
 
@@ -133,7 +174,7 @@ internal class PageFactory : IDisposable
             var assembly = Assembly.Load(assemblyStream.ToArray(), symbolsStream.ToArray());
             type = assembly.GetType(typeName)!;
 
-            _logger.LogDebug("Compiled view of page {Path}, time spend: {Time}ms", path, sw.ElapsedMilliseconds);
+            _logger.LogDebug("Compiled view of page {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
         }
 
         return type;
@@ -159,6 +200,9 @@ internal class PageFactory : IDisposable
 
     public void Dispose()
     {
-        _watcher.Dispose();
+        foreach (var watcher in _watchers)
+        {
+            watcher.Dispose();
+        }
     }
 }

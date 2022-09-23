@@ -6,8 +6,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <AdditionalFiles Include="Default.aspx" />
+        <AdditionalFiles Include="**/*.aspx" />
+        <AdditionalFiles Include="**/*.ascx" />
         <AdditionalFiles Include="web.config" />
+        <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
     </ItemGroup>
 
     <ItemGroup>

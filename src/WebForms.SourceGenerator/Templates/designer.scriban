@@ -12,6 +12,7 @@
 namespace {{ type.Namespace }}
 {
 {{- end }}
+    [WebFormsCore.ViewPath(@"{{ type.Path }}")]
     partial class {{ type.Name }}
     {
     {{- for prop in type.Fields }}
@@ -20,7 +21,7 @@ namespace {{ type.Namespace }}
     {{- end }}
     {{- end }}
 
-        [WebFormsCore.CompiledView("{{ type.Hash }}")]
+        [WebFormsCore.CompiledView(@"{{ type.Path }}", "{{ type.Hash }}")]
         public class CompiledView : {{ type.Name }}
         {
             {{~ type.ClassCode ~}}

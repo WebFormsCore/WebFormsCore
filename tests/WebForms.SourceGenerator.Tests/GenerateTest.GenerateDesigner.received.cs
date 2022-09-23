@@ -51,7 +51,7 @@ this.form1 = @ctrl4;
 @ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("\n        "));
 var @ctrl5 = WebActivator.CreateHtml("div");
 @ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("\n            "));
-var @ctrl6 = WebActivator.CreateControl<global::Tests.ControlTest>(@"Example.ascx");
+var @ctrl6 = WebActivator.CreateControl<global::Tests.ControlTest>();
 @ctrl5.AddParsedSubObject(@ctrl6);
 var @ctrl7 = WebActivator.CreateHtml("br");
 @ctrl5.AddParsedSubObject(@ctrl7);

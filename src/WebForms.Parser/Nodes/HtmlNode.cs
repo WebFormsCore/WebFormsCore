@@ -139,6 +139,11 @@ public class HtmlNode : ContainerNode, IAttributeNode
             }
         }
 
+        builder.Append(parentNode);
+        builder.Append(".AddParsedSubObject(");
+        builder.Append(ControlId);
+        builder.AppendLine(");");
+
         context.ParentNode = ControlId!;
 
         foreach (var child in Children)
@@ -147,11 +152,6 @@ public class HtmlNode : ContainerNode, IAttributeNode
         }
 
         context.ParentNode = parentNode;
-
-        builder.Append(parentNode);
-        builder.Append(".AddParsedSubObject(");
-        builder.Append(ControlId);
-        builder.AppendLine(");");
     }
 
     private void AddAttribute(StringBuilder builder, KeyValuePair<TokenString, TokenString> keyValue)

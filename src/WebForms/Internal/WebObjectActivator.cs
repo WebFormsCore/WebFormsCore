@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
+using WebFormsCore.UI;
 using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
 
@@ -24,7 +25,9 @@ internal sealed class WebObjectActivator : IWebObjectActivator, IDisposable
 
     public T CreateControl<T>()
     {
-        return ActivatorUtilities.CreateInstance<T>(_serviceProvider);
+        var factory = _serviceProvider.GetRequiredService<IControlFactory<T>>();
+
+        return factory.CreateControl(_serviceProvider);
     }
 
     public object CreateControl(Type type)

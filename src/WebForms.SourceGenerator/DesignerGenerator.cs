@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Scriban;
 using WebFormsCore;
 using WebFormsCore.Designer;
@@ -17,18 +18,33 @@ public class DesignerGenerator : IIncrementalGenerator
             .Select((a, c) => (a.Path, a.GetText(c)!.ToString().ReplaceLineEndings("\n")));
 
         var compilationAndFiles = context.CompilationProvider.Combine(files.Collect());
+        var options = context.AnalyzerConfigOptionsProvider.Combine(compilationAndFiles);
 
-        context.RegisterSourceOutput(compilationAndFiles, Generate);
+        context.RegisterSourceOutput(options, Generate);
     }
     
-    public void Generate(SourceProductionContext context, (Compilation Left, ImmutableArray<(string, string)> Right) sourceContext)
+    public void Generate(SourceProductionContext context, (AnalyzerConfigOptionsProvider Left, (Compilation Left, ImmutableArray<(string Path, string)> Right) Right) sourceContext)
     {
-        var (compilation, files) = sourceContext;
+        var (analyzer, (compilation, files)) = sourceContext;
         var types = new List<DesignerType>();
         var visited = new HashSet<string>();
 
-        foreach (var (path, text) in files)
+
+        if (!analyzer.GlobalOptions.TryGetValue("build_property.MSBuildProjectDirectory", out var directory))
         {
+            var mainSyntaxTree = compilation.SyntaxTrees.First(x => x.HasCompilationUnitRoot);
+            directory = Path.GetDirectoryName(mainSyntaxTree.FilePath);
+        }
+
+        foreach (var (fullPath, text) in files)
+        {
+            var path = fullPath;
+
+            if (directory != null && path.StartsWith(directory))
+            {
+                path = path.Substring(directory.Length + 1);
+            }
+
             if (!visited.Add(path)) continue;
 
             if (DesignerType.Parse(compilation, path, text) is {} type)

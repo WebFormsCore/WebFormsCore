@@ -4,10 +4,13 @@ namespace WebFormsCore;
 
 public class CompiledViewAttribute : Attribute
 {
-    public CompiledViewAttribute(string hash)
+    public CompiledViewAttribute(string path, string hash)
     {
+        Path = path;
         Hash = hash;
     }
+
+    public string Path { get; }
 
     public string Hash { get; }
 }

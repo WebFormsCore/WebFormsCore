@@ -32,9 +32,14 @@ public class GenerateTest
 
             namespace Tests
             {
-                public partial class Example
+                public partial class PageTest
                 {
                     public HtmlForm form1;
+                }
+
+
+                public partial class ControlTest
+                {
                 }
             }
             """
@@ -50,8 +55,9 @@ public class GenerateTest
                 new MemoryAdditionalText(
                     "Example.aspx",
                     """
-                    <%@ Page language="C#" Inherits="Tests.Example" %>
+                    <%@ Page language="C#" Inherits="Tests.PageTest" %>
                     <%@ Register TagPrefix="asp" Namespace="WebFormsCore.UI.WebControls" %>
+                    <%@ Register TagPrefix="app" Namespace="Tests" %>
                     <!DOCTYPE htm>
                     <html>
                     <head runat="server">
@@ -66,6 +72,7 @@ public class GenerateTest
 
                         <form id="form1" runat="server">
                             <div>
+                                <app:ControlTest runat="server" /><br />
                                 <asp:TextBox id="tbUsername" runat="server" /><br />
                                 <asp:textbox id="tbPassword" runat="server" /><br />
                                 <asp:button id="btnLogin" runat="server" click="btnLogin_Click" text="Login" />
@@ -73,6 +80,20 @@ public class GenerateTest
                         </form>
                     </body>
                     </html>
+                    """
+                )
+            )
+        );
+
+        driver = driver.AddAdditionalTexts(
+            ImmutableArray.Create<AdditionalText>(
+                new MemoryAdditionalText(
+                    "Example.ascx",
+                    """
+                    <%@ Control language="C#" Inherits="Tests.ControlTest" %>
+                    <%@ Register TagPrefix="asp" Namespace="WebFormsCore.UI.WebControls" %>
+
+                    <asp:Literal id="litTest" runat="server" />
                     """
                 )
             )

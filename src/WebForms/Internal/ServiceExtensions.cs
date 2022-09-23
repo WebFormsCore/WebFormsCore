@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using WebFormsCore.Internal;
 using WebFormsCore.Serializer;
+using WebFormsCore.UI;
 using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
 
@@ -13,6 +14,7 @@ public static class ServiceExtensions
 {
     public static IServiceCollection AddWebFormsCore(this IServiceCollection services)
     {
+        services.AddSingleton(typeof(IControlFactory<>), typeof(ControlFactory<>));
         services.AddSingleton<PageFactory>();
         services.AddSingleton<IWebFormsApplication, WebFormsApplications>();
         services.AddScoped<IWebObjectActivator, WebObjectActivator>();

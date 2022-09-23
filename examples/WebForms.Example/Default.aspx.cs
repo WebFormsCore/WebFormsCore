@@ -1,19 +1,13 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿using System;
+using System.Globalization;
 using WebFormsCore.UI;
 
 namespace WebForms.Example;
 
 public partial class Default : Page
 {
-    protected override ValueTask OnLoadAsync(CancellationToken token)
+    protected override void OnInit(EventArgs args)
     {
-        if (IsPostBack)
-        {
-            litText.Text += "Hello ";
-            litText2.Text += "Hello ";
-        }
-
-        return default;
+        title.InnerText = DateTime.Now.ToString(CultureInfo.InvariantCulture);
     }
 }

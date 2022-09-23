@@ -36,7 +36,7 @@ namespace WebFormsCore.UI.WebControls
         protected override async ValueTask RenderAttributesAsync(HtmlTextWriter writer)
         {
             await base.RenderAttributesAsync(writer);
-            await writer.WriteAttributeAsync("data-wf-form", Global ? "global" : "scope");
+            await writer.WriteAttributeAsync("data-wfc-form", Global ? "global" : "scope");
         }
 
         protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)

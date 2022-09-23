@@ -13,7 +13,8 @@ public record DesignerType(string? Namespace,
     List<DesignerEvent> Events,
     RootNode Root,
     INamedTypeSymbol? Type,
-    string Hash)
+    string Hash,
+    string Path)
 {
     private string? _classCode;
     private string? _initializeCode;
@@ -63,7 +64,7 @@ public record DesignerType(string? Namespace,
 
         parser.Parse(ref lexer);
 
-        var page = parser.Root.AllDirectives.FirstOrDefault(i => i.DirectiveType == DirectiveType.Page);
+        var page = parser.Root.AllDirectives.FirstOrDefault(i => i.DirectiveType is DirectiveType.Page or DirectiveType.Control);
 
         if (page == null || !page.Attributes.TryGetValue("inherits", out var inherits))
         {
@@ -147,7 +148,8 @@ public record DesignerType(string? Namespace,
             events,
             parser.Root,
             inheritsType,
-            hash
+            hash,
+            path
         );
     }
 

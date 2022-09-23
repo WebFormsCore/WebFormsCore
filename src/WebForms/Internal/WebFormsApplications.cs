@@ -24,8 +24,7 @@ internal class WebFormsApplications : IWebFormsApplication
 
     public async Task<bool> ProcessAsync(HttpContext context, IServiceProvider provider, CancellationToken token)
     {
-        var path = Path.Combine(_environment.ContentRootPath, "Default.aspx");
-        var pageType = await _pageFactory.GetTypeAsync(path);
+        var pageType = await _pageFactory.GetTypeAsync("Default.aspx");
         var page = (Page)Activator.CreateInstance(pageType)!;
 
         page.Initialize(provider, context);

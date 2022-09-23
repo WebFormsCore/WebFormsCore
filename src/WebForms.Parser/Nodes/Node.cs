@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Microsoft.CodeAnalysis;
+using WebFormsCore.Designer;
 using WebFormsCore.Models;
 
 namespace WebFormsCore.Nodes;
@@ -50,6 +51,8 @@ public class CompileContext
     public INamedTypeSymbol? Type { get; set; }
 
     public bool GenerateFields { get; set; }
+
+    public List<DesignerType>? AssemblyTypes { get; set; }
 
     public string GetNext()
     {
