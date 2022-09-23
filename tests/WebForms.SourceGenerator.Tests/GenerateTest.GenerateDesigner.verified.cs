@@ -18,29 +18,49 @@ namespace Tests
         public global::WebFormsCore.UI.WebControls.TextBox tbPassword;
         public global::WebFormsCore.UI.WebControls.Button btnLogin;
 
-        [WebFormsCore.CompiledView(@"Example.aspx", "862483CFEBAFE390C88C63B24275DDB7")]
+        protected override void FrameworkInitialized()
+        {
+            base.FrameworkInitialized();
+            if (tbUsername == null) throw new System.InvalidOperationException("tbUsername is not added in the view");
+            if (tbPassword == null) throw new System.InvalidOperationException("tbPassword is not added in the view");
+            if (btnLogin == null) throw new System.InvalidOperationException("btnLogin is not added in the view");
+        }
+
+        [WebFormsCore.CompiledView(@"Example.aspx", "99A570CF9BDD7521886CED3F10087EFA")]
         public class CompiledView : PageTest
         {
 
         private string Test => "Test";
-    
+    private class Template0 : global::WebFormsCore.UI.ITemplate
+{
+public WebFormsCore.IWebObjectActivator WebActivator;
+public void InstantiateIn(global::WebFormsCore.UI.Control container0)
+{
+container0.AddParsedSubObject(WebActivator.CreateLiteral("Test"));
+}
+}
+
+
             protected override void FrameworkInitialize()
             {
                 base.FrameworkInitialize();
+
 this.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
 this.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
 this.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
 this.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
 var @ctrl0 = WebActivator.CreateHtml("html");
+this.AddParsedSubObject(@ctrl0);
 @ctrl0.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
 var @ctrl1 = WebActivator.CreateHtml("head");
+@ctrl0.AddParsedSubObject(@ctrl1);
 @ctrl1.AddParsedSubObject(WebActivator.CreateLiteral("\n    "));
 var @ctrl2 = WebActivator.CreateHtml("title");
 @ctrl1.AddParsedSubObject(@ctrl2);
 @ctrl1.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
-@ctrl0.AddParsedSubObject(@ctrl1);
 @ctrl0.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
 var @ctrl3 = WebActivator.CreateHtml("body");
+@ctrl0.AddParsedSubObject(@ctrl3);
 @ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("\n    "));
 @ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("\n\n    "));
 @ctrl3.AddParsedSubObject(WebActivator.CreateLiteral( Test ));
@@ -48,11 +68,17 @@ var @ctrl3 = WebActivator.CreateHtml("body");
 var @ctrl4 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.HtmlForm>();
 @ctrl4.ID = "form1";
 this.form1 = @ctrl4;
+@ctrl3.AddParsedSubObject(@ctrl4);
 @ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("\n        "));
 var @ctrl5 = WebActivator.CreateHtml("div");
+@ctrl4.AddParsedSubObject(@ctrl5);
 @ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("\n            "));
-var @ctrl6 = WebActivator.CreateControl<global::Tests.ControlTest>(@"Example.ascx");
+var @ctrl6 = WebActivator.CreateControl<global::Tests.ControlTest<global::Tests.TestItem>>();
+((WebFormsCore.UI.IAttributeAccessor)@ctrl6).SetAttribute("ItemType", "Tests.TestItem");
 @ctrl5.AddParsedSubObject(@ctrl6);
+@ctrl6.AddParsedSubObject(WebActivator.CreateLiteral("\n                "));
+@ctrl6.Template = new Template0() { WebActivator = WebActivator };
+@ctrl6.AddParsedSubObject(WebActivator.CreateLiteral("\n            "));
 var @ctrl7 = WebActivator.CreateHtml("br");
 @ctrl5.AddParsedSubObject(@ctrl7);
 @ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("\n            "));
@@ -72,18 +98,15 @@ var @ctrl11 = WebActivator.CreateHtml("br");
 @ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("\n            "));
 var @ctrl12 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.Button>();
 @ctrl12.ID = "btnLogin";
-@ctrl12.Attributes["click"] = "btnLogin_Click";
-@ctrl12.Attributes["text"] = "Login";
+((WebFormsCore.UI.IAttributeAccessor)@ctrl12).SetAttribute("click", "btnLogin_Click");
+((WebFormsCore.UI.IAttributeAccessor)@ctrl12).SetAttribute("text", "Login");
 this.btnLogin = @ctrl12;
 @ctrl5.AddParsedSubObject(@ctrl12);
 @ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("\n        "));
-@ctrl4.AddParsedSubObject(@ctrl5);
 @ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("\n    "));
-@ctrl3.AddParsedSubObject(@ctrl4);
 @ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
-@ctrl0.AddParsedSubObject(@ctrl3);
 @ctrl0.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
-this.AddParsedSubObject(@ctrl0);
+
             }
         }
     }
@@ -95,19 +118,28 @@ namespace Tests
     {
         public global::WebFormsCore.UI.WebControls.Literal litTest;
 
+        protected override void FrameworkInitialized()
+        {
+            base.FrameworkInitialized();
+            if (litTest == null) throw new System.InvalidOperationException("litTest is not added in the view");
+        }
+
         [WebFormsCore.CompiledView(@"Example.ascx", "013399AF623542E9BA50FC84B0741226")]
         public class CompiledView : ControlTest
         {
 
+
             protected override void FrameworkInitialize()
             {
                 base.FrameworkInitialize();
+
 this.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
 this.AddParsedSubObject(WebActivator.CreateLiteral("\n\n"));
 var @ctrl0 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.Literal>();
 @ctrl0.ID = "litTest";
 this.litTest = @ctrl0;
 this.AddParsedSubObject(@ctrl0);
+
             }
         }
     }

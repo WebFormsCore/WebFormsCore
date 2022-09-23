@@ -14,18 +14,15 @@ public static class ServiceExtensions
 {
     public static IServiceCollection AddWebFormsCore(this IServiceCollection services)
     {
+        services.AddHostedService<InitializeViewManager>();
+
         services.AddSingleton(typeof(IControlFactory<>), typeof(ControlFactory<>));
-        services.AddSingleton<PageFactory>();
+        services.AddSingleton<ViewManager>();
         services.AddSingleton<IWebFormsApplication, WebFormsApplications>();
         services.AddScoped<IWebObjectActivator, WebObjectActivator>();
 
-        services.AddSingleton<ObjectPool<LiteralControl>>(
-            new DefaultObjectPool<LiteralControl>(new ControlObjectPolicy<LiteralControl>())
-        );
-
-        services.AddSingleton<ObjectPool<HtmlGenericControl>>(
-            new DefaultObjectPool<HtmlGenericControl>(new ControlObjectPolicy<HtmlGenericControl>())
-        );
+        services.AddPooledControl<LiteralControl>();
+        services.AddPooledControl<LiteralHtmlControl>();
 
         services.AddSingleton<IViewStateSerializer<object?>, ObjectViewStateSerializer>();
         services.AddViewStateSerializer<string?, StringViewStateSerializer>();
@@ -44,6 +41,18 @@ public static class ServiceExtensions
         services.AddViewStateSerializer<char>();
         services.AddViewStateSerializer<DateTime>();
         services.AddViewStateSerializer<DateTimeOffset>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddPooledControl<T>(this IServiceCollection services, int maxAmount = 1024)
+        where T : Control, new()
+    {
+        services.AddSingleton<ObjectPool<T>>(
+            new DefaultObjectPool<T>(new ControlObjectPolicy<T>(), maxAmount)
+        );
+
+        services.AddScoped<IControlFactory<T>, PooledControlFactory<T>>();
 
         return services;
     }

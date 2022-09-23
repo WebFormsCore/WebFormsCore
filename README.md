@@ -11,7 +11,7 @@ In comparison to WebForms there are a few changes:
 - **Targets .NET Framework 4.7.2 and NET 6.0**  
   You can use WebForms Core on .NET and .NET Framework 🎉
   
-  > **Note:** The WebForms designer in Visual Studio (with ReSharper) and Rider gives an error that the page doesn't extend `System.Web.UI.Page`. This can be ignored.
+  > **Note:** When targeting .NET Framework the WebForms designer in Visual Studio (with ReSharper) and Rider gives an error that the page doesn't extend `System.Web.UI.Page`. This can be ignored.
 
   > **Note:** .NET Framework doesn't support view state compression yet.
 - **Rendering is asynchronous**  
@@ -21,6 +21,8 @@ In comparison to WebForms there are a few changes:
 - **ViewState source generator**  
   In addition of using `ViewState` to store control state, you now use the attribute `[ViewState]` on properties and fields to store them in the view state.  
 - **Multiple forms**  
-  WebForms Core supports multiple forms on a single page. This means that you can have multiple `form` elements on a page and each one will have its own view state.
+  WebForms Core supports multiple forms that have their own view state on a single page.
 - **Pre-compiled views**  
-  WebForms Core uses pre-compiled views by default to improve the startup time of your application.
+  WebForms Core pre-compiles views to improve the startup time of your application.
+- **Content Security Policy (CSP) support**  
+  Experimental support for Content Security Policy.

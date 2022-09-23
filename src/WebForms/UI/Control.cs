@@ -26,11 +26,13 @@ public partial class Control
     private HtmlForm? _form;
     private IWebObjectActivator? _webObjectActivator;
 
-    protected IWebObjectActivator WebActivator => _webObjectActivator ??= ServiceProvider.GetRequiredService<IWebObjectActivator>();
+    public IWebObjectActivator WebActivator => _webObjectActivator ??= ServiceProvider.GetRequiredService<IWebObjectActivator>();
 
     protected virtual IServiceProvider ServiceProvider => Page.ServiceProvider;
 
-    public bool EnableViewState { get; set; } = true;
+    public virtual bool EnableViewState { get; set; } = true;
+
+    protected virtual bool EnableViewStateBag => EnableViewState;
 
     /// <summary>Gets a reference to the <see cref="T:System.Web.UI.Page" /> instance that contains the server control.</summary>
     /// <returns>The <see cref="T:System.Web.UI.Page" /> instance that contains the server control.</returns>
@@ -226,7 +228,7 @@ public partial class Control
         }
     }
 
-    internal string PredictableClientID => (_cachedPredictableID ??= GetPredictableClientIDPrefix()) ?? "";
+    internal string? PredictableClientID => _cachedPredictableID ??= GetPredictableClientIDPrefix();
 
     /// <summary>Gets a reference to the server control's naming container, which creates a unique namespace for differentiating between server controls with the same <see cref="P:WebFormsCore.UI.Control.ID" /> property value.</summary>
     /// <returns>The server control's naming container.</returns>
@@ -255,6 +257,7 @@ public partial class Control
         _occasionalFields = null;
         _page = null;
         _form = null;
+        _webObjectActivator = null;
     }
 
     private string GetUniqueIDPrefix()
@@ -387,7 +390,7 @@ public partial class Control
                     predictableClientIdPrefix = _id;
                     break;
                 default:
-                    predictableClientIdPrefix = ClientID;
+                    predictableClientIdPrefix = namingContainer.ClientID;
 
                     if (string.IsNullOrEmpty(predictableClientIdPrefix))
                     {
@@ -507,6 +510,10 @@ public partial class Control
         Controls.Add(control);
     }
 
+    protected virtual void OnControlViewStateLoaded()
+    {
+    }
+
     protected virtual void OnInit(EventArgs args)
     {
     }
@@ -532,7 +539,7 @@ public partial class Control
 
     protected virtual void OnWriteViewState(ref ViewStateWriter writer)
     {
-        if (!EnableViewState) return;
+        if (!EnableViewStateBag) return;
         
         var length = (byte)(_viewState?.ViewStateCount ?? 0);
 
@@ -546,7 +553,7 @@ public partial class Control
 
     protected virtual void OnReadViewState(ref ViewStateReader reader)
     {
-        if (!EnableViewState) return;
+        if (!EnableViewStateBag) return;
 
         var length = reader.Read<byte>();
 
@@ -559,6 +566,11 @@ public partial class Control
     /// <summary>Initializes the control that is derived from the <see cref="T:System.Web.UI.TemplateControl" /> class.</summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     protected virtual void FrameworkInitialize()
+    {
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    protected virtual void FrameworkInitialized()
     {
     }
 

@@ -21,15 +21,26 @@ namespace {{ type.Namespace }}
     {{- end }}
     {{- end }}
 
+        protected override void FrameworkInitialized()
+        {
+            base.FrameworkInitialized();
+        {{- for prop in type.Fields }}
+        {{- if prop.AddToDesigner }}
+            if ({{ prop.Name }} == null) throw new System.InvalidOperationException("{{ prop.Name }} is not added in the view");
+        {{- end }}
+        {{- end }}
+        }
+
         [WebFormsCore.CompiledView(@"{{ type.Path }}", "{{ type.Hash }}")]
         public class CompiledView : {{ type.Name }}
         {
-            {{~ type.ClassCode ~}}
+{{ type.ClassCode }}
 
             protected override void FrameworkInitialize()
             {
                 base.FrameworkInitialize();
-                {{~ type.InitializeCode ~}}
+
+{{ type.InitializeCode }}
             }
         }
     }

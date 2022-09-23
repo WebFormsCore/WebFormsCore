@@ -29,7 +29,6 @@ public class DesignerGenerator : IIncrementalGenerator
         var types = new List<DesignerType>();
         var visited = new HashSet<string>();
 
-
         if (!analyzer.GlobalOptions.TryGetValue("build_property.MSBuildProjectDirectory", out var directory))
         {
             var mainSyntaxTree = compilation.SyntaxTrees.First(x => x.HasCompilationUnitRoot);

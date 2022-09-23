@@ -34,6 +34,23 @@ public static class ContextExtensions
         return type;
     }
 
+
+    public static INamedTypeSymbol? GetType(this Compilation context, string typeName)
+    {
+        var type = context.GetTypeByMetadataName(typeName);
+
+        if (type != null) return type;
+
+        var lastDot = typeName.LastIndexOf('.');
+
+        if (lastDot == -1) return null;
+
+        var ns = typeName.Substring(0, lastDot);
+        var name = typeName.Substring(lastDot + 1);
+
+        return context.GetType(ns, name);
+    }
+
     public record MemberResult(string Name, ITypeSymbol Type, bool CanWrite);
 
     public static MemberResult? GetMemberDeep(this ITypeSymbol type, string name)

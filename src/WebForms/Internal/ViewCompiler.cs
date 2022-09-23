@@ -10,11 +10,11 @@ using WebFormsCore.Nodes;
 
 namespace WebFormsCore.Compiler;
 
-public record struct CompileResult(CSharpCompilation Compilation, string TypeName, DesignerType Type);
+internal record struct ViewCompileResult(CSharpCompilation Compilation, string TypeName, DesignerType Type);
 
-public class PageCompiler
+internal static class ViewCompiler
 {
-    public static CompileResult Compile(string path)
+    public static ViewCompileResult Compile(string path)
     {
         var assemblyName = path
             .Replace('/', '_')
@@ -72,7 +72,7 @@ public class PageCompiler
             CSharpSyntaxTree.ParseText(code)
         );
 
-        return new CompileResult(compilation, $"{ns}.{assemblyName}", type);
+        return new ViewCompileResult(compilation, $"{ns}.{assemblyName}", type);
     }
 
     public static List<Assembly> GetAssemblies()

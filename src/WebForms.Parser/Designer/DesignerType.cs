@@ -108,7 +108,7 @@ public record DesignerType(string? Namespace,
             var type = TryGetType(compilation, htmlNode, namespaces, parser);
 
             if (type == null) continue;
-            
+
             htmlNode.ControlType = type;
 
             if (htmlNode.Attributes.TryGetValue("id", out var id))
@@ -165,8 +165,27 @@ public record DesignerType(string? Namespace,
         }
 
         INamedTypeSymbol? type;
+
+        if (htmlNode.Attributes.TryGetValue("ItemType", out var itemTypeName) &&
+            namespaces.TryGetValue(elementNs, out var list))
+        {
+            var itemType = compilation.GetType(itemTypeName.Value);
+
+            if (itemType != null)
+            {
+                foreach (var ns in list)
+                {
+                    type = compilation.GetType(ns, htmlNode.Name.Value + "`1");
+
+                    if (type == null) continue;
+
+                    htmlNode.Attributes.Remove("ItemType");
+                    return type.Construct(itemType);
+                }
+            }
+        }
         
-        if (namespaces.TryGetValue(elementNs, out var list))
+        if (namespaces.TryGetValue(elementNs, out list))
         {
             foreach (var ns in list)
             {

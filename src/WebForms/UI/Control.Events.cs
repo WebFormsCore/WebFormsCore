@@ -31,6 +31,7 @@ public partial class Control
         var count = 1;
 
         OnReadViewState(ref reader);
+        OnControlViewStateLoaded();
 
         foreach (var control in Controls)
         {
@@ -50,6 +51,7 @@ public partial class Control
         if (token.IsCancellationRequested) return;
         
         FrameworkInitialize();
+        FrameworkInitialized();
         ViewState.TrackViewState();
 
         foreach (var control in Controls)

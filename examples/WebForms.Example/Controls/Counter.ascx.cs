@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WebFormsCore;
 using WebFormsCore.UI;
@@ -7,16 +9,20 @@ namespace WebForms.Example.Controls;
 
 public partial class Counter : Control
 {
-    [ViewState] private int Count { get; set; }
+    [ViewState] private int _count;
 
     protected override ValueTask OnLoadAsync(CancellationToken token)
     {
-        if (Page.IsPostBack)
+        if (Context.Request.HttpMethod == "POST" && Context.Request.Form["__EVENTTARGET"] == btnIncrement.UniqueID)
         {
-            Count++;
+            _count++;
+
+            rptItems.DataSource = Enumerable.Range(0, _count).Select(i => $"Item {i}");
+            rptItems.DataBind();
         }
 
-        litValue.Text = $"Count: {Count}";
+        tbPrefix.Text = tbPrefix.Text?.ToUpperInvariant();
+        litValue.Text = $"Count: {tbPrefix.Text}{_count}";
 
         return default;
     }

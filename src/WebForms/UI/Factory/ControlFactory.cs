@@ -1,17 +1,18 @@
 using System;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI;
 
-internal class ControlFactory<T> : IControlFactory<T>
+internal sealed class ControlFactory<T> : IControlFactory<T>
 {
-    private readonly PageFactory _factory;
+    private readonly ViewManager _manager;
     private readonly string? _viewPath;
 
-    public ControlFactory(PageFactory factory)
+    public ControlFactory(ViewManager manager)
     {
-        _factory = factory;
+        _manager = manager;
         _viewPath = typeof(T).GetCustomAttribute<ViewPathAttribute>()?.Path;
     }
 
@@ -22,7 +23,7 @@ internal class ControlFactory<T> : IControlFactory<T>
             return ActivatorUtilities.CreateInstance<T>(provider);
         }
 
-        var type = _factory.GetType(_viewPath);
+        var type = _manager.GetType(_viewPath);
         return (T)ActivatorUtilities.CreateInstance(provider, type);
     }
 }

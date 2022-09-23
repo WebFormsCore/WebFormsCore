@@ -299,10 +299,15 @@ public class HtmlTextWriter : TextWriter
         Write(SelfClosingTagEnd);
     }
 
-    public async ValueTask WriteBreakAsync(CancellationToken cancellationToken = default)
+    public async ValueTask WriteBreakAsync()
     {
         await WriteAsync(TagLeftChar);
         await WriteAsync("br");
+        await WriteAsync(SelfClosingTagEnd);
+    }
+
+    public async ValueTask WriteSelfClosingAsync()
+    {
         await WriteAsync(SelfClosingTagEnd);
     }
 

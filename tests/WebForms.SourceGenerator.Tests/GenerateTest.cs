@@ -28,18 +28,28 @@ public class GenerateTest
 
         var syntaxTree = CSharpSyntaxTree.ParseText(
             """
+            using WebFormsCore.UI;
             using WebFormsCore.UI.WebControls;
 
             namespace Tests
             {
+                public class TestItem
+                {
+                }
+
                 public partial class PageTest
                 {
                     public HtmlForm form1;
                 }
 
-
                 public partial class ControlTest
                 {
+                    public ITemplate Template { get; set; }
+                }
+
+                public class ControlTest<T> : ControlTest
+                {
+
                 }
             }
             """
@@ -72,7 +82,9 @@ public class GenerateTest
 
                         <form id="form1" runat="server">
                             <div>
-                                <app:ControlTest runat="server" /><br />
+                                <app:ControlTest ItemType="Tests.TestItem" runat="server">
+                                    <Template>Test</Template>
+                                </app:ControlTest><br />
                                 <asp:TextBox id="tbUsername" runat="server" /><br />
                                 <asp:textbox id="tbPassword" runat="server" /><br />
                                 <asp:button id="btnLogin" runat="server" click="btnLogin_Click" text="Login" />

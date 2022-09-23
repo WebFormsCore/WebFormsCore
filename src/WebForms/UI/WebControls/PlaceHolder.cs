@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI.WebControls
 {
-    public class HtmlForm : HtmlContainerControl
+    public class HtmlForm : HtmlContainerControl, INamingContainer
     {
         private const byte FlagRaw = 0;
 #if NET

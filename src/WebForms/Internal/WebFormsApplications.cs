@@ -13,18 +13,18 @@ namespace WebFormsCore.Internal;
 
 internal class WebFormsApplications : IWebFormsApplication
 {
-    private readonly PageFactory _pageFactory;
+    private readonly ViewManager _viewManager;
     private readonly IWebFormsEnvironment _environment;
 
-    public WebFormsApplications(IWebFormsEnvironment environment, PageFactory pageFactory)
+    public WebFormsApplications(IWebFormsEnvironment environment, ViewManager viewManager)
     {
         _environment = environment;
-        _pageFactory = pageFactory;
+        _viewManager = viewManager;
     }
 
     public async Task<bool> ProcessAsync(HttpContext context, IServiceProvider provider, CancellationToken token)
     {
-        var pageType = await _pageFactory.GetTypeAsync("Default.aspx");
+        var pageType = await _viewManager.GetTypeAsync("Default.aspx");
         var page = (Page)Activator.CreateInstance(pageType)!;
 
         page.Initialize(provider, context);

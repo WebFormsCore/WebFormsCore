@@ -42,6 +42,8 @@ public class CompileContext
         Builder = builder;
     }
 
+    public int TemplateId { get; set; }
+
     public int ControlId { get; set; }
 
     public StringBuilder Builder { get; }

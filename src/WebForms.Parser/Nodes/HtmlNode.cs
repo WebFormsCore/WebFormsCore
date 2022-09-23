@@ -35,6 +35,11 @@ public class HtmlNode : ContainerNode, IAttributeNode
 
     public override void WriteClass(CompileContext context)
     {
+        if (TemplateClass != null)
+        {
+            return;
+        }
+
         if (IsServerScript)
         {
             foreach (var child in Children)
@@ -45,25 +50,96 @@ public class HtmlNode : ContainerNode, IAttributeNode
         else
         {
             ControlId = context.GetNext();
-            base.WriteClass(context);
+
+            foreach (var child in Children)
+            {
+                if (!TryWriteTemplate(child, context))
+                {
+                    child.WriteClass(context);
+                }
+            }
         }
     }
+
+    private bool TryWriteTemplate(Node child, CompileContext context)
+    {
+        if (child is not HtmlNode childNode) return false;
+
+        var property = ControlType?.GetMemberDeep(childNode.Name.Value);
+
+        if (property is not { CanWrite: true }) return false;
+
+        var type = property.Type;
+
+        if (type.Name != "ITemplate")
+        {
+            return false;
+        }
+
+        var builder = context.Builder;
+        var id = context.TemplateId++;
+        var className = $"Template{id}";
+
+        builder.Append("private class ");
+        builder.Append(className);
+        builder.AppendLine(" : global::WebFormsCore.UI.ITemplate");
+        builder.AppendLine("{");
+
+        builder.AppendLine("public WebFormsCore.IWebObjectActivator WebActivator;");
+
+        var parent = (context.ParentNode, context.Type, context.GenerateFields);
+
+        context.Type = null;
+        context.GenerateFields = false;
+
+        foreach (var node in childNode.Children)
+        {
+            node.WriteClass(context);
+        }
+
+        var parameterName = $"container{id}";
+
+        builder.Append("public void InstantiateIn(global::WebFormsCore.UI.Control ");
+        builder.Append(parameterName);
+        builder.AppendLine(")");
+        builder.AppendLine("{");
+
+        context.ParentNode = parameterName;
+
+        foreach (var node in childNode.Children)
+        {
+            node.Write(context);
+        }
+
+        (context.ParentNode, context.Type, context.GenerateFields) = parent;
+
+        builder.AppendLine("}");
+        builder.AppendLine("}");
+
+        childNode.TemplateClass = className;
+
+        return true;
+    }
+
+    public string? TemplateClass { get; set; }
 
     public override void Write(CompileContext context)
     {
         if (IsServerScript) return;
 
-        Debug.Assert(ControlId != null);
-
         var builder = context.Builder;
         var parentNode = context.ParentNode;
+
+        if (ControlId == null) return;
 
         builder.Append("var ");
         builder.Append(ControlId);
 
+        builder.Append(" = WebActivator.");
+
         if (ControlType == null)
         {
-            builder.Append(" = WebActivator.CreateHtml(");
+            builder.Append("CreateHtml(");
             builder.Append(Name.CodeString);
             builder.AppendLine(");");
 
@@ -76,13 +152,13 @@ public class HtmlNode : ContainerNode, IAttributeNode
         {
             if (ControlType.Name == "HtmlGenericControl")
             {
-                builder.Append(" = WebActivator.CreateHtml(");
+                builder.Append("CreateHtml(");
                 builder.Append(Name.CodeString);
                 builder.AppendLine(");");
             }
             else
             {
-                builder.Append(" = WebActivator.CreateControl<");
+                builder.Append("CreateControl<");
                 builder.Append(ControlType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
                 builder.AppendLine(">();");
             }
@@ -148,19 +224,31 @@ public class HtmlNode : ContainerNode, IAttributeNode
 
         foreach (var child in Children)
         {
+            if (child is HtmlNode { TemplateClass: { } templateClass } node)
+            {
+                builder.Append(ControlId);
+                builder.Append(".");
+                builder.Append(node.Name);
+                builder.Append(" = new ");
+                builder.Append(templateClass);
+                builder.AppendLine("() { WebActivator = WebActivator };");
+                continue;
+            }
+
             child.Write(context);
         }
 
         context.ParentNode = parentNode;
     }
 
-    private void AddAttribute(StringBuilder builder, KeyValuePair<TokenString, TokenString> keyValue)
+    private void AddAttribute(StringBuilder builder,  KeyValuePair<TokenString, TokenString> keyValue)
     {
+        builder.Append("((WebFormsCore.UI.IAttributeAccessor)");
         builder.Append(ControlId);
-        builder.Append(".Attributes[");
+        builder.Append(").SetAttribute(");
         builder.Append(keyValue.Key.CodeString);
-        builder.Append("] = ");
+        builder.Append(", ");
         builder.Append(keyValue.Value.CodeString);
-        builder.AppendLine(";");
+        builder.AppendLine(");");
     }
 }

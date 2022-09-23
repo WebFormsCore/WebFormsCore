@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -14,14 +15,14 @@ using WebFormsCore.Compiler;
 
 namespace WebFormsCore;
 
-internal class PageFactory : IDisposable
+internal class ViewManager : IDisposable
 {
     private readonly ConcurrentDictionary<string, PageEntry> _pages = new();
     private readonly List<FileSystemWatcher> _watchers;
     private readonly IWebFormsEnvironment _environment;
-    private readonly ILogger<PageFactory> _logger;
+    private readonly ILogger<ViewManager> _logger;
 
-    public PageFactory(IWebFormsEnvironment environment, ILogger<PageFactory> logger)
+    public ViewManager(IWebFormsEnvironment environment, ILogger<ViewManager> logger)
     {
         _environment = environment;
         _logger = logger;
@@ -47,14 +48,9 @@ internal class PageFactory : IDisposable
     {
         var modifyTime = File.GetLastWriteTimeUtc(e.FullPath);
 
-        if (!e.FullPath.StartsWith(_environment.ContentRootPath))
-        {
-            return;
-        }
-
-        var path = e.FullPath.Substring(_environment.ContentRootPath.Length).TrimStart('\\', '/');
-
-        if (!_pages.TryGetValue(path, out var entry) || entry.LastModified >= modifyTime)
+        if (!TryGetPath(e.FullPath, out var path) ||
+            !_pages.TryGetValue(path, out var entry) ||
+            entry.LastModified >= modifyTime)
         {
             return;
         }
@@ -74,6 +70,19 @@ internal class PageFactory : IDisposable
             }
         });
     }
+
+    public bool TryGetPath(string fullPath, [NotNullWhen(true)] out string? path)
+    {
+        if (!fullPath.StartsWith(_environment.ContentRootPath))
+        {
+            path = null;
+            return false;
+        }
+
+        path = fullPath.Substring(_environment.ContentRootPath.Length).TrimStart('\\', '/');
+        return true;
+    }
+
 
     public async ValueTask<Type> GetTypeAsync(string path)
     {
@@ -130,7 +139,7 @@ internal class PageFactory : IDisposable
         var fullPath = Path.Combine(_environment.ContentRootPath, path);
 
         var sw = Stopwatch.StartNew();
-        var (compilation, typeName, designerType) = PageCompiler.Compile(fullPath);
+        var (compilation, typeName, designerType) = ViewCompiler.Compile(fullPath);
 
         Type? type = null;
 
