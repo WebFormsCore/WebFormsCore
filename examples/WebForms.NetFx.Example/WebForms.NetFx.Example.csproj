@@ -1,25 +1,28 @@
 ﻿<Project Sdk="MSBuild.SDK.SystemWeb/4.0.82">
 
-	<PropertyGroup>
-		<TargetFramework>net472</TargetFramework>
-		<MvcBuildViews>false</MvcBuildViews>
-	</PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <MvcBuildViews>false</MvcBuildViews>
+    </PropertyGroup>
 
-	<ItemGroup>
-	  <Content Remove="Controls\Counter.ascx" />
-	  <Content Remove="Default.aspx" />
-	</ItemGroup>
+    <ItemGroup>
+        <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**"/>
+        <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**"/>
+        <AdditionalFiles Include="web.config" Exclude="bin\**;obj\**"/>
+        <CompilerVisibleProperty Include="MSBuildProjectDirectory"/>
 
-	<ItemGroup>
-		<AdditionalFiles Include="**/*.aspx" />
-		<AdditionalFiles Include="**/*.ascx" />
-		<AdditionalFiles Include="web.config" />
-		<CompilerVisibleProperty Include="MSBuildProjectDirectory" />
-	</ItemGroup>
+        <AdditionalFiles Update="**/*.aspx">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
 
-	<ItemGroup>
-		<ProjectReference Include="..\..\src\WebForms.AspNet\WebForms.AspNet.csproj" />
-		<ProjectReference Include="..\..\src\WebForms.SourceGenerator\WebForms.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-	</ItemGroup>
+        <AdditionalFiles Update="**/*.ascx">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\WebForms.AspNet\WebForms.AspNet.csproj"/>
+        <ProjectReference Include="..\..\src\WebForms.SourceGenerator\WebForms.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+    </ItemGroup>
 
 </Project>

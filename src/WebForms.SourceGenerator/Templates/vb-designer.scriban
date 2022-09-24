@@ -1,0 +1,17 @@
+{{ for type in Types }}
+{{- if type.VbNamespace }}
+Namespace {{ type.VbNamespace }}
+{{- end }}
+    <WebFormsCore.ViewPath("{{ type.Path }}")>
+    Partial Class {{ type.Name }}
+    {{- for prop in type.Fields }}
+    {{- if prop.AddToDesigner }}
+        Protected {{ prop.Name }} As {{ prop.Type }}
+    {{- end }}
+    {{- end }}
+    End Class
+{{- if type.VbNamespace }}
+End Namespace
+{{- end }}
+{{- end }}
+{{- end }}

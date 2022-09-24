@@ -177,6 +177,11 @@ internal class ViewManager : IDisposable
 
             if (!result.Success)
             {
+                foreach (var diagnostic in result.Diagnostics)
+                {
+                    _logger.LogError("Compilation error: {Message}", diagnostic.ToString());
+                }
+
                 throw new InvalidOperationException();
             }
 

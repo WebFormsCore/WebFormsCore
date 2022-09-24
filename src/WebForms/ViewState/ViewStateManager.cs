@@ -225,22 +225,10 @@ public class ViewStateManager : IViewStateManager
             using var deflateStream = new DeflateStream(destinationStream, CompressionMode.Compress, true);
             try
             {
-
-#if NET
                 deflateStream.Write(source);
                 deflateStream.Close();
                 length = (int)destinationStream.Position;
                 return true;
-#else
-                fixed (byte* pSource = &source[0])
-                {
-                    using var sourceStream = new UnmanagedMemoryStream(pSource, source.Length);
-                    sourceStream.CopyTo(deflateStream);
-                    deflateStream.Close();
-                    length = (int)destinationStream.Position;
-                    return true;
-                }
-#endif
             }
             catch
             {
@@ -258,19 +246,8 @@ public class ViewStateManager : IViewStateManager
             using var deflateStream = new DeflateStream(stream, CompressionMode.Decompress);
             try
             {
-
-#if NET
                 length = deflateStream.Read(destination);
                 return true;
-#else
-                fixed (byte* pDestination = &destination[0])
-                {
-                    using var destinationStream = new UnmanagedMemoryStream(pDestination, destination.Length, destination.Length, FileAccess.Write);
-                    deflateStream.CopyTo(destinationStream);
-                    length = (int)destinationStream.Position;
-                    return true;
-                }
-#endif
             }
             catch
             {

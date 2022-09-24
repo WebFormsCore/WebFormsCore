@@ -96,6 +96,7 @@ public partial class Control
     {
         if (token.IsCancellationRequested) return;
 
+        OnPreRender(EventArgs.Empty);
         await OnPreRenderAsync(token);
 
         foreach (var control in Controls)

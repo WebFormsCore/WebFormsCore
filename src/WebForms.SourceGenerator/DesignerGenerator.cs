@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Scriban;
@@ -7,8 +8,33 @@ using WebFormsCore.Designer;
 
 namespace WebForms.SourceGenerator;
 
-[Generator]
-public class DesignerGenerator : IIncrementalGenerator
+[Generator(LanguageNames.CSharp)]
+public class CSharpDesignGenerator : DesignerGenerator
+{
+    protected override void AddSource(SourceProductionContext context, DesignerModel model)
+    {
+        const string templateFile = "Templates/designer.scriban";
+        var template = Template.Parse(EmbeddedResource.GetContent(templateFile), templateFile);
+        var output = template.Render(model, member => member.Name);
+
+        context.AddSource("WebForms.Designer", output);
+    }
+}
+
+[Generator(LanguageNames.VisualBasic)]
+public class VisualBasicDesignGenerator : DesignerGenerator
+{
+    protected override void AddSource(SourceProductionContext context, DesignerModel model)
+    {
+        const string templateFile = "Templates/vb-designer.scriban";
+        var template = Template.Parse(EmbeddedResource.GetContent(templateFile), templateFile);
+        var output = template.Render(model, member => member.Name);
+
+        context.AddSource("WebForms.Designer", output);
+    }
+}
+
+public abstract class DesignerGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -35,6 +61,11 @@ public class DesignerGenerator : IIncrementalGenerator
             directory = Path.GetDirectoryName(mainSyntaxTree.FilePath);
         }
 
+        if (!analyzer.GlobalOptions.TryGetValue("build_property.RootNamespace", out var ns))
+        {
+            ns = compilation.AssemblyName;
+        }
+
         foreach (var (fullPath, text) in files)
         {
             var path = fullPath;
@@ -46,17 +77,16 @@ public class DesignerGenerator : IIncrementalGenerator
 
             if (!visited.Add(path)) continue;
 
-            if (DesignerType.Parse(compilation, path, text) is {} type)
+            if (DesignerType.Parse(compilation, path, text, ns) is {} type)
             {
                 types.Add(type);
             }
         }
 
-        const string templateFile = "Templates/designer.scriban";
         var model = new DesignerModel(types);
-        var template = Template.Parse(EmbeddedResource.GetContent(templateFile), templateFile);
-        var output = template.Render(model, member => member.Name);
 
-        context.AddSource("WebForms.Designer.cs", output);
+        AddSource(context, model);
     }
+
+    protected abstract void AddSource(SourceProductionContext context, DesignerModel output);
 }

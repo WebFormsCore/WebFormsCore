@@ -23,7 +23,6 @@
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
 		<PackageReference Include="Microsoft.AspNetCore.SystemWebAdapters" Version="1.0.0-rc.1.22464.1" />
-		<ProjectReference Include="..\WebForms.Adapters\WebForms.Adapters.csproj" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net472'">

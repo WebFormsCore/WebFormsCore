@@ -7,7 +7,9 @@ using WebFormsCore.Nodes;
 
 namespace WebFormsCore.Designer;
 
-public record DesignerType(string? Namespace,
+public record DesignerType(
+    string? Namespace,
+    string? VbNamespace,
     string Name,
     List<DesignerField> Fields,
     List<DesignerEvent> Events,
@@ -55,7 +57,7 @@ public record DesignerType(string? Namespace,
         _initializeCode = sb.ToString();
     }
 
-    public static DesignerType? Parse(Compilation compilation, string path, string? text)
+    public static DesignerType? Parse(Compilation compilation, string path, string? text, string? rootNamespace = null)
     {
         if (text == null) return null;
 
@@ -140,9 +142,21 @@ public record DesignerType(string? Namespace,
             hash = sb.ToString();
         }
 
-        return new DesignerType(
+        var vbNamespace = inheritNamespace;
 
+        if (vbNamespace != null && rootNamespace != null && vbNamespace.StartsWith(rootNamespace, StringComparison.OrdinalIgnoreCase))
+        {
+            vbNamespace = vbNamespace.Substring(rootNamespace.Length).TrimStart('.');
+
+            if (string.IsNullOrWhiteSpace(vbNamespace))
+            {
+                vbNamespace = null;
+            }
+        }
+
+        return new DesignerType(
             inheritNamespace,
+            vbNamespace,
             inheritName,
             fields,
             events,

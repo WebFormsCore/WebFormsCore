@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.VisualBasic;
 using VerifyTests;
 using VerifyXunit;
 using WebForms.SourceGenerator.Tests.Utils;
@@ -18,7 +19,7 @@ public class GenerateTest
     {
         VerifySourceGenerators.Enable();
 
-        var generator = new DesignerGenerator();
+        var generator = new CSharpDesignGenerator();
         GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
 
         var references = new List<MetadataReference>
@@ -154,6 +155,82 @@ public class GenerateTest
             assemblyName: "Tests",
             syntaxTrees: new[] { syntaxTree },
             references: references);
+
+        driver = driver.RunGenerators(compilation);
+
+        return Verifier.Verify(driver);
+    }
+
+    [Fact]
+    public Task GenerateDesignerVisualBasic()
+    {
+        VerifySourceGenerators.Enable();
+
+        var generator = new VisualBasicDesignGenerator();
+        
+        GeneratorDriver driver = VisualBasicGeneratorDriver.Create(
+            ImmutableArray.Create(
+                generator.AsSourceGenerator()
+            )
+        );
+
+        var references = new List<MetadataReference>
+        {
+            MetadataReference.CreateFromFile(typeof(Control).Assembly.Location)
+        };
+
+        var syntaxTree = VisualBasicSyntaxTree.ParseText(
+            """
+            Imports WebFormsCore
+
+            Partial Class DefaultPage
+                Inherits UI.Page
+
+                <ViewState> Dim _counter As Integer
+
+                Protected Function btnIncrement_OnClick(sender As Object, e As EventArgs)
+                    _counter += 1
+                End Function
+
+                Protected Overrides Sub OnPreRender(args As EventArgs)
+                    litValue.Text = _counter.ToString()
+                End Sub
+            End Class
+            """
+        );
+
+        var compilation = VisualBasicCompilation.Create(
+            assemblyName: "Tests",
+            syntaxTrees: new[] { syntaxTree },
+            references: references);
+
+        driver = driver.AddAdditionalTexts(
+            ImmutableArray.Create<AdditionalText>(
+                new MemoryAdditionalText(
+                    "DefaultPage.aspx",
+                    """
+                    <%@ Page language="VB" Inherits="Tests.DefaultPage" %>
+                    <%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI.WebControls" %>
+
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <body id="Body" runat="server">
+
+                        <div class="container">
+                            <div class="mt-4">
+                                <form runat="server" method="post">
+                                    <wfc:Literal runat="server" ID="litValue" Text="0" />
+                                    <wfc:Button runat="server" ID="btnIncrement" OnClick="btnIncrement_OnClick">Increment</wfc:Button>
+                                </form>
+                            </div>
+                        </div>
+
+                    </body>
+                    </html>
+                    """
+                )
+            )
+        );
 
         driver = driver.RunGenerators(compilation);
 

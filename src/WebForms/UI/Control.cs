@@ -533,6 +533,10 @@ public partial class Control
         return default;
     }
 
+    protected virtual void OnPreRender(EventArgs args)
+    {
+    }
+
     protected virtual ValueTask OnPreRenderAsync(CancellationToken token)
     {
         return default;
