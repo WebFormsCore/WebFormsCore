@@ -1,49 +1,39 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI;
 
+internal static class ControlExtensions
+{
+    public static IEnumerable<Control> EnumerateControls(this Control control)
+    {
+        yield return control;
+
+        foreach (var child in control.Controls)
+        {
+            foreach (var descendant in EnumerateControls(child))
+            {
+                yield return descendant;
+            }
+        }
+    }
+}
+
 public partial class Control
 {
-    internal int WriteViewState(ref ViewStateWriter writer, HtmlForm form)
+    internal void LoadViewState(ref ViewStateReader reader)
     {
-        var count = 1;
-        
-        OnWriteViewState(ref writer);
-
-        foreach (var control in Controls)
-        {
-            if (control is HtmlForm && control != form)
-            {
-                continue;
-            }
-
-            count += control.WriteViewState(ref writer, form);
-        }
-
-        return count;
+        OnLoadViewState(ref reader);
     }
 
-    internal int ReadViewState(ref ViewStateReader reader, HtmlForm form)
+    internal void WriteViewState(ref ViewStateWriter writer)
     {
-        var count = 1;
-
-        OnReadViewState(ref reader);
-        OnControlViewStateLoaded();
-
-        foreach (var control in Controls)
-        {
-            if (control is HtmlForm && control != form)
-            {
-                continue;
-            }
-
-            count += control.ReadViewState(ref reader, form);
-        }
-
-        return count;
+        OnWriteViewState(ref writer);
     }
 
     internal void InvokeFrameworkInit(CancellationToken token)
@@ -73,10 +63,24 @@ public partial class Control
         }
     }
 
+    internal async ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form)
+    {
+        if (token.IsCancellationRequested) return;
+
+        await OnPostbackAsync(token);
+
+        foreach (var control in Controls)
+        {
+            if (form != null && control is HtmlForm && control != form) continue;
+
+            await control.InvokePostbackAsync(token, form);
+        }
+    }
+
     internal async ValueTask InvokeLoadAsync(CancellationToken token, HtmlForm? form)
     {
         if (token.IsCancellationRequested) return;
-        
+
         OnLoad(EventArgs.Empty);
         await OnLoadAsync(token);
 

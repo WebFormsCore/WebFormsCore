@@ -6,73 +6,215 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI.WebControls;
 
-public partial class Repeater : Control
+public abstract partial class RepeaterBase<T> : Control, IPostBackEventHandler
+    where T : RepeaterItem
 {
+    private readonly List<T> _items = new();
+
     [ViewState] private int _itemCount;
 
     public virtual string? ItemType { get; set; }
 
+    public IReadOnlyList<T> Items => _items;
+
+    public event AsyncEventHandler<T>? ItemCreated;
+
+    public event AsyncEventHandler<T>? ItemDataBound;
+
+    public ITemplate? HeaderTemplate { get; set; }
+
+    public ITemplate? FooterTemplate { get; set; }
+
+    public ITemplate? SeparatorTemplate { get; set; }
+
     public ITemplate? ItemTemplate { get; set; }
 
-    public IEnumerable? DataSource { get; set; }
+    public ITemplate? AlternatingItemTemplate { get; set; }
 
-    protected override void OnControlViewStateLoaded()
+    public object? DataSource { get; set; }
+
+    public async ValueTask RaisePostBackEventAsync()
     {
-        for (var i = 0; i < _itemCount; i++)
+        var count = _itemCount;
+
+        Clear();
+
+        if (HeaderTemplate != null) await CreateItemAsync(ListItemType.Header);
+
+        for (var i = 0; i < count; i++)
         {
-            var item = new RepeaterItem();
-            ItemTemplate?.InstantiateIn(item);
-            Controls.Add(item);
+            await CreateItemAsync();
         }
+
+        if (FooterTemplate != null) await CreateItemAsync(ListItemType.Footer);
     }
 
-    public void DataBind()
+    public async ValueTask DataBindAsync()
     {
+        Clear();
+
+        if (HeaderTemplate != null) await CreateItemAsync(ListItemType.Header, true);
+
+        await LoadDataSource();
+
+        if (FooterTemplate != null) await CreateItemAsync(ListItemType.Footer, true);
+    }
+
+    private void Clear()
+    {
+        _itemCount = 0;
+        _items.Clear();
         Controls.Clear();
-
-        if (DataSource is null)
-        {
-            return;
-        }
-
-        var enumerator = DataSource.GetEnumerator();
-
-        while (enumerator.MoveNext())
-        {
-            var item = new RepeaterItem();
-            ItemTemplate?.InstantiateIn(item);
-            Controls.Add(item);
-        }
-
-        _itemCount = Controls.Count;
     }
+
+    protected virtual async ValueTask LoadDataSource()
+    {
+        if (DataSource is not IEnumerable dataSource) return;
+
+        foreach (var dataItem in dataSource)
+        {
+            await CreateItemAsync(true, dataItem);
+        }
+    }
+
+    protected virtual void InitializeItem(T item)
+    {
+        var contentTemplate = item.ItemType switch
+        {
+            ListItemType.Header => HeaderTemplate,
+            ListItemType.Footer => FooterTemplate,
+            ListItemType.Item => ItemTemplate,
+            ListItemType.AlternatingItem => AlternatingItemTemplate ?? ItemTemplate,
+            ListItemType.Separator => SeparatorTemplate,
+            _ => null
+        };
+
+        contentTemplate?.InstantiateIn(item);
+    }
+
+    private ValueTask<T> CreateItemAsync(bool useDataSource = false, object? dataItem = null)
+    {
+        var itemType = (_itemCount % 2 == 0) ? ListItemType.Item : ListItemType.AlternatingItem;
+        return CreateItemAsync(itemType, useDataSource, dataItem);
+    }
+
+    private async ValueTask<T> CreateItemAsync(ListItemType itemType, bool dataBind = false, object? dataItem = null)
+    {
+        int itemIndex;
+
+        if (itemType is ListItemType.Item or ListItemType.AlternatingItem)
+        {
+            if (_itemCount > 0)
+            {
+                await CreateItemAsync(ListItemType.Separator);
+            }
+
+            itemIndex = _itemCount++;
+        }
+        else
+        {
+            itemIndex = -1;
+        }
+
+        var item = CreateItem(itemIndex, itemType);
+
+        InitializeItem(item);
+        if (dataBind)
+        {
+            item.DataItem = dataItem;
+        }
+
+        await ItemCreated.InvokeAsync(this, item);
+        Controls.Add(item);
+
+        if (dataBind)
+        {
+            await item.DataBindAsync();
+            await ItemDataBound.InvokeAsync(this, item);
+
+            item.DataItem = null;
+        }
+
+        return item;
+    }
+
+    protected abstract T CreateItem(int itemIndex, ListItemType itemType);
 }
 
-public class RepeaterItem : Control
+public enum ListItemType
 {
+    Header = 0,
+    Footer = 1,
+    Item = 2,
+    AlternatingItem = 3,
+    SelectedItem = 4,
+    EditItem = 5,
+    Separator = 6,
+    Pager = 7
 }
 
-public class Repeater<T> : Repeater
+public class RepeaterItem : Control, IDataItemContainer
 {
-    private IEnumerable<T>? _dataSource;
+    public RepeaterItem(int itemIndex, ListItemType itemType)
+    {
+        ItemIndex = itemIndex;
+        ItemType = itemType;
+    }
 
-    public Repeater()
+    public virtual object? DataItem { get; set; }
+
+    public virtual int ItemIndex { get; set; }
+
+    public virtual ListItemType ItemType { get; set; }
+
+    public virtual ValueTask DataBindAsync()
+    {
+        return default;
+    }
+
+    int IDataItemContainer.DataItemIndex => ItemIndex;
+
+    int IDataItemContainer.DisplayIndex => ItemIndex;
+}
+
+public class RepeaterItem<T> : RepeaterItem
+{
+    private T? _dataItem;
+
+    public RepeaterItem(int itemIndex, ListItemType itemType)
+        : base(itemIndex, itemType)
     {
     }
 
-    public new IEnumerable<T>? DataSource
+    public new T? DataItem
     {
-        get => _dataSource;
+        get => _dataItem;
         set
         {
-            base.DataSource = value;
-            _dataSource = value;
+            _dataItem = value!;
+            base.DataItem = value;
         }
     }
+}
 
+public class Repeater : RepeaterBase<RepeaterItem>
+{
+    protected override RepeaterItem CreateItem(int itemIndex, ListItemType itemType)
+    {
+        return new RepeaterItem(itemIndex, itemType);
+    }
+}
+
+public class Repeater<T> : RepeaterBase<RepeaterItem<T>>
+{
     public override string? ItemType
     {
         get => typeof(T).FullName;
         set => throw new InvalidOperationException();
+    }
+
+    protected override RepeaterItem<T> CreateItem(int itemIndex, ListItemType itemType)
+    {
+        return new RepeaterItem<T>(itemIndex, itemType);
     }
 }

@@ -1,3 +1,6 @@
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using WebFormsCore.UI.HtmlControls;
 
@@ -8,6 +11,18 @@ public class Button : HtmlGenericControl
     public Button()
         : base("button")
     {
+    }
+
+    public event AsyncEventHandler? Click;
+
+    protected override async ValueTask OnPostbackAsync(CancellationToken token)
+    {
+        await base.OnPostbackAsync(token);
+
+        if (Context.Request.Form["__EVENTTARGET"] == UniqueID)
+        {
+            await Click.InvokeAsync(this, EventArgs.Empty);
+        }
     }
 
     protected override async ValueTask RenderAttributesAsync(HtmlTextWriter writer)

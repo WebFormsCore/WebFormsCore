@@ -45,6 +45,11 @@ public class GenerateTest
                 public partial class ControlTest
                 {
                     public ITemplate Template { get; set; }
+
+                    protected void btnIncrement_OnClick(object? sender, EventArgs e)
+                    {
+
+                    }
                 }
 
                 public class ControlTest<T> : ControlTest
@@ -106,6 +111,7 @@ public class GenerateTest
                     <%@ Register TagPrefix="asp" Namespace="WebFormsCore.UI.WebControls" %>
 
                     <asp:Literal id="litTest" runat="server" />
+                    <asp:Button runat="server" ID="btnIncrement" OnClick="btnIncrement_OnClick">Increment</wfc:Button>
                     """
                 )
             )

@@ -57,7 +57,7 @@ public sealed class LiteralControl : Control, ITextControl
     {
     }
 
-    protected override void OnReadViewState(ref ViewStateReader reader)
+    protected override void OnLoadViewState(ref ViewStateReader reader)
     {
     }
 }

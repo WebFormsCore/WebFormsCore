@@ -81,6 +81,24 @@ public static class ContextExtensions
         return null;
     }
 
+    public static T? GetDeep<T>(this ITypeSymbol type, string name)
+    {
+        foreach (var symbol in type.GetMembers())
+        {
+            if (symbol.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && symbol is T t)
+            {
+                return t;
+            }
+        }
+
+        if (type.BaseType != null)
+        {
+            return GetDeep<T>(type.BaseType, name);
+        }
+
+        return default;
+    }
+
     public static string GetNamespace(this BaseTypeDeclarationSyntax syntax)
     {
         // If we don't have a namespace at all we'll return an empty string

@@ -2,11 +2,19 @@
 
 	<PropertyGroup>
 		<TargetFramework>net472</TargetFramework>
+		<MvcBuildViews>false</MvcBuildViews>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<AdditionalFiles Include="Default.aspx" />
+	  <Content Remove="Controls\Counter.ascx" />
+	  <Content Remove="Default.aspx" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AdditionalFiles Include="**/*.aspx" />
+		<AdditionalFiles Include="**/*.ascx" />
 		<AdditionalFiles Include="web.config" />
+		<CompilerVisibleProperty Include="MSBuildProjectDirectory" />
 	</ItemGroup>
 
 	<ItemGroup>

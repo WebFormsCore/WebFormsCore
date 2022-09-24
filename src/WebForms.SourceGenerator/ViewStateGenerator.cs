@@ -132,9 +132,16 @@ namespace WebForms.SourceGenerator
                     ns = null;
                 }
 
+                var typeName = typeDeclaration.Identifier.Text;
+
+                if (typeDeclaration.TypeParameterList is { } typeParameterList)
+                {
+                    typeName += typeParameterList.ToString();
+                }
+
                 items.Add(new ClassItem(
                     ns,
-                    typeDeclaration.Identifier.Text,
+                    typeName,
                     properties
                 ));
             }

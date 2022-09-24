@@ -6,10 +6,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <AdditionalFiles Include="**/*.aspx" />
-        <AdditionalFiles Include="**/*.ascx" />
-        <AdditionalFiles Include="web.config" />
+        <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**" />
+        <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**" />
+        <AdditionalFiles Include="web.config" Exclude="bin\**;obj\**" />
         <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
+
+        <AdditionalFiles Update="**/*.aspx">
+	        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
+        <AdditionalFiles Update="**/*.ascx">
+	        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
     </ItemGroup>
 
     <ItemGroup>

@@ -147,7 +147,7 @@ internal class ViewManager : IDisposable
 
         if (assemblyName != null)
         {
-            type = Type.GetType($"{designerType.Namespace}.{designerType.Name}+CompiledView, {assemblyName}");
+            type = Type.GetType($"{designerType.Namespace}.CompiledViews+{designerType.Name}View, {assemblyName}");
 
             if (type != null)
             {

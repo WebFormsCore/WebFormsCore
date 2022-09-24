@@ -48,7 +48,7 @@ public class CompileContext
 
     public StringBuilder Builder { get; }
 
-    public string ParentNode { get; set; } = "this";
+    public IHtmlNode ParentNode { get; set; } = new SimpleHtmlNode("this", null);
 
     public INamedTypeSymbol? Type { get; set; }
 

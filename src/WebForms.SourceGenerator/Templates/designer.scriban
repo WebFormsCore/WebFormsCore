@@ -30,9 +30,12 @@ namespace {{ type.Namespace }}
         {{- end }}
         {{- end }}
         }
+    }
 
+    public partial class CompiledViews
+    {
         [WebFormsCore.CompiledView(@"{{ type.Path }}", "{{ type.Hash }}")]
-        public class CompiledView : {{ type.Name }}
+        public class {{ type.Name }}View : {{ type.Name }}
         {
 {{ type.ClassCode }}
 

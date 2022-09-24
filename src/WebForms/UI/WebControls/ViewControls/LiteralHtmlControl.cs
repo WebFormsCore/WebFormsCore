@@ -29,7 +29,7 @@ public class LiteralHtmlControl : HtmlGenericControl
     {
     }
 
-    protected override void OnReadViewState(ref ViewStateReader reader)
+    protected override void OnLoadViewState(ref ViewStateReader reader)
     {
     }
 }

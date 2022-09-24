@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
 
@@ -15,4 +16,9 @@ public interface IWebObjectActivator
     LiteralControl CreateLiteral(object? value);
 
     HtmlGenericControl CreateHtml(string tagName);
+}
+
+public interface IPostBackEventHandler
+{
+    ValueTask RaisePostBackEventAsync();
 }

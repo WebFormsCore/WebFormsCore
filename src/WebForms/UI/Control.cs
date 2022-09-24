@@ -510,10 +510,6 @@ public partial class Control
         Controls.Add(control);
     }
 
-    protected virtual void OnControlViewStateLoaded()
-    {
-    }
-
     protected virtual void OnInit(EventArgs args)
     {
     }
@@ -525,6 +521,11 @@ public partial class Control
 
     protected virtual void OnLoad(EventArgs args)
     {
+    }
+
+    protected virtual ValueTask OnPostbackAsync(CancellationToken token)
+    {
+        return default;
     }
 
     protected virtual ValueTask OnLoadAsync(CancellationToken token)
@@ -551,7 +552,7 @@ public partial class Control
         }
     }
 
-    protected virtual void OnReadViewState(ref ViewStateReader reader)
+    protected virtual void OnLoadViewState(ref ViewStateReader reader)
     {
         if (!EnableViewStateBag) return;
 

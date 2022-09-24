@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.Security;
 using WebFormsCore.UI.WebControls;
 using HttpContext = System.Web.HttpContext;
@@ -29,36 +30,27 @@ public class Page : Control, INamingContainer
 
     public async Task<Control> ProcessRequestAsync(CancellationToken token)
     {
+        var viewStateManager = ServiceProvider.GetRequiredService<IViewStateManager>();
+
         InvokeFrameworkInit(token);
         await InvokeInitAsync(token);
 
         Control target = this;
 
-        var request = Context.Request;
-        var method = request.HttpMethod;
+        var form = await viewStateManager.LoadAsync(Context, this);
 
-        HtmlForm? form = null;
-        
-        if (method == "POST")
+        if (form is { Global: false })
         {
-            IsPostBack = true;
-
-            var formId = request.Form["__FORM"];
-            var viewState = request.Form["__VIEWSTATE"];
-            form = Forms.FirstOrDefault(i => i.UniqueID == formId);
-
-            if (form != null && viewState != null)
-            {
-                form.LoadViewState(viewState);
-
-                if (!form.Global)
-                {
-                    target = form;
-                }
-            }
+            target = form;
         }
 
         await InvokeLoadAsync(token, form);
+
+        if (form != null)
+        {
+            await InvokePostbackAsync(token, form);
+        }
+
         await InvokePreRenderAsync(token, form);
 
         return target;

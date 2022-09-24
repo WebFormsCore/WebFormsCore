@@ -6,7 +6,22 @@ using WebFormsCore.Models;
 
 namespace WebFormsCore.Nodes;
 
-public class HtmlNode : ContainerNode, IAttributeNode
+public interface IHtmlNode
+{
+    string? VariableName { get; }
+
+    INamedTypeSymbol? ControlType { get; }
+}
+
+public record SimpleHtmlNode(string VariableName, INamedTypeSymbol? ControlType) : IHtmlNode
+{
+    public override string ToString()
+    {
+        return VariableName;
+    }
+}
+
+public class HtmlNode : ContainerNode, IAttributeNode, IHtmlNode
 {
     public HtmlNode()
         : base(NodeType.Html)
@@ -29,7 +44,7 @@ public class HtmlNode : ContainerNode, IAttributeNode
     
     public INamedTypeSymbol? ControlType { get; set; }
 
-    public string? ControlId { get; set; }
+    public string? VariableName { get; set; }
     
     public bool SetTag { get; set; }
 
@@ -49,7 +64,7 @@ public class HtmlNode : ContainerNode, IAttributeNode
         }
         else
         {
-            ControlId = context.GetNext();
+            VariableName = context.GetNext();
 
             foreach (var child in Children)
             {
@@ -77,8 +92,12 @@ public class HtmlNode : ContainerNode, IAttributeNode
         }
 
         var builder = context.Builder;
-        var id = context.TemplateId++;
-        var className = $"Template{id}";
+
+        var id = Attributes.TryGetValue("id", out var value)
+            ? value.Value
+            : (context.TemplateId++).ToString();
+
+        var className = $"Template{id}_{childNode.Name.Value}";
 
         builder.Append("private class ");
         builder.Append(className);
@@ -104,7 +123,7 @@ public class HtmlNode : ContainerNode, IAttributeNode
         builder.AppendLine(")");
         builder.AppendLine("{");
 
-        context.ParentNode = parameterName;
+        context.ParentNode = new SimpleHtmlNode(parameterName, null);
 
         foreach (var node in childNode.Children)
         {
@@ -130,10 +149,10 @@ public class HtmlNode : ContainerNode, IAttributeNode
         var builder = context.Builder;
         var parentNode = context.ParentNode;
 
-        if (ControlId == null) return;
+        if (VariableName == null) return;
 
         builder.Append("var ");
-        builder.Append(ControlId);
+        builder.Append(VariableName);
 
         builder.Append(" = WebActivator.");
 
@@ -165,7 +184,74 @@ public class HtmlNode : ContainerNode, IAttributeNode
 
             foreach (var kv in Attributes)
             {
-                var field = ControlType.GetMemberDeep(kv.Key.Value);
+                var key = kv.Key.Value;
+
+                if (key.StartsWith("On", StringComparison.OrdinalIgnoreCase))
+                {
+                    var eventSymbol = ControlType.GetDeep<IEventSymbol>(key.Substring(2));
+                    var method = context.Type?.GetDeep<IMethodSymbol>(kv.Value.Value);
+
+                    if (eventSymbol != null && method != null)
+                    {
+                        var type = eventSymbol.Type;
+                        var invoke = type.GetDeep<IMethodSymbol>("Invoke");
+
+                        builder.Append(VariableName);
+                        builder.Append(".");
+                        builder.Append(eventSymbol.Name);
+                        builder.Append(" += ");
+
+                        if (invoke != null && !method.ReturnType.Equals(invoke.ReturnType, SymbolEqualityComparer.Default))
+                        {
+                            builder.Append("(");
+                            for (var i = 0; i < invoke.Parameters.Length; i++)
+                            {
+                                if (i > 0) builder.Append(", ");
+                                var parameter = invoke.Parameters[i];
+                                builder.Append(parameter.Name);
+                            }
+                            builder.Append(") => { this.");
+                            builder.Append(method.Name);
+                            builder.Append("(");
+                            for (var i = 0; i < invoke.Parameters.Length; i++)
+                            {
+                                if (i > 0) builder.Append(", ");
+                                var parameter = invoke.Parameters[i];
+                                builder.Append(parameter.Name);
+                            }
+                            builder.Append(");");
+
+                            if (invoke.ReturnType.SpecialType != SpecialType.System_Void)
+                            {
+                                builder.Append(" return ");
+
+                                if (invoke.Name == "Task")
+                                {
+                                    builder.Append("System.Threading.Tasks.Task.CompletedTask;");
+                                }
+                                else
+                                {
+                                    builder.Append("default(");
+                                    builder.Append(invoke.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+                                    builder.Append(");");
+                                }
+                            }
+
+                            builder.Append(" }");
+                        }
+                        else
+                        {
+                            builder.Append("this.");
+                            builder.Append(method.Name);
+                        }
+
+                        builder.AppendLine(";");
+
+                        continue;
+                    }
+                }
+
+                var field = ControlType.GetMemberDeep(key);
 
                 if (field == null)
                 {
@@ -173,7 +259,7 @@ public class HtmlNode : ContainerNode, IAttributeNode
                     continue;
                 }
 
-                builder.Append(ControlId);
+                builder.Append(VariableName);
                 builder.Append(".");
                 builder.Append(field.Name);
                 builder.Append(" = ");
@@ -210,23 +296,23 @@ public class HtmlNode : ContainerNode, IAttributeNode
                 builder.Append("this.");
                 builder.Append(parentField?.Name ?? id.Value);
                 builder.Append(" = ");
-                builder.Append(ControlId);
+                builder.Append(VariableName);
                 builder.AppendLine(";");
             }
         }
 
         builder.Append(parentNode);
         builder.Append(".AddParsedSubObject(");
-        builder.Append(ControlId);
+        builder.Append(VariableName);
         builder.AppendLine(");");
 
-        context.ParentNode = ControlId!;
+        context.ParentNode = this;
 
         foreach (var child in Children)
         {
             if (child is HtmlNode { TemplateClass: { } templateClass } node)
             {
-                builder.Append(ControlId);
+                builder.Append(VariableName);
                 builder.Append(".");
                 builder.Append(node.Name);
                 builder.Append(" = new ");
@@ -244,11 +330,16 @@ public class HtmlNode : ContainerNode, IAttributeNode
     private void AddAttribute(StringBuilder builder,  KeyValuePair<TokenString, TokenString> keyValue)
     {
         builder.Append("((WebFormsCore.UI.IAttributeAccessor)");
-        builder.Append(ControlId);
+        builder.Append(VariableName);
         builder.Append(").SetAttribute(");
         builder.Append(keyValue.Key.CodeString);
         builder.Append(", ");
         builder.Append(keyValue.Value.CodeString);
         builder.AppendLine(");");
+    }
+
+    public override string ToString()
+    {
+        return VariableName ?? Name.Value;
     }
 }

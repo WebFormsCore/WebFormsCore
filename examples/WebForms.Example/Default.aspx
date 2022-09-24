@@ -51,23 +51,28 @@ function submitForm(form) {
         const options = {
             onNodeAdded(node) {
                 newElements.push(node);
+            },
+            onBeforeElUpdated(fromEl, toEl) {
+                if (fromEl.isEqualNode(toEl)) {
+                    return false;
+                }
+
+                if (fromEl.tagName === 'SCRIPT') {
+                    return false;
+                }
+
+                return true;
             }
         };
-
-        if ('isEqualNode' in Element.prototype) {
-            options.onBeforeElUpdated = (fromEl, toEl) => {
-                return !fromEl.isEqualNode(toEl);
-            };
-        }
 
         const parser = new DOMParser();
         const htmlDoc = parser.parseFromString(r, 'text/html');
 
         if (scope === 'global') {
-            morphdom(document.head, htmlDoc.querySelector('head'));
-            morphdom(document.body, htmlDoc.querySelector('body'));
+            morphdom(document.head, htmlDoc.querySelector('head'), options);
+            morphdom(document.body, htmlDoc.querySelector('body'), options);
         } else {
-            morphdom(form, htmlDoc.querySelector('form'));
+            morphdom(form, htmlDoc.querySelector('form'), options);
         }
     });
 }

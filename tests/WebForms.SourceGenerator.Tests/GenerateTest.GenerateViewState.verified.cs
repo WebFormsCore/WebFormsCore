@@ -23,13 +23,13 @@ namespace Tests
 			writer.Write<string>(test);
         }
 
-		protected override void OnReadViewState(ref ViewStateReader reader)
+		protected override void OnLoadViewState(ref ViewStateReader reader)
         {
-            base.OnReadViewState(ref reader);
+            base.OnLoadViewState(ref reader);
 			test = reader.Read<string>();
         }
 
         void IViewStateObject.WriteViewState(ref ViewStateWriter writer) => OnWriteViewState(ref writer);
-        void IViewStateObject.ReadViewState(ref ViewStateReader reader) => OnReadViewState(ref reader);
+        void IViewStateObject.ReadViewState(ref ViewStateReader reader) => OnLoadViewState(ref reader);
     }
 }
