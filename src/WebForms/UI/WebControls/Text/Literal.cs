@@ -9,8 +9,8 @@ public partial class Literal : Control
 
     [ViewState] public string Text { get; set; } = "";
 
-    public override ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    public override Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        return new ValueTask(writer.WriteAsync(Text));
+        return writer.WriteAsync(Text);
     }
 }

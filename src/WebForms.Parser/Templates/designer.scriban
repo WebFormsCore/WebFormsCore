@@ -15,12 +15,9 @@
             {{- else }}
             {{ child.VariableName }}.{{ prop.EventName }} += ({{ prop.Arguments }}) =>
             {
-                {{ prop.MethodName }}({{ prop.Arguments }});
-                {{- if prop.ReturnValue }}
+                {{ if !prop.IsVoid }}var result = {{ end }}
+                {{- prop.MethodName }}({{ prop.Arguments }});
                 return {{ prop.ReturnValue }};
-                {{- else }}
-                return default({{ prop.DisplayReturnType }});
-                {{- end }}
             };
             {{- end }}
             {{- end }}

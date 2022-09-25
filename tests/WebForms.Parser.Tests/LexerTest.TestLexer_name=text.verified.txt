@@ -24,7 +24,7 @@
     },
     Text: {
       Value: div,
-      CodeString: @"div",
+      CodeString: "div",
       VbCodeString: "div",
       Range: {
         File: Tests.aspx,
@@ -68,7 +68,7 @@
     },
     Text: {
       Value: Test,
-      CodeString: @"Test",
+      CodeString: "Test",
       VbCodeString: "Test",
       Range: {
         File: Tests.aspx,
@@ -112,7 +112,7 @@
     },
     Text: {
       Value: div,
-      CodeString: @"div",
+      CodeString: "div",
       VbCodeString: "div",
       Range: {
         File: Tests.aspx,

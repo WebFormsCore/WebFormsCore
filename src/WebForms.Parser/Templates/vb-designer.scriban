@@ -14,12 +14,9 @@
             AddHandler {{ child.VariableName }}.{{ prop.Event.Name }}, AddressOf {{ prop.Method.Name }}
             {{- else }}
             AddHandler {{ child.VariableName }}.{{ prop.Event.Name }}, Function({{ prop.Arguments }})
-                {{ prop.Method.Name }}({{ prop.Arguments }})
-                {{- if prop.ReturnValue }}
+                {{ if !prop.IsVoid }}Dim result = {{ end }}
+                {{- prop.Method.Name }}({{ prop.Arguments }})
                 Return {{ prop.ReturnValue }}
-                {{- else }}
-                Return CType(Nothing, {{ prop.DisplayReturnType }})
-                {{- end }}
             End function
             {{- end }}
             {{- end }}

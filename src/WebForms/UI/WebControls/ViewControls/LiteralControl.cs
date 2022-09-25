@@ -45,7 +45,8 @@ public sealed class LiteralControl : Control, ITextControl
 
     /// <summary>Writes the content of the <see cref="T:WebFormsCore.UI.WebControls.LiteralControl" /> object to the ASP.NET page.</summary>
     /// <param name="output">An <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> that renders the content of the <see cref="T:WebFormsCore.UI.WebControls.LiteralControl" /> to the requesting client. </param>
-    public override ValueTask RenderAsync(HtmlTextWriter output, CancellationToken token) => new(output.WriteAsync(_text));
+    /// <param name="token"></param>
+    public override Task RenderAsync(HtmlTextWriter output, CancellationToken token) => output.WriteAsync(_text);
 
     public override void ClearControl()
     {

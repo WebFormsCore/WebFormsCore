@@ -74,7 +74,8 @@ namespace WebFormsCore.UI.WebControls
 
         /// <summary>Renders the <see cref="T:WebFormsCore.UI.WebControls.HtmlContainerControl" /> control to the specified <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object.</summary>
         /// <param name="writer">The <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> that receives the <see cref="T:WebFormsCore.UI.WebControls.HtmlContainerControl" /> content.</param>
-        public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
+        /// <param name="token"></param>
+        public override async Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
         {
             await RenderBeginTagAsync(writer, token);
             await RenderChildrenAsync(writer, token);

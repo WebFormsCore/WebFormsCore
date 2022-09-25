@@ -12,12 +12,11 @@ public partial class Counter : Control
 {
     [ViewState] private int _count;
 
-    protected override ValueTask OnPreRenderAsync(CancellationToken token)
+    protected override Task OnPreRenderAsync(CancellationToken token)
     {
         tbPrefix.Text = tbPrefix.Text?.ToUpperInvariant();
         litValue.Text = $"Count: {tbPrefix.Text}{_count}";
-
-        return default;
+        return Task.CompletedTask;
     }
 
     protected async ValueTask btnIncrement_OnClick(object? sender, EventArgs e)
@@ -28,7 +27,7 @@ public partial class Counter : Control
         await rptItems.DataBindAsync();
     }
 
-    protected ValueTask rptItems_OnItemDataBound(object? sender, RepeaterItem e)
+    protected void rptItems_OnItemDataBound(object? sender, RepeaterItem e)
     {
         var item = (Literal?) e.FindControl("litItem");
 
@@ -36,7 +35,5 @@ public partial class Counter : Control
         {
             item.Text = e.DataItem?.ToString();
         }
-
-        return default;
     }
 }

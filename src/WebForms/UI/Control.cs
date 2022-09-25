@@ -298,10 +298,11 @@ public partial class Control
     /// <returns>
     /// <see langword="true" /> if the <see cref="T:WebFormsCore.UI.StateBag" /> instance is case-insensitive; otherwise, <see langword="false" />. The default is <see langword="false" />.</returns>
     protected virtual bool ViewStateIgnoresCase => false;
-    
+
     /// <summary>Sends server control content to a provided <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object, which writes the content to be rendered on the client.</summary>
     /// <param name="writer">The <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object that receives the server control content. </param>
-    public virtual ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    /// <param name="token"></param>
+    public virtual Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
         return RenderChildrenAsync(writer, token);
     }
@@ -313,7 +314,8 @@ public partial class Control
 
     /// <summary>Outputs the content of a server control's children to a provided <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object, which writes the content to be rendered on the client.</summary>
     /// <param name="writer">The <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object that receives the rendered content. </param>
-    protected virtual async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
+    /// <param name="token"></param>
+    protected virtual async Task RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
         if (_renderMethod != null)
         {
@@ -528,32 +530,32 @@ public partial class Control
     {
     }
     
-    protected virtual ValueTask OnInitAsync(CancellationToken token)
+    protected virtual Task OnInitAsync(CancellationToken token)
     {
-        return default;
+        return Task.CompletedTask;
     }
 
     protected virtual void OnLoad(EventArgs args)
     {
     }
 
-    protected virtual ValueTask OnPostbackAsync(CancellationToken token)
+    protected virtual Task OnPostbackAsync(CancellationToken token)
     {
-        return default;
+        return Task.CompletedTask;
     }
 
-    protected virtual ValueTask OnLoadAsync(CancellationToken token)
+    protected virtual Task OnLoadAsync(CancellationToken token)
     {
-        return default;
+        return Task.CompletedTask;
     }
 
     protected virtual void OnPreRender(EventArgs args)
     {
     }
 
-    protected virtual ValueTask OnPreRenderAsync(CancellationToken token)
+    protected virtual Task OnPreRenderAsync(CancellationToken token)
     {
-        return default;
+        return Task.CompletedTask;
     }
 
     protected virtual void OnWriteViewState(ref ViewStateWriter writer)

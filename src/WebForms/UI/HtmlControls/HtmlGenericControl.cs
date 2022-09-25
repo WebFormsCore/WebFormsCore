@@ -36,7 +36,7 @@ public class HtmlGenericControl : HtmlContainerControl
         set => _tagName = value;
     }
 
-    protected override async ValueTask OnPreRenderAsync(CancellationToken token)
+    protected override async Task OnPreRenderAsync(CancellationToken token)
     {
         await base.OnPreRenderAsync(token);
 
@@ -56,10 +56,10 @@ public class HtmlGenericControl : HtmlContainerControl
         Page.Csp.ScriptSrc.AddInlineHash(script);
     }
 
-    protected override ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
+    protected override Task RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
         return _preRenderedContent != null
-            ? new ValueTask(writer.WriteAsync(_preRenderedContent))
+            ? writer.WriteAsync(_preRenderedContent)
             : base.RenderChildrenAsync(writer, token);
     }
 

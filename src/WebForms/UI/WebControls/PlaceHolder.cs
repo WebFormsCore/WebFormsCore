@@ -19,7 +19,7 @@ namespace WebFormsCore.UI.WebControls
         
         public bool Global { get; set; }
 
-        protected override async ValueTask OnInitAsync(CancellationToken token)
+        protected override async Task OnInitAsync(CancellationToken token)
         {
             await base.OnInitAsync(token);
 
@@ -28,13 +28,13 @@ namespace WebFormsCore.UI.WebControls
 
         internal virtual Control ViewStateOwner => Global ? Page : this;
 
-        protected override async ValueTask RenderAttributesAsync(HtmlTextWriter writer)
+        protected override async Task RenderAttributesAsync(HtmlTextWriter writer)
         {
             await base.RenderAttributesAsync(writer);
             await writer.WriteAttributeAsync("data-wfc-form", Global ? "global" : "scope");
         }
 
-        protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
+        protected override async Task RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
         {
             var viewStateManager = ServiceProvider.GetRequiredService<IViewStateManager>();
 

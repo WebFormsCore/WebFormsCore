@@ -27,7 +27,27 @@ public class EventNode : Node
 
     public bool IsReturnTypeSame => Invoke == null || Method.ReturnType.Equals(Invoke.ReturnType, SymbolEqualityComparer.Default);
 
+    public bool IsVoid => Method.ReturnsVoid;
+
     public string? DisplayReturnType => Invoke?.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
-    public string? ReturnValue => Invoke?.ReturnType.Name == "Task" ? "System.Threading.Tasks.Task.CompletedTask" : null;
+    public string? ReturnValue
+    {
+        get
+        {
+            var returnType = Method.ReturnType;
+
+            if (returnType.SpecialType == SpecialType.System_Void)
+            {
+                return "System.Threading.Tasks.Task.CompletedTask";
+            }
+
+            return Method.ReturnType.Name switch
+            {
+                "Task" => "result",
+                "ValueTask" => "result.AsTask()",
+                _ => null
+            };
+        }
+    }
 }

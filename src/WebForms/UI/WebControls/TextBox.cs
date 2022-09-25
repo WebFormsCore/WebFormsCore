@@ -26,7 +26,7 @@ public class TextBox : HtmlControl
         }
     }
 
-    protected override async ValueTask RenderAttributesAsync(HtmlTextWriter writer)
+    protected override async Task RenderAttributesAsync(HtmlTextWriter writer)
     {
         await base.RenderAttributesAsync(writer);
         await writer.WriteAttributeAsync("name", ClientID);

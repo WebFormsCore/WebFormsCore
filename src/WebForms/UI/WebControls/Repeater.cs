@@ -33,7 +33,7 @@ public abstract partial class RepeaterBase<T> : Control, IPostBackEventHandler
 
     public object? DataSource { get; set; }
 
-    public async ValueTask RaisePostBackEventAsync()
+    public async Task RaisePostBackEventAsync()
     {
         var count = _itemCount;
 
@@ -167,9 +167,9 @@ public class RepeaterItem : Control, IDataItemContainer
 
     public virtual ListItemType ItemType { get; set; }
 
-    public virtual ValueTask DataBindAsync()
+    public virtual Task DataBindAsync()
     {
-        return default;
+        return Task.CompletedTask;
     }
 
     int IDataItemContainer.DataItemIndex => ItemIndex;

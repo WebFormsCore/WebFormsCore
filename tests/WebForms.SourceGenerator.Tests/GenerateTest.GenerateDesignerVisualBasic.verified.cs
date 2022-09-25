@@ -1,5 +1,7 @@
 ﻿//HintName: WebForms.Designer.vb
 
+Imports Microsoft.VisualBasic
+<Assembly:WebFormsCore.RootNamespaceAttribute("Tests")>
 <WebFormsCore.ViewPath("DefaultPage.aspx")>
 Partial Class DefaultPage
     Protected Body As Global.WebFormsCore.UI.HtmlControls.HtmlGenericControl
@@ -16,27 +18,27 @@ Public Partial Class CompiledViews
 
         Public WebActivator As WebFormsCore.IWebObjectActivator
 
-        Private Async Function Render_0(writer As WebFormsCore.UI.HtmlTextWriter, controls As WebFormsCore.UI.ControlCollection, token As System.Threading.CancellationToken) As Task
+        Private Async Function Render_0(writer As WebFormsCore.UI.HtmlTextWriter, controls As WebFormsCore.UI.ControlCollection, token As System.Threading.CancellationToken) As System.Threading.Tasks.Task
             #ExternalSource("DefaultPage.aspx", 13)
-            Await controls(0).RenderAsync(writer, token) ' Text: @"\n                        "
+            Await controls(0).RenderAsync(writer, token) ' Text: "\n                        "
             #End ExternalSource
             #ExternalSource("DefaultPage.aspx", 14)
              If True Then 
             #End ExternalSource
             #ExternalSource("DefaultPage.aspx", 14)
-            Await controls(1).RenderAsync(writer, token) ' Text: @"\n                            "
+            Await controls(1).RenderAsync(writer, token) ' Text: "\n                            "
             #End ExternalSource
             #ExternalSource("DefaultPage.aspx", 15)
             Await controls(2).RenderAsync(writer, token) ' Element: Literal
             #End ExternalSource
             #ExternalSource("DefaultPage.aspx", 15)
-            Await controls(3).RenderAsync(writer, token) ' Text: @"\n                        "
+            Await controls(3).RenderAsync(writer, token) ' Text: "\n                        "
             #End ExternalSource
             #ExternalSource("DefaultPage.aspx", 16)
              End If 
             #End ExternalSource
             #ExternalSource("DefaultPage.aspx", 16)
-            Await controls(4).RenderAsync(writer, token) ' Text: @"\n                    "
+            Await controls(4).RenderAsync(writer, token) ' Text: "\n                    "
             #End ExternalSource
         End Function
 
@@ -100,6 +102,7 @@ Public Partial Class CompiledViews
             #ExternalSource("DefaultPage.aspx", 6)
             Dim ctrl1 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.HtmlControls.HtmlGenericControl)()
             ctrl0.AddParsedSubObject(ctrl1)
+            ctrl1.TagName = WebActivator.ParseAttribute(Of String)("body")
             ctrl1.ID = WebActivator.ParseAttribute(Of String)("Body")
             Me.Body = ctrl1
             #End ExternalSource
@@ -135,7 +138,7 @@ Public Partial Class CompiledViews
             ctrl4.AddParsedSubObject(ctrl5)
             AddHandler ctrl5.Click, Function(sender, e)
                 btnAdd_OnClick(sender, e)
-                Return CType(Nothing, Global.System.Threading.Tasks.ValueTask)
+                Return System.Threading.Tasks.Task.CompletedTask
             End function
             ctrl5.ID = WebActivator.ParseAttribute(Of String)("btnAdd")
             Me.btnAdd = ctrl5

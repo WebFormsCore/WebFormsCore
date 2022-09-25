@@ -274,6 +274,16 @@ public class Parser
                 }
             }
 
+            if (controlType.Name == "HtmlGenericControl")
+            {
+                var member = controlType.GetMemberDeep("TagName");
+
+                if (member != null)
+                {
+                    controlNode.Properties.Add(new PropertyNode(member, name.Text, null));
+                }
+            }
+
             foreach (var attribute in attributes)
             {
                 var key = attribute.Key.Value;

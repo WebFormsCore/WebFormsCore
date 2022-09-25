@@ -61,11 +61,11 @@ namespace WebFormsCore.UI.WebControls
         /// <returns>A <see cref="T:WebFormsCore.UI.ControlCollection" /> object to contain the current server control's child server controls.</returns>
         protected override ControlCollection CreateControlCollection() => new EmptyControlCollection(this);
 
-        public override ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token) => RenderBeginTagAsync(writer, token);
+        public override Task RenderAsync(HtmlTextWriter writer, CancellationToken token) => RenderBeginTagAsync(writer, token);
 
         /// <summary>Renders the <see cref="T:WebFormsCore.UI.WebControls.HtmlControl" /> control's attributes into the specified <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object.</summary>
         /// <param name="writer">The <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> that receives the rendered content.</param>
-        protected virtual async ValueTask RenderAttributesAsync(HtmlTextWriter writer)
+        protected virtual async Task RenderAttributesAsync(HtmlTextWriter writer)
         {
             if (ID != null)
             {
@@ -77,7 +77,7 @@ namespace WebFormsCore.UI.WebControls
 
         /// <summary>Renders the opening HTML tag of the control into the specified <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object.</summary>
         /// <param name="writer">The <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> that receives the rendered content.</param>
-        protected virtual async ValueTask RenderBeginTagAsync(HtmlTextWriter writer, CancellationToken token)
+        protected virtual async Task RenderBeginTagAsync(HtmlTextWriter writer, CancellationToken token)
         {
             if (token.IsCancellationRequested) return;
 

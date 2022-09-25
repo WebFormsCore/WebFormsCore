@@ -15,7 +15,7 @@ public class Button : HtmlGenericControl
 
     public event AsyncEventHandler? Click;
 
-    protected override async ValueTask OnPostbackAsync(CancellationToken token)
+    protected override async Task OnPostbackAsync(CancellationToken token)
     {
         await base.OnPostbackAsync(token);
 
@@ -25,7 +25,7 @@ public class Button : HtmlGenericControl
         }
     }
 
-    protected override async ValueTask RenderAttributesAsync(HtmlTextWriter writer)
+    protected override async Task RenderAttributesAsync(HtmlTextWriter writer)
     {
         await base.RenderAttributesAsync(writer);
         await writer.WriteAttributeAsync("data-wfc-postback", UniqueID);

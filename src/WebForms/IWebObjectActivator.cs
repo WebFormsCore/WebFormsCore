@@ -25,5 +25,5 @@ public interface IWebObjectActivator
 
 public interface IPostBackEventHandler
 {
-    ValueTask RaisePostBackEventAsync();
+    Task RaisePostBackEventAsync();
 }

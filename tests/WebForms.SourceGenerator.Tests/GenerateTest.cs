@@ -186,8 +186,8 @@ public class GenerateTest
             Partial Class DefaultPage
                 Inherits UI.Page
 
-                Protected Function btnAdd_OnClick(sender As Object, e As EventArgs)
-                End Function
+                Protected Sub btnAdd_OnClick(sender As Object, e As EventArgs)
+                End Sub
             End Class
             """
         );

@@ -24,7 +24,7 @@
     },
     Text: {
       Value: div,
-      CodeString: @"div",
+      CodeString: "div",
       VbCodeString: "div",
       Range: {
         File: Tests.aspx,
@@ -54,7 +54,7 @@
     },
     Text: {
       Value: runat,
-      CodeString: @"runat",
+      CodeString: "runat",
       VbCodeString: "runat",
       Range: {
         File: Tests.aspx,
@@ -84,7 +84,7 @@
     },
     Text: {
       Value: server,
-      CodeString: @"server",
+      CodeString: "server",
       VbCodeString: "server",
       Range: {
         File: Tests.aspx,
@@ -128,7 +128,7 @@
     },
     Text: {
       Value: Test,
-      CodeString: @"Test",
+      CodeString: "Test",
       VbCodeString: "Test",
       Range: {
         File: Tests.aspx,
@@ -172,7 +172,7 @@
     },
     Text: {
       Value: div,
-      CodeString: @"div",
+      CodeString: "div",
       VbCodeString: "div",
       Range: {
         File: Tests.aspx,
