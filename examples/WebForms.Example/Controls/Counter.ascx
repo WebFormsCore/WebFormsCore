@@ -17,7 +17,7 @@
             <wfc:Repeater runat="server" ItemType="System.String" ID="rptItems" OnItemDataBound="rptItems_OnItemDataBound">
                 <ItemTemplate>
                     <li>
-                        Test
+                        <wfc:Literal runat="server" ID="litItem" />
                     </li>
                 </ItemTemplate>
                 <SeparatorTemplate>

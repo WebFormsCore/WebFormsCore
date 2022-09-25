@@ -1,10 +1,10 @@
 ﻿using System.Reflection;
 
-namespace WebForms.SourceGenerator;
+namespace WebForms;
 
-public static class EmbeddedResource
+internal static class EmbeddedResource
 {
-    private static readonly string? BaseDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+    private static readonly string? BaseDir = Path.GetDirectoryName(typeof(EmbeddedResource).Assembly.Location);
 
     public static string GetContent(string relativePath)
     {
@@ -18,7 +18,7 @@ public static class EmbeddedResource
             }
         }
 
-        var baseName = Assembly.GetExecutingAssembly().GetName().Name;
+        var baseName = typeof(EmbeddedResource).Assembly.GetName().Name;
         var resourceName = relativePath
             .TrimStart('.')
             .Replace(Path.DirectorySeparatorChar, '.')

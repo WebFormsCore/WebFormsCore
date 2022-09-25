@@ -15,11 +15,53 @@
         <Compile Update="..\WebForms.Parser\Nodes\TextNode.cs">
           <Link>Parser\Nodes\TextNode.cs</Link>
         </Compile>
+        <Compile Update="..\WebForms.Parser\Nodes\HtmlServerNode.cs">
+          <Link>Parser\Nodes\HtmlServerNode.cs</Link>
+        </Compile>
+        <Compile Update="..\WebForms.Parser\Designer\DesignerEvent.cs">
+          <Link>Parser\Designer\DesignerEvent.cs</Link>
+        </Compile>
+        <Compile Update="..\WebForms.Parser\Extensions\MemberResult.cs">
+          <Link>Parser\Extensions\MemberResult.cs</Link>
+        </Compile>
+        <Compile Update="..\WebForms.Parser\Internals\RequiredMemberAttribute.cs">
+          <Link>Parser\Internals\RequiredMemberAttribute.cs</Link>
+        </Compile>
+        <Compile Update="..\WebForms.Parser\Models\Tokens\OffsetRange.cs">
+          <Link>Parser\Models\Tokens\OffsetRange.cs</Link>
+        </Compile>
+        <Compile Update="..\WebForms.Parser\Nodes\EventNode.cs">
+          <Link>Parser\Nodes\EventNode.cs</Link>
+        </Compile>
+        <Compile Update="..\WebForms.Parser\Nodes\PropertyNode.cs">
+          <Link>Parser\Nodes\PropertyNode.cs</Link>
+        </Compile>
+        <Compile Update="..\WebForms.Parser\Nodes\TemplateNode.cs">
+          <Link>Parser\Nodes\TemplateNode.cs</Link>
+        </Compile>
+        <Compile Update="..\WebForms.Parser\Nodes\Language.cs">
+          <Link>Parser\Nodes\Language.cs</Link>
+        </Compile>
+        <Compile Update="..\WebForms.Parser\Nodes\CompileContext.cs">
+          <Link>Parser\Nodes\CompileContext.cs</Link>
+        </Compile>
+        <Compile Update="..\WebForms.Parser\Nodes\DesignerModel.cs">
+          <Link>Parser\Nodes\DesignerModel.cs</Link>
+        </Compile>
+        <Compile Update="..\WebForms.Parser\Nodes\ControlId.cs">
+          <Link>Parser\Nodes\ControlId.cs</Link>
+        </Compile>
     </ItemGroup>
 
     <ItemGroup>
         <None Remove="Template.liquid" />
         <None Remove="Templates\viewstate.scriban" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="..\WebForms.Parser\Templates\designer.scriban" LinkBase="Templates" />
+        <EmbeddedResource Include="..\WebForms.Parser\Templates\vb-designer.scriban" LinkBase="Templates" />
+        <EmbeddedResource Include="..\WebForms.Parser\Templates\viewstate.scriban" LinkBase="Templates" />
     </ItemGroup>
 
     <ItemGroup>
@@ -31,14 +73,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Scriban" Version="2.1.2" GeneratePathProperty="true" PrivateAssets="all" />
+        <PackageReference Include="Scriban" Version="5.5.0" GeneratePathProperty="true" PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup>
         <None Remove="template.scriban" />
-        <EmbeddedResource Include="Templates\vb-designer.scriban" />
-        <EmbeddedResource Include="Templates\viewstate.scriban" />
-        <EmbeddedResource Include="Templates\designer.scriban" />
     </ItemGroup>
 
     <PropertyGroup>

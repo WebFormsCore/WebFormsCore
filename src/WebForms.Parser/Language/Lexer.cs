@@ -126,21 +126,21 @@ public ref struct Lexer
         return result;
     }
 
-    public Token? Peek()
+    public Token? Peek(int offset = 1)
     {
-        var offset = _nodeOffset + 1;
+        var index = _nodeOffset + offset;
 
-        if (offset >= _nodes.Count && !Consume())
+        while (index >= _nodes.Count && !Consume())
         {
             return null;
         }
 
-        if (offset >= _nodes.Count)
+        if (index >= _nodes.Count)
         {
             return null;
         }
 
-        return _nodes[offset];
+        return _nodes[index];
     }
 
     private bool Consume()

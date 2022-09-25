@@ -3,9 +3,12 @@
 public enum NodeType
 {
     Root,
-    Html,
+    Element,
+    Control,
     Expression,
     Statement,
     Directive,
-    Text
+    Text,
+    Event,
+    Property
 }

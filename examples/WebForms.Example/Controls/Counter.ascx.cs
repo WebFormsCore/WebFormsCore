@@ -28,13 +28,13 @@ public partial class Counter : Control
         await rptItems.DataBindAsync();
     }
 
-    protected ValueTask rptItems_OnItemDataBound(object? sender, RepeaterItem<string> e)
+    protected ValueTask rptItems_OnItemDataBound(object? sender, RepeaterItem e)
     {
         var item = (Literal?) e.FindControl("litItem");
 
         if (item != null)
         {
-            item.Text = e.DataItem!;
+            item.Text = e.DataItem?.ToString();
         }
 
         return default;

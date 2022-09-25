@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore;
 
-public delegate ValueTask AsyncEventHandler(object? sender, EventArgs e);
+public delegate Task AsyncEventHandler(object? sender, EventArgs e);
 
-public delegate ValueTask AsyncEventHandler<in T>(object? sender, T e);
+public delegate Task AsyncEventHandler<in T>(object? sender, T e);
 
 public static class AsyncEventHandlerHelper
 {
@@ -43,14 +43,16 @@ public static class AsyncEventHandlerHelper
 
         if (result is not object[] objects)
         {
-            await handler(sender, e);
+            var task = handler(sender, e);
+            if (task != null) await task;
             return;
         }
 
         for (var index = 0; index < length; index++)
         {
             var @delegate = objects[index];
-            await Unsafe.As<AsyncEventHandler>(@delegate)(sender, e);
+            var task = Unsafe.As<AsyncEventHandler>(@delegate)(sender, e);
+            if (task != null) await task;
         }
     }
 
@@ -62,14 +64,16 @@ public static class AsyncEventHandlerHelper
 
         if (result is not object[] objects)
         {
-            await handler(sender, e);
+            var task = handler(sender, e);
+            if (task != null) await task;
             return;
         }
 
         for (var index = 0; index < length; index++)
         {
             var @delegate = objects[index];
-            await Unsafe.As<AsyncEventHandler<T>>(@delegate)(sender, e);
+            var task = Unsafe.As<AsyncEventHandler<T>>(@delegate)(sender, e);
+            if (task != null) await task;
         }
     }
 }

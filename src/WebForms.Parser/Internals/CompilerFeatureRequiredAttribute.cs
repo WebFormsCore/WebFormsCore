@@ -10,7 +10,4 @@
         public string FeatureName { get; }
         public string? Language { get; init; }
     }
-
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property)]
-    internal sealed class RequiredMemberAttribute : Attribute { }
 }

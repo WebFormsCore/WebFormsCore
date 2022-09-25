@@ -6,12 +6,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.Extensions.Logging;
 using WebFormsCore.Compiler;
+using WebFormsCore.Nodes;
 
 namespace WebFormsCore;
 
@@ -134,62 +136,81 @@ internal class ViewManager : IDisposable
         return entry.Type;
     }
 
+    private static Type? FindType(string? fullName)
+    {
+        if (fullName == null) return null;
+
+        var type = Type.GetType(fullName);
+
+        if (type != null) return type;
+
+        return AppDomain.CurrentDomain.GetAssemblies()
+            .Where(a => !a.IsDynamic)
+            .SelectMany(a => a.GetTypes())
+            .FirstOrDefault(t => t.FullName == fullName);
+    }
+
     private Type CompilePage(string path)
     {
-        var fullPath = Path.Combine(_environment.ContentRootPath, path);
-
         var sw = Stopwatch.StartNew();
-        var (compilation, typeName, designerType) = ViewCompiler.Compile(fullPath);
+        var fullPath = Path.Combine(_environment.ContentRootPath, path);
+        var text = File.ReadAllText(fullPath).ReplaceLineEndings("\n");
+        var inheritsName = RootNode.DetectInherits(text);
+        var inherits = FindType(inheritsName);
 
-        Type? type = null;
-
-        var assemblyName = designerType.Type?.ContainingAssembly.Name;
-
-        if (assemblyName != null)
+        if (inherits == null)
         {
-            type = Type.GetType($"{designerType.Namespace}.CompiledViews+{designerType.Name}View, {assemblyName}");
-
-            if (type != null)
-            {
-                var attribute = type.GetCustomAttribute<CompiledViewAttribute>();
-
-                if (attribute?.Hash == designerType.Hash)
-                {
-                    _logger.LogDebug("Using pre-compiled view of page {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
-                    return type;
-                }
-
-                type = null;
-            }
+            throw new InvalidOperationException($"Could not find type {inheritsName}");
         }
 
-        if (type == null)
+        var designerTypeName = RootNode.GetClassName(inherits.Namespace, inherits.Name);
+        var assemblyName = inherits.Assembly.GetName().Name;
+        var type = Type.GetType($"{designerTypeName}, {assemblyName}");
+
+        if (type != null)
         {
-            using var assemblyStream = new MemoryStream();
-            using var symbolsStream = new MemoryStream();
+            var attribute = type.GetCustomAttribute<CompiledViewAttribute>();
 
-            var emitOptions = new EmitOptions();
-
-            var result = compilation.Emit(
-                peStream: assemblyStream,
-                pdbStream: symbolsStream,
-                options: emitOptions);
-
-            if (!result.Success)
+            if (attribute?.Hash == RootNode.GenerateHash(text))
             {
-                foreach (var diagnostic in result.Diagnostics)
-                {
-                    _logger.LogError("Compilation error: {Message}", diagnostic.ToString());
-                }
-
-                throw new InvalidOperationException();
+                _logger.LogDebug("Using pre-compiled view of page {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
+                return type;
             }
 
-            var assembly = Assembly.Load(assemblyStream.ToArray(), symbolsStream.ToArray());
-            type = assembly.GetType(typeName)!;
-
-            _logger.LogDebug("Compiled view of page {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
+            type = null;
         }
+
+        var (compilation, designerType) = ViewCompiler.Compile(fullPath, text);
+
+        if (type != null)
+        {
+            return type;
+        }
+
+        using var assemblyStream = new MemoryStream();
+        using var symbolsStream = new MemoryStream();
+
+        var emitOptions = new EmitOptions();
+
+        var result = compilation.Emit(
+            peStream: assemblyStream,
+            pdbStream: symbolsStream,
+            options: emitOptions);
+
+        if (!result.Success)
+        {
+            foreach (var diagnostic in result.Diagnostics)
+            {
+                _logger.LogError("Compilation error: {Message}", diagnostic.ToString());
+            }
+
+            throw new InvalidOperationException();
+        }
+
+        var assembly = Assembly.Load(assemblyStream.ToArray(), symbolsStream.ToArray());
+        type = assembly.GetType(designerType.DesignerFullTypeName)!;
+
+        _logger.LogDebug("Compiled view of page {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
 
         return type;
     }

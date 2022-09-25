@@ -12,8 +12,4 @@ public class DirectiveNode : Node, IAttributeNode
     public DirectiveType DirectiveType { get; set; }
 
     public Dictionary<TokenString, TokenString> Attributes { get; set; } = new(AttributeCompare.IgnoreCase);
-
-    public override void Write(CompileContext builder)
-    {
-    }
 }

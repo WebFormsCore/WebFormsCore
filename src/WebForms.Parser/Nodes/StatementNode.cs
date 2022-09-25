@@ -9,9 +9,4 @@ public class StatementNode : Node
     }
     
     public TokenString Text { get; set; }
-    
-    public override void Write(CompileContext builder)
-    {
-        builder.Builder.AppendLine(Text.Value);
-    }
 }

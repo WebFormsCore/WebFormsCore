@@ -1,0 +1,148 @@
+{{ func write_children }}
+        {{- for child in $0 }}
+            #line {{ child.Range.Start.Line + 1 }} "{{ child.Range.File }}"
+        {{- case child.Type }}
+        {{- when "Text" }}
+            {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject(WebActivator.CreateLiteral({{ child.Text.CodeString }}));
+
+        {{- when "Control" }}
+            var {{ child.VariableName }} =  WebActivator.CreateControl<{{ child.DisplayControlType }}>();
+            {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject({{ child.VariableName }});
+
+            {{- for prop in child.Events }}
+            {{- if IsReturnTypeSame }}
+            {{ child.VariableName }}.{{ prop.EventName }} += {{ prop.MethodName }};
+            {{- else }}
+            {{ child.VariableName }}.{{ prop.EventName }} += ({{ prop.Arguments }}) =>
+            {
+                {{ prop.MethodName }}({{ prop.Arguments }});
+                {{- if prop.ReturnValue }}
+                return {{ prop.ReturnValue }};
+                {{- else }}
+                return default({{ prop.DisplayReturnType }});
+                {{- end }}
+            };
+            {{- end }}
+            {{- end }}
+
+            {{- for prop in child.Properties }}
+            {{ child.VariableName }}.{{ prop.Member.Name }} = WebActivator.
+            {{- if prop.Value.Converter -}}
+            ParseAttribute<{{ prop.DisplayType }}, {{ prop.DisplayConverter }}>({{ prop.Value.CodeString }});
+            {{- else -}}
+            ParseAttribute<{{ prop.DisplayType }}>({{ prop.Value.CodeString }});
+            {{- end }}
+            {{- end }}
+
+            {{- for prop in child.Attributes }}
+            {{ child.VariableName }}.Attributes.Add({{ prop.Key.VbCodeString }}, {{ prop.Value.VbCodeString }});
+            {{- end }}
+
+            {{- for prop in child.Templates }}
+            {{ child.VariableName }}.{{ prop.Property }} = new {{ prop.ClassName }}(WebActivator);
+            {{- end }}
+
+        {{- when "Element" }}
+            var {{ child.VariableName }} = WebActivator.CreateElement({{ child.Name.VbCodeString }});
+            {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject({{ child.VariableName }});
+
+            {{- for prop in child.Attributes }}
+            {{ child.VariableName }}.Attributes.Add({{ prop.Key.CodeString }}, {{ prop.Value.CodeString }});
+            {{- end }}
+        {{- else }}
+            // Unhandled type: {{ child.Type }}
+        {{- end }}
+
+        {{- if child.RenderName }}
+            {{ child.VariableName }}.SetRenderMethodDelegate({{ child.RenderName }});
+        {{- end }}
+
+        {{- if $2 && child.FieldName }}
+            {{ $1 }}.{{ child.FieldName }} = {{ child.VariableName }};
+        {{- end }}
+            #line default
+        {{- end }}
+{{-end}}
+
+{{- func write_methods }}
+        {{- for render in $0.RenderMethods }}
+
+        private async System.Threading.Tasks.Task {{ render.RenderName }}(WebFormsCore.UI.HtmlTextWriter writer, WebFormsCore.UI.ControlCollection controls, System.Threading.CancellationToken token)
+        {
+            {{- i = 0 }}
+            {{- for child in render.Children }}
+            #line {{ child.Range.Start.Line + 1 }} "{{ child.Range.File }}"
+            {{- case child.Type }}
+            {{- when "Statement" }}
+            {{ child.Text }}
+            {{- when "Text" }}
+            await controls[{{ i }}].RenderAsync(writer, token) // Text: {{ child.Text.CodeString }}
+            {{- i = i + 1 }}
+            {{- when "Element", "Control" }}
+            await controls[{{ i }}].RenderAsync(writer, token) // Element: {{ child.Name }}
+            {{- i = i + 1 }}
+            {{- end }}
+            #line default
+            {{- end }}
+        }
+        {{- end }}
+{{- end }}
+
+{{- if RootNamespace }}
+[assembly:WebFormsCore.RootNamespaceAttribute("{{ RootNamespace }}")]
+{{- end }}
+
+{{- for type in Types }}
+{{- if type.Namespace }}
+namespace {{ type.Namespace }}
+{
+{{- end }}
+
+{{- if AddFields }}
+[WebFormsCore.ViewPath(@"{{ type.Path }}")]
+partial class {{ type.ClassName }}
+{
+{{- for prop in type.Ids }}
+    protected {{ prop.DisplayType }} {{ prop.Name }};
+{{- end }}
+}
+{{- end }}
+
+public partial class CompiledViews
+{
+    {{- for template in type.Templates }}
+    public class {{ template.ClassName }} : WebFormsCore.UI.ITemplate
+    {
+        public {{ template.ClassName }}(WebFormsCore.IWebObjectActivator webActivator)
+        {
+            WebActivator = webActivator;
+        }
+
+        public WebFormsCore.IWebObjectActivator WebActivator { get; }
+
+        {{- write_methods template }}
+
+        public void InstantiateIn(WebFormsCore.UI.Control container)
+        {
+            {{ write_children template.AllChildren "container" }}
+        }
+    }
+    {{- end }}
+
+    [WebFormsCore.CompiledView(@"{{ type.Path }}", "{{ type.Hash }}")]
+    public class {{ type.ClassName }}View : {{ type.ClassName }}
+    {
+        {{- write_methods type }}
+
+        protected override void FrameworkInitialize()
+        {
+            base.FrameworkInitialize();
+            {{ write_children type.AllChildren "this" true }}
+        }
+    }
+}
+{{- if type.Namespace }}
+}
+{{- end }}
+{{- end }}
+{{- end }}

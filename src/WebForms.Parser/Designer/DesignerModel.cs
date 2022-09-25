@@ -1,3 +1,5 @@
-﻿namespace WebFormsCore.Designer;
+﻿using WebFormsCore.Nodes;
 
-public record DesignerModel(List<DesignerType> Types);
+namespace WebFormsCore.Designer;
+
+public record DesignerModel(List<RootNode> Types);

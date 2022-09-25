@@ -1,0 +1,142 @@
+{{ func write_children }}
+        {{- for child in $0 }}
+            #ExternalSource("{{ child.Range.File }}", {{ child.Range.Start.Line + 1 }})
+        {{- case child.Type }}
+        {{- when "Text" }}
+            {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject(WebActivator.CreateLiteral({{ child.Text.VbCodeString }}))
+
+        {{- when "Control" }}
+            Dim {{ child.VariableName }} = WebActivator.CreateControl(Of {{ child.DisplayControlType }})()
+            {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject({{ child.VariableName }})
+
+            {{- for prop in child.Events }}
+            {{- if IsReturnTypeSame }}
+            AddHandler {{ child.VariableName }}.{{ prop.Event.Name }}, AddressOf {{ prop.Method.Name }}
+            {{- else }}
+            AddHandler {{ child.VariableName }}.{{ prop.Event.Name }}, Function({{ prop.Arguments }})
+                {{ prop.Method.Name }}({{ prop.Arguments }})
+                {{- if prop.ReturnValue }}
+                Return {{ prop.ReturnValue }}
+                {{- else }}
+                Return CType(Nothing, {{ prop.DisplayReturnType }})
+                {{- end }}
+            End function
+            {{- end }}
+            {{- end }}
+
+            {{- for prop in child.Properties }}
+            {{ child.VariableName }}.{{ prop.Member.Name }} = WebActivator.
+            {{- if prop.Value.Converter -}}
+            ParseAttribute(Of {{ prop.DisplayType }}, Of {{ prop.DisplayConverter }})({{ prop.Value.VbCodeString }})
+            {{- else -}}
+            ParseAttribute(Of {{ prop.DisplayType }})({{ prop.Value.VbCodeString }})
+            {{- end }}
+            {{- end }}
+
+            {{- for prop in child.Attributes }}
+            {{ child.VariableName }}.Attributes.Add({{ prop.Key.VbCodeString }}, {{ prop.Value.VbCodeString }})
+            {{- end }}
+
+            {{- for prop in child.Templates }}
+            {{ child.VariableName }}.{{ prop.Property }} = new {{ prop.ClassName }}(WebActivator)
+            {{- end }}
+
+        {{- when "Element" }}
+            Dim {{ child.VariableName }} = WebActivator.CreateElement({{ child.Name.VbCodeString }})
+            {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject({{ child.VariableName }})
+
+            {{- for prop in child.Attributes }}
+            {{ child.VariableName }}.Attributes.Add({{ prop.Key.VbCodeString }}, {{ prop.Value.VbCodeString }})
+            {{- end }}
+        {{- else }}
+            ' Unhandled type: {{ child.Type }}
+        {{- end }}
+
+        {{- if child.RenderName }}
+            {{ child.VariableName }}.SetRenderMethodDelegate(AddressOf {{ child.RenderName }})
+        {{- end }}
+
+        {{- if $2 && child.FieldName }}
+            {{ $1 }}.{{ child.FieldName }} = {{ child.VariableName }}
+        {{- end }}
+            #End ExternalSource
+        {{- end }}
+{{-end}}
+
+{{- func write_methods }}
+        {{- for render in $0.RenderMethods }}
+
+        Private Async Function {{ render.RenderName }}(writer As WebFormsCore.UI.HtmlTextWriter, controls As WebFormsCore.UI.ControlCollection, token As System.Threading.CancellationToken) As System.Threading.Tasks.Task
+            {{- i = 0 }}
+            {{- for child in render.Children }}
+            #ExternalSource("{{ child.Range.File }}", {{ child.Range.Start.Line + 1 }})
+            {{- case child.Type }}
+            {{- when "Statement" }}
+            {{ child.Text }}
+            {{- when "Text" }}
+            Await controls({{ i }}).RenderAsync(writer, token) ' Text: {{ child.Text.CodeString }}
+            {{- i = i + 1 }}
+            {{- when "Element", "Control" }}
+            Await controls({{ i }}).RenderAsync(writer, token) ' Element: {{ child.Name }}
+            {{- i = i + 1 }}
+            {{- end }}
+            #End ExternalSource
+            {{- end }}
+        End Function
+        {{- end }}
+{{- end }}
+Imports Microsoft.VisualBasic
+
+{{- if RootNamespace }}
+<Assembly:WebFormsCore.RootNamespaceAttribute("{{ RootNamespace }}")>
+{{- end }}
+
+{{- for type in Types }}
+{{- if type.VbNamespace }}
+Namespace {{ type.VbNamespace }}
+{{- end }}
+
+{{- if AddFields }}
+<WebFormsCore.ViewPath("{{ type.Path }}")>
+Partial Class {{ type.ClassName }}
+{{- for prop in type.Ids }}
+    Protected {{ prop.Name }} As {{ prop.DisplayType }}
+{{- end }}
+End Class
+{{- end }}
+
+Public Partial Class CompiledViews
+    {{- for template in type.Templates }}
+    Public Class {{ template.ClassName }}
+        Implements WebFormsCore.UI.ITemplate
+        Public Sub New(webActivator As WebFormsCore.IWebObjectActivator)
+            Me.WebActivator = webActivator
+        End Sub
+
+        Public WebActivator As WebFormsCore.IWebObjectActivator
+
+        {{- write_methods template }}
+
+        Public Sub InstantiateIn(container As WebFormsCore.UI.Control) Implements WebFormsCore.UI.ITemplate.InstantiateIn
+            {{- write_children template.Children "container" }}
+        End Sub
+    End Class
+    {{- end }}
+
+     <WebFormsCore.CompiledView("{{ type.Path }}", "{{ type.Hash }}")>
+     Public Class {{ type.ClassName }}View
+        Inherits {{ type.ClassName }}
+
+        {{- write_methods type }}
+
+        Protected Overrides Sub FrameworkInitialize()
+            MyBase.FrameworkInitialize()
+            {{ write_children type.AllChildren "Me" true }}
+        End Sub
+    End Class
+End Class
+{{- if type.VbNamespace }}
+End Namespace
+{{- end }}
+{{- end }}
+{{- end }}

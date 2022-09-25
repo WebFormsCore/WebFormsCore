@@ -3,8 +3,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace WebFormsCore.Models;
 
-public record struct OffsetRange(int Start, int End);
-
 public readonly record struct TokenRange(string File, TokenPosition Start, TokenPosition End)
 {
     public override string ToString()

@@ -210,7 +210,10 @@ public class Repeater<T> : RepeaterBase<RepeaterItem<T>>
     public override string? ItemType
     {
         get => typeof(T).FullName;
-        set => throw new InvalidOperationException();
+        set
+        {
+            // ignore
+        }
     }
 
     protected override RepeaterItem<T> CreateItem(int itemIndex, ListItemType itemType)

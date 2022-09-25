@@ -1,10 +1,12 @@
-﻿using WebFormsCore.Nodes;
+﻿using System.Diagnostics;
+using WebFormsCore.Nodes;
 
 namespace WebFormsCore.Language;
 
 internal class ParserContainer
 {
-    private readonly Stack<HtmlNode> _stack = new();
+    private readonly Stack<ElementNode> _elements = new();
+    private readonly Stack<TemplateNode> _templates = new();
 
     public ParserContainer()
     {
@@ -23,46 +25,80 @@ internal class ParserContainer
 
     public ContainerNode Parent { get; private set; }
 
-    public HtmlNode? Current { get; private set; }
+    public ElementNode? Current { get; private set; }
+
+    public TemplateNode? Template { get; private set; }
+
+    public int ControlId { get; set; }
+
+    public int RenderId { get; set; }
 
     private void Add(Node node)
     {
-        Root.AllNodes.Add(node);
-        Parent.Children.Add(node);
-        node.Parent = Parent;
+        if (node is TemplateNode templateNode)
+        {
+            _templates.Push(templateNode);
+            Template = templateNode;
+        }
+        else
+        {
+            Parent.Children.Add(node);
+        }
+
+        node.Parent = Current;
     }
 
     public void AddDirective(DirectiveNode node)
     {
-        Root.AllDirectives.Add(node);
+        Root.Directives.Add(node);
         Add(node);
     }
-
-    public void Push(HtmlNode node)
+    public void Push(ElementNode node)
     {
-        Root.AllHtmlNodes.Add(node);
         Add(node);
-        
-        _stack.Push(node);
+        _elements.Push(node);
         Current = node;
         Parent = node;
     }
 
-    public HtmlNode? Pop()
+    public ElementNode? Pop()
     {
-        if (_stack.Count == 0)
+        if (_elements.Count == 0)
         {
             return null;
         }
         
-        var current = _stack.Pop();
-        Current = _stack.Count > 0 ? _stack.Peek() : null;
+        var current = _elements.Pop();
+        Current = current.Parent;
         Parent = (ContainerNode?) Current ?? Root;
+
+        if (current is TemplateNode templateNode)
+        {
+            Debug.Assert(_templates.Count > 0);
+            var template = _templates.Pop();
+            Debug.Assert(template == templateNode);
+            Template = _templates.Count > 0 ? _templates.Peek() : null;
+        }
+
         return current;
     }
 
     public void AddStatement(StatementNode node)
     {
+        if (Parent.RenderName == null)
+        {
+            Parent.RenderName = $"Render_{RenderId++}";
+
+            if (Template != null)
+            {
+                Template.RenderMethods.Add(Parent);
+            }
+            else
+            {
+                Root.RenderMethods.Add(Parent);
+            }
+        }
+
         Add(node);
     }
 

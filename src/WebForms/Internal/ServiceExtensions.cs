@@ -5,6 +5,7 @@ using Microsoft.Extensions.ObjectPool;
 using WebFormsCore.Internal;
 using WebFormsCore.Serializer;
 using WebFormsCore.UI;
+using WebFormsCore.UI.Attributes;
 using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
 
@@ -42,6 +43,10 @@ public static class ServiceExtensions
         services.AddViewStateSerializer<char>();
         services.AddViewStateSerializer<DateTime>();
         services.AddViewStateSerializer<DateTimeOffset>();
+
+        services.AddSingleton<IAttributeParser<string>, StringAttributeParser>();
+        services.AddSingleton<IAttributeParser<int>, Int32AttributeParser>();
+        services.AddSingleton<IAttributeParser<bool>, BoolAttributeParser>();
 
         return services;
     }

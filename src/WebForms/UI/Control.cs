@@ -10,6 +10,8 @@ using HttpContext = System.Web.HttpContext;
 
 namespace WebFormsCore.UI;
 
+public delegate Task RenderAsyncDelegate(HtmlTextWriter writer, ControlCollection controls, CancellationToken token);
+
 public partial class Control
 {
     protected const char IdSeparator = '$';
@@ -25,6 +27,7 @@ public partial class Control
     private Page? _page;
     private HtmlForm? _form;
     private IWebObjectActivator? _webObjectActivator;
+    private RenderAsyncDelegate? _renderMethod;
 
     public IWebObjectActivator WebActivator => _webObjectActivator ??= ServiceProvider.GetRequiredService<IWebObjectActivator>();
 
@@ -303,10 +306,21 @@ public partial class Control
         return RenderChildrenAsync(writer, token);
     }
 
+    public void SetRenderMethodDelegate(RenderAsyncDelegate renderMethod)
+    {
+        _renderMethod = renderMethod;
+    }
+
     /// <summary>Outputs the content of a server control's children to a provided <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object, which writes the content to be rendered on the client.</summary>
     /// <param name="writer">The <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object that receives the rendered content. </param>
     protected virtual async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
+        if (_renderMethod != null)
+        {
+            await _renderMethod(writer, _controls, token);
+            return;
+        }
+
         if (_controls == null || _controls.Count == 0 || token.IsCancellationRequested) return;
 
         foreach (var control in _controls)
@@ -545,7 +559,7 @@ public partial class Control
     protected virtual void OnWriteViewState(ref ViewStateWriter writer)
     {
         if (!EnableViewStateBag) return;
-        
+
         var length = (byte)(_viewState?.ViewStateCount ?? 0);
 
         writer.Write(length);

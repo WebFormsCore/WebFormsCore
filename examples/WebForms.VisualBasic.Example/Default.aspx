@@ -14,7 +14,16 @@
         <div class="mt-4">
             <form runat="server" method="post" global="true">
                 <wfc:Literal runat="server" ID="litValue" Text="0" />
+
+                <div><% If Counter > 0 Then %><div>We're greater than 0!</div><% End If %></div>
+
                 <wfc:Button runat="server" ID="btnIncrement" OnClick="btnIncrement_OnClick">Increment</wfc:Button>
+
+                <wfc:Repeater runat="server" ID="rptItems" OnItemDataBound="rptItems_OnItemDataBound">
+                    <ItemTemplate>
+                        <wfc:Literal runat="server" ID="litItem" />
+                    </ItemTemplate>
+                </wfc:Repeater>
             </form>
         </div>
     </div>

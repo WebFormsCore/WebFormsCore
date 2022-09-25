@@ -186,15 +186,8 @@ public class GenerateTest
             Partial Class DefaultPage
                 Inherits UI.Page
 
-                <ViewState> Dim _counter As Integer
-
-                Protected Function btnIncrement_OnClick(sender As Object, e As EventArgs)
-                    _counter += 1
+                Protected Function btnAdd_OnClick(sender As Object, e As EventArgs)
                 End Function
-
-                Protected Overrides Sub OnPreRender(args As EventArgs)
-                    litValue.Text = _counter.ToString()
-                End Sub
             End Class
             """
         );
@@ -219,8 +212,14 @@ public class GenerateTest
                         <div class="container">
                             <div class="mt-4">
                                 <form runat="server" method="post">
-                                    <wfc:Literal runat="server" ID="litValue" Text="0" />
-                                    <wfc:Button runat="server" ID="btnIncrement" OnClick="btnIncrement_OnClick">Increment</wfc:Button>
+                                    <wfc:Button runat="server" ID="btnAdd" OnClick="btnAdd_OnClick">Add</wfc:Button>
+                                    <wfc:Repeater runat="server" ID="rptItems">
+                                        <ItemTemplate>
+                                            <% If True Then %>
+                                                <wfc:Literal runat="server" ID="litItem" />
+                                            <% End If %>
+                                        </ItemTemplate>
+                                    </wfc:Repeater>
                                 </form>
                             </div>
                         </div>

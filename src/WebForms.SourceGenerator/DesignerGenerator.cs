@@ -1,38 +1,10 @@
 ﻿using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Scriban;
 using WebFormsCore;
-using WebFormsCore.Designer;
+using WebFormsCore.Nodes;
 
 namespace WebForms.SourceGenerator;
-
-[Generator(LanguageNames.CSharp)]
-public class CSharpDesignGenerator : DesignerGenerator
-{
-    protected override void AddSource(SourceProductionContext context, DesignerModel model)
-    {
-        const string templateFile = "Templates/designer.scriban";
-        var template = Template.Parse(EmbeddedResource.GetContent(templateFile), templateFile);
-        var output = template.Render(model, member => member.Name);
-
-        context.AddSource("WebForms.Designer", output);
-    }
-}
-
-[Generator(LanguageNames.VisualBasic)]
-public class VisualBasicDesignGenerator : DesignerGenerator
-{
-    protected override void AddSource(SourceProductionContext context, DesignerModel model)
-    {
-        const string templateFile = "Templates/vb-designer.scriban";
-        var template = Template.Parse(EmbeddedResource.GetContent(templateFile), templateFile);
-        var output = template.Render(model, member => member.Name);
-
-        context.AddSource("WebForms.Designer", output);
-    }
-}
 
 public abstract class DesignerGenerator : IIncrementalGenerator
 {
@@ -52,7 +24,7 @@ public abstract class DesignerGenerator : IIncrementalGenerator
     public void Generate(SourceProductionContext context, (AnalyzerConfigOptionsProvider Left, (Compilation Left, ImmutableArray<(string Path, string)> Right) Right) sourceContext)
     {
         var (analyzer, (compilation, files)) = sourceContext;
-        var types = new List<DesignerType>();
+        var types = new List<RootNode>();
         var visited = new HashSet<string>();
 
         if (!analyzer.GlobalOptions.TryGetValue("build_property.MSBuildProjectDirectory", out var directory))
@@ -77,13 +49,13 @@ public abstract class DesignerGenerator : IIncrementalGenerator
 
             if (!visited.Add(path)) continue;
 
-            if (DesignerType.Parse(compilation, path, text, ns) is {} type)
+            if (RootNode.Parse(compilation, path, text, ns) is {} type)
             {
                 types.Add(type);
             }
         }
 
-        var model = new DesignerModel(types);
+        var model = new DesignerModel(types, ns);
 
         AddSource(context, model);
     }

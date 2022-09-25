@@ -16,7 +16,11 @@ public readonly struct TokenString : IEquatable<TokenString>
     
     public string Value => _value ?? "";
 
+    private string CodeStringBase => Value.Replace("\"", "\"\"");
+
     public string CodeString => SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(Value)).ToFullString();
+
+    public string VbCodeString => @$"""{CodeStringBase.Replace("\r\n", "\" + vbCrLf + \"").Replace("\n", "\" + vbLf + \"").Replace("\r", "\" + vbCr + \"")}""";
 
     public TokenRange Range { get; }
 

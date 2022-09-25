@@ -1,81 +1,113 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using WebFormsCore.Designer;
+using Microsoft.CodeAnalysis.VisualBasic;
 using WebFormsCore.Nodes;
 
 namespace WebFormsCore.Compiler;
 
-internal record struct ViewCompileResult(CSharpCompilation Compilation, string TypeName, DesignerType Type);
+internal record struct ViewCompileResult(Compilation Compilation, RootNode Type);
 
 internal static class ViewCompiler
 {
-    public static ViewCompileResult Compile(string path)
+    private static IReadOnlyList<MetadataReference> _references;
+    private static readonly object ReferencesLock = new();
+
+    public static ViewCompileResult Compile(string path, string? text = null)
     {
-        var assemblyName = path
+        var tempAssemblyName = path
             .Replace('/', '_')
             .Replace('\\', '_')
             .Replace('.', '_')
             .Replace(':', '_')
             .ToLowerInvariant();
 
-        var defaultCompilationOptions = new CSharpCompilationOptions(
-            OutputKind.DynamicallyLinkedLibrary,
-            optimizationLevel: OptimizationLevel.Debug,
-            checkOverflow: true,
-            platform: Platform.AnyCpu
-        );
+        text ??= File.ReadAllText(path).ReplaceLineEndings("\n");
+        var language = RootNode.DetectLanguage(text);
 
-        var references = new HashSet<MetadataReference>();
-        var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+        Compilation compilation;
 
-        references.Add(MetadataReference.CreateFromFile(assembly.Location));
-
-        foreach (var referencedAssembly in GetAssemblies())
+        if (language == Nodes.Language.CSharp)
         {
-            references.Add(MetadataReference.CreateFromFile(referencedAssembly.Location));
+            compilation = CSharpCompilation.Create(
+                $"WebForms_{tempAssemblyName}",
+                references: References,
+                options: new CSharpCompilationOptions(
+                    OutputKind.DynamicallyLinkedLibrary,
+                    optimizationLevel: OptimizationLevel.Debug,
+                    checkOverflow: true,
+                    platform: Platform.AnyCpu
+                )
+            );
+        }
+        else
+        {
+            compilation = VisualBasicCompilation.Create(
+                $"WebForms_{tempAssemblyName}",
+                references: References,
+                options: new VisualBasicCompilationOptions(
+                    OutputKind.DynamicallyLinkedLibrary,
+                    optimizationLevel: OptimizationLevel.Debug,
+                    checkOverflow: true,
+                    platform: Platform.AnyCpu
+                )
+            );
         }
 
-#if NETFRAMEWORK
-        if (System.Web.HttpRuntime.BinDirectory is {} binDirectory)
-        {
-            foreach (var dllFile in Directory.GetFiles(binDirectory, "*.dll"))
-            {
-                references.Add(MetadataReference.CreateFromFile(dllFile));
-            }
-        }
-#endif
+        var type = RootNode.Parse(compilation, path, text);
+        var assemblyName = type.Inherits.ContainingAssembly.ToDisplayString();
+        var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == assemblyName) ??
+                       Assembly.Load(assemblyName);
 
-        var compilation = CSharpCompilation.Create(
-            $"WebForms_{assemblyName}",
-            references: references,
-            options: defaultCompilationOptions
-        );
-
-        var text = File.ReadAllText(path).ReplaceLineEndings("\n");
-        var type = DesignerType.Parse(compilation, path, text);
-
-        if (type == null)
-        {
-            return default;
-        }
-
-        var rootType = compilation.GetTypeByMetadataName(type.Namespace == null ? type.Name : type.Namespace + "." + type.Name);
-        var ns = type.Namespace ?? "Default";
-        var code = Create(ns, assemblyName, $"{type.Namespace}.{type.Name}", type.Root, rootType);
+        var rootNamespace = assembly.GetCustomAttribute<RootNamespaceAttribute>()?.Namespace;
 
         compilation = compilation.AddSyntaxTrees(
-            CSharpSyntaxTree.ParseText(code)
+            type.GenerateCode(rootNamespace)
         );
 
-        return new ViewCompileResult(compilation, $"{ns}.{assemblyName}", type);
+        return new ViewCompileResult(compilation, type);
     }
 
-    public static List<Assembly> GetAssemblies()
+    private static IReadOnlyList<MetadataReference> References
+    {
+        get
+        {
+            lock (ReferencesLock)
+            {
+                if (_references != null) return _references;
+
+                var references = new HashSet<MetadataReference>();
+                var currentAssembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+
+                references.Add(MetadataReference.CreateFromFile(currentAssembly.Location));
+
+                foreach (var referencedAssembly in GetAssemblies())
+                {
+                    references.Add(MetadataReference.CreateFromFile(referencedAssembly.Location));
+                }
+
+    #if NETFRAMEWORK
+                if (System.Web.HttpRuntime.BinDirectory is { } binDirectory)
+                {
+                    foreach (var dllFile in Directory.GetFiles(binDirectory, "*.dll"))
+                    {
+                        references.Add(MetadataReference.CreateFromFile(dllFile));
+                    }
+                }
+    #endif
+
+                _references = references.ToArray();
+
+                return _references;
+            }
+        }
+    }
+
+    private static List<Assembly> GetAssemblies()
     {
         var returnAssemblies = new List<Assembly>();
         var loadedAssemblies = new HashSet<string>();
@@ -100,51 +132,5 @@ internal static class ViewCompiler
         }
 
         return returnAssemblies;
-    }
-    
-    public static string Create(
-        string ns,
-        string name,
-        string baseType,
-        RootNode node,
-        INamedTypeSymbol? namedType)
-    {
-        var sb = new StringBuilder();
-        var context = new CompileContext(sb)
-        {
-            Type = namedType
-        };
-
-        sb.AppendLine("using System;");
-        sb.AppendLine("using System.Threading.Tasks;");
-        sb.AppendLine("using WebFormsCore.UI;");
-        sb.AppendLine("using WebFormsCore.UI.WebControls;");
-        sb.AppendLine();
-        
-        sb.Append("namespace ");
-        sb.AppendLine(ns);
-        sb.AppendLine("{");
-        {
-            sb.Append("partial class ");
-            sb.Append(name);
-            sb.Append(" : ");
-            sb.AppendLine(baseType);
-            sb.AppendLine("{");
-            {
-                node.WriteClass(context);
-                
-                sb.AppendLine("protected override void FrameworkInitialize()");
-                sb.AppendLine("{");
-                {
-                    sb.AppendLine("base.FrameworkInitialize();");
-                    node.Write(context);
-                }
-                sb.AppendLine("}");
-            }
-            sb.AppendLine("}");
-        }
-        sb.AppendLine("}");
-
-        return sb.ToString();
     }
 }

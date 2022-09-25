@@ -11,17 +11,21 @@ public static class ContextExtensions
 
         if (type != null) return type;
 
-        var parts = ns.Split('.');
         var current = context.GlobalNamespace;
 
-        foreach (var part in parts)
+        if (!string.IsNullOrEmpty(ns))
         {
-            current = current.GetNamespaceMembers()
-                .FirstOrDefault(i => i.Name.Equals(part, StringComparison.OrdinalIgnoreCase));
+            var parts = ns.Split('.');
 
-            if (current == null)
+            foreach (var part in parts)
             {
-                break;
+                current = current.GetNamespaceMembers()
+                    .FirstOrDefault(i => i.Name.Equals(part, StringComparison.OrdinalIgnoreCase));
+
+                if (current == null)
+                {
+                    break;
+                }
             }
         }
 
@@ -29,6 +33,13 @@ public static class ContextExtensions
         {
             type = current.GetTypeMembers()
                 .FirstOrDefault(i => i.Name.Equals(typeName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (type == null &&
+            context.AssemblyName != null &&
+            ns.StartsWith(context.AssemblyName))
+        {
+            return GetType(context, ns.Substring(context.AssemblyName.Length).TrimStart('.'), typeName);
         }
 
         return type;
@@ -51,7 +62,29 @@ public static class ContextExtensions
         return context.GetType(ns, name);
     }
 
-    public record MemberResult(string Name, ITypeSymbol Type, bool CanWrite);
+    public static bool IsTemplate(this ITypeSymbol type)
+    {
+        return type.Name == "ITemplate";
+    }
+
+    public static bool IsAssignableTo(this ITypeSymbol? type, string name)
+    {
+        if (type == null)
+        {
+            return false;
+        }
+
+        var current = type;
+
+        while (current != null)
+        {
+            if (current.Name == name) return true;
+
+            current = current.BaseType;
+        }
+
+        return type.AllInterfaces.Any(i => i.Name == name);
+    }
 
     public static MemberResult? GetMemberDeep(this ITypeSymbol type, string name)
     {
@@ -61,14 +94,14 @@ public static class ContextExtensions
             {
                 if (property.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                 {
-                    return new MemberResult(property.Name, property.Type, property.SetMethod != null);
+                    return new MemberResult(property.Name, property.Type, property.SetMethod != null, property);
                 }
             }
             else if (symbol is IFieldSymbol field)
             {
                 if (field.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                 {
-                    return new MemberResult(field.Name, field.Type, !field.IsReadOnly);
+                    return new MemberResult(field.Name, field.Type, !field.IsReadOnly, field);
                 }
             }
         }

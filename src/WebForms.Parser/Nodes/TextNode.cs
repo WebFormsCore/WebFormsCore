@@ -10,18 +10,5 @@ public class TextNode : Node
 
     public TokenString Text { get; set; }
 
-    public override void WriteRaw(CompileContext context)
-    {
-        context.Builder.Append(Text.Value);
-    }
-
-    public override void Write(CompileContext context)
-    {
-        var builder = context.Builder;
-
-        builder.Append(context.ParentNode);
-        builder.Append(".AddParsedSubObject(WebActivator.CreateLiteral(");
-        builder.Append(Text.CodeString);
-        builder.AppendLine("));");
-    }
+    public bool IsText => true;
 }
