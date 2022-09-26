@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using WebFormsCore.UI;
+using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore;

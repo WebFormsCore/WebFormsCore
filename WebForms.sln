@@ -29,6 +29,10 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "WebForms.VisualBasic.Exampl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebForms.Parser.Tests", "tests\WebForms.Parser.Tests\WebForms.Parser.Tests.csproj", "{84EEE407-78A2-4729-8ECC-DA59DBE9FF1F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{15241878-5EF2-4C83-B402-3709025FACA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompareWebForms", "tools\CompareWebForms\CompareWebForms.csproj", "{62763BB2-942B-49A1-8808-ABB72EBF8942}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +83,10 @@ Global
 		{84EEE407-78A2-4729-8ECC-DA59DBE9FF1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{84EEE407-78A2-4729-8ECC-DA59DBE9FF1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{84EEE407-78A2-4729-8ECC-DA59DBE9FF1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62763BB2-942B-49A1-8808-ABB72EBF8942}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62763BB2-942B-49A1-8808-ABB72EBF8942}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62763BB2-942B-49A1-8808-ABB72EBF8942}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62763BB2-942B-49A1-8808-ABB72EBF8942}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -90,6 +98,7 @@ Global
 		{41A1D892-1609-43AA-AE9D-966EFA7FED0C} = {210D9008-25A9-4ABE-8C8C-A7FDDC3381F6}
 		{CC7EECA5-D7AF-4727-A169-84A59B532093} = {210D9008-25A9-4ABE-8C8C-A7FDDC3381F6}
 		{84EEE407-78A2-4729-8ECC-DA59DBE9FF1F} = {726D3801-795C-4C82-8B50-4AB15C7F004B}
+		{62763BB2-942B-49A1-8808-ABB72EBF8942} = {15241878-5EF2-4C83-B402-3709025FACA6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {022403F7-A5A6-4639-8579-D9B56627AE73}

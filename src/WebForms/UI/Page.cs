@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.Security;
+using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
 using HttpContext = System.Web.HttpContext;
 

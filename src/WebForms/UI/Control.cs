@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
 using HttpContext = System.Web.HttpContext;
 
