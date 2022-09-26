@@ -23,12 +23,24 @@ internal class ViewManager : IDisposable
     private readonly List<FileSystemWatcher> _watchers;
     private readonly IWebFormsEnvironment _environment;
     private readonly ILogger<ViewManager> _logger;
+    private readonly Dictionary<string, Type> _compiledViews;
 
     public ViewManager(IWebFormsEnvironment environment, ILogger<ViewManager> logger)
     {
         _environment = environment;
         _logger = logger;
         _watchers = new List<FileSystemWatcher>();
+        _compiledViews = (Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly())
+            .GetTypes()
+            .Where(i => i.Name == "CompiledViews")
+            .SelectMany(t => t.GetNestedTypes())
+            .Select(t => new
+            {
+                Type = t,
+                Attribute = t.GetCustomAttribute<CompiledViewAttribute>()
+            })
+            .Where(t => t.Attribute != null)
+            .ToDictionary(t => t.Attribute.Path, t => t.Type, StringComparer.OrdinalIgnoreCase);
 
         foreach (var extension in new[] { "*.aspx", "*.ascx" })
         {
@@ -136,36 +148,17 @@ internal class ViewManager : IDisposable
         return entry.Type;
     }
 
-    private static Type? FindType(string? fullName)
-    {
-        if (fullName == null) return null;
-
-        var type = Type.GetType(fullName);
-
-        if (type != null) return type;
-
-        return AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => !a.IsDynamic)
-            .SelectMany(a => a.GetTypes())
-            .FirstOrDefault(t => t.FullName == fullName);
-    }
-
     private Type CompilePage(string path)
     {
         var sw = Stopwatch.StartNew();
-        var fullPath = Path.Combine(_environment.ContentRootPath, path);
-        var text = File.ReadAllText(fullPath).ReplaceLineEndings("\n");
-        var inheritsName = RootNode.DetectInherits(text);
-        var inherits = FindType(inheritsName);
 
-        if (inherits == null)
+        if (!_compiledViews.TryGetValue(path, out var type))
         {
-            throw new InvalidOperationException($"Could not find type {inheritsName}");
+            type = null;
         }
 
-        var designerTypeName = RootNode.GetClassName(inherits.Namespace, inherits.Name);
-        var assemblyName = inherits.Assembly.GetName().Name;
-        var type = Type.GetType($"{designerTypeName}, {assemblyName}");
+        var fullPath = Path.Combine(_environment.ContentRootPath, path);
+        var text = File.ReadAllText(fullPath).ReplaceLineEndings("\n");
 
         if (type != null)
         {
@@ -208,7 +201,7 @@ internal class ViewManager : IDisposable
         }
 
         var assembly = Assembly.Load(assemblyStream.ToArray(), symbolsStream.ToArray());
-        type = assembly.GetType(designerType.DesignerFullTypeName)!;
+        type = assembly.GetType(designerType.DesignerFullTypeName!)!;
 
         _logger.LogDebug("Compiled view of page {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
 

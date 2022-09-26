@@ -24,7 +24,16 @@ internal class WebFormsApplications : IWebFormsApplication
 
     public async Task<bool> ProcessAsync(HttpContext context, IServiceProvider provider, CancellationToken token)
     {
-        var pageType = await _viewManager.GetTypeAsync("Default.aspx");
+        if (string.IsNullOrEmpty(context.Request.Path)) return false;
+
+        var fullPath = Path.Combine(_environment.ContentRootPath, context.Request.Path.TrimStart('/'));
+
+        if (!_viewManager.TryGetPath(fullPath, out var path) || !File.Exists(fullPath))
+        {
+            return false;
+        }
+
+        var pageType = await _viewManager.GetTypeAsync(path);
         var page = (Page)Activator.CreateInstance(pageType)!;
 
         page.Initialize(provider, context);

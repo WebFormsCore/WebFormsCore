@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -22,11 +23,11 @@ public class RootNode : ContainerNode
         ? GetClassName(Inherits.ContainingNamespace.ToDisplayString(), Inherits.Name)
         : null;
 
-    public static string GetClassName(string? ns, string inherits)
+    public string GetClassName(string? ns, string inherits)
     {
         return !string.IsNullOrEmpty(ns)
-            ? $"{ns}.CompiledViews+{inherits}View"
-            : $"CompiledViews+{inherits}View";
+            ? $"{ns}.CompiledViews+{ClassName}"
+            : $"CompiledViews+{inherits}";
     }
 
     public List<DirectiveNode> Directives { get; set; } = new();
@@ -39,7 +40,9 @@ public class RootNode : ContainerNode
 
     public INamedTypeSymbol? Inherits { get; set; }
 
-    public string? ClassName => Inherits?.Name;
+    public string? InheritsClassName => Inherits?.Name;
+
+    public string? ClassName { get; set; }
 
     public string? Path { get; set; }
 
@@ -50,6 +53,8 @@ public class RootNode : ContainerNode
     public string? Namespace { get; set; }
 
     public Language Language { get; set; } = Language.CSharp;
+
+    public bool AddFields { get; set; }
 
     public SyntaxTree GenerateCode(string? rootNamespace)
     {
@@ -72,16 +77,30 @@ public class RootNode : ContainerNode
     }
 
     [return: NotNullIfNotNull("text")]
-    public static RootNode? Parse(Compilation compilation, string path, string? text, string? rootNamespace = null)
+    public static RootNode? Parse(
+        Compilation compilation,
+        string path,
+        string? text,
+        string? rootNamespace = null,
+        IEnumerable<KeyValuePair<string, string>>? namespaces = null)
     {
         if (text == null) return null;
 
         var lexer = new Lexer(path, text.AsSpan());
         var parser = new Parser(compilation, rootNamespace);
 
+        if (namespaces != null)
+        {
+            foreach (var ns in namespaces)
+            {
+                parser.AddNamespace(ns.Key, ns.Value);
+            }
+        }
+
         parser.Parse(ref lexer);
 
         parser.Root.Path = path;
+        parser.Root.ClassName = Regex.Replace(path, "[^a-zA-Z0-9_]+", "_");
         parser.Root.Hash = GenerateHash(text);
 
         return parser.Root;
@@ -145,5 +164,21 @@ public class RootNode : ContainerNode
         }
 
         return sb.ToString();
+    }
+
+    public void Add(RootNode type)
+    {
+        for (var i = type.Ids.Count - 1; i >= 0; i--)
+        {
+            var id = type.Ids[i];
+
+            if (Ids.Any(p => p.Name == id.Name))
+            {
+                type.Ids.RemoveAt(i);
+                continue;
+            }
+
+            Ids.Add(id);
+        }
     }
 }

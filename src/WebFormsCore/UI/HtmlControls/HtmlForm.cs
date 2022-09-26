@@ -1,3 +1,4 @@
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,6 +8,15 @@ namespace WebFormsCore.UI.HtmlControls;
 
 public class HtmlForm : HtmlContainerControl, INamingContainer
 {
+    public static string Script { get; }
+
+    static HtmlForm()
+    {
+        using var resource = typeof(HtmlForm).Assembly.GetManifestResourceStream("WebFormsCore.Scripts.form.min.js");
+        using var reader = new StreamReader(resource!);
+        Script = reader.ReadToEnd();
+    }
+
     public HtmlForm()
         : base("form")
     {
@@ -45,5 +55,13 @@ public class HtmlForm : HtmlContainerControl, INamingContainer
         await writer.WriteAsync(@"<input type=""hidden"" name=""__VIEWSTATE"" value=""");
         await writer.WriteAsync(viewState.Memory.Slice(0, length), token);
         await writer.WriteAsync(@"""/>");
+
+        if (Context.Items["FormScript"] == null)
+        {
+            Context.Items["FormScript"] = true;
+            await writer.WriteAsync(@"<script>");
+            await writer.WriteAsync(Script);
+            await writer.WriteAsync(@"</script>");
+        }
     }
 }

@@ -72,7 +72,6 @@ public class GenerateTest
                     "Example.aspx",
                     """
                     <%@ Page language="C#" Inherits="Tests.PageTest" %>
-                    <%@ Register TagPrefix="asp" Namespace="WebFormsCore.UI.WebControls" %>
                     <%@ Register TagPrefix="app" Namespace="Tests" %>
                     <!DOCTYPE htm>
                     <html>
@@ -109,10 +108,29 @@ public class GenerateTest
                     "Example.ascx",
                     """
                     <%@ Control language="C#" Inherits="Tests.ControlTest" %>
-                    <%@ Register TagPrefix="asp" Namespace="WebFormsCore.UI.WebControls" %>
 
                     <asp:Literal id="litTest" runat="server" />
                     <asp:Button runat="server" ID="btnIncrement" OnClick="btnIncrement_OnClick">Increment</wfc:Button>
+                    """
+                )
+            )
+        );
+
+        driver = driver.AddAdditionalTexts(
+            ImmutableArray.Create<AdditionalText>(
+                new MemoryAdditionalText(
+                    "web.config",
+                    """
+                    <configuration>
+                        <system.web>
+                            <pages>
+                                <controls>
+                                    <add tagPrefix="asp" namespace="WebFormsCore.UI.WebControls" />
+                                    <add tagPrefix="asp" namespace="WebFormsCore.UI.HtmlControls" />
+                                </controls>
+                            </pages>
+                        </system.web>
+                    </configuration>
                     """
                 )
             )

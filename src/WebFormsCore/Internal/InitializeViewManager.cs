@@ -24,6 +24,9 @@ internal class InitializeViewManager : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        var binPrefix = "bin" + Path.DirectorySeparatorChar;
+        var objPrefix = "obj" + Path.DirectorySeparatorChar;
+
         var files = Directory.GetFiles(_environment.ContentRootPath, "*.*", SearchOption.AllDirectories)
             .Where(i => Path.GetExtension((string?)i) is ".aspx" or ".ascx");
 
@@ -34,15 +37,18 @@ internal class InitializeViewManager : BackgroundService
         foreach (var fullPath in files)
         {
 #endif
-            if (!_viewManager.TryGetPath(fullPath, out var path)) return;
-
-            try
+            if (_viewManager.TryGetPath(fullPath, out var path) &&
+                !path.StartsWith(binPrefix) &&
+                !path.StartsWith(objPrefix))
             {
-                await _viewManager.GetTypeAsync(path);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to re-compile page {Path}", path);
+                try
+                {
+                    await _viewManager.GetTypeAsync(path);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to re-compile page {Path}", path);
+                }
             }
 #if NET
         });

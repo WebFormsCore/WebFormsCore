@@ -17,8 +17,12 @@
         <CompilerVisibleProperty Include="RootNamespace" />
     </ItemGroup>
 
-    <PropertyGroup>
+    <ItemGroup>
+        <Using Include="WebFormsCore" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="WebFormsCore.AspNetCore" Version="$version$" />
         <PackageReference Include="WebFormsCore.SourceGenerator" Version="$version$" OutputItemType="Analyzer" />
-    </PropertyGroup>
+    </ItemGroup>
 </Project>

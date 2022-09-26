@@ -99,7 +99,7 @@ namespace {{ type.Namespace }}
 
 {{- if AddFields }}
 [WebFormsCore.ViewPath(@"{{ type.Path }}")]
-partial class {{ type.ClassName }}
+partial class {{ type.InheritsClassName }}
 {
 {{- for prop in type.Ids }}
     protected {{ prop.DisplayType }} {{ prop.Name }};
@@ -129,7 +129,7 @@ public partial class CompiledViews
     {{- end }}
 
     [WebFormsCore.CompiledView(@"{{ type.Path }}", "{{ type.Hash }}")]
-    public class {{ type.ClassName }}View : {{ type.ClassName }}
+    public class {{ type.ClassName }} : {{ type.InheritsClassName }}
     {
         {{- write_methods type }}
 

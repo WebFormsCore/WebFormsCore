@@ -15,7 +15,7 @@ public class Parser
     private readonly ParserContainer _rootContainer = new();
     private ParserContainer _container;
     private string? _itemType;
-    private Dictionary<string, List<string>> _namespaces = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, List<string>> _namespaces = new(StringComparer.OrdinalIgnoreCase);
     private INamedTypeSymbol? _type;
 
     public Parser(Compilation compilation, string? rootNamespace)
@@ -184,14 +184,19 @@ public class Parser
             element.Attributes.TryGetValue("tagprefix", out var tagPrefix) &&
             element.Attributes.TryGetValue("namespace", out var ns))
         {
-            if (!_namespaces.TryGetValue(tagPrefix, out var list))
-            {
-                list = new List<string>();
-                _namespaces.Add(tagPrefix, list);
-            }
-
-            list.Add(ns);
+            AddNamespace(tagPrefix, ns);
         }
+    }
+
+    public void AddNamespace(string tagPrefix, string ns)
+    {
+        if (!_namespaces.TryGetValue(tagPrefix, out var list))
+        {
+            list = new List<string>();
+            _namespaces.Add(tagPrefix, list);
+        }
+
+        list.Add(ns);
     }
 
     private void ConsumeOpenTag(ref Lexer lexer, TokenPosition startPosition)
@@ -504,7 +509,7 @@ public class Parser
         {
             return name.Value.ToUpperInvariant() switch
             {
-                "FORM" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.WebControls.HtmlForm"),
+                "FORM" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlForm"),
                 _ => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlGenericControl")
             };
         }

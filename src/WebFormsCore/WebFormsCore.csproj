@@ -36,4 +36,8 @@
 		<ProjectReference Include="..\WebFormsCore.Parser\WebFormsCore.Parser.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <EmbeddedResource Include="Scripts\**\*.js" />
+	</ItemGroup>
+
 </Project>

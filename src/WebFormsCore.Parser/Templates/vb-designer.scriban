@@ -95,7 +95,7 @@ Namespace {{ type.VbNamespace }}
 
 {{- if AddFields }}
 <WebFormsCore.ViewPath("{{ type.Path }}")>
-Partial Class {{ type.ClassName }}
+Partial Class {{ type.InheritsClassName }}
 {{- for prop in type.Ids }}
     Protected {{ prop.Name }} As {{ prop.DisplayType }}
 {{- end }}
@@ -121,8 +121,8 @@ Public Partial Class CompiledViews
     {{- end }}
 
      <WebFormsCore.CompiledView("{{ type.Path }}", "{{ type.Hash }}")>
-     Public Class {{ type.ClassName }}View
-        Inherits {{ type.ClassName }}
+     Public Class {{ type.ClassName }}
+        Inherits {{ type.InheritsClassName }}
 
         {{- write_methods type }}
 

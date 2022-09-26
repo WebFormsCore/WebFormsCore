@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using WebFormsCore;
@@ -13,7 +14,8 @@ public abstract class DesignerGenerator : IIncrementalGenerator
     {
         var files = context.AdditionalTextsProvider
             .Where(a => a.Path.EndsWith(".aspx", StringComparison.OrdinalIgnoreCase) ||
-                        a.Path.EndsWith(".ascx", StringComparison.OrdinalIgnoreCase))
+                        a.Path.EndsWith(".ascx", StringComparison.OrdinalIgnoreCase) ||
+                        a.Path.EndsWith("web.config", StringComparison.OrdinalIgnoreCase))
             .Select((a, c) => (a.Path, a.GetText(c)!.ToString().ReplaceLineEndings("\n")));
 
         var compilationAndFiles = context.CompilationProvider.Combine(files.Collect());
@@ -25,6 +27,7 @@ public abstract class DesignerGenerator : IIncrementalGenerator
     public void Generate(SourceProductionContext context, (AnalyzerConfigOptionsProvider Left, (Compilation Left, ImmutableArray<(string Path, string)> Right) Right) sourceContext)
     {
         var (analyzer, (compilation, files)) = sourceContext;
+        var typesByClass = new Dictionary<string, RootNode>();
         var types = new List<RootNode>();
         var visited = new HashSet<string>();
 
@@ -39,8 +42,32 @@ public abstract class DesignerGenerator : IIncrementalGenerator
             ns = compilation.AssemblyName;
         }
 
+        var (webConfigPath, webConfigText) = files.FirstOrDefault(x => x.Path.EndsWith("web.config", StringComparison.OrdinalIgnoreCase));
+
+        var namespaces = new List<KeyValuePair<string, string>>();
+        var controls = XElement.Parse(webConfigText)
+            .Descendants("system.web").FirstOrDefault()
+            ?.Descendants("pages").FirstOrDefault()
+            ?.Descendants("controls").FirstOrDefault();
+
+        if (controls != null)
+        {
+            foreach (var add in controls.Descendants("add"))
+            {
+                var tagPrefix = add.Attribute("tagPrefix")?.Value;
+                var namespaceName = add.Attribute("namespace")?.Value;
+
+                if (tagPrefix != null && namespaceName != null)
+                {
+                    namespaces.Add(new KeyValuePair<string, string>(tagPrefix, namespaceName));
+                }
+            }
+        }
+
         foreach (var (fullPath, text) in files)
         {
+            if (fullPath == webConfigPath) continue;
+
             var path = fullPath;
 
             if (directory != null && path.StartsWith(directory))
@@ -49,11 +76,21 @@ public abstract class DesignerGenerator : IIncrementalGenerator
             }
 
             if (!visited.Add(path)) continue;
+            if (RootNode.Parse(compilation, path, text, ns, namespaces) is not { } type) continue;
+            if (type.Inherits == null) continue;
 
-            if (RootNode.Parse(compilation, path, text, ns) is {} type)
+            var fullName = type.Inherits.ContainingNamespace.ToDisplayString() + "." + type.Inherits.Name;
+
+            if (typesByClass.TryGetValue(fullName, out var existing))
             {
-                types.Add(type);
+                existing.Add(type);
             }
+            else
+            {
+                typesByClass.Add(fullName, type);
+            }
+
+            types.Add(type);
         }
 
         var model = new DesignerModel(types, ns);

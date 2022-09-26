@@ -1,5 +1,4 @@
 <%@ Control language="C#" Inherits="WebFormsCore.Example.Controls.Counter" %>
-<%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI.WebControls" %>
 
 <div class="card">
     <div class="card-body">

@@ -62,7 +62,7 @@ internal static class ViewCompiler
 
         if (type.Inherits == null)
         {
-            throw new InvalidOperationException();
+            throw new TypeLoadException($"Could not load type {RootNode.DetectInherits(text)}");
         }
 
         var assemblyName = type.Inherits.ContainingAssembly.ToDisplayString();
@@ -87,24 +87,11 @@ internal static class ViewCompiler
                 if (_references != null) return _references;
 
                 var references = new HashSet<MetadataReference>();
-                var currentAssembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
-
-                references.Add(MetadataReference.CreateFromFile(currentAssembly.Location));
 
                 foreach (var referencedAssembly in GetAssemblies())
                 {
                     references.Add(MetadataReference.CreateFromFile(referencedAssembly.Location));
                 }
-
-    #if NETFRAMEWORK
-                if (System.Web.HttpRuntime.BinDirectory is { } binDirectory)
-                {
-                    foreach (var dllFile in Directory.GetFiles(binDirectory, "*.dll"))
-                    {
-                        references.Add(MetadataReference.CreateFromFile(dllFile));
-                    }
-                }
-    #endif
 
                 _references = references.ToArray();
 
@@ -118,8 +105,12 @@ internal static class ViewCompiler
         var returnAssemblies = new List<Assembly>();
         var loadedAssemblies = new HashSet<string>();
         var assembliesToCheck = new Queue<Assembly>();
+        var current = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
 
-        assembliesToCheck.Enqueue(Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly());
+        loadedAssemblies.Add(current.FullName);
+        returnAssemblies.Add(current);
+
+        assembliesToCheck.Enqueue(current);
 
         while(assembliesToCheck.Any())
         {
@@ -136,6 +127,23 @@ internal static class ViewCompiler
                 }
             }
         }
+
+#if NETFRAMEWORK
+        if (System.Web.HttpRuntime.BinDirectory is { } binDirectory)
+        {
+            foreach (var dllFile in Directory.GetFiles(binDirectory, "*.dll"))
+            {
+                var assemblyName = AssemblyName.GetAssemblyName(dllFile);
+
+                if (!loadedAssemblies.Contains(assemblyName.FullName))
+                {
+                    var assembly = Assembly.Load(assemblyName);
+                    loadedAssemblies.Add(assemblyName.FullName);
+                    returnAssemblies.Add(assembly);
+                }
+            }
+        }
+#endif
 
         return returnAssemblies;
     }
