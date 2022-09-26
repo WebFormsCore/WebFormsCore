@@ -1,0 +1,3 @@
+<Project>
+    <Import Project="Sdk.targets" Sdk="MSBuild.SDK.SystemWeb" Version="4.0.82" />
+</Project>

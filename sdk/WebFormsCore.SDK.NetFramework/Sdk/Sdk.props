@@ -1,0 +1,24 @@
+<Project>
+    <Import Project="Sdk.props" Sdk="MSBuild.SDK.SystemWeb" Version="4.0.82" />
+
+    <ItemGroup>
+        <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
+        <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
+        <Compile Remove="**/**.designer.cs" />
+
+        <AdditionalFiles Include="web.config" Exclude="bin\**;obj\**" />
+        <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
+        <CompilerVisibleProperty Include="RootNamespace" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <PackageReference Include="WebFormsCore.AspNet" Version="0.0.1-alpha" />
+        <PackageReference Include="WebFormsCore.SourceGenerator" Version="0.0.1-alpha" OutputItemType="Analyzer" />
+    </PropertyGroup>
+</Project>

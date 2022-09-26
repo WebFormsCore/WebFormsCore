@@ -3,35 +3,39 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebForms.Parser", "src\WebForms.Parser\WebForms.Parser.csproj", "{33106B64-623F-4DAB-B310-61E5722FDC50}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebFormsCore.Parser", "src\WebFormsCore.Parser\WebFormsCore.Parser.csproj", "{33106B64-623F-4DAB-B310-61E5722FDC50}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebForms.SourceGenerator", "src\WebForms.SourceGenerator\WebForms.SourceGenerator.csproj", "{CFDDED25-A251-4FFD-A09D-D02C31E60AB3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebFormsCore.SourceGenerator", "src\WebFormsCore.SourceGenerator\WebFormsCore.SourceGenerator.csproj", "{CFDDED25-A251-4FFD-A09D-D02C31E60AB3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebForms", "src\WebForms\WebForms.csproj", "{881FCCCB-A725-4631-8E3D-8A745D2B45DB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebFormsCore", "src\WebFormsCore\WebFormsCore.csproj", "{881FCCCB-A725-4631-8E3D-8A745D2B45DB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{726D3801-795C-4C82-8B50-4AB15C7F004B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebForms.SourceGenerator.Tests", "tests\WebForms.SourceGenerator.Tests\WebForms.SourceGenerator.Tests.csproj", "{08DE48DE-29C0-4F46-947C-C6F470475A2A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebFormsCore.SourceGenerator.Tests", "tests\WebFormsCore.SourceGenerator.Tests\WebFormsCore.SourceGenerator.Tests.csproj", "{08DE48DE-29C0-4F46-947C-C6F470475A2A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{210D9008-25A9-4ABE-8C8C-A7FDDC3381F6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebForms.Example", "examples\WebForms.Example\WebForms.Example.csproj", "{C3CC0944-3BB8-449F-97AF-27D574160E65}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebFormsCore.Example", "examples\WebFormsCore.Example\WebFormsCore.Example.csproj", "{C3CC0944-3BB8-449F-97AF-27D574160E65}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebForms.AspNetCore", "src\WebForms.AspNetCore\WebForms.AspNetCore.csproj", "{83FD23DA-B242-4D59-B1A6-D8C1BF2916B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebFormsCore.AspNetCore", "src\WebFormsCore.AspNetCore\WebFormsCore.AspNetCore.csproj", "{83FD23DA-B242-4D59-B1A6-D8C1BF2916B1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebForms.Tests", "tests\WebForms.Tests\WebForms.Tests.csproj", "{1BF92442-DB6E-468C-8070-3736A855677B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebFormsCore.Tests", "tests\WebFormsCore.Tests\WebFormsCore.Tests.csproj", "{1BF92442-DB6E-468C-8070-3736A855677B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebForms.NetFx.Example", "examples\WebForms.NetFx.Example\WebForms.NetFx.Example.csproj", "{41A1D892-1609-43AA-AE9D-966EFA7FED0C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebFormsCore.AspNet", "src\WebFormsCore.AspNet\WebFormsCore.AspNet.csproj", "{537989AF-860A-4A92-A68A-93BCDE17310A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebForms.AspNet", "src\WebForms.AspNet\WebForms.AspNet.csproj", "{537989AF-860A-4A92-A68A-93BCDE17310A}"
-EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "WebForms.VisualBasic.Example", "examples\WebForms.VisualBasic.Example\WebForms.VisualBasic.Example.vbproj", "{CC7EECA5-D7AF-4727-A169-84A59B532093}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "WebFormsCore.VisualBasic.Example", "examples\WebFormsCore.VisualBasic.Example\WebFormsCore.VisualBasic.Example.vbproj", "{CC7EECA5-D7AF-4727-A169-84A59B532093}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebForms.Parser.Tests", "tests\WebForms.Parser.Tests\WebForms.Parser.Tests.csproj", "{84EEE407-78A2-4729-8ECC-DA59DBE9FF1F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{15241878-5EF2-4C83-B402-3709025FACA6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompareWebForms", "tools\CompareWebForms\CompareWebForms.csproj", "{62763BB2-942B-49A1-8808-ABB72EBF8942}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.SDK", "sdk\WebFormsCore.SDK\WebFormsCore.SDK.csproj", "{42435A99-61E6-4B34-969E-D428F232430B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SDK", "SDK", "{63EBE3DD-1F7B-41D8-9687-BCCA33B81324}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.SDK.NetFramework", "sdk\WebFormsCore.SDK.NetFramework\WebFormsCore.SDK.NetFramework.csproj", "{FA8142FA-D5A1-42CC-9BBD-9E5A21972314}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,10 +71,6 @@ Global
 		{1BF92442-DB6E-468C-8070-3736A855677B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1BF92442-DB6E-468C-8070-3736A855677B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1BF92442-DB6E-468C-8070-3736A855677B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{41A1D892-1609-43AA-AE9D-966EFA7FED0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{41A1D892-1609-43AA-AE9D-966EFA7FED0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{41A1D892-1609-43AA-AE9D-966EFA7FED0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{41A1D892-1609-43AA-AE9D-966EFA7FED0C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{537989AF-860A-4A92-A68A-93BCDE17310A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{537989AF-860A-4A92-A68A-93BCDE17310A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{537989AF-860A-4A92-A68A-93BCDE17310A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -87,6 +87,14 @@ Global
 		{62763BB2-942B-49A1-8808-ABB72EBF8942}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{62763BB2-942B-49A1-8808-ABB72EBF8942}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{62763BB2-942B-49A1-8808-ABB72EBF8942}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42435A99-61E6-4B34-969E-D428F232430B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42435A99-61E6-4B34-969E-D428F232430B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42435A99-61E6-4B34-969E-D428F232430B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42435A99-61E6-4B34-969E-D428F232430B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA8142FA-D5A1-42CC-9BBD-9E5A21972314}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA8142FA-D5A1-42CC-9BBD-9E5A21972314}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA8142FA-D5A1-42CC-9BBD-9E5A21972314}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA8142FA-D5A1-42CC-9BBD-9E5A21972314}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -95,10 +103,11 @@ Global
 		{08DE48DE-29C0-4F46-947C-C6F470475A2A} = {726D3801-795C-4C82-8B50-4AB15C7F004B}
 		{C3CC0944-3BB8-449F-97AF-27D574160E65} = {210D9008-25A9-4ABE-8C8C-A7FDDC3381F6}
 		{1BF92442-DB6E-468C-8070-3736A855677B} = {726D3801-795C-4C82-8B50-4AB15C7F004B}
-		{41A1D892-1609-43AA-AE9D-966EFA7FED0C} = {210D9008-25A9-4ABE-8C8C-A7FDDC3381F6}
 		{CC7EECA5-D7AF-4727-A169-84A59B532093} = {210D9008-25A9-4ABE-8C8C-A7FDDC3381F6}
 		{84EEE407-78A2-4729-8ECC-DA59DBE9FF1F} = {726D3801-795C-4C82-8B50-4AB15C7F004B}
 		{62763BB2-942B-49A1-8808-ABB72EBF8942} = {15241878-5EF2-4C83-B402-3709025FACA6}
+		{42435A99-61E6-4B34-969E-D428F232430B} = {63EBE3DD-1F7B-41D8-9687-BCCA33B81324}
+		{FA8142FA-D5A1-42CC-9BBD-9E5A21972314} = {63EBE3DD-1F7B-41D8-9687-BCCA33B81324}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {022403F7-A5A6-4639-8579-D9B56627AE73}

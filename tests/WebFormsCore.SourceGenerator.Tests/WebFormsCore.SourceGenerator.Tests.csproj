@@ -1,16 +1,21 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
         <LangVersion>preview</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Verify.XUnit" Version="17.10.2" />
+        <PackageReference Include="Verify.SourceGenerators" Version="1.5.0" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.0" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="4.3.0" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.1" />
-        <PackageReference Include="Verify.Xunit" Version="17.10.2" />
         <PackageReference Include="xunit" Version="2.4.2" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -23,7 +28,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\WebFormsCore.Parser\WebFormsCore.Parser.csproj" />
+      <ProjectReference Include="..\..\src\WebFormsCore.SourceGenerator\WebFormsCore.SourceGenerator.csproj" />
+      <ProjectReference Include="..\..\src\WebFormsCore\WebFormsCore.csproj" />
     </ItemGroup>
 
 </Project>

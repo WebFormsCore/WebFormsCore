@@ -1,0 +1,11 @@
+<Project>
+
+  <PropertyGroup>
+    <DebugType Condition=" '$(Configuration)' == 'Debug' ">Full</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="Sdk\**" Pack="true" PackagePath="Sdk\" />
+  </ItemGroup>
+
+</Project>

@@ -15,7 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\WebForms\WebForms.csproj" />
+      <ProjectReference Include="..\..\src\WebFormsCore\WebFormsCore.csproj" />
     </ItemGroup>
 
 </Project>

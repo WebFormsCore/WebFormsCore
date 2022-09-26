@@ -1,7 +1,7 @@
 using WebFormsCore.Language;
 using WebFormsCore.Models;
 
-namespace WebForms.Parser.Tests;
+namespace WebFormsCore.Parser.Tests;
 
 [UsesVerify]
 public class LexerTest

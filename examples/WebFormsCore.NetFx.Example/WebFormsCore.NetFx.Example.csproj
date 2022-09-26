@@ -1,0 +1,28 @@
+﻿<Project Sdk="MSBuild.SDK.SystemWeb/4.0.82">
+
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <MvcBuildViews>false</MvcBuildViews>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**" />
+        <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**" />
+        <AdditionalFiles Include="web.config" Exclude="bin\**;obj\**" />
+        <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
+
+        <AdditionalFiles Update="**/*.aspx">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
+        <AdditionalFiles Update="**/*.ascx">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\WebFormsCore.AspNet\WebFormsCore.AspNet.csproj" />
+        <ProjectReference Include="..\..\src\WebFormsCore.SourceGenerator\WebFormsCore.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+</Project>
