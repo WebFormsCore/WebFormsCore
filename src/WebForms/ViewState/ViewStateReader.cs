@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.Serializer;
 
@@ -32,8 +33,28 @@ public ref struct ViewStateReader
 
     public T Read<T>()
     {
-        var serializer = Provider.GetRequiredService<IViewStateSerializer<T>>();
-        var value = serializer.Read(_span, out var length);
+        var serializer = Provider.GetService<IViewStateSerializer<T>>();
+
+        int length;
+        T value;
+
+        if (serializer != null)
+        {
+            value = serializer.Read(_span, out length);
+        }
+        else
+        {
+            var objSerializer = Provider
+                .GetServices<IViewStateSerializer>()
+                .FirstOrDefault(i => i.CanSerialize(typeof(T)));
+
+            if (objSerializer == null)
+            {
+                throw new InvalidOperationException($"No serializer found for type {typeof(T).FullName}");
+            }
+
+            value = (T)objSerializer.Read(_span, out length);
+        }
 
         _span = _span.Slice(length);
         _offset += length;

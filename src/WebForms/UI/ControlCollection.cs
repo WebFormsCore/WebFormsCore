@@ -104,8 +104,14 @@ public class ControlCollection : ICollection, ICollection<Control>
         Owner.RemovedControl(child);
     }
 
-    public virtual bool Remove(Control value)
+    public virtual bool Remove(Control child)
     {
-        return _list.Remove(value);
+        if (!_list.Remove(child))
+        {
+            return false;
+        }
+
+        Owner.RemovedControl(child);
+        return true;
     }
 }

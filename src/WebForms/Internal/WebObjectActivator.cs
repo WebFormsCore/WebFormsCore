@@ -31,7 +31,7 @@ internal sealed class WebObjectActivator : IWebObjectActivator
         var converter = _serviceProvider.GetService<TConverter>() ??
                         ActivatorUtilities.CreateInstance<TConverter>(_serviceProvider);
 
-        return (T) converter.ConvertFrom(attributeValue);
+        return (T) converter.ConvertFrom(attributeValue)!;
     }
 
     public T CreateControl<T>()

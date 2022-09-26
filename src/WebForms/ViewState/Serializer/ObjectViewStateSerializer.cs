@@ -58,7 +58,7 @@ public class ObjectViewStateSerializer : ViewStateSerializer<object?>
         span = span.Slice(1);
 
         var serializer = (IViewStateSerializer)_provider.GetRequiredService(registration.SerializerType);
-        var value = serializer.ReadObject(span, out length);
+        var value = serializer.Read(span, out length);
 
         length += 1;
         return value;

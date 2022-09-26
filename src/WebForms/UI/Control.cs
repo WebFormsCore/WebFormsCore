@@ -302,9 +302,9 @@ public partial class Control
     /// <summary>Sends server control content to a provided <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object, which writes the content to be rendered on the client.</summary>
     /// <param name="writer">The <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object that receives the server control content. </param>
     /// <param name="token"></param>
-    public virtual Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    public virtual async Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        return RenderChildrenAsync(writer, token);
+        await RenderChildrenAsync(writer, token);
     }
 
     public void SetRenderMethodDelegate(RenderAsyncDelegate renderMethod)
@@ -319,7 +319,7 @@ public partial class Control
     {
         if (_renderMethod != null)
         {
-            await _renderMethod(writer, _controls, token);
+            await _renderMethod(writer, Controls, token);
             return;
         }
 

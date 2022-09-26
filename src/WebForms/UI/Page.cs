@@ -44,14 +44,17 @@ public class Page : Control, INamingContainer
             target = form;
         }
 
-        await InvokeLoadAsync(token, form);
+        await target.InvokeLoadAsync(token, form);
 
         if (form != null)
         {
-            await InvokePostbackAsync(token, form);
+            var eventTarget = Context.Request.Form["__EVENTTARGET"];
+            var eventArgument = Context.Request.Form["__EVENTARGUMENT"];
+
+            await target.InvokePostbackAsync(token, form, eventTarget, eventArgument);
         }
 
-        await InvokePreRenderAsync(token, form);
+        await target.InvokePreRenderAsync(token, form);
 
         return target;
     }

@@ -7,18 +7,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**" />
-        <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**" />
+        <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
+        <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
         <AdditionalFiles Include="web.config" Exclude="bin\**;obj\**" />
         <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
-
-        <AdditionalFiles Update="**/*.aspx">
-	        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="**/*.ascx">
-	        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
+        <CompilerVisibleProperty Include="RootNamespace" />
     </ItemGroup>
 
     <ItemGroup>

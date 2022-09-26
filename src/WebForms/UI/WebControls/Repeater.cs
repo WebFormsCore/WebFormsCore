@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI.WebControls;
 
-public abstract partial class RepeaterBase<T> : Control, IPostBackEventHandler
+public abstract partial class RepeaterBase<T> : Control, IPostBackLoadHandler
     where T : RepeaterItem
 {
     private readonly List<T> _items = new();
@@ -33,9 +33,14 @@ public abstract partial class RepeaterBase<T> : Control, IPostBackEventHandler
 
     public object? DataSource { get; set; }
 
-    public async Task RaisePostBackEventAsync()
+    public async Task AfterPostBackLoadAsync()
     {
         var count = _itemCount;
+
+        if (count == 0)
+        {
+            return;
+        }
 
         Clear();
 
@@ -49,7 +54,7 @@ public abstract partial class RepeaterBase<T> : Control, IPostBackEventHandler
         if (FooterTemplate != null) await CreateItemAsync(ListItemType.Footer);
     }
 
-    public async ValueTask DataBindAsync()
+    public async Task DataBindAsync()
     {
         Clear();
 
@@ -60,6 +65,49 @@ public abstract partial class RepeaterBase<T> : Control, IPostBackEventHandler
         if (FooterTemplate != null) await CreateItemAsync(ListItemType.Footer, true);
     }
 
+    [Obsolete("Use DataBindAsync instead.")]
+    public void DataBind()
+    {
+        DataBindAsync().GetAwaiter().GetResult();
+    }
+
+    public async Task AddAsync(object data)
+    {
+        if (_itemCount == 0 && HeaderTemplate != null)
+        {
+            await CreateItemAsync(ListItemType.Header, true);
+        }
+
+        T? footer = null;
+        if (FooterTemplate != null && _itemCount > 0)
+        {
+            var index = _items.Count - 1;
+            footer = _items[index];
+            _items.RemoveAt(index);
+            Controls.Remove(footer);
+        }
+
+        await CreateItemAsync(true, data);
+
+        if (footer != null)
+        {
+            _items.Add(footer);
+            Controls.Add(footer);
+        }
+        else if (FooterTemplate != null)
+        {
+            await CreateItemAsync(ListItemType.Footer, true);
+        }
+    }
+
+    protected override async Task RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
+    {
+        foreach (var item in _items)
+        {
+            await item.RenderAsync(writer, token);
+        }
+    }
+
     private void Clear()
     {
         _itemCount = 0;
@@ -67,7 +115,7 @@ public abstract partial class RepeaterBase<T> : Control, IPostBackEventHandler
         Controls.Clear();
     }
 
-    protected virtual async ValueTask LoadDataSource()
+    protected virtual async Task LoadDataSource()
     {
         if (DataSource is not IEnumerable dataSource) return;
 
@@ -118,6 +166,7 @@ public abstract partial class RepeaterBase<T> : Control, IPostBackEventHandler
 
         var item = CreateItem(itemIndex, itemType);
 
+        _items.Add(item);
         InitializeItem(item);
         if (dataBind)
         {
@@ -136,6 +185,11 @@ public abstract partial class RepeaterBase<T> : Control, IPostBackEventHandler
         }
 
         return item;
+    }
+
+    public override void AddParsedSubObject(Control control)
+    {
+        // ignore
     }
 
     protected abstract T CreateItem(int itemIndex, ListItemType itemType);
@@ -171,6 +225,8 @@ public class RepeaterItem : Control, IDataItemContainer
     {
         return Task.CompletedTask;
     }
+
+
 
     int IDataItemContainer.DataItemIndex => ItemIndex;
 

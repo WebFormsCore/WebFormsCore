@@ -63,17 +63,30 @@ public partial class Control
         }
     }
 
-    internal async ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form)
+    internal async ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument)
     {
         if (token.IsCancellationRequested) return;
 
         await OnPostbackAsync(token);
 
+        if (target == UniqueID)
+        {
+            if (this is IPostBackEventHandler eventHandler)
+            {
+                eventHandler.RaisePostBackEvent(argument);
+            }
+
+            if (this is IPostBackAsyncEventHandler asyncEventHandler)
+            {
+                await asyncEventHandler.RaisePostBackEventAsync(argument);
+            }
+        }
+
         foreach (var control in Controls)
         {
             if (form != null && control is HtmlForm && control != form) continue;
 
-            await control.InvokePostbackAsync(token, form);
+            await control.InvokePostbackAsync(token, form, target, argument);
         }
     }
 

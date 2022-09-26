@@ -4,9 +4,6 @@ Imports WebFormsCore.UI.WebControls
 Public Partial Class DefaultPage
     Inherits UI.Page
 
-    Public Sub New()
-    End Sub
-
     Protected Property Counter As Integer
         Get
             Return CInt(ViewState("Counter"))

@@ -12,19 +12,16 @@ public partial class Counter : Control
 {
     [ViewState] private int _count;
 
-    protected override Task OnPreRenderAsync(CancellationToken token)
+    protected override void OnPreRender(EventArgs args)
     {
         tbPrefix.Text = tbPrefix.Text?.ToUpperInvariant();
         litValue.Text = $"Count: {tbPrefix.Text}{_count}";
-        return Task.CompletedTask;
     }
 
-    protected async ValueTask btnIncrement_OnClick(object? sender, EventArgs e)
+    protected async Task btnIncrement_OnClick(object? sender, EventArgs e)
     {
         _count++;
-
-        rptItems.DataSource = Enumerable.Range(0, _count).Select(i => $"Item {i}");
-        await rptItems.DataBindAsync();
+        await rptItems.AddAsync($"Item {_count}");
     }
 
     protected void rptItems_OnItemDataBound(object? sender, RepeaterItem e)

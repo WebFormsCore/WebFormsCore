@@ -85,26 +85,30 @@ internal class ParserContainer
 
     public void AddStatement(StatementNode node)
     {
-        if (Parent.RenderName == null)
-        {
-            Parent.RenderName = $"Render_{RenderId++}";
-
-            if (Template != null)
-            {
-                Template.RenderMethods.Add(Parent);
-            }
-            else
-            {
-                Root.RenderMethods.Add(Parent);
-            }
-        }
-
+        SetParentAsRenderMethod();
         Add(node);
     }
 
     public void AddExpression(ExpressionNode node)
     {
+        SetParentAsRenderMethod();
         Add(node);
+    }
+
+    private void SetParentAsRenderMethod()
+    {
+        if (Parent.RenderName != null) return;
+
+        Parent.RenderName = $"Render_{RenderId++}";
+
+        if (Template != null)
+        {
+            Template.RenderMethods.Add(Parent);
+        }
+        else
+        {
+            Root.RenderMethods.Add(Parent);
+        }
     }
 
     public void AddText(TextNode node)

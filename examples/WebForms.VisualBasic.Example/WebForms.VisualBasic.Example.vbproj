@@ -7,27 +7,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**" />
-        <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**" />
-        <AdditionalFiles Include="web.config" />
+        <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
+        <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
+        <AdditionalFiles Include="web.config" Exclude="bin\**;obj\**" />
         <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
         <CompilerVisibleProperty Include="RootNamespace" />
-
-        <AdditionalFiles Update="**/*.aspx">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="**/*.ascx">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="Default.aspx">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-    </ItemGroup>
-    
-    <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.SystemWebAdapters.CoreServices" Version="1.0.0-rc.1.22464.1" />
     </ItemGroup>
 
     <ItemGroup>

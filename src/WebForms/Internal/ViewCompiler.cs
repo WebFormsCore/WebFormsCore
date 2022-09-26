@@ -14,7 +14,7 @@ internal record struct ViewCompileResult(Compilation Compilation, RootNode Type)
 
 internal static class ViewCompiler
 {
-    private static IReadOnlyList<MetadataReference> _references;
+    private static IReadOnlyList<MetadataReference>? _references;
     private static readonly object ReferencesLock = new();
 
     public static ViewCompileResult Compile(string path, string? text = null)
@@ -59,6 +59,12 @@ internal static class ViewCompiler
         }
 
         var type = RootNode.Parse(compilation, path, text);
+
+        if (type.Inherits == null)
+        {
+            throw new InvalidOperationException();
+        }
+
         var assemblyName = type.Inherits.ContainingAssembly.ToDisplayString();
         var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == assemblyName) ??
                        Assembly.Load(assemblyName);

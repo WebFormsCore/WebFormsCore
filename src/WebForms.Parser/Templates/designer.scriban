@@ -72,11 +72,13 @@
             {{- case child.Type }}
             {{- when "Statement" }}
             {{ child.Text }}
+            {{- when "Expression" }}
+            await writer.WriteObjectAsync({{ child.Text }});
             {{- when "Text" }}
-            await controls[{{ i }}].RenderAsync(writer, token) // Text: {{ child.Text.CodeString }}
+            await controls[{{ i }}].RenderAsync(writer, token); // Text: {{ child.Text.CodeString }}
             {{- i = i + 1 }}
             {{- when "Element", "Control" }}
-            await controls[{{ i }}].RenderAsync(writer, token) // Element: {{ child.Name }}
+            await controls[{{ i }}].RenderAsync(writer, token); // Element: {{ child.Name }}
             {{- i = i + 1 }}
             {{- end }}
             #line default

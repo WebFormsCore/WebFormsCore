@@ -74,8 +74,9 @@ public static class ServiceExtensions
         where TSerializer : class, IViewStateSerializer<T>
     {
         var offset = (byte)(1 + services.Count(i => i.ServiceType == typeof(ViewStateSerializerRegistration)));
-        
+
         services.AddSingleton<IViewStateSerializer<T>, TSerializer>();
+        services.AddSingleton<IViewStateSerializer>(p => p.GetRequiredService<IViewStateSerializer<T>>());
         services.AddSingleton(new ViewStateSerializerRegistration(offset, typeof(T), typeof(IViewStateSerializer<T>)));
 
         return services;

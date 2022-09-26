@@ -12,8 +12,6 @@ In comparison to WebForms there are a few changes:
   You can use WebForms Core on .NET and .NET Framework 🎉
   
   > **Note:** When targeting .NET Framework the WebForms designer in Visual Studio (with ReSharper) and Rider gives an error that the page doesn't extend `System.Web.UI.Page`. This can be ignored.
-
-  > **Note:** .NET Framework doesn't support view state compression yet.
 - **Rendering is asynchronous**  
   By default, ASP.NET Core doesn't allow synchronous operations. This is done [to prevent thread starvation and app hangs](https://makolyte.com/aspnet-invalidoperationexception-synchronous-operations-are-disallowed/).
 - **Designer source generators**  

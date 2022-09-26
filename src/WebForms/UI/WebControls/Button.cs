@@ -6,7 +6,7 @@ using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI.WebControls;
 
-public class Button : HtmlGenericControl
+public class Button : HtmlGenericControl, IPostBackAsyncEventHandler
 {
     public Button()
         : base("button")
@@ -15,14 +15,9 @@ public class Button : HtmlGenericControl
 
     public event AsyncEventHandler? Click;
 
-    protected override async Task OnPostbackAsync(CancellationToken token)
+    public async Task RaisePostBackEventAsync(string? eventArgument)
     {
-        await base.OnPostbackAsync(token);
-
-        if (Context.Request.Form["__EVENTTARGET"] == UniqueID)
-        {
-            await Click.InvokeAsync(this, EventArgs.Empty);
-        }
+        await Click.InvokeAsync(this, EventArgs.Empty);
     }
 
     protected override async Task RenderAttributesAsync(HtmlTextWriter writer)

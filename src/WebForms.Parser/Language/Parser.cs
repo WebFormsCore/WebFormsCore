@@ -14,7 +14,6 @@ public class Parser
     public static readonly CSharpParseOptions StatementOptions = new(kind: SourceCodeKind.Script);
     private readonly ParserContainer _rootContainer = new();
     private ParserContainer _container;
-    private ParserContainer? _headerContainer;
     private string? _itemType;
     private Dictionary<string, List<string>> _namespaces = new(StringComparer.OrdinalIgnoreCase);
     private INamedTypeSymbol? _type;
@@ -359,22 +358,6 @@ public class Parser
         {
             _container.Pop();
         }
-
-        switch (name.Text.Value)
-        {
-            case "HeaderTemplate":
-                _container = _headerContainer = new ParserContainer(_rootContainer);
-                break;
-            case "FooterTemplate" when _headerContainer is not null:
-                _container = _headerContainer;
-                break;
-            case "FooterTemplate":
-                Diagnostics.Add(Diagnostic.Create(
-                    new DiagnosticDescriptor("ASP0001", "FooterTemplate without HeaderTemplate", "FooterTemplate without HeaderTemplate", "ASP", DiagnosticSeverity.Error, true),
-                    name.Range));
-                break;
-        }
-
     }
 
     private static RunAt FindRunAt(ref Lexer lexer)

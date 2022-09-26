@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.Serializer;
 
@@ -35,13 +36,32 @@ public ref struct ViewStateWriter
 
     public void Write<T>(T value)
     {
-        var serializer = _provider.GetRequiredService<IViewStateSerializer<T>>();
+        var serializer = _provider.GetService<IViewStateSerializer<T>>();
 
         int length;
-        
-        while (!serializer.TryWrite(value, _span, out length))
+
+        if (serializer != null)
         {
-            Grow();
+            while (!serializer.TryWrite(value, _span, out length))
+            {
+                Grow();
+            }
+        }
+        else
+        {
+            var objSerializer = _provider
+                .GetServices<IViewStateSerializer>()
+                .FirstOrDefault(i => i.CanSerialize(typeof(T)));
+
+            if (objSerializer == null)
+            {
+                throw new InvalidOperationException($"No serializer found for type {typeof(T).FullName}");
+            }
+
+            while (!objSerializer.TryWrite(value, _span, out length))
+            {
+                Grow();
+            }
         }
 
         _length += length;

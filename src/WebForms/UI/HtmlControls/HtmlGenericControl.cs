@@ -47,7 +47,7 @@ public class HtmlGenericControl : HtmlContainerControl
 
         await using var subWriter = new HtmlTextWriter();
 
-        await base.RenderChildrenAsync(subWriter, token);
+        await RenderChildrenAsync(subWriter, token);
         await subWriter.FlushAsync();
 
         var script = subWriter.ToString();

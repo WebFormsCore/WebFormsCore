@@ -15,14 +15,18 @@
 
         <ul>
             <wfc:Repeater runat="server" ItemType="System.String" ID="rptItems" OnItemDataBound="rptItems_OnItemDataBound">
-                <ItemTemplate>
-                    <li>
-                        <wfc:Literal runat="server" ID="litItem" />
-                    </li>
-                </ItemTemplate>
                 <SeparatorTemplate>
                     <li>----</li>
                 </SeparatorTemplate>
+                <HeaderTemplate>
+                    <li>Header</li>
+                </HeaderTemplate>
+                <FooterTemplate>
+                    <li>Footer</li>
+                </FooterTemplate>
+                <ItemTemplate>
+                    <li><wfc:Literal runat="server" ID="litItem" /></li>
+                </ItemTemplate>
             </wfc:Repeater>
         </ul>
     </div>

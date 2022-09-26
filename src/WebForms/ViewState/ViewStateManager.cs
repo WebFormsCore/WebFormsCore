@@ -184,14 +184,14 @@ public class ViewStateManager : IViewStateManager
 
             if (control == null) break;
 
-            await control.RaisePostBackEventAsync();
+            await control.AfterPostBackLoadAsync();
         }
     }
 
     /// <summary>
     /// Try to load the view state for as many controls as possible with the span-reader.
     /// </summary>
-    private static IPostBackEventHandler? LoadViewState(IEnumerator<Control> controls, ViewStateReaderOwner owner)
+    private static IPostBackLoadHandler? LoadViewState(IEnumerator<Control> controls, ViewStateReaderOwner owner)
     {
         var reader = owner.CreateReader();
 
@@ -203,7 +203,7 @@ public class ViewStateManager : IViewStateManager
 
                 control.LoadViewState(ref reader);
 
-                if (control is IPostBackEventHandler handler)
+                if (control is IPostBackLoadHandler handler)
                 {
                     return handler;
                 }
