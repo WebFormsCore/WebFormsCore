@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 const string webFormsNamespace = "System.Web";
 
@@ -75,14 +77,15 @@ foreach (var control in allControls)
     ));
 }
 
-Console.WriteLine("This issue lists controls in WebForms, with their status what is implemented in WebFormsCore.");
-Console.WriteLine();
-Console.WriteLine($"Controls: {controls.Count(c => c.Added)}/{controls.Count}");
-Console.WriteLine($"Properties: {controls.Sum(c => c.Properties.Count(p => p.Added))}/{controls.Sum(c => c.Properties.Count)}");
-Console.WriteLine($"Events: {controls.Sum(c => c.Events.Count(e => e.Added))}/{controls.Sum(c => c.Events.Count)}");
-Console.WriteLine();
-Console.WriteLine("| Control | Status | Properties | Events |");
-Console.WriteLine("| ------- | ------ | ---------- | ------ |");
+var sb = new StringBuilder();
+sb.AppendLine("This issue lists controls in WebForms, with their status what is implemented in WebFormsCore.");
+sb.AppendLine();
+sb.AppendLine($"Controls: {controls.Count(c => c.Added)}/{controls.Count}");
+sb.AppendLine($"Properties: {controls.Sum(c => c.Properties.Count(p => p.Added))}/{controls.Sum(c => c.Properties.Count)}");
+sb.AppendLine($"Events: {controls.Sum(c => c.Events.Count(e => e.Added))}/{controls.Sum(c => c.Events.Count)}");
+sb.AppendLine();
+sb.AppendLine("| Control | Status | Properties | Events |");
+sb.AppendLine("| ------- | ------ | ---------- | ------ |");
 
 foreach (var control in controls)
 {
@@ -93,27 +96,27 @@ foreach (var control in controls)
         _ => "❌",
     };
 
-    Console.Write("| ");
-    Console.Write(control.HasSymbols ? @$"<a href=""#{control.Id}"">{control.Type.Name}</a>" : control.Type.Name);
-    Console.Write($" | {statusIcon}");
-    Console.Write($" | {control.Properties.Count(i => i.Added)}/{control.Properties.Count}");
-    Console.Write($" | {control.Events.Count(i => i.Added)}/{control.Events.Count}");
-    Console.WriteLine(" |");
+    sb.Append("| ");
+    sb.Append(control.HasSymbols ? @$"<a href=""#{control.Id}"">{control.Type.Name}</a>" : control.Type.Name);
+    sb.Append($" | {statusIcon}");
+    sb.Append($" | {control.Properties.Count(i => i.Added)}/{control.Properties.Count}");
+    sb.Append($" | {control.Events.Count(i => i.Added)}/{control.Events.Count}");
+    sb.AppendLine(" |");
 }
 
 foreach (var control in controls.Where(c => c.HasSymbols))
 {
-    Console.WriteLine();
-    Console.WriteLine(@$"<h2 id=""{control.Id}"">{control.Type.Name}</h2>");
-    Console.WriteLine();
-    Console.WriteLine($"**Namespace:** {control.Type.Namespace}");
+    sb.AppendLine();
+    sb.AppendLine(@$"<h2 id=""{control.Id}"">{control.Type.Name}</h2>");
+    sb.AppendLine();
+    sb.AppendLine($"**Namespace:** {control.Type.Namespace}");
 
     if (control.Properties.Count > 0)
     {
-        Console.WriteLine();
-        Console.WriteLine("### Properties");
-        Console.WriteLine("| Property | Type | Status |");
-        Console.WriteLine("| -------- | ---- | ------ |");
+        sb.AppendLine();
+        sb.AppendLine("### Properties");
+        sb.AppendLine("| Property | Type | Status |");
+        sb.AppendLine("| -------- | ---- | ------ |");
         foreach (var property in control.Properties)
         {
             var statusIcon = property switch
@@ -123,33 +126,35 @@ foreach (var control in controls.Where(c => c.HasSymbols))
                 _ => "❌",
             };
 
-            Console.Write($"| {property.Property.Name}");
-            Console.Write($" | {property.Property.PropertyType}");
+            sb.Append($"| {property.Property.Name}");
+            sb.Append($" | {property.Property.PropertyType}");
 
             if (property.Added & !property.TypeSame)
             {
-                Console.Write(" **`INCORRECT`**");
+                sb.Append(" **`INCORRECT`**");
             }
 
-            Console.Write($" | {statusIcon}");
-            Console.WriteLine(" |");
+            sb.Append($" | {statusIcon}");
+            sb.AppendLine(" |");
         }
     }
 
     if (control.Events.Count > 0)
     {
-        Console.WriteLine();
-        Console.WriteLine("### Events");
-        Console.WriteLine("| Event | Status |");
-        Console.WriteLine("| ----- | ------ |");
+        sb.AppendLine();
+        sb.AppendLine("### Events");
+        sb.AppendLine("| Event | Status |");
+        sb.AppendLine("| ----- | ------ |");
         foreach (var @event in control.Events)
         {
             var statusIcon = @event.Added ? "✅" : "❌";
 
-            Console.WriteLine($"| {@event.Event.Name} | {statusIcon} |");
+            sb.AppendLine($"| {@event.Event.Name} | {statusIcon} |");
         }
     }
 }
+
+File.WriteAllText("results.md", sb.ToString());
 
 record ControlProperty(PropertyInfo Property, bool Added, bool TypeSame);
 

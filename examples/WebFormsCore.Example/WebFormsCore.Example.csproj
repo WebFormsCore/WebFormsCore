@@ -9,7 +9,7 @@
     <ItemGroup>
         <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**" />
         <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**" />
-        <AdditionalFiles Include="web.config" Exclude="bin\**;obj\**" />
+        <AdditionalFiles Condition="Exists('web.config')" Include="web.config" Exclude="bin\**;obj\**" />
         <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
 
         <AdditionalFiles Update="**/*.aspx">

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using WebFormsCore.Internal;
@@ -43,6 +44,9 @@ public static class ServiceExtensions
         services.AddViewStateSerializer<char>();
         services.AddViewStateSerializer<DateTime>();
         services.AddViewStateSerializer<DateTimeOffset>();
+        services.AddViewStateSerializer<TextBoxMode>();
+        services.AddViewStateSerializer<Unit>();
+        services.AddViewStateSerializer<AutoCompleteType>();
 
         services.AddSingleton<IAttributeParser<string>, StringAttributeParser>();
         services.AddSingleton<IAttributeParser<int>, Int32AttributeParser>();
@@ -54,6 +58,11 @@ public static class ServiceExtensions
     public static IServiceCollection AddPooledControl<T>(this IServiceCollection services, int maxAmount = 1024)
         where T : Control, new()
     {
+        if (typeof(T).GetCustomAttributes<ViewPathAttribute>().Any())
+        {
+            throw new InvalidOperationException("Cannot pool a control with a view path");
+        }
+
         services.AddSingleton<ObjectPool<T>>(
             new DefaultObjectPool<T>(new ControlObjectPolicy<T>(), maxAmount)
         );

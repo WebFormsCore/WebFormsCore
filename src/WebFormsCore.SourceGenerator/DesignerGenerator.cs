@@ -45,22 +45,33 @@ public abstract class DesignerGenerator : IIncrementalGenerator
         var (webConfigPath, webConfigText) = files.FirstOrDefault(x => x.Path.EndsWith("web.config", StringComparison.OrdinalIgnoreCase));
 
         var namespaces = new List<KeyValuePair<string, string>>();
-        var controls = XElement.Parse(webConfigText)
-            .Descendants("system.web").FirstOrDefault()
-            ?.Descendants("pages").FirstOrDefault()
-            ?.Descendants("controls").FirstOrDefault();
 
-        if (controls != null)
+        if (!string.IsNullOrEmpty(webConfigText))
         {
-            foreach (var add in controls.Descendants("add"))
+            try
             {
-                var tagPrefix = add.Attribute("tagPrefix")?.Value;
-                var namespaceName = add.Attribute("namespace")?.Value;
+                var controls = XElement.Parse(webConfigText)
+                    .Descendants("system.web").FirstOrDefault()
+                    ?.Descendants("pages").FirstOrDefault()
+                    ?.Descendants("controls").FirstOrDefault();
 
-                if (tagPrefix != null && namespaceName != null)
+                if (controls != null)
                 {
-                    namespaces.Add(new KeyValuePair<string, string>(tagPrefix, namespaceName));
+                    foreach (var add in controls.Descendants("add"))
+                    {
+                        var tagPrefix = add.Attribute("tagPrefix")?.Value;
+                        var namespaceName = add.Attribute("namespace")?.Value;
+
+                        if (tagPrefix != null && namespaceName != null)
+                        {
+                            namespaces.Add(new KeyValuePair<string, string>(tagPrefix, namespaceName));
+                        }
+                    }
                 }
+            }
+            catch (Exception)
+            {
+                // TODO: Diagnostic
             }
         }
 

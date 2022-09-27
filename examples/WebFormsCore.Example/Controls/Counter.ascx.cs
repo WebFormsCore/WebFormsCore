@@ -14,7 +14,6 @@ public partial class Counter : Control
 
     protected override void OnPreRender(EventArgs args)
     {
-        tbPrefix.Text = tbPrefix.Text?.ToUpperInvariant();
         litValue.Text = $"Count: {tbPrefix.Text}{_count}";
     }
 
@@ -24,13 +23,13 @@ public partial class Counter : Control
         await rptItems.AddAsync($"Item {_count}");
     }
 
-    protected void rptItems_OnItemDataBound(object? sender, RepeaterItem e)
+    protected void rptItems_OnItemDataBound(object? sender, RepeaterItemEventArgs e)
     {
-        var item = (Literal?) e.FindControl("litItem");
+        var item = (Literal?) e.Item.FindControl("litItem");
 
         if (item != null)
         {
-            item.Text = e.DataItem?.ToString();
+            item.Text = e.Item.DataItem?.ToString();
         }
     }
 }

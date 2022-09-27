@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using Microsoft.Extensions.ObjectPool;
 
 namespace WebFormsCore.UI;
@@ -8,7 +8,7 @@ internal sealed class PooledControlFactory<T> : IControlFactory<T>, IDisposable
     where T : class
 {
     private readonly ObjectPool<T> _pool;
-    private readonly List<T> _controls = new();
+    private readonly ConcurrentStack<T> _controls = new();
 
     public PooledControlFactory(ObjectPool<T> pool)
     {
@@ -18,7 +18,7 @@ internal sealed class PooledControlFactory<T> : IControlFactory<T>, IDisposable
     public T CreateControl(IServiceProvider provider)
     {
         var control = _pool.Get();
-        _controls.Add(control);
+        _controls.Push(control);
         return control;
     }
 

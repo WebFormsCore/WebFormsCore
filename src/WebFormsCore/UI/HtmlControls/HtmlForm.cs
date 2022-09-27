@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,12 +23,11 @@ public class HtmlForm : HtmlContainerControl, INamingContainer
     {
     }
 
-    public bool Global { get; set; }
+    public bool Global { get; private set; }
 
-    protected override async Task OnInitAsync(CancellationToken token)
+    protected override void OnInit(EventArgs args)
     {
-        await base.OnInitAsync(token);
-
+        Global = Page.Forms.Count == 0;
         Page.Forms.Add(this);
     }
 

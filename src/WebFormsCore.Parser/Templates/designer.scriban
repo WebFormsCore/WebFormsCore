@@ -32,7 +32,7 @@
             {{- end }}
 
             {{- for prop in child.Attributes }}
-            {{ child.VariableName }}.Attributes.Add({{ prop.Key.VbCodeString }}, {{ prop.Value.VbCodeString }});
+            ((WebFormsCore.UI.IAttributeAccessor){{ child.VariableName }}).SetAttribute({{ prop.Key.CodeString }}, {{ prop.Value.CodeString }});
             {{- end }}
 
             {{- for prop in child.Templates }}
@@ -40,7 +40,7 @@
             {{- end }}
 
         {{- when "Element" }}
-            var {{ child.VariableName }} = WebActivator.CreateElement({{ child.Name.VbCodeString }});
+            var {{ child.VariableName }} = WebActivator.CreateElement({{ child.Name.CodeString }});
             {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject({{ child.VariableName }});
 
             {{- for prop in child.Attributes }}

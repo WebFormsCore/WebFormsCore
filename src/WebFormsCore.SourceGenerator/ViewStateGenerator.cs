@@ -25,7 +25,7 @@ namespace WebFormsCore.SourceGenerator
                 static (spc, source) => Execute(source.Item1, source.Item2, spc));
         }
 
-        private static bool Predicate(SyntaxNode s, CancellationToken _)
+        private static bool Predicate(SyntaxNode s, CancellationToken token)
         {
             if (s is not TypeDeclarationSyntax type)
             {
@@ -34,7 +34,7 @@ namespace WebFormsCore.SourceGenerator
 
             foreach (var member in type.Members)
             {
-                if (HasViewStateAttribute(member))
+                if (HasViewStateAttribute(member, out _))
                 {
                     return true;
                 }
@@ -43,7 +43,7 @@ namespace WebFormsCore.SourceGenerator
             return false;
         }
 
-        private static bool HasViewStateAttribute(MemberDeclarationSyntax member)
+        private static bool HasViewStateAttribute(MemberDeclarationSyntax member, out string? validateProperty)
         {
             foreach (var attributeList in member.AttributeLists)
             {
@@ -58,11 +58,22 @@ namespace WebFormsCore.SourceGenerator
 
                     if (name is "ViewState" or "ViewStateAttribute")
                     {
+                        validateProperty = attribute.ArgumentList?.Arguments.FirstOrDefault()?.Expression switch
+                        {
+                            LiteralExpressionSyntax literal => literal.Token.ValueText,
+                            InvocationExpressionSyntax invocation => invocation.ArgumentList.Arguments.FirstOrDefault()?.Expression switch
+                            {
+                                IdentifierNameSyntax identifier => identifier.Identifier.Text,
+                                _ => null
+                            },
+                            _ => null
+                        };
                         return true;
                     }
                 }
             }
 
+            validateProperty = null;
             return false;
         }
 
@@ -75,7 +86,8 @@ namespace WebFormsCore.SourceGenerator
         public record PropertyItem(
             int Id,
             string Name,
-            string Type
+            string Type,
+            string? ValidateProperty
         );
 
         public record Model(
@@ -97,7 +109,7 @@ namespace WebFormsCore.SourceGenerator
 
                 foreach (var member in typeDeclaration.Members)
                 {
-                    if (!HasViewStateAttribute(member))
+                    if (!HasViewStateAttribute(member, out var validateProperty))
                     {
                         continue;
                     }
@@ -120,7 +132,8 @@ namespace WebFormsCore.SourceGenerator
                         properties.Add(new PropertyItem(
                             id++,
                             name,
-                            type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+                            type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                            validateProperty
                         ));
                     }
                 }

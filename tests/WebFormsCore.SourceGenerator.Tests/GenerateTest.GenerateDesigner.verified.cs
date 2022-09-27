@@ -149,7 +149,7 @@ public partial class CompiledViews
             #line 17 "Example.aspx"
             var ctrl7 =  WebActivator.CreateControl<global::Tests.ControlTest<global::Tests.TestItem>>();
             ctrl6.AddParsedSubObject(ctrl7);
-            ctrl7.Attributes.Add("ItemType", "Tests.TestItem");
+            ((WebFormsCore.UI.IAttributeAccessor)ctrl7).SetAttribute("ItemType", "Tests.TestItem");
             ctrl7.Template = new Template_PageTest_ctrl7_Template(WebActivator);
             #line default
             #line 17 "Example.aspx"
@@ -195,8 +195,8 @@ public partial class CompiledViews
             var ctrl14 =  WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.Button>();
             ctrl6.AddParsedSubObject(ctrl14);
             ctrl14.ID = WebActivator.ParseAttribute<string>("btnLogin");
-            ctrl14.Attributes.Add("click", "btnLogin_Click");
-            ctrl14.Attributes.Add("text", "Login");
+            ((WebFormsCore.UI.IAttributeAccessor)ctrl14).SetAttribute("click", "btnLogin_Click");
+            ((WebFormsCore.UI.IAttributeAccessor)ctrl14).SetAttribute("text", "Login");
             this.btnLogin = ctrl14;
             #line default
             #line 22 "Example.aspx"

@@ -29,6 +29,7 @@ public partial class Control
     private HtmlForm? _form;
     private IWebObjectActivator? _webObjectActivator;
     private RenderAsyncDelegate? _renderMethod;
+    private bool _visible = true;
 
     public IWebObjectActivator WebActivator => _webObjectActivator ??= ServiceProvider.GetRequiredService<IWebObjectActivator>();
 
@@ -124,6 +125,14 @@ public partial class Control
             }
         }
     }
+
+    public bool Visible
+    {
+        get => _visible && (_parent == null || _parent.Visible);
+        set => _visible = value;
+    }
+
+    public bool SelfVisible => _visible;
 
     /// <summary>Gets the unique, hierarchically qualified identifier for the server control.</summary>
     /// <returns>The fully qualified identifier for the server control.</returns>
@@ -563,6 +572,8 @@ public partial class Control
     {
         if (!EnableViewStateBag) return;
 
+        writer.Write(_visible);
+
         var length = (byte)(_viewState?.ViewStateCount ?? 0);
 
         writer.Write(length);
@@ -576,6 +587,8 @@ public partial class Control
     protected virtual void OnLoadViewState(ref ViewStateReader reader)
     {
         if (!EnableViewStateBag) return;
+
+        _visible = reader.Read<bool>();
 
         var length = reader.Read<byte>();
 

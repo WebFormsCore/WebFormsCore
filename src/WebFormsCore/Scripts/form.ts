@@ -24,17 +24,6 @@ function submitForm(form) {
             const options = {
                 onNodeAdded(node) {
                     newElements.push(node);
-                },
-                onBeforeElUpdated(fromEl, toEl) {
-                    if (fromEl.isEqualNode(toEl)) {
-                        return false;
-                    }
-
-                    if (fromEl.tagName === 'SCRIPT') {
-                        return false;
-                    }
-
-                    return true;
                 }
             };
 

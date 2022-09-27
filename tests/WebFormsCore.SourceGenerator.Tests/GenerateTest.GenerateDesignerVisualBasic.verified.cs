@@ -70,7 +70,7 @@ Public Partial Class CompiledViews
     End Class
 
      <WebFormsCore.CompiledView("DefaultPage.aspx", "D2A9B3C5114485AA2FABFBA4F610123D")>
-     Public Class DefaultPageView
+     Public Class DefaultPage_aspx
         Inherits DefaultPage
 
         Protected Overrides Sub FrameworkInitialize()
@@ -126,9 +126,9 @@ Public Partial Class CompiledViews
             ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "            "))
             #End ExternalSource
             #ExternalSource("DefaultPage.aspx", 10)
-            Dim ctrl4 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.WebControls.HtmlForm)()
+            Dim ctrl4 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.HtmlControls.HtmlForm)()
             ctrl3.AddParsedSubObject(ctrl4)
-            ctrl4.Attributes.Add("method", "post")
+            DirectCast(ctrl4, WebFormsCore.UI.IAttributeAccessor).SetAttribute"method", "post")
             #End ExternalSource
             #ExternalSource("DefaultPage.aspx", 10)
             ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                "))

@@ -49,13 +49,17 @@ internal class WebFormsApplications : IWebFormsApplication
 
         var stream = response.OutputStream;
 
-#if NETFRAMEWORK
-        using var textWriter = new StreamWriter(stream) { NewLine = "\n" };
-        using var writer = new HtmlTextWriter(textWriter, stream);
-#else
-        await using var textWriter = new StreamWriter(stream) { NewLine = "\n" };
-        await using var writer = new HtmlTextWriter(textWriter, stream);
+#if NET
+        // await using
+        await
 #endif
+        using var textWriter = new StreamWriter(stream)
+        {
+            NewLine = "\n",
+            AutoFlush = false
+        };
+
+        await using var writer = new HtmlTextWriter(textWriter, stream);
 
         context.Response.ContentType = "text/html";
         await control.RenderAsync(writer, token);

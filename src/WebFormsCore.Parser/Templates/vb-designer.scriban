@@ -31,7 +31,7 @@
             {{- end }}
 
             {{- for prop in child.Attributes }}
-            {{ child.VariableName }}.Attributes.Add({{ prop.Key.VbCodeString }}, {{ prop.Value.VbCodeString }})
+            DirectCast({{ child.VariableName }}, WebFormsCore.UI.IAttributeAccessor).SetAttribute{{ prop.Key.VbCodeString }}, {{ prop.Value.VbCodeString }})
             {{- end }}
 
             {{- for prop in child.Templates }}

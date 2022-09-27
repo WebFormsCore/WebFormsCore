@@ -34,8 +34,17 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.SDK", "sdk\WebFormsCore.SDK\WebFormsCore.SDK.csproj", "{42435A99-61E6-4B34-969E-D428F232430B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SDK", "SDK", "{63EBE3DD-1F7B-41D8-9687-BCCA33B81324}"
+	ProjectSection(SolutionItems) = preProject
+		sdk\Directory.Build.props = sdk\Directory.Build.props
+		sdk\Directory.Build.targets = sdk\Directory.Build.targets
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.SDK.NetFramework", "sdk\WebFormsCore.SDK.NetFramework\WebFormsCore.SDK.NetFramework.csproj", "{FA8142FA-D5A1-42CC-9BBD-9E5A21972314}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solution Items", "{B877EA5F-01EF-4767-A1AF-3E5186E7BD6F}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

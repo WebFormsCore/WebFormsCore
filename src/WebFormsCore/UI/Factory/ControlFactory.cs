@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.UI.HtmlControls;
@@ -8,22 +9,33 @@ namespace WebFormsCore.UI;
 internal sealed class ControlFactory<T> : IControlFactory<T>
 {
     private readonly ViewManager _manager;
-    private readonly string? _viewPath;
+    private readonly string[] _viewPaths;
 
     public ControlFactory(ViewManager manager)
     {
         _manager = manager;
-        _viewPath = typeof(T).GetCustomAttribute<ViewPathAttribute>()?.Path;
+        _viewPaths = typeof(T).GetCustomAttributes<ViewPathAttribute>()
+            .Select(i => i.Path)
+            .ToArray();
     }
 
     public T CreateControl(IServiceProvider provider)
     {
-        if (_viewPath == null)
+        if (_viewPaths.Length == 0)
         {
             return ActivatorUtilities.CreateInstance<T>(provider);
         }
 
-        var type = _manager.GetType(_viewPath);
-        return (T)ActivatorUtilities.CreateInstance(provider, type);
+        if (_viewPaths.Length == 1)
+        {
+            return (T)ActivatorUtilities.CreateInstance(
+                provider,
+                _manager.GetType(_viewPaths[0])
+            );
+        }
+
+        throw new InvalidOperationException(
+            $"Controls {typeof(T).FullName} has multiple views. Use <% Register Src %> instead."
+        );
     }
 }

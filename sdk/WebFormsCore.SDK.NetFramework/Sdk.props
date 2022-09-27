@@ -12,9 +12,13 @@
 
         <Compile Remove="**/**.designer.cs" />
 
-        <AdditionalFiles Include="web.config" Exclude="bin\**;obj\**" />
         <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
         <CompilerVisibleProperty Include="RootNamespace" />
+    </ItemGroup>
+
+    <ItemGroup Condition="Exists('web.config')">
+        <None Include="web.config" />
+        <AdditionalFiles Include="web.config" Exclude="bin\**;obj\**" />
     </ItemGroup>
 
     <PropertyGroup>

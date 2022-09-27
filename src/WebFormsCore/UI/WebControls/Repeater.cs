@@ -6,20 +6,20 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI.WebControls;
 
-public abstract partial class RepeaterBase<T> : Control, IPostBackLoadHandler
-    where T : RepeaterItem
+public abstract partial class RepeaterBase<TItem, TEventArgs> : Control, IPostBackLoadHandler
+    where TItem : RepeaterItem
 {
-    private readonly List<T> _items = new();
+    private readonly List<TItem> _items = new();
 
     [ViewState] private int _itemCount;
 
     public virtual string? ItemType { get; set; }
 
-    public IReadOnlyList<T> Items => _items;
+    public IReadOnlyList<TItem> Items => _items;
 
-    public event AsyncEventHandler<T>? ItemCreated;
+    public event AsyncEventHandler<TEventArgs>? ItemCreated;
 
-    public event AsyncEventHandler<T>? ItemDataBound;
+    public event AsyncEventHandler<TEventArgs>? ItemDataBound;
 
     public ITemplate? HeaderTemplate { get; set; }
 
@@ -78,7 +78,7 @@ public abstract partial class RepeaterBase<T> : Control, IPostBackLoadHandler
             await CreateItemAsync(ListItemType.Header, true);
         }
 
-        T? footer = null;
+        TItem? footer = null;
         if (FooterTemplate != null && _itemCount > 0)
         {
             var index = _items.Count - 1;
@@ -125,7 +125,7 @@ public abstract partial class RepeaterBase<T> : Control, IPostBackLoadHandler
         }
     }
 
-    protected virtual void InitializeItem(T item)
+    protected virtual void InitializeItem(TItem item)
     {
         var contentTemplate = item.ItemType switch
         {
@@ -140,13 +140,13 @@ public abstract partial class RepeaterBase<T> : Control, IPostBackLoadHandler
         contentTemplate?.InstantiateIn(item);
     }
 
-    private ValueTask<T> CreateItemAsync(bool useDataSource = false, object? dataItem = null)
+    private ValueTask<TItem> CreateItemAsync(bool useDataSource = false, object? dataItem = null)
     {
         var itemType = (_itemCount % 2 == 0) ? ListItemType.Item : ListItemType.AlternatingItem;
         return CreateItemAsync(itemType, useDataSource, dataItem);
     }
 
-    private async ValueTask<T> CreateItemAsync(ListItemType itemType, bool dataBind = false, object? dataItem = null)
+    private async ValueTask<TItem> CreateItemAsync(ListItemType itemType, bool dataBind = false, object? dataItem = null)
     {
         int itemIndex;
 
@@ -173,13 +173,13 @@ public abstract partial class RepeaterBase<T> : Control, IPostBackLoadHandler
             item.DataItem = dataItem;
         }
 
-        await ItemCreated.InvokeAsync(this, item);
+        await ItemCreated.InvokeAsync(this, CreateEventArgs(item));
         Controls.Add(item);
 
         if (dataBind)
         {
             await item.DataBindAsync();
-            await ItemDataBound.InvokeAsync(this, item);
+            await ItemDataBound.InvokeAsync(this, CreateEventArgs(item));
 
             item.DataItem = null;
         }
@@ -192,7 +192,9 @@ public abstract partial class RepeaterBase<T> : Control, IPostBackLoadHandler
         // ignore
     }
 
-    protected abstract T CreateItem(int itemIndex, ListItemType itemType);
+    protected abstract TItem CreateItem(int itemIndex, ListItemType itemType);
+
+    protected abstract TEventArgs CreateEventArgs(TItem item);
 }
 
 public enum ListItemType
@@ -207,61 +209,20 @@ public enum ListItemType
     Pager = 7
 }
 
-public class RepeaterItem : Control, IDataItemContainer
-{
-    public RepeaterItem(int itemIndex, ListItemType itemType)
-    {
-        ItemIndex = itemIndex;
-        ItemType = itemType;
-    }
-
-    public virtual object? DataItem { get; set; }
-
-    public virtual int ItemIndex { get; set; }
-
-    public virtual ListItemType ItemType { get; set; }
-
-    public virtual Task DataBindAsync()
-    {
-        return Task.CompletedTask;
-    }
-
-
-
-    int IDataItemContainer.DataItemIndex => ItemIndex;
-
-    int IDataItemContainer.DisplayIndex => ItemIndex;
-}
-
-public class RepeaterItem<T> : RepeaterItem
-{
-    private T? _dataItem;
-
-    public RepeaterItem(int itemIndex, ListItemType itemType)
-        : base(itemIndex, itemType)
-    {
-    }
-
-    public new T? DataItem
-    {
-        get => _dataItem;
-        set
-        {
-            _dataItem = value!;
-            base.DataItem = value;
-        }
-    }
-}
-
-public class Repeater : RepeaterBase<RepeaterItem>
+public class Repeater : RepeaterBase<RepeaterItem, RepeaterItemEventArgs>
 {
     protected override RepeaterItem CreateItem(int itemIndex, ListItemType itemType)
     {
         return new RepeaterItem(itemIndex, itemType);
     }
+
+    protected override RepeaterItemEventArgs CreateEventArgs(RepeaterItem item)
+    {
+        return new RepeaterItemEventArgs(item);
+    }
 }
 
-public class Repeater<T> : RepeaterBase<RepeaterItem<T>>
+public class Repeater<T> : RepeaterBase<RepeaterItem<T>, RepeaterItemEventArgs<T>>
 {
     public override string? ItemType
     {
@@ -275,5 +236,10 @@ public class Repeater<T> : RepeaterBase<RepeaterItem<T>>
     protected override RepeaterItem<T> CreateItem(int itemIndex, ListItemType itemType)
     {
         return new RepeaterItem<T>(itemIndex, itemType);
+    }
+
+    protected override RepeaterItemEventArgs<T> CreateEventArgs(RepeaterItem<T> item)
+    {
+        return new RepeaterItemEventArgs<T>(item);
     }
 }

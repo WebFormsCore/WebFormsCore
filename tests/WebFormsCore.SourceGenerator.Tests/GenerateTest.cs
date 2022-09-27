@@ -164,6 +164,9 @@ public class GenerateTest
                 public partial class Example
                 {
                     [ViewState] private string test;
+                    [ViewState(nameof(Validate)] private string test2;
+
+                    public bool Validate => true;
                 }
             }
             """

@@ -24,6 +24,8 @@ public class HtmlTextWriter : TextWriter
     private const bool DefaultAsync = true;
 #endif
 
+    private static readonly byte[] NewLineLf = Encoding.UTF8.GetBytes("\n");
+
     public const string DefaultTabString = "\t";
     public const char DoubleQuoteChar = '"';
     public const string EndTagLeftChars = "</";
@@ -41,6 +43,7 @@ public class HtmlTextWriter : TextWriter
     public const string StyleDeclaringString = "style";
 
     private readonly Stack<string> _openTags = new();
+    private readonly byte[] _newLineBytes;
     private readonly List<KeyValuePair<string, string?>> _attributes = new();
     private readonly List<KeyValuePair<string, string?>> _styleAttributes = new();
 
@@ -63,16 +66,25 @@ public class HtmlTextWriter : TextWriter
         _innerWriter = null;
     }
 
-    public HtmlTextWriter()
-    {
-        _innerWriter = new StringWriter();
-        _disposeInnerWriter = true;
-    }
-
     public HtmlTextWriter(TextWriter writer, Stream? stream = null)
     {
         _stream = stream;
         _innerWriter = writer;
+
+        if (writer.Encoding.WebName == "utf-8" && writer.NewLine == "\n")
+        {
+            _newLineBytes = NewLineLf;
+        }
+        else
+        {
+            _newLineBytes = writer.Encoding.GetBytes(writer.NewLine);
+        }
+    }
+
+    public HtmlTextWriter()
+        : this(new StringWriter { NewLine = "\n" })
+    {
+        _disposeInnerWriter = true;
     }
 
     public TextWriter InnerWriter
@@ -85,11 +97,12 @@ public class HtmlTextWriter : TextWriter
     }
 
     public override string NewLine => InnerWriter.NewLine;
+
     public override Encoding Encoding => InnerWriter.Encoding;
 
-    public void AddAttribute(HtmlTextWriterAttribute key, string value) => AddAttribute(key, value, true);
+    public void AddAttribute(HtmlTextWriterAttribute key, string? value) => AddAttribute(key, value, true);
 
-    public void AddAttribute(HtmlTextWriterAttribute key, string value, bool encode) =>
+    public void AddAttribute(HtmlTextWriterAttribute key, string? value, bool encode) =>
         AddAttribute(key.ToName(), value, encode);
 
     public void AddAttribute(string name, string? value) => AddAttribute(name, value, true);
@@ -209,18 +222,6 @@ public class HtmlTextWriter : TextWriter
         await WriteAsync(tag);
         await WriteLineAsync(TagRightChar);
     }
-
-    //
-    // Coordination
-    //
-
-    void AfterWriteLine()
-    {
-    }
-
-    //
-    // HTML-specific writes
-    //
 
     public void WriteAttribute(string name, string? value, bool encode = true)
     {
@@ -691,9 +692,9 @@ public class HtmlTextWriter : TextWriter
             try
             {
 #if NET
-                await InnerWriter.WriteAsync(owner.Memory, token);
+                await InnerWriter.WriteAsync(owner.Memory.Slice(0, count), token);
 #else
-                await InnerWriter.WriteAsync(owner.Memory.Span.ToString());
+                await InnerWriter.WriteAsync(owner.Memory.Span.Slice(0, count).ToString());
 #endif
             }
             finally
@@ -704,22 +705,43 @@ public class HtmlTextWriter : TextWriter
             return;
         }
 
-#if NET
         await _stream.WriteAsync(buffer, token);
-#else
-        await _stream.WriteAsync(buffer.ToArray(), 0, buffer.Length, token);
-#endif
     }
 
-    private static (IMemoryOwner<char> Owner, int Length) ByteToChars(Memory<byte> buffer)
+    public async Task WriteLineAsync(Memory<byte> buffer, CancellationToken token)
     {
-        var encoding = Encoding.UTF8;
-        var maxCharCount = encoding.GetMaxCharCount(buffer.Length);
+        await InnerWriter.FlushAsync();
 
+        if (_stream == null)
+        {
+            var (owner, count) = ByteToChars(buffer);
+
+            try
+            {
+#if NET
+                await InnerWriter.WriteLineAsync(owner.Memory.Slice(0, count), token);
+#else
+                await InnerWriter.WriteLineAsync(owner.Memory.Span.Slice(0, count).ToString());
+#endif
+            }
+            finally
+            {
+                owner.Dispose();
+            }
+
+            return;
+        }
+
+        await _stream.WriteAsync(buffer, token);
+        await _stream.WriteAsync(_newLineBytes, token);
+    }
+
+    private (IMemoryOwner<char> Owner, int Length) ByteToChars(Memory<byte> buffer)
+    {
+        var maxCharCount = Encoding.GetMaxCharCount(buffer.Length);
         var owner = MemoryPool<char>.Shared.Rent(maxCharCount);
         var chars = owner.Memory.Span;
-
-        var charCount = encoding.GetChars(buffer.Span, chars);
+        var charCount = Encoding.GetChars(buffer.Span, chars);
 
         return (owner, charCount);
     }

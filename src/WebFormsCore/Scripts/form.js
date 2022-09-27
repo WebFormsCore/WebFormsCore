@@ -769,15 +769,6 @@ function submitForm(form) {
         .then(function (r) {
         var options = {
             onNodeAdded: function (node) {
-            },
-            onBeforeElUpdated: function (fromEl, toEl) {
-                if (fromEl.isEqualNode(toEl)) {
-                    return false;
-                }
-                if (fromEl.tagName === 'SCRIPT') {
-                    return false;
-                }
-                return true;
             }
         };
         var parser = new DOMParser();
