@@ -233,25 +233,19 @@ public class Parser
 
         if (!ns.HasValue &&
             _container.Current is ControlNode parentControl &&
-            parentControl.ControlType.GetMemberDeep(name.Text) is {} elementMember)
+            parentControl.ControlType.GetMemberDeep(name.Text) is {} elementMember
+            && elementMember.Type.IsTemplate())
         {
-            if (elementMember.Type.IsTemplate())
+            var templateNode = new TemplateNode
             {
-                var templateNode = new TemplateNode
-                {
-                    Property = name,
-                    ClassName = $"Template_{_type?.Name}_{_container.Current.VariableName}_{name}"
-                };
+                Property = name,
+                ClassName = $"Template_{_type?.Name}_{_container.Current.VariableName}_{name}"
+            };
 
-                parentControl.Templates.Add(templateNode);
-                Root.Templates.Add(templateNode);
+            parentControl.Templates.Add(templateNode);
+            Root.Templates.Add(templateNode);
 
-                node = templateNode;
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
+            node = templateNode;
         }
         else if (runAt == RunAt.Server)
         {

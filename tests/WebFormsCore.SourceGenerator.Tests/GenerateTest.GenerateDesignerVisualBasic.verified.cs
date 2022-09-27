@@ -4,7 +4,7 @@ Imports Microsoft.VisualBasic
 <Assembly:WebFormsCore.RootNamespaceAttribute("Tests")>
 <WebFormsCore.ViewPath("DefaultPage.aspx")>
 Partial Class DefaultPage
-    Protected Body As Global.WebFormsCore.UI.HtmlControls.HtmlGenericControl
+    Protected Body As Global.WebFormsCore.UI.HtmlControls.HtmlBody
     Protected btnAdd As Global.WebFormsCore.UI.WebControls.Button
     Protected rptItems As Global.WebFormsCore.UI.WebControls.Repeater
 End Class
@@ -89,6 +89,9 @@ Public Partial Class CompiledViews
             Me.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "" + vbLf + ""))
             #End ExternalSource
             #ExternalSource("DefaultPage.aspx", 4)
+            Me.AddParsedSubObject(WebActivator.CreateLiteral("<!DOCTYPE html>"))
+            #End ExternalSource
+            #ExternalSource("DefaultPage.aspx", 4)
             Me.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + ""))
             #End ExternalSource
             #ExternalSource("DefaultPage.aspx", 5)
@@ -100,9 +103,8 @@ Public Partial Class CompiledViews
             ctrl0.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + ""))
             #End ExternalSource
             #ExternalSource("DefaultPage.aspx", 6)
-            Dim ctrl1 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.HtmlControls.HtmlGenericControl)()
+            Dim ctrl1 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.HtmlControls.HtmlBody)()
             ctrl0.AddParsedSubObject(ctrl1)
-            ctrl1.TagName = WebActivator.ParseAttribute(Of String)("body")
             ctrl1.ID = WebActivator.ParseAttribute(Of String)("Body")
             Me.Body = ctrl1
             #End ExternalSource
@@ -128,7 +130,7 @@ Public Partial Class CompiledViews
             #ExternalSource("DefaultPage.aspx", 10)
             Dim ctrl4 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.HtmlControls.HtmlForm)()
             ctrl3.AddParsedSubObject(ctrl4)
-            DirectCast(ctrl4, WebFormsCore.UI.IAttributeAccessor).SetAttribute"method", "post")
+            DirectCast(ctrl4, WebFormsCore.UI.IAttributeAccessor).SetAttribute("method", "post")
             #End ExternalSource
             #ExternalSource("DefaultPage.aspx", 10)
             ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                "))

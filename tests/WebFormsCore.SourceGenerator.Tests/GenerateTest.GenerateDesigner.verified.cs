@@ -78,6 +78,9 @@ public partial class CompiledViews
             this.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
             #line default
             #line 3 "Example.aspx"
+            this.AddParsedSubObject(WebActivator.CreateLiteral("<!DOCTYPE htm>"));
+            #line default
+            #line 3 "Example.aspx"
             this.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
             #line default
             #line 4 "Example.aspx"
@@ -195,8 +198,8 @@ public partial class CompiledViews
             var ctrl14 =  WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.Button>();
             ctrl6.AddParsedSubObject(ctrl14);
             ctrl14.ID = WebActivator.ParseAttribute<string>("btnLogin");
+            ctrl14.Text = WebActivator.ParseAttribute<string>("Login");
             ((WebFormsCore.UI.IAttributeAccessor)ctrl14).SetAttribute("click", "btnLogin_Click");
-            ((WebFormsCore.UI.IAttributeAccessor)ctrl14).SetAttribute("text", "Login");
             this.btnLogin = ctrl14;
             #line default
             #line 22 "Example.aspx"
