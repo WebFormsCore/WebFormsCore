@@ -24,9 +24,9 @@ Public Partial Class DefaultPage
         litValue.Text = Counter.ToString()
     End Sub
 
-    Protected Sub rptItems_OnItemDataBound(sender As Object, e As RepeaterItem)
-        Dim lit = DirectCast(e.FindControl("litItem"), Literal)
-
-        lit.Text = $"Item {e.ItemIndex}"
-    End Sub
+    Protected Function rptItems_OnItemDataBound(sender As Object, e As RepeaterItemEventArgs) As Task
+        Dim lit = DirectCast(e.Item.FindControl("litItem"), Literal)
+        lit.Text = $"Item {e.Item.ItemIndex}"
+        Return Task.CompletedTask
+    End Function
 End Class
