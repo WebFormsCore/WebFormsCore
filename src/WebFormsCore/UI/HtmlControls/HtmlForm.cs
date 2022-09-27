@@ -7,7 +7,7 @@ using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI.HtmlControls;
 
-public class HtmlForm : HtmlContainerControl, INamingContainer
+public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
 {
     public HtmlForm()
         : base("form")

@@ -6,10 +6,10 @@ namespace WebFormsCore.Example;
 
 public partial class Default : Page
 {
-    [ViewState] private int _postbackCount;
+    [ViewState] public int PostbackCount { get; set; }
 
     protected override void OnLoad(EventArgs args)
     {
-        title.InnerText = (_postbackCount++).ToString();
+        title.InnerText = (PostbackCount++).ToString();
     }
 }

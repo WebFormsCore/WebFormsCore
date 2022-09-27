@@ -13,7 +13,7 @@ namespace WebFormsCore.UI;
 
 public delegate Task RenderAsyncDelegate(HtmlTextWriter writer, ControlCollection controls, CancellationToken token);
 
-public partial class Control
+public partial class Control : System.Web.UI.Control
 {
     protected const char IdSeparator = '$';
 
@@ -375,14 +375,13 @@ public partial class Control
         DirtyNameTable();
     }
 
-    internal void RemovedControl(Control control)
+    protected internal virtual void RemovedControl(Control control)
     {
         control._parent = null;
         control._page = null;
         control._form = null;
         control._namingContainer = null;
     }
-
 
     private void UpdateNamingContainer(Control namingContainer)
     {

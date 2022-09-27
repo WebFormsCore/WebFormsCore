@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using System.Web;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.Security;
 using WebFormsCore.UI.HtmlControls;
-using WebFormsCore.UI.WebControls;
-using HttpContext = System.Web.HttpContext;
 
 namespace WebFormsCore.UI;
 
-public class Page : Control, INamingContainer
+public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Page
 {
     private HttpContext? _context;
     private IServiceProvider? _serviceProvider;

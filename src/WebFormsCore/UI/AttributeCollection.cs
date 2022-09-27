@@ -64,7 +64,7 @@ public sealed class AttributeCollection
         _styleColl?.Clear();
     }
 
-    public async ValueTask RenderAsync(HtmlTextWriter writer)
+    public async Task RenderAsync(HtmlTextWriter writer)
     {
         foreach (var kv in _bag)
         {
