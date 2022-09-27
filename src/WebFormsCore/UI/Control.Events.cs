@@ -23,6 +23,24 @@ internal static class ControlExtensions
             }
         }
     }
+
+    public static IEnumerable<Control> EnumerateControls(this Control control, Func<Control, bool> filter)
+    {
+        yield return control;
+
+        foreach (var child in control.Controls)
+        {
+            if (!filter(child))
+            {
+                continue;
+            }
+
+            foreach (var descendant in EnumerateControls(child, filter))
+            {
+                yield return descendant;
+            }
+        }
+    }
 }
 
 public partial class Control

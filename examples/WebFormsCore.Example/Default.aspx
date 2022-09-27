@@ -12,13 +12,32 @@
 
     <div class="container">
         <div class="mt-4">
-            <form runat="server" method="post">
-                <app:Counter runat="server" />
-            </form>
-
-            <form runat="server" method="post">
-                <app:Counter runat="server" />
-            </form>
+            <div class="row">
+                <div class="col-6">
+                    <form runat="server" method="post">
+                        <div class="card">
+                            <div class="card-header">
+                                <strong>Counter</strong>
+                            </div>
+                            <div class="card-body">
+                                <app:Counter runat="server" />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-6">
+                    <form runat="server" method="post">
+                        <div class="card">
+                            <div class="card-header">
+                                <strong>Todo list</strong>
+                            </div>
+                            <div class="card-body">
+                                <app:TodoList runat="server" />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 

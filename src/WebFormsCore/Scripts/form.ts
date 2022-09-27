@@ -1,8 +1,6 @@
 import morphdom from "morphdom/dist/morphdom-esm";
 
-let eventTarget = null;
-
-function submitForm(form) {
+function submitForm(form: HTMLFormElement, eventTarget?: string) {
     const scope = form.getAttribute('data-wfc-form');
     const url = location.pathname + location.search;
 
@@ -24,6 +22,11 @@ function submitForm(form) {
             const options = {
                 onNodeAdded(node) {
                     newElements.push(node);
+                },
+                onBeforeNodeDiscarded(node) {
+                    if (node.tagName === 'FORM') {
+                        return false;
+                    }
                 }
             };
 
@@ -50,16 +53,20 @@ HTMLFormElement.prototype.submit = function() {
 };
 
 document.addEventListener('submit', function(e){
-    if(e.target instanceof Element && e.target.getAttribute('data-wfc-form') !== null) {
+    if (e.target instanceof Element && e.target.getAttribute('data-wfc-form') !== null) {
         e.preventDefault();
-        submitForm(e.target);
+        submitForm(e.target as HTMLFormElement);
     }
 });
 
 document.addEventListener('change', function(e){
     if(e.target instanceof Element && e.target.getAttribute('data-wfc-autopostback') !== null) {
-        eventTarget = e.target.getAttribute('name');
-        e.target.closest('form').submit();
+        const eventTarget = e.target.getAttribute('name');
+        const form = e.target.closest('form');
+
+        if (form) {
+            submitForm(form, eventTarget);
+        }
     }
 });
 
@@ -68,18 +75,41 @@ document.addEventListener('click', function(e){
         return;
     }
 
-    eventTarget = e.target?.closest("[data-wfc-postback]")?.getAttribute('data-wfc-postback');
+    const eventTarget = e.target?.closest("[data-wfc-postback]")?.getAttribute('data-wfc-postback');
 
-    if (eventTarget) {
+    if (!eventTarget) {
+        return;
+    }
+
+    const form = e.target.closest('form');
+    if (form) {
         e.preventDefault();
-        e.target.closest('form')?.submit();
+        submitForm(form, eventTarget);
     }
 });
 
 document.addEventListener('keypress', function(e){
-    if (e.target instanceof Element && (e.key === 'Enter' || e.keyCode === 13 || e.which === 13)) {
-        e.preventDefault();
-        eventTarget = e.target.getAttribute('name');
-        e.target.closest('form').submit();
+    if (e.key !== 'Enter' && e.keyCode !== 13 && e.which !== 13) {
+        return;
     }
+
+    if (!(e.target instanceof Element) || e.target.tagName !== "INPUT") {
+        return;
+    }
+
+    const type = e.target.getAttribute('type');
+
+    if (type === "button" || type === "submit" || type === "reset") {
+        return;
+    }
+
+    const form = e.target.closest('form');
+
+    if (!form) {
+        return;
+    }
+
+    const eventTarget = e.target.getAttribute('name');
+    e.preventDefault();
+    submitForm(form, eventTarget);
 });

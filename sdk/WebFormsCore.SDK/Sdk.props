@@ -23,6 +23,7 @@
 
     <ItemGroup>
         <Using Include="WebFormsCore" />
+        <Using Include="WebFormsCore.UI" />
     </ItemGroup>
 
     <ItemGroup>

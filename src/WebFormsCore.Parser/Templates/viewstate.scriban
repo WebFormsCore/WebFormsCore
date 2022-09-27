@@ -13,18 +13,39 @@ namespace {{ item.Namespace }}
 		protected override void OnWriteViewState(ref ViewStateWriter writer)
         {
             base.OnWriteViewState(ref writer);
+
+            {{ item.FlagType }} flag = 0;
         {{- for prop in item.Properties }}
-            {{ if prop.ValidateProperty }}if ({{ prop.ValidateProperty }}) {{ end -}}
-			writer.Write<{{ prop.Type }}>({{ prop.Name }});
+        {{- if prop.Type == "bool" }}
+            if ({{ prop.Name }}) flag |= {{ prop.Flag }};
+        {{- else }}
+            var write{{ prop.Name }} = {{ prop.Name }} !=
+            {{- if prop.DefaultValue }} {{ prop.DefaultValue }}{{ else }} default({{ prop.Type }}){{ end }}
+            {{- if prop.ValidateProperty }} && {{ prop.ValidateProperty }}{{ end -}};
+            if (write{{ prop.Name }}) flag |= {{ prop.Flag }};
+        {{- end }}
+        {{- end }}
+
+            writer.Write(flag);
+
+        {{- for prop in item.Properties }}
+        {{- if prop.Type != "bool" }}
+            if (write{{ prop.Name }}) writer.Write<{{ prop.Type }}>({{ prop.Name }});
+        {{- end }}
         {{- end }}
         }
 
 		protected override void OnLoadViewState(ref ViewStateReader reader)
         {
             base.OnLoadViewState(ref reader);
+
+            var flag = reader.Read<{{ item.FlagType }}>();
         {{- for prop in item.Properties }}
-            {{ if prop.ValidateProperty }}if ({{ prop.ValidateProperty }}) {{ end -}}
-			{{ prop.Name }} = reader.Read<{{ prop.Type }}>();
+        {{- if prop.Type == "bool" }}
+            {{ prop.Name }} = (flag & {{ prop.Flag }}) != 0;
+        {{- else }}
+            if ((flag & {{ prop.Flag }}) != 0) {{ prop.Name }} = reader.Read<{{ prop.Type }}>();
+        {{- end }}
         {{- end }}
         }
 

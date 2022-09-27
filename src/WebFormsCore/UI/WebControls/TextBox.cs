@@ -6,7 +6,7 @@ using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI.WebControls;
 
-public partial class TextBox : WebControl
+public partial class TextBox : WebControl, IPostBackAsyncEventHandler
 {
     public TextBox()
         : base(HtmlTextWriterTag.Input)
@@ -31,7 +31,9 @@ public partial class TextBox : WebControl
 
     [ViewState(nameof(SaveTextViewState))] public string? Text { get; set; }
 
-    public AsyncEventHandler? TextChanged;
+    public event AsyncEventHandler? TextChanged;
+
+    public event AsyncEventHandler? EnterPressed;
 
     private bool IsMultiLine => TextMode == TextBoxMode.MultiLine;
 
@@ -155,4 +157,12 @@ public partial class TextBox : WebControl
                 return "vCard." + str;
         }
     }
+
+    protected virtual async Task RaisePostBackEventAsync(string? eventArgument)
+    {
+        await EnterPressed.InvokeAsync(this, EventArgs.Empty);
+    }
+
+    Task IPostBackAsyncEventHandler.RaisePostBackEventAsync(string? eventArgument)
+        => RaisePostBackEventAsync(eventArgument);
 }

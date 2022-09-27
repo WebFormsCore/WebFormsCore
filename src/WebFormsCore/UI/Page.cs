@@ -40,9 +40,17 @@ public class Page : Control, INamingContainer
 
         var form = await viewStateManager.LoadAsync(Context, this);
 
-        if (form is { Global: false })
+        if (form != null)
         {
-            target = form;
+            if (form.Global)
+            {
+                Forms.RemoveAll(i => !i.Global && i.Parent.Controls.Remove(i));
+            }
+            else
+            {
+                target = form;
+                Forms.RemoveAll(i => i != form && i.Parent.Controls.Remove(i));
+            }
         }
 
         await target.InvokeLoadAsync(token, form);

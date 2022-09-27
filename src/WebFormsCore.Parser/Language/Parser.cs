@@ -248,7 +248,7 @@ public class Parser
             if (attributes.TryGetValue("itemtype", out var itemTypeStr) &&
                 _compilation.GetType(itemTypeStr.Value) is { } itemType)
             {
-                var type = GetControlType(ns?.Text, name.Text + "`1");
+                var type = GetControlType(ns?.Text, name.Text + "`1", true);
 
                 if (type != null)
                 {
@@ -503,7 +503,7 @@ public class Parser
         };
     }
 
-    private INamedTypeSymbol? GetControlType(TokenString? elementNs, TokenString name)
+    private INamedTypeSymbol? GetControlType(TokenString? elementNs, TokenString name, bool returnNull = false)
     {
         if (!elementNs.HasValue)
         {
@@ -527,6 +527,11 @@ public class Parser
                     return type;
                 }
             }
+        }
+
+        if (returnNull)
+        {
+            return null;
         }
 
         type = _compilation.GetType("System.Web.UI", "Control");

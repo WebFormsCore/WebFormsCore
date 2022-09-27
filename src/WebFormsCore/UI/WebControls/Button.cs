@@ -6,23 +6,27 @@ using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI.WebControls;
 
-public class Button : HtmlGenericControl, IPostBackAsyncEventHandler
+public partial class Button : WebControl, IPostBackAsyncEventHandler
 {
     public Button()
-        : base("button")
+        : base(HtmlTextWriterTag.Input)
     {
     }
 
     public event AsyncEventHandler? Click;
+
+    [ViewState] public string? Text { get; set; }
 
     public async Task RaisePostBackEventAsync(string? eventArgument)
     {
         await Click.InvokeAsync(this, EventArgs.Empty);
     }
 
-    protected override async Task RenderAttributesAsync(HtmlTextWriter writer)
+    protected override async Task AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
-        await base.RenderAttributesAsync(writer);
-        await writer.WriteAttributeAsync("data-wfc-postback", UniqueID);
+        await base.AddAttributesToRender(writer, token);
+        writer.AddAttribute(HtmlTextWriterAttribute.Type, "button");
+        writer.AddAttribute(HtmlTextWriterAttribute.Value, Text);
+        writer.AddAttribute("data-wfc-postback", UniqueID);
     }
 }

@@ -35,6 +35,11 @@ public class ViewStateManager : IViewStateManager
     /// </summary>
     private const int HeaderLength = sizeof(byte) + sizeof(ushort);
 
+    private static IEnumerable<Control> GetControls(Control owner)
+    {
+        return owner.EnumerateControls(c => c is not HtmlForm {Global: false});
+    }
+
     public IMemoryOwner<byte> Write(HtmlForm form, out int length)
     {
         var owner = form.ViewStateOwner;
@@ -42,7 +47,7 @@ public class ViewStateManager : IViewStateManager
 
         try
         {
-            foreach (var child in owner.EnumerateControls())
+            foreach (var child in GetControls(owner))
             {
                 child.WriteViewState(ref writer);
             }
@@ -111,7 +116,7 @@ public class ViewStateManager : IViewStateManager
 
         var owner = form.ViewStateOwner;
         using var wrapper = CreateReader(viewStateValue);
-        using var enumerator = owner.EnumerateControls().GetEnumerator();
+        using var enumerator = GetControls(owner).GetEnumerator();
 
         await LoadViewStateAsync(enumerator, wrapper);
 

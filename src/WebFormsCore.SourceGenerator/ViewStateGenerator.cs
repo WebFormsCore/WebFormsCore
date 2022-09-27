@@ -80,14 +80,17 @@ namespace WebFormsCore.SourceGenerator
         public record ClassItem(
             string? Namespace,
             string Type,
-            List<PropertyItem> Properties
+            List<PropertyItem> Properties,
+            string FlagType
         );
 
         public record PropertyItem(
             int Id,
             string Name,
             string Type,
-            string? ValidateProperty
+            string? ValidateProperty,
+            string? DefaultValue,
+            int Flag
         );
 
         public record Model(
@@ -106,6 +109,7 @@ namespace WebFormsCore.SourceGenerator
 
                 var properties = new List<PropertyItem>();
                 var id = 0;
+                var flag = 1;
 
                 foreach (var member in typeDeclaration.Members)
                 {
@@ -121,20 +125,42 @@ namespace WebFormsCore.SourceGenerator
                         _ => default
                     };
 
-                    if (declarationType == null || names == null) continue;
-
-                    var type = model.GetTypeInfo(declarationType).Type;
-
-                    if (type == null) continue;
-
-                    foreach (var name in names)
+                    if (member is FieldDeclarationSyntax field)
                     {
+                        var type = model.GetTypeInfo(field.Declaration.Type).Type;
+
+                        if (type == null) continue;
+
+                        foreach (var variable in field.Declaration.Variables)
+                        {
+                            properties.Add(new PropertyItem(
+                                id++,
+                                variable.Identifier.Text,
+                                type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                                validateProperty,
+                                variable.Initializer?.Value.ToString(),
+                                flag
+                            ));
+
+                            flag *= 2;
+                        }
+                    }
+                    else if (member is PropertyDeclarationSyntax property)
+                    {
+                        var type = model.GetTypeInfo(property.Type).Type;
+
+                        if (type == null) continue;
+
                         properties.Add(new PropertyItem(
                             id++,
-                            name,
+                            property.Identifier.Text,
                             type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                            validateProperty
+                            validateProperty,
+                            property.Initializer?.Value.ToString(),
+                            flag
                         ));
+
+                        flag *= 2;
                     }
                 }
 
@@ -155,7 +181,14 @@ namespace WebFormsCore.SourceGenerator
                 items.Add(new ClassItem(
                     ns,
                     typeName,
-                    properties
+                    properties,
+                    properties.Count switch
+                    {
+                        <= 8 => "byte",
+                        <= 16 => "ushort",
+                        <= 32 => "uint",
+                        _ => "ulong"
+                    }
                 ));
             }
 
