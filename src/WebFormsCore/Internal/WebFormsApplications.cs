@@ -38,7 +38,7 @@ internal class WebFormsApplications : IWebFormsApplication
 
         page.Initialize(provider, context);
 
-        var control = await page.ProcessRequestAsync(token);
+        await page.ProcessRequestAsync(token);
 
         var response = context.Response;
 
@@ -62,7 +62,7 @@ internal class WebFormsApplications : IWebFormsApplication
         await using var writer = new HtmlTextWriter(textWriter, stream);
 
         context.Response.ContentType = "text/html";
-        await control.RenderAsync(writer, token);
+        await page.RenderAsync(writer, token);
         await writer.FlushAsync();
 
         return true;

@@ -753,9 +753,12 @@ function morphdomFactory(morphAttrs) {
 var morphdom = morphdomFactory(morphAttrs);
 
 function submitForm(form, eventTarget) {
-    var scope = form.getAttribute('data-wfc-form');
+    var pageState = document.getElementById("pagestate");
     var url = location.pathname + location.search;
     var data = new FormData(form);
+    if (pageState) {
+        data.append("__PAGESTATE", pageState.value);
+    }
     if (eventTarget) {
         data.append("__EVENTTARGET", eventTarget);
         eventTarget = null;
@@ -770,26 +773,20 @@ function submitForm(form, eventTarget) {
             onNodeAdded: function (node) {
             },
             onBeforeNodeDiscarded: function (node) {
-                console.log(node);
-                if (node.tagName === 'FORM') {
+                if (node.tagName === 'FORM' && node.hasAttribute('data-wfc-form')) {
                     return false;
                 }
             }
         };
         var parser = new DOMParser();
         var htmlDoc = parser.parseFromString(r, 'text/html');
-        if (scope === 'global') {
-            morphdom(document.head, htmlDoc.querySelector('head'), options);
-            morphdom(document.body, htmlDoc.querySelector('body'), options);
-        }
-        else {
-            morphdom(form, htmlDoc.querySelector('form'), options);
-        }
+        morphdom(document.head, htmlDoc.querySelector('head'), options);
+        morphdom(document.body, htmlDoc.querySelector('body'), options);
     });
 }
 var originalSubmit = HTMLFormElement.prototype.submit;
 HTMLFormElement.prototype.submit = function () {
-    if (this.getAttribute('data-wfc-form') !== null) {
+    if (this.hasAttribute('data-wfc-form')) {
         submitForm(this);
     }
     else {
@@ -797,15 +794,15 @@ HTMLFormElement.prototype.submit = function () {
     }
 };
 document.addEventListener('submit', function (e) {
-    if (e.target instanceof Element && e.target.getAttribute('data-wfc-form') !== null) {
+    if (e.target instanceof Element && e.target.hasAttribute('data-wfc-form')) {
         e.preventDefault();
         submitForm(e.target);
     }
 });
 document.addEventListener('change', function (e) {
-    if (e.target instanceof Element && e.target.getAttribute('data-wfc-autopostback') !== null) {
+    if (e.target instanceof Element && e.target.hasAttribute('data-wfc-autopostback')) {
         var eventTarget = e.target.getAttribute('name');
-        var form = e.target.closest('form');
+        var form = e.target.closest('form[data-wfc-form]');
         if (form) {
             submitForm(form, eventTarget);
         }
@@ -820,7 +817,7 @@ document.addEventListener('click', function (e) {
     if (!eventTarget) {
         return;
     }
-    var form = e.target.closest('form');
+    var form = e.target.closest('form[data-wfc-form]');
     if (form) {
         e.preventDefault();
         submitForm(form, eventTarget);
@@ -837,7 +834,7 @@ document.addEventListener('keypress', function (e) {
     if (type === "button" || type === "submit" || type === "reset") {
         return;
     }
-    var form = e.target.closest('form');
+    var form = e.target.closest('form[data-wfc-form]');
     if (!form) {
         return;
     }

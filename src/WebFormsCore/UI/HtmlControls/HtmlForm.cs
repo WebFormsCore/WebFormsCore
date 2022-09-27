@@ -9,34 +9,21 @@ namespace WebFormsCore.UI.HtmlControls;
 
 public class HtmlForm : HtmlContainerControl, INamingContainer
 {
-    public static string Script { get; }
-
-    static HtmlForm()
-    {
-        using var resource = typeof(HtmlForm).Assembly.GetManifestResourceStream("WebFormsCore.Scripts.form.min.js");
-        using var reader = new StreamReader(resource!);
-        Script = reader.ReadToEnd();
-    }
-
     public HtmlForm()
         : base("form")
     {
     }
 
-    public bool Global { get; private set; }
-
     protected override void OnInit(EventArgs args)
     {
-        Global = Page.Forms.Count == 0;
         Page.Forms.Add(this);
     }
-
-    internal virtual Control ViewStateOwner => Global ? Page : this;
 
     protected override async Task RenderAttributesAsync(HtmlTextWriter writer)
     {
         await base.RenderAttributesAsync(writer);
-        await writer.WriteAttributeAsync("data-wfc-form", Global ? "global" : "scope");
+        await writer.WriteAttributeAsync("id", ClientID);
+        await writer.WriteAttributeAsync("data-wfc-form", null);
     }
 
     protected override async Task RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
@@ -49,19 +36,11 @@ public class HtmlForm : HtmlContainerControl, INamingContainer
         await writer.WriteAsync(UniqueID);
         await writer.WriteAsync(@"""/>");
 
-
-        using var viewState = viewStateManager.Write(this, out var length);
-
-        await writer.WriteAsync(@"<input type=""hidden"" name=""__VIEWSTATE"" value=""");
-        await writer.WriteAsync(viewState.Memory.Slice(0, length), token);
-        await writer.WriteAsync(@"""/>");
-
-        if (Context.Items["FormScript"] == null)
+        await writer.WriteAsync(@"<input type=""hidden"" name=""__FORMSTATE"" value=""");
+        using (var viewState = viewStateManager.Write(this, out var length))
         {
-            Context.Items["FormScript"] = true;
-            await writer.WriteAsync(@"<script>");
-            await writer.WriteAsync(Script);
-            await writer.WriteAsync(@"</script>");
+            await writer.WriteAsync(viewState.Memory.Slice(0, length), token);
         }
+        await writer.WriteAsync(@"""/>");
     }
 }

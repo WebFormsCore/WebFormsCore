@@ -62,6 +62,9 @@ public class Parser
             case TokenType.Text:
                 ConsumeText(token);
                 break;
+            case TokenType.DocType:
+                ConsumeDocType(token);
+                break;
         }
     }
 
@@ -71,6 +74,15 @@ public class Parser
         {
             Range = token.Range,
             Text = token.Text
+        });
+    }
+
+    private void ConsumeDocType(Token token)
+    {
+        _container.AddText(new TextNode
+        {
+            Range = token.Range,
+            Text = new TokenString($"<!DOCTYPE{token.Text}>", token.Range)
         });
     }
 
@@ -510,6 +522,7 @@ public class Parser
             return name.Value.ToUpperInvariant() switch
             {
                 "FORM" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlForm"),
+                "BODY" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlBody"),
                 _ => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlGenericControl")
             };
         }

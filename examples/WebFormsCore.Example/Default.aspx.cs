@@ -6,8 +6,10 @@ namespace WebFormsCore.Example;
 
 public partial class Default : Page
 {
-    protected override void OnInit(EventArgs args)
+    [ViewState] private int _postbackCount;
+
+    protected override void OnLoad(EventArgs args)
     {
-        title.InnerText = DateTime.Now.ToString(CultureInfo.InvariantCulture);
+        title.InnerText = (_postbackCount++).ToString();
     }
 }

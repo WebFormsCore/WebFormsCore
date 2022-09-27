@@ -9,6 +9,4 @@ public class TextNode : Node
     }
 
     public TokenString Text { get; set; }
-
-    public bool IsText => true;
 }

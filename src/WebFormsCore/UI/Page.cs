@@ -27,45 +27,35 @@ public class Page : Control, INamingContainer
 
     public List<HtmlForm> Forms { get; set; } = new();
 
-    public override HtmlForm? Form => Forms.FirstOrDefault(i => i.Global);
+    public override HtmlForm? Form => null;
 
-    public async Task<Control> ProcessRequestAsync(CancellationToken token)
+    internal async Task<HtmlForm?> ProcessRequestAsync(CancellationToken token)
     {
         var viewStateManager = ServiceProvider.GetRequiredService<IViewStateManager>();
 
         InvokeFrameworkInit(token);
         await InvokeInitAsync(token);
 
-        Control target = this;
-
         var form = await viewStateManager.LoadAsync(Context, this);
 
         if (form != null)
         {
-            if (form.Global)
-            {
-                Forms.RemoveAll(i => !i.Global && i.Parent.Controls.Remove(i));
-            }
-            else
-            {
-                target = form;
-                Forms.RemoveAll(i => i != form && i.Parent.Controls.Remove(i));
-            }
+            Forms.RemoveAll(i => i != form && i.Parent.Controls.Remove(i));
         }
 
-        await target.InvokeLoadAsync(token, form);
+        await InvokeLoadAsync(token, form);
 
         if (form != null)
         {
             var eventTarget = Context.Request.Form["__EVENTTARGET"];
             var eventArgument = Context.Request.Form["__EVENTARGUMENT"];
 
-            await target.InvokePostbackAsync(token, form, eventTarget, eventArgument);
+            await InvokePostbackAsync(token, form, eventTarget, eventArgument);
         }
 
-        await target.InvokePreRenderAsync(token, form);
+        await InvokePreRenderAsync(token, form);
 
-        return target;
+        return form;
     }
 
     public void Initialize(IServiceProvider provider, HttpContext context)

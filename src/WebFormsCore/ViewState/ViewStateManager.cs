@@ -37,17 +37,16 @@ public class ViewStateManager : IViewStateManager
 
     private static IEnumerable<Control> GetControls(Control owner)
     {
-        return owner.EnumerateControls(c => c is not HtmlForm {Global: false});
+        return owner.EnumerateControls(c => c is not HtmlForm);
     }
 
-    public IMemoryOwner<byte> Write(HtmlForm form, out int length)
+    public IMemoryOwner<byte> Write(Control control, out int length)
     {
-        var owner = form.ViewStateOwner;
         var writer = new ViewStateWriter(_serviceProvider);
 
         try
         {
-            foreach (var child in GetControls(owner))
+            foreach (var child in GetControls(control))
             {
                 child.WriteViewState(ref writer);
             }
@@ -105,25 +104,26 @@ public class ViewStateManager : IViewStateManager
 
         page.IsPostBack = true;
 
-        var formId = request.Form["__FORM"];
-        var viewStateValue = request.Form["__VIEWSTATE"];
-        var form = page.Forms.FirstOrDefault(i => i.UniqueID == formId);
+        var pageState = request.Form["__PAGESTATE"];
 
-        if (form == null || viewStateValue == null)
+        if (pageState != null)
         {
-            return null;
+            await LoadViewStateAsync(page, pageState);
         }
 
-        var owner = form.ViewStateOwner;
-        using var wrapper = CreateReader(viewStateValue);
-        using var enumerator = GetControls(owner).GetEnumerator();
+        var formId = request.Form["__FORM"];
+        var formState = request.Form["__FORMSTATE"];
+        var form = page.Forms.FirstOrDefault(i => i.UniqueID == formId);
 
-        await LoadViewStateAsync(enumerator, wrapper);
+        if (form != null && formState != null)
+        {
+            await LoadViewStateAsync(form, formState);
+        }
 
         return form;
     }
 
-    internal ViewStateReaderOwner CreateReader(string base64)
+    private ViewStateReaderOwner CreateReader(string base64)
     {
         var encoding = Encoding.UTF8;
         var byteLength = encoding.GetByteCount(base64);
@@ -182,11 +182,14 @@ public class ViewStateManager : IViewStateManager
         return new ViewStateReaderOwner(owner, _serviceProvider, offset);
     }
 
-    private static async ValueTask LoadViewStateAsync(IEnumerator<Control> controls, ViewStateReaderOwner owner)
+    private async ValueTask LoadViewStateAsync(Control owner, string viewState)
     {
+        using var wrapper = CreateReader(viewState);
+        using var enumerator = GetControls(owner).GetEnumerator();
+
         while (true)
         {
-            var control = LoadViewState(controls, owner);
+            var control = LoadViewState(enumerator, wrapper);
 
             if (control == null) break;
 
