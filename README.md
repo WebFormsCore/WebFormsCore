@@ -24,3 +24,43 @@ In comparison to WebForms there are a few changes:
   WebForms Core pre-compiles views to improve the startup time of your application.
 - **Content Security Policy (CSP) support**  
   Experimental support for Content Security Policy.
+
+## Getting started
+Create a new .csproj that targets the SDK of WebFormsCore:
+
+```xml
+<Project Sdk="WebFormsCore.SDK/0.0.1-alpha.4">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+    </PropertyGroup>
+
+</Project>
+```
+
+In `Program.cs`, add WebFormsCore to the services and application builder:
+```cs
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddWebForms();
+
+var app = builder.Build();
+app.UseWebForms();
+app.Run();
+```
+
+_Optional:_ Create the file `web.config` with the control namespaces:
+
+```xml
+<configuration>
+    <system.web>
+        <pages>
+            <controls>
+                <add tagPrefix="asp" namespace="WebFormsCore.UI.WebControls" />
+                <add tagPrefix="asp" namespace="WebFormsCore.UI.HtmlControls" />
+            </controls>
+        </pages>
+    </system.web>
+</configuration>
+```
+
+Every `.aspx` file in the project will now be handled.
