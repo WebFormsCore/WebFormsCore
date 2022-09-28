@@ -14,7 +14,14 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
     private HttpContext? _context;
     private IServiceProvider? _serviceProvider;
 
+    public Page()
+    {
+        ClientScript = new ClientScriptManager(this);
+    }
+
     public Csp Csp { get; set; } = new();
+
+    public ClientScriptManager ClientScript { get; }
 
     protected override HttpContext Context => _context ??= HttpContext.Current ?? throw new InvalidOperationException("No HttpContext available.");
 

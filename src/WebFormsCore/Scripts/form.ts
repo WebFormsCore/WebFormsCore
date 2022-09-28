@@ -1,5 +1,4 @@
 import morphdom from "morphdom/dist/morphdom-esm";
-import { parse } from "parse-multipart-data";
 
 function submitForm(form: HTMLFormElement, eventTarget?: string) {
     const pageState = document.getElementById("pagestate") as HTMLInputElement;
@@ -29,6 +28,10 @@ function submitForm(form: HTMLFormElement, eventTarget?: string) {
                     newElements.push(node);
                 },
                 onBeforeNodeDiscarded(node) {
+                    if (node.tagName === "SCRIPT") {
+                        return false;
+                    }
+
                     if (node.tagName === 'FORM' && node.hasAttribute('data-wfc-form')) {
                         return false;
                     }

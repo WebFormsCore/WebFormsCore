@@ -29,7 +29,7 @@ internal static class StreamExtensions
         }
     }
 
-    public static async Task WriteAsync(this Stream stream, Memory<byte> buffer, CancellationToken token)
+    public static async Task WriteAsync(this Stream stream, ReadOnlyMemory<byte> buffer, CancellationToken token)
     {
         using var pointer = buffer.Pin();
         using var destinationStream = CreateMemoryStream(buffer, pointer);
@@ -37,7 +37,7 @@ internal static class StreamExtensions
         await destinationStream.CopyToAsync(stream, 81920, token);
     }
 
-    private static unsafe UnmanagedMemoryStream CreateMemoryStream(Memory<byte> buffer, MemoryHandle pointer)
+    private static unsafe UnmanagedMemoryStream CreateMemoryStream(ReadOnlyMemory<byte> buffer, MemoryHandle pointer)
     {
         return new UnmanagedMemoryStream((byte*)pointer.Pointer, buffer.Length, buffer.Length, FileAccess.Write);
     }

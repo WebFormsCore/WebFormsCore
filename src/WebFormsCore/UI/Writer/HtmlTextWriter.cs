@@ -681,13 +681,40 @@ public class HtmlTextWriter : TextWriter
         return Task.CompletedTask;
     }
 
-    public async Task WriteAsync(Memory<byte> buffer, CancellationToken token)
+    public void Write(ReadOnlySpan<byte> buffer)
+    {
+        InnerWriter.Flush();
+
+        if (_stream == null)
+        {
+            var (owner, count) = ByteToChars(buffer);
+
+            try
+            {
+#if NET
+                InnerWriter.Write(owner.Memory.Slice(0, count));
+#else
+                InnerWriter.Write(owner.Memory.Span.Slice(0, count).ToString());
+#endif
+            }
+            finally
+            {
+                owner.Dispose();
+            }
+
+            return;
+        }
+
+        _stream.Write(buffer);
+    }
+
+    public async Task WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken token = default)
     {
         await InnerWriter.FlushAsync();
 
         if (_stream == null)
         {
-            var (owner, count) = ByteToChars(buffer);
+            var (owner, count) = ByteToChars(buffer.Span);
 
             try
             {
@@ -708,13 +735,13 @@ public class HtmlTextWriter : TextWriter
         await _stream.WriteAsync(buffer, token);
     }
 
-    public async Task WriteLineAsync(Memory<byte> buffer, CancellationToken token)
+    public async Task WriteLineAsync(ReadOnlyMemory<byte> buffer, CancellationToken token = default)
     {
         await InnerWriter.FlushAsync();
 
         if (_stream == null)
         {
-            var (owner, count) = ByteToChars(buffer);
+            var (owner, count) = ByteToChars(buffer.Span);
 
             try
             {
@@ -736,12 +763,12 @@ public class HtmlTextWriter : TextWriter
         await _stream.WriteAsync(_newLineBytes, token);
     }
 
-    private (IMemoryOwner<char> Owner, int Length) ByteToChars(Memory<byte> buffer)
+    private (IMemoryOwner<char> Owner, int Length) ByteToChars(ReadOnlySpan<byte> buffer)
     {
         var maxCharCount = Encoding.GetMaxCharCount(buffer.Length);
         var owner = MemoryPool<char>.Shared.Rent(maxCharCount);
         var chars = owner.Memory.Span;
-        var charCount = Encoding.GetChars(buffer.Span, chars);
+        var charCount = Encoding.GetChars(buffer, chars);
 
         return (owner, charCount);
     }

@@ -362,7 +362,7 @@ public class Parser
             Range = new TokenRange(lexer.File, startPosition, lexer.Position)
         };
 
-        node.Range = new TokenRange(lexer.File, startPosition, startPosition);
+        node.Range = name.Range;
         _container.Push(node);
 
         if (selfClosing)
@@ -498,8 +498,6 @@ public class Parser
 
             return;
         }
-        
-        pop.Range = pop.Range.WithEnd(endPosition);
 
         pop.EndTag = new HtmlTagNode
         {

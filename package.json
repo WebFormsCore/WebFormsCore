@@ -4,7 +4,8 @@
   "description": "WebForms Core is a framework for ASP.NET Core and ASP.NET.",
   "main": "index.js",
   "scripts": {
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "watch": "rollup -c -w"
   },
   "repository": {
     "type": "git",

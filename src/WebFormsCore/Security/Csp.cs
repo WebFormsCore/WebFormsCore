@@ -31,49 +31,49 @@ public class Csp
 
     public CspDirective DefaultSrc => _defaultSrc ??= new CspDirective("default-src", "'self'");
 
-    public CspDirective ScriptSrc => _scriptSrc ??= new CspDirective("script-src", "'self'");
+    public CspDirective ScriptSrc => _scriptSrc ??= new CspDirective("script-src");
 
-    public CspDirective StyleSrc => _styleSrc ??= new CspDirective("style-src", "'self'");
+    public CspDirective StyleSrc => _styleSrc ??= new CspDirective("style-src");
 
-    public CspDirective ImgSrc => _imgSrc ??= new CspDirective("img-src", "'self'");
+    public CspDirective ImgSrc => _imgSrc ??= new CspDirective("img-src");
 
-    public CspDirective ConnectSrc => _connectSrc ??= new CspDirective("connect-src", "'self'");
+    public CspDirective ConnectSrc => _connectSrc ??= new CspDirective("connect-src");
 
-    public CspDirective FontSrc => _fontSrc ??= new CspDirective("font-src", "'self'");
+    public CspDirective FontSrc => _fontSrc ??= new CspDirective("font-src");
 
-    public CspDirective ObjectSrc => _objectSrc ??= new CspDirective("object-src", "'self'");
+    public CspDirective ObjectSrc => _objectSrc ??= new CspDirective("object-src");
 
-    public CspDirective MediaSrc => _mediaSrc ??= new CspDirective("media-src", "'self'");
+    public CspDirective MediaSrc => _mediaSrc ??= new CspDirective("media-src");
 
-    public CspDirective FrameSrc => _frameSrc ??= new CspDirective("frame-src", "'self'");
+    public CspDirective FrameSrc => _frameSrc ??= new CspDirective("frame-src");
 
     public CspDirective Sandbox => _sandbox ??= new CspDirective("sandbox");
 
     public CspDirective ReportUri => _reportUri ??= new CspDirective("report-uri");
 
-    public CspDirective ChildSrc => _childSrc ??= new CspDirective("child-src", "'self'");
+    public CspDirective ChildSrc => _childSrc ??= new CspDirective("child-src");
 
-    public CspDirective FormAction => _formAction ??= new CspDirective("form-action", "'self'");
+    public CspDirective FormAction => _formAction ??= new CspDirective("form-action");
 
     public CspDirective FrameAncestors => _frameAncestors ??= new CspDirective("frame-ancestors");
 
     public CspDirective PluginTypes => _pluginTypes ??= new CspDirective("plugin-types");
 
-    public CspDirective BaseUri => _baseUri ??= new CspDirective("base-uri", "'self'");
+    public CspDirective BaseUri => _baseUri ??= new CspDirective("base-uri");
 
     public CspDirective ReportTo => _reportTo ??= new CspDirective("report-to");
 
-    public CspDirective WorkerSrc => _workerSrc ??= new CspDirective("worker-src", "'self'");
+    public CspDirective WorkerSrc => _workerSrc ??= new CspDirective("worker-src");
 
-    public CspDirective ManifestSrc => _manifestSrc ??= new CspDirective("manifest-src", "'self'");
+    public CspDirective ManifestSrc => _manifestSrc ??= new CspDirective("manifest-src");
 
-    public CspDirective PrefetchSrc => _prefetchSrc ??= new CspDirective("prefetch-src", "'self'");
+    public CspDirective PrefetchSrc => _prefetchSrc ??= new CspDirective("prefetch-src");
 
-    public CspDirective NavigateTo => _navigateTo ??= new CspDirective("navigate-to", "'self'");
+    public CspDirective NavigateTo => _navigateTo ??= new CspDirective("navigate-to");
 
     public void Write(StringBuilder builder)
     {
-        _defaultSrc?.Write(builder);
+        DefaultSrc.Write(builder);
         _scriptSrc?.Write(builder);
         _styleSrc?.Write(builder);
         _imgSrc?.Write(builder);

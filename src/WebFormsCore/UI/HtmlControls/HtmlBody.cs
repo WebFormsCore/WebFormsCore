@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +9,7 @@ namespace WebFormsCore.UI.HtmlControls;
 
 public class HtmlBody : HtmlContainerControl
 {
-    public static string Script { get; }
+    private static readonly string Script;
 
     static HtmlBody()
     {
@@ -20,6 +21,11 @@ public class HtmlBody : HtmlContainerControl
     public HtmlBody()
         : base("body")
     {
+    }
+
+    protected override void OnInit(EventArgs args)
+    {
+        Page.ClientScript.RegisterStartupScript(typeof(Page), "FormPostback", Script, true);
     }
 
     protected override async Task RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
@@ -35,8 +41,9 @@ public class HtmlBody : HtmlContainerControl
         }
         await writer.WriteAsync(@"""/>");
 
-        await writer.WriteAsync(@"<script>");
-        await writer.WriteAsync(Script);
-        await writer.WriteAsync(@"</script>");
+        if (!Page.IsPostBack)
+        {
+            await Page.ClientScript.RenderStartupScripts(writer);
+        }
     }
 }

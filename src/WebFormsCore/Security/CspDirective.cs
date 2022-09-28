@@ -6,6 +6,12 @@ using System.Text;
 
 namespace WebFormsCore.Security;
 
+public enum CspMode
+{
+    Nonce,
+    Sha256
+}
+
 public class CspDirective
 {
     public CspDirective(string name, string? defaultValue = null)
@@ -19,13 +25,15 @@ public class CspDirective
         }
     }
 
+    public CspMode Mode { get; set; } = CspMode.Nonce;
+
     public string Name { get; }
 
     public List<string> SourceList { get; set; }
 
-    public void GenerateNonce()
+    public string GenerateNonce()
     {
-        var nonceBytes = ArrayPool<byte>.Shared.Rent(32);
+        var nonceBytes = ArrayPool<byte>.Shared.Rent(16);
 #if NET
         RandomNumberGenerator.Fill(nonceBytes);
 #else
@@ -35,16 +43,14 @@ public class CspDirective
         var result = Convert.ToBase64String(nonceBytes);
         ArrayPool<byte>.Shared.Return(nonceBytes);
         SourceList.Add($"'nonce-{result}'");
+        return result;
     }
 
     public void AddInlineHash(string code)
     {
-        using var sha256 = SHA256.Create();
-        var bytes = Encoding.UTF8.GetBytes(code);
-        var hash = sha256.ComputeHash(bytes);
-        var base64 = Convert.ToBase64String(hash).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        var source = CreateHash(code);
 
-        SourceList.Add($"'sha256-{base64}'");
+        SourceList.Add(source);
     }
 
     public void Write(StringBuilder builder)
@@ -66,5 +72,15 @@ public class CspDirective
             builder.Append(' ');
             builder.Append(item);
         }
+    }
+
+    public static string CreateHash(string code)
+    {
+        using var sha256 = SHA256.Create();
+        var bytes = Encoding.UTF8.GetBytes(code);
+        var hash = sha256.ComputeHash(bytes);
+        var base64 = Convert.ToBase64String(hash).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
+        return $"'sha256-{base64}'";
     }
 }

@@ -1,6 +1,11 @@
-{{ func write_children }}
+#line hidden
+{{ func line }}
+#line ({{ $0.Range.Start.Line + 1 }},{{ $0.Range.Start.Column + 1 }})-({{ $0.Range.End.Line + 1 }},{{ $0.Range.End.Column + 1 }}) 12 "{{ $0.Range.File }}"
+{{- end }}
+
+{{- func write_children }}
         {{- for child in $0 }}
-            #line {{ child.Range.Start.Line + 1 }} "{{ child.Range.File }}"
+{{ line child }}
         {{- case child.Type }}
         {{- when "Text" }}
             {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject(WebActivator.CreateLiteral({{ child.Text.CodeString }}));
@@ -57,7 +62,7 @@
         {{- if $2 && child.FieldName }}
             {{ $1 }}.{{ child.FieldName }} = {{ child.VariableName }};
         {{- end }}
-            #line default
+#line hidden
         {{- end }}
 {{-end}}
 
@@ -68,7 +73,7 @@
         {
             {{- i = 0 }}
             {{- for child in render.Children }}
-            #line {{ child.Range.Start.Line + 1 }} "{{ child.Range.File }}"
+            {{ line child }}
             {{- case child.Type }}
             {{- when "Statement" }}
             {{ child.Text }}

@@ -773,6 +773,9 @@ function submitForm(form, eventTarget) {
             onNodeAdded: function (node) {
             },
             onBeforeNodeDiscarded: function (node) {
+                if (node.tagName === "SCRIPT") {
+                    return false;
+                }
                 if (node.tagName === 'FORM' && node.hasAttribute('data-wfc-form')) {
                     return false;
                 }
