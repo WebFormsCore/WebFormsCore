@@ -1,26 +1,51 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SystemWebAdapters;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace WebFormsCore.Middlewares;
 
 public class PageMiddleware
 {
-    private readonly RequestDelegate _next;
+    private static readonly object DisableSingleThread = new SingleThreadedRequestAttribute { IsDisabled = true };
+    private static readonly object DisableBuffer = new BufferResponseStreamAttribute { IsDisabled = true };
 
-    public PageMiddleware(RequestDelegate next)
+    private readonly RequestDelegate _next;
+    private readonly IWebFormsApplication _application;
+    private readonly RequestDelegate _pageHandler;
+
+    public PageMiddleware(RequestDelegate next, IWebFormsApplication application)
     {
         _next = next;
+        _application = application;
+        _pageHandler = HandleRequest;
     }
 
-    public async Task Invoke(HttpContext context)
+    public Task Invoke(HttpContext context)
     {
-        var services = context.RequestServices.GetRequiredService<IWebFormsApplication>();
-        var handled = await services.ProcessAsync(context, context.RequestServices, context.RequestAborted);
+        var path = _application.GetPath(context);
 
-        if (!handled)
+        if (path != null)
         {
-            await _next(context);
+            context.SetEndpoint(new Endpoint(
+                _pageHandler,
+                new EndpointMetadataCollection(
+                    DisableSingleThread,
+                    DisableBuffer,
+                    new PageAttribute { Path = path }
+                ),
+                path
+            ));
         }
+
+        return _next(context);
     }
 
+    private Task HandleRequest(HttpContext context)
+    {
+        var path = context.GetEndpoint()?.Metadata.GetMetadata<PageAttribute>()?.Path;
+
+        return path != null
+            ? _application.ProcessAsync(context, path, context.RequestServices, context.RequestAborted)
+            : Task.CompletedTask;
+    }
 }

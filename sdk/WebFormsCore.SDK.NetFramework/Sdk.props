@@ -1,6 +1,12 @@
 <Project>
     <Import Project="Sdk.props" Sdk="MSBuild.SDK.SystemWeb" Version="4.0.82" />
 
+	<PropertyGroup>
+		<MvcBuildViews>false</MvcBuildViews>
+		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+		<GeneratedBindingRedirectsAction>Overwrite</GeneratedBindingRedirectsAction>
+	</PropertyGroup>
+
     <ItemGroup>
         <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -21,8 +27,8 @@
         <AdditionalFiles Include="web.config" Exclude="bin\**;obj\**" />
     </ItemGroup>
 
-    <PropertyGroup>
+    <ItemGroup>
         <PackageReference Include="WebFormsCore.AspNet" Version="$version$" />
         <PackageReference Include="WebFormsCore.SourceGenerator" Version="$version$" OutputItemType="Analyzer" />
-    </PropertyGroup>
+    </ItemGroup>
 </Project>

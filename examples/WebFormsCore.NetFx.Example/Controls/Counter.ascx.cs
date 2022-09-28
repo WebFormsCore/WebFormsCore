@@ -6,38 +6,20 @@ using WebFormsCore;
 using WebFormsCore.UI;
 using WebFormsCore.UI.WebControls;
 
-namespace WebFormsCore.Example.Controls
+namespace WebFormsCore.Example.Controls;
+
+public partial class Counter : Control
 {
-    public partial class Counter : Control
+    [ViewState] private ushort _count;
+
+    protected override void OnPreRender(EventArgs args)
     {
-        [ViewState] private int _count;
+        litCounter.Text = _count.ToString();
+    }
 
-        protected override Task OnPreRenderAsync(CancellationToken token)
-        {
-            tbPrefix.Text = tbPrefix.Text?.ToUpperInvariant();
-            litValue.Text = $"Count: {tbPrefix.Text}{_count}";
-
-            return Task.CompletedTask;
-        }
-
-        protected async ValueTask btnIncrement_OnClick(object sender, EventArgs e)
-        {
-            _count++;
-
-            rptItems.DataSource = Enumerable.Range(0, _count).Select(i => $"Item {i}");
-            await rptItems.DataBindAsync();
-        }
-
-        protected ValueTask rptItems_OnItemDataBound(object sender, RepeaterItem<string> e)
-        {
-            var item = (Literal) e.FindControl("litItem");
-
-            if (item != null)
-            {
-                item.Text = e.DataItem;
-            }
-
-            return default;
-        }
+    protected Task btnIncrement_OnClick(object? sender, EventArgs e)
+    {
+        _count++;
+        return Task.CompletedTask;
     }
 }

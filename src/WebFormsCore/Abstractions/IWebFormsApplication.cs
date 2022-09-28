@@ -7,6 +7,8 @@ namespace WebFormsCore
 {
     public interface IWebFormsApplication
     {
-        Task<bool> ProcessAsync(HttpContext context, IServiceProvider provider, CancellationToken token);
+        string? GetPath(HttpContext context);
+
+        Task<bool> ProcessAsync(HttpContext context, string path, IServiceProvider provider, CancellationToken token);
     }
 }

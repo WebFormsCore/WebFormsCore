@@ -79,29 +79,36 @@ public abstract class DesignerGenerator : IIncrementalGenerator
         {
             if (fullPath == webConfigPath) continue;
 
-            var path = fullPath;
-
-            if (directory != null && path.StartsWith(directory))
+            try
             {
-                path = path.Substring(directory.Length + 1);
+                var path = fullPath;
+
+                if (directory != null && path.StartsWith(directory))
+                {
+                    path = path.Substring(directory.Length + 1);
+                }
+
+                if (!visited.Add(path)) continue;
+                if (RootNode.Parse(compilation, path, text, ns, namespaces) is not { } type) continue;
+                if (type.Inherits == null) continue;
+
+                var fullName = type.Inherits.ContainingNamespace.ToDisplayString() + "." + type.Inherits.Name;
+
+                if (typesByClass.TryGetValue(fullName, out var existing))
+                {
+                    existing.Add(type);
+                }
+                else
+                {
+                    typesByClass.Add(fullName, type);
+                }
+
+                types.Add(type);
             }
-
-            if (!visited.Add(path)) continue;
-            if (RootNode.Parse(compilation, path, text, ns, namespaces) is not { } type) continue;
-            if (type.Inherits == null) continue;
-
-            var fullName = type.Inherits.ContainingNamespace.ToDisplayString() + "." + type.Inherits.Name;
-
-            if (typesByClass.TryGetValue(fullName, out var existing))
+            catch(Exception e)
             {
-                existing.Add(type);
+                // TODO: Diagnostic
             }
-            else
-            {
-                typesByClass.Add(fullName, type);
-            }
-
-            types.Add(type);
         }
 
         var model = new DesignerModel(types, ns);

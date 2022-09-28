@@ -8,5 +8,8 @@ builder.Services.AddWebForms();
 
 var app = builder.Build();
 
-app.UseWebForms();
+app.UseSystemWebAdapters();
+app.MapAspx("/", "Default.aspx");
+app.MapFallbackToAspx();
+
 app.Run();
