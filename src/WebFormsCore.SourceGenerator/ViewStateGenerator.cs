@@ -118,13 +118,6 @@ namespace WebFormsCore.SourceGenerator
                         continue;
                     }
 
-                    var (declarationType, names) = member switch
-                    {
-                        FieldDeclarationSyntax f => (f.Declaration.Type, f.Declaration.Variables.Select(i => i.Identifier.Text)),
-                        PropertyDeclarationSyntax p => (p.Type, new[] { p.Identifier.Text }),
-                        _ => default
-                    };
-
                     if (member is FieldDeclarationSyntax field)
                     {
                         var type = model.GetTypeInfo(field.Declaration.Type).Type;

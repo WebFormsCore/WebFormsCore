@@ -10,21 +10,21 @@ namespace WebFormsCore;
 
 internal static class StreamExtensions
 {
-    public static unsafe int Read(this Stream stream, Span<byte> span)
+    public static unsafe int Read(this Stream sourceStream, Span<byte> span)
     {
         fixed (byte* pSource = &span[0])
         {
-            using var sourceStream = new UnmanagedMemoryStream(pSource, span.Length);
+            using var stream = new UnmanagedMemoryStream(pSource, span.Length, span.Length, FileAccess.Write);
             sourceStream.CopyTo(stream);
             return (int)stream.Position;
         }
     }
 
-    public static unsafe void Write(this Stream stream, ReadOnlySpan<byte> span)
+    public static unsafe void Write(this Stream destinationStream, ReadOnlySpan<byte> span)
     {
         fixed (byte* pDestination = &span[0])
         {
-            using var destinationStream = new UnmanagedMemoryStream(pDestination, span.Length, span.Length, FileAccess.Write);
+            using var stream = new UnmanagedMemoryStream(pDestination, span.Length);
             stream.CopyTo(destinationStream);
         }
     }
@@ -39,7 +39,7 @@ internal static class StreamExtensions
 
     private static unsafe UnmanagedMemoryStream CreateMemoryStream(ReadOnlyMemory<byte> buffer, MemoryHandle pointer)
     {
-        return new UnmanagedMemoryStream((byte*)pointer.Pointer, buffer.Length, buffer.Length, FileAccess.Write);
+        return new UnmanagedMemoryStream((byte*)pointer.Pointer, buffer.Length);
     }
 }
 #endif

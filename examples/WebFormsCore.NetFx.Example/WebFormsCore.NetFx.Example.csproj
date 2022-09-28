@@ -1,14 +1,20 @@
 ﻿<Project Sdk="MSBuild.SDK.SystemWeb/4.0.82">
 
     <PropertyGroup>
-        <TargetFramework>net472</TargetFramework>
-        <MvcBuildViews>false</MvcBuildViews>
-    </PropertyGroup>
+		<MvcBuildViews>false</MvcBuildViews>
+		<TargetFramework>net472</TargetFramework>
+		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+		<GeneratedBindingRedirectsAction>Overwrite</GeneratedBindingRedirectsAction>
+		<LangVersion>10</LangVersion>
+	</PropertyGroup>
 
     <ItemGroup>
         <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**" />
         <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**" />
-        <AdditionalFiles Include="web.config" Exclude="bin\**;obj\**" />
+        <Content Remove="Controls\Counter.ascx" />
+        <Content Remove="Controls\TodoList.ascx" />
+        <Content Remove="Default.aspx" />
+        <AdditionalFiles Condition="Exists('web.config')" Include="web.config" Exclude="bin\**;obj\**" />
         <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
 
         <AdditionalFiles Update="**/*.aspx">

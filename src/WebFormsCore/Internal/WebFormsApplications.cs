@@ -22,17 +22,22 @@ internal class WebFormsApplications : IWebFormsApplication
         _viewManager = viewManager;
     }
 
-    public async Task<bool> ProcessAsync(HttpContext context, IServiceProvider provider, CancellationToken token)
+    public string? GetPath(HttpContext context)
     {
-        if (string.IsNullOrEmpty(context.Request.Path)) return false;
+        if (string.IsNullOrEmpty(context.Request.Path)) return null;
 
         var fullPath = Path.Combine(_environment.ContentRootPath, context.Request.Path.TrimStart('/'));
 
         if (!_viewManager.TryGetPath(fullPath, out var path) || !File.Exists(fullPath))
         {
-            return false;
+            return null;
         }
 
+        return path;
+    }
+
+    public async Task<bool> ProcessAsync(HttpContext context, string path, IServiceProvider provider, CancellationToken token)
+    {
         var pageType = await _viewManager.GetTypeAsync(path);
         var page = (Page)Activator.CreateInstance(pageType)!;
 

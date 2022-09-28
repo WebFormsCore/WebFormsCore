@@ -29,8 +29,12 @@ namespace WebFormsCore
             await using var scope = _provider.CreateAsyncScope();
 
             var application = scope.ServiceProvider.GetRequiredService<IWebFormsApplication>();
+            var path = application.GetPath(context);
 
-            await application.ProcessAsync(context, scope.ServiceProvider, context.Request.TimedOutToken);
+            if (path != null)
+            {
+                await application.ProcessAsync(context, path, scope.ServiceProvider, context.Request.TimedOutToken);
+            }
         }
 
         private sealed class LifeCycleModule : IHttpModule

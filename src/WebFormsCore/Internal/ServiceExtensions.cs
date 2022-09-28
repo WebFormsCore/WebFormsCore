@@ -14,7 +14,7 @@ namespace WebFormsCore;
 
 public static class ServiceExtensions
 {
-    public static IServiceCollection AddWebFormsCore(this IServiceCollection services)
+    public static IServiceCollection AddWebFormsInternals(this IServiceCollection services)
     {
         services.AddHostedService<InitializeViewManager>();
         services.AddSingleton<IViewStateManager, ViewStateManager>();

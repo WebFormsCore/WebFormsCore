@@ -2,13 +2,14 @@
 using System.Globalization;
 using WebFormsCore.UI;
 
-namespace WebFormsCore.Example
+namespace WebFormsCore.Example;
+
+public partial class Default : Page
 {
-    public partial class Default : Page
+    [ViewState] public int PostbackCount { get; set; }
+
+    protected override void OnLoad(EventArgs args)
     {
-        protected override void OnInit(EventArgs args)
-        {
-            title.InnerText = DateTime.Now.ToString(CultureInfo.InvariantCulture);
-        }
+        title.InnerText = (PostbackCount++).ToString();
     }
 }
