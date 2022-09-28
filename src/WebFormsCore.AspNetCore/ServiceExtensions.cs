@@ -70,7 +70,7 @@ public static class ServiceExtensions
     public static IServiceCollection AddWebForms(this IServiceCollection services)
     {
         services.AddSystemWebAdapters();
-        services.AddWebFormsCore();
+        services.AddWebFormsInternals();
         services.AddSingleton<IWebFormsEnvironment, WebFormsEnvironment>();
         return services;
     }

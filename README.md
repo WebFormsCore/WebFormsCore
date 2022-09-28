@@ -39,10 +39,20 @@ Create a new .csproj that targets the SDK of WebFormsCore:
 In `Program.cs`, add WebFormsCore to the services and application builder:
 ```cs
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddWebForms();
 
 var app = builder.Build();
-app.UseWebForms();
+
+// Uncomment the following if you want to more compability: https://github.com/dotnet/systemweb-adapters/blob/main/docs/usage_guidance.md
+// app.UseSystemWebAdapters();
+
+// Map '/' to 'Default.aspx'
+app.MapAspx("/", "Default.aspx");
+
+// Map all .aspx files
+app.MapFallbackToAspx();
+
 app.Run();
 ```
 

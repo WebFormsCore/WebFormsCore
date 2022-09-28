@@ -112,9 +112,10 @@ public abstract class DesignerGenerator : IIncrementalGenerator
         }
 
         var model = new DesignerModel(types, ns);
+        var output = GenerateCode(context, model);
 
-        AddSource(context, model);
+        context.AddSource("WebForms.Designer", output);
     }
 
-    protected abstract void AddSource(SourceProductionContext context, DesignerModel output);
+    protected abstract string GenerateCode(SourceProductionContext context, DesignerModel output);
 }
