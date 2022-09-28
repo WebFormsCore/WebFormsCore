@@ -46,8 +46,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solutio
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.NetFx.Example", "examples\WebFormsCore.NetFx.Example\WebFormsCore.NetFx.Example.csproj", "{615DB2F3-C8B5-4D04-87A2-0E8DF62D6D3E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -106,10 +104,6 @@ Global
 		{FA8142FA-D5A1-42CC-9BBD-9E5A21972314}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA8142FA-D5A1-42CC-9BBD-9E5A21972314}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA8142FA-D5A1-42CC-9BBD-9E5A21972314}.Release|Any CPU.Build.0 = Release|Any CPU
-		{615DB2F3-C8B5-4D04-87A2-0E8DF62D6D3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{615DB2F3-C8B5-4D04-87A2-0E8DF62D6D3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{615DB2F3-C8B5-4D04-87A2-0E8DF62D6D3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{615DB2F3-C8B5-4D04-87A2-0E8DF62D6D3E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -123,7 +117,6 @@ Global
 		{62763BB2-942B-49A1-8808-ABB72EBF8942} = {15241878-5EF2-4C83-B402-3709025FACA6}
 		{42435A99-61E6-4B34-969E-D428F232430B} = {63EBE3DD-1F7B-41D8-9687-BCCA33B81324}
 		{FA8142FA-D5A1-42CC-9BBD-9E5A21972314} = {63EBE3DD-1F7B-41D8-9687-BCCA33B81324}
-		{615DB2F3-C8B5-4D04-87A2-0E8DF62D6D3E} = {210D9008-25A9-4ABE-8C8C-A7FDDC3381F6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {022403F7-A5A6-4639-8579-D9B56627AE73}
