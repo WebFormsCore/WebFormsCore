@@ -48,9 +48,17 @@ public class CspDirective
 
     public void AddInlineHash(string code)
     {
-        var source = CreateHash(code);
+        SourceList.Add(GetHash(code));
+    }
 
-        SourceList.Add(source);
+    public static string GetHash(string code)
+    {
+        using var sha256 = SHA256.Create();
+        var bytes = Encoding.UTF8.GetBytes(code);
+        var hash = sha256.ComputeHash(bytes);
+        var base64 = Convert.ToBase64String(hash).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
+        return $"'sha256-{base64}'";
     }
 
     public void Write(StringBuilder builder)
@@ -72,15 +80,5 @@ public class CspDirective
             builder.Append(' ');
             builder.Append(item);
         }
-    }
-
-    public static string CreateHash(string code)
-    {
-        using var sha256 = SHA256.Create();
-        var bytes = Encoding.UTF8.GetBytes(code);
-        var hash = sha256.ComputeHash(bytes);
-        var base64 = Convert.ToBase64String(hash).TrimEnd('=').Replace('+', '-').Replace('/', '_');
-
-        return $"'sha256-{base64}'";
     }
 }

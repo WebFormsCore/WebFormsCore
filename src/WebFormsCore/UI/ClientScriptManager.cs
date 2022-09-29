@@ -50,16 +50,33 @@ public sealed class ClientScriptManager
 
     private void RegisterScriptBlock(Type type, string key, string script, ref ScriptDictionary? dictionary, bool addScriptTags)
     {
-        var cspMode = _page.Csp.ScriptSrc.Mode;
-        var nonce = cspMode is CspMode.Nonce ? _page.Csp.ScriptSrc.GenerateNonce() : null;
+        var dictionaryKey = (type, key);
 
-        if (addScriptTags && cspMode is CspMode.Sha256)
+        if (dictionary != null && dictionary.ContainsKey(dictionaryKey))
         {
-            _page.Csp.ScriptSrc.AddInlineHash(script);
+            return;
+        }
+
+        string? nonce = null;
+
+        if (_page.Csp.Enabled)
+        {
+            var cspMode = _page.Csp.ScriptSrc.Mode;
+            nonce = cspMode is CspMode.Nonce ? _page.Csp.ScriptSrc.GenerateNonce() : null;
+
+            if (addScriptTags && cspMode is CspMode.Sha256)
+            {
+                if (script.IndexOf('\r') != -1)
+                {
+                    script = script.ReplaceLineEndings("\n");
+                }
+
+                _page.Csp.ScriptSrc.AddInlineHash(script);
+            }
         }
 
         dictionary ??= new ScriptDictionary();
-        dictionary[(type, key)] = new RegisteredScript(script, addScriptTags, nonce);
+        dictionary[dictionaryKey] = new RegisteredScript(script, addScriptTags, nonce);
     }
 
     private async ValueTask RenderRegisteredScripts(HtmlTextWriter writer, ScriptDictionary? scripts)

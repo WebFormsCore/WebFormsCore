@@ -755,18 +755,32 @@ var morphdom = morphdomFactory(morphAttrs);
 function submitForm(form, eventTarget) {
     var pageState = document.getElementById("pagestate");
     var url = location.pathname + location.search;
-    var data = new FormData(form);
+    var formData = new FormData(form);
     if (pageState) {
-        data.append("__PAGESTATE", pageState.value);
+        formData.append("__PAGESTATE", pageState.value);
     }
     if (eventTarget) {
-        data.append("__EVENTTARGET", eventTarget);
+        formData.append("__EVENTTARGET", eventTarget);
         eventTarget = null;
     }
-    fetch(url, {
-        method: 'post',
-        body: data
-    })
+    var request = {
+        method: "POST"
+    };
+    // Determine if we need to send the form data as JSON or as form data
+    if (document.body.querySelector('input[type="file"]')) {
+        request.body = formData;
+    }
+    else {
+        var object_1 = {};
+        formData.forEach(function (value, key) {
+            object_1[key] = value;
+        });
+        request.body = JSON.stringify(object_1);
+        request.headers = {
+            "Content-Type": "application/json"
+        };
+    }
+    fetch(url, request)
         .then(function (r) { return r.text(); })
         .then(function (r) {
         var options = {

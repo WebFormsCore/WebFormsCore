@@ -3,20 +3,34 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.Buffers.Text;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 using WebFormsCore.UI;
 using WebFormsCore.UI.HtmlControls;
-using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore;
 
 public class ViewStateManager : IViewStateManager
 {
+    private static readonly Action<HttpRequest, NameValueCollection> SetRequestForm;
+
+    static ViewStateManager()
+    {
+        var field = typeof(HttpRequest).GetField("_form", BindingFlags.Instance | BindingFlags.NonPublic) ?? throw new InvalidOperationException("Could not find _form field on HttpRequest");
+        var parameter = Expression.Parameter(typeof(HttpRequest), "request");
+        var parameter2 = Expression.Parameter(typeof(NameValueCollection), "form");
+        var body = Expression.Assign(Expression.Field(parameter, field), parameter2);
+        SetRequestForm = Expression.Lambda<Action<HttpRequest, NameValueCollection>>(body, parameter, parameter2).Compile();
+    }
+
     private readonly IServiceProvider _serviceProvider;
 
     public ViewStateManager(IServiceProvider serviceProvider)
@@ -100,6 +114,22 @@ public class ViewStateManager : IViewStateManager
         if (!isPostback)
         {
             return null;
+        }
+
+        if (context.Request.ContentType == "application/json")
+        {
+            var data = new NameValueCollection();
+            var json = await JsonSerializer.DeserializeAsync<JsonDocument>(request.InputStream);
+
+            if (json != null)
+            {
+                foreach (var property in json.RootElement.EnumerateObject())
+                {
+                    data.Add(property.Name, property.Value.GetString());
+                }
+            }
+
+            SetRequestForm(request, data);
         }
 
         page.IsPostBack = true;

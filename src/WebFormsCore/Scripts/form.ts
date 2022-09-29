@@ -4,21 +4,36 @@ function submitForm(form: HTMLFormElement, eventTarget?: string) {
     const pageState = document.getElementById("pagestate") as HTMLInputElement;
     const url = location.pathname + location.search;
 
-    const data = new FormData(form);
+    const formData = new FormData(form);
 
     if (pageState) {
-        data.append("__PAGESTATE", pageState.value);
+        formData.append("__PAGESTATE", pageState.value);
     }
 
     if (eventTarget) {
-        data.append("__EVENTTARGET", eventTarget);
+        formData.append("__EVENTTARGET", eventTarget);
         eventTarget = null;
     }
 
-    fetch(url, {
-        method: 'post',
-        body: data,
-    })
+    const request: RequestInit = {
+        method: "POST",
+    };
+
+    // Determine if we need to send the form data as JSON or as form data
+    if (document.body.querySelector('input[type="file"]')) {
+        request.body = formData;
+    } else {
+        const object = {};
+        formData.forEach(function(value, key){
+            object[key] = value;
+        });
+        request.body = JSON.stringify(object);
+        request.headers = {
+            "Content-Type": "application/json",
+        };
+    }
+
+    fetch(url, request)
         .then(r => r.text())
         .then(r => {
             const newElements = [];

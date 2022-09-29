@@ -22,6 +22,7 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
     protected override async Task RenderAttributesAsync(HtmlTextWriter writer)
     {
         await base.RenderAttributesAsync(writer);
+        await writer.WriteAttributeAsync("method", "post");
         await writer.WriteAttributeAsync("id", ClientID);
         await writer.WriteAttributeAsync("data-wfc-form", null);
     }

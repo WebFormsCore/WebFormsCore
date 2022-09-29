@@ -5,7 +5,6 @@ namespace WebFormsCore.Security;
 
 public class Csp
 {
-    private CspDirective? _defaultSrc;
     private CspDirective? _scriptSrc;
     private CspDirective? _styleSrc;
     private CspDirective? _imgSrc;
@@ -29,7 +28,7 @@ public class Csp
 
     public bool Enabled { get; set; }
 
-    public CspDirective DefaultSrc => _defaultSrc ??= new CspDirective("default-src", "'self'");
+    public CspDirective DefaultSrc { get; } = new("default-src", "'self'");
 
     public CspDirective ScriptSrc => _scriptSrc ??= new CspDirective("script-src");
 

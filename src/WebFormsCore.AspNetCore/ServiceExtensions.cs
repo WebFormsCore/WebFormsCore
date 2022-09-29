@@ -13,7 +13,8 @@ public static class ServiceExtensions
     private static readonly object[] DefaultMetaData =
     {
         new SingleThreadedRequestAttribute { IsDisabled = true },
-        new BufferResponseStreamAttribute { IsDisabled = true }
+        new BufferResponseStreamAttribute { IsDisabled = true },
+        new PreBufferRequestStreamAttribute { IsDisabled = false }
     };
 
     public static IApplicationBuilder UseWebForms(this IApplicationBuilder app)

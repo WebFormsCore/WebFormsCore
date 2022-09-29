@@ -681,33 +681,6 @@ public class HtmlTextWriter : TextWriter
         return Task.CompletedTask;
     }
 
-    public void Write(ReadOnlySpan<byte> buffer)
-    {
-        InnerWriter.Flush();
-
-        if (_stream == null)
-        {
-            var (owner, count) = ByteToChars(buffer);
-
-            try
-            {
-#if NET
-                InnerWriter.Write(owner.Memory.Slice(0, count));
-#else
-                InnerWriter.Write(owner.Memory.Span.Slice(0, count).ToString());
-#endif
-            }
-            finally
-            {
-                owner.Dispose();
-            }
-
-            return;
-        }
-
-        _stream.Write(buffer);
-    }
-
     public async Task WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken token = default)
     {
         await InnerWriter.FlushAsync();
