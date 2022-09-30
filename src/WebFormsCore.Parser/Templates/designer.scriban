@@ -1,11 +1,11 @@
 #line hidden
 {{ func line }}
-#line ({{ $0.Range.Start.Line + 1 }},{{ $0.Range.Start.Column + 1 }})-({{ $0.Range.End.Line + 1 }},{{ $0.Range.End.Column + 1 }}) 12 "{{ $0.Range.File }}"
+#line {{ $0.Range.Start.Line + 1 }} "{{ $0.Range.File }}"
 {{- end }}
 
 {{- func write_children }}
         {{- for child in $0 }}
-{{ line child }}
+        {{ line child }}
         {{- case child.Type }}
         {{- when "Text" }}
             {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject(WebActivator.CreateLiteral({{ child.Text.CodeString }}));
@@ -62,7 +62,7 @@
         {{- if $2 && child.FieldName }}
             {{ $1 }}.{{ child.FieldName }} = {{ child.VariableName }};
         {{- end }}
-#line hidden
+        #line hidden
         {{- end }}
 {{-end}}
 
@@ -109,6 +109,25 @@ partial class {{ type.InheritsClassName }}
 {{- for prop in type.Ids }}
     protected {{ prop.DisplayType }} {{ prop.Name }};
 {{- end }}
+
+    {{- for template in type.Templates }}
+    {{- if template.ControlsType }}
+
+    public class {{ template.ControlsType }} : WebFormsCore.UI.ITemplateControls
+    {
+    {{- for prop in template.Ids }}
+        public {{ prop.DisplayType }} {{ prop.Name }};
+    {{- end }}
+
+        public void Load(WebFormsCore.UI.Control container)
+        {
+        {{- for prop in template.Ids }}
+            {{ prop.Name }} = ({{ prop.DisplayType }})container.FindControl("{{ prop.Name }}");
+        {{- end }}
+        }
+    }
+    {{- end }}
+    {{- end }}
 }
 {{- end }}
 

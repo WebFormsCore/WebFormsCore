@@ -239,7 +239,8 @@ public class Parser
             var templateNode = new TemplateNode
             {
                 Property = name,
-                ClassName = $"Template_{_type?.Name}_{_container.Current.VariableName}_{name}"
+                ClassName = $"Template_{_type?.Name}_{_container.Current.VariableName}_{name}",
+                ControlsType = attributes.TryGetValue("ControlsType", out var controlsType) ? controlsType.Value : null,
             };
 
             parentControl.Templates.Add(templateNode);
@@ -281,6 +282,10 @@ public class Parser
                 if (_container.Template == null)
                 {
                     Root.Ids.Add(new ControlId(id, controlType, member));
+                }
+                else
+                {
+                    _container.Template.Ids.Add(new ControlId(id, controlType, member));
                 }
             }
 

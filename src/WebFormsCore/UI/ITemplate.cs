@@ -9,3 +9,8 @@ public interface ITemplate
     /// <param name="container">The <see cref="T:WebFormsCore.UI.Control" /> object to contain the instances of controls from the inline template. </param>
     void InstantiateIn(Control container);
 }
+
+public interface ITemplateControls
+{
+    void Load(Control control);
+}

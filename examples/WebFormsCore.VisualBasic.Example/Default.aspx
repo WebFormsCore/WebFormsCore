@@ -24,7 +24,7 @@
                 <wfc:Button runat="server" ID="btnIncrement" OnClick="btnIncrement_OnClick" Text="Increment" />
 
                 <wfc:Repeater runat="server" ID="rptItems" OnItemDataBound="rptItems_OnItemDataBound">
-                    <ItemTemplate>
+                    <ItemTemplate ControlsType="ItemControls">
                         <wfc:Literal runat="server" ID="litItem" />
                     </ItemTemplate>
                 </wfc:Repeater>

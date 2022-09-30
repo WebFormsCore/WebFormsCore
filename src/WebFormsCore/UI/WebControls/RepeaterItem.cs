@@ -4,13 +4,23 @@ namespace WebFormsCore.UI.WebControls;
 
 public class RepeaterItem : Control, IDataItemContainer
 {
+    private object? _dataItem;
+
     public RepeaterItem(int itemIndex, ListItemType itemType)
     {
         ItemIndex = itemIndex;
         ItemType = itemType;
     }
 
-    public virtual object? DataItem { get; set; }
+    public virtual object? DataItem
+    {
+        get => _dataItem;
+        set
+        {
+            _dataItem = value;
+            OnDataItemChanged();
+        }
+    }
 
     public virtual int ItemIndex { get; set; }
 
@@ -19,6 +29,10 @@ public class RepeaterItem : Control, IDataItemContainer
     public virtual Task DataBindAsync()
     {
         return Task.CompletedTask;
+    }
+
+    protected virtual void OnDataItemChanged()
+    {
     }
 
     int IDataItemContainer.DataItemIndex => ItemIndex;
@@ -43,5 +57,10 @@ public class RepeaterItem<T> : RepeaterItem
             _dataItem = value!;
             base.DataItem = value;
         }
+    }
+
+    protected override void OnDataItemChanged()
+    {
+        _dataItem = (T?)base.DataItem;
     }
 }

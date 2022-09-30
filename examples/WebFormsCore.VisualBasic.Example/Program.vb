@@ -10,7 +10,9 @@ Module Program
 
         Dim app = builder.Build()
 
-        app.UseWebForms()
+        app.UseSystemWebAdapters()
+        app.MapAspx("/", "Default.aspx")
+        app.MapFallbackToAspx()
         app.Run()
     End Sub
 End Module

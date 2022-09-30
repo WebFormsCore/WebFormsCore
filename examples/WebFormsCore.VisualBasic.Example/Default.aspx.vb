@@ -1,4 +1,5 @@
 ﻿Imports WebFormsCore
+Imports WebFormsCore.UI
 Imports WebFormsCore.UI.WebControls
 
 Public Partial Class DefaultPage
@@ -25,8 +26,8 @@ Public Partial Class DefaultPage
     End Sub
 
     Protected Function rptItems_OnItemDataBound(sender As Object, e As RepeaterItemEventArgs) As Task
-        Dim lit = DirectCast(e.Item.FindControl("litItem"), Literal)
-        lit.Text = $"Item {e.Item.ItemIndex}"
+        Dim item = e.Item.FindControls(Of ItemControls)()
+        item.litItem.Text = $"Item {e.Item.ItemIndex}"
         Return Task.CompletedTask
     End Function
 End Class

@@ -9,9 +9,17 @@ using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI;
 
-internal static class ControlExtensions
+public static class ControlExtensions
 {
-    public static IEnumerable<Control> EnumerateControls(this Control control)
+    public static T FindControls<T>(this Control control)
+        where T : ITemplateControls, new()
+    {
+        var container = new T();
+        container.Load(control);
+        return container;
+    }
+
+    internal static IEnumerable<Control> EnumerateControls(this Control control)
     {
         yield return control;
 
@@ -24,7 +32,7 @@ internal static class ControlExtensions
         }
     }
 
-    public static IEnumerable<Control> EnumerateControls(this Control control, Func<Control, bool> filter)
+    internal static IEnumerable<Control> EnumerateControls(this Control control, Func<Control, bool> filter)
     {
         yield return control;
 

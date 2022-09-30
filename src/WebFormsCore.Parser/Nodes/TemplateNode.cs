@@ -8,7 +8,11 @@ public class TemplateNode : ElementNode
 
     public Token Property { get; set; }
 
+    public string? ControlsType { get; set; }
+
     public List<ContainerNode> RenderMethods { get; set; } = new();
+
+    public List<ControlId> Ids { get; set; } = new();
 
     public override string? VariableName
     {

@@ -175,7 +175,7 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
         InitializeItem(item);
         if (dataBind)
         {
-            item.DataItem = dataItem;
+            SetDataItem(item, dataItem);
         }
 
         await ItemCreated.InvokeAsync(this, CreateEventArgs(item));
@@ -200,6 +200,8 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
     protected abstract TItem CreateItem(int itemIndex, ListItemType itemType);
 
     protected abstract TEventArgs CreateEventArgs(TItem item);
+
+    protected abstract void SetDataItem(TItem item, T dataItem);
 }
 
 public enum ListItemType
@@ -224,6 +226,11 @@ public class Repeater : RepeaterBase<object, RepeaterItem, RepeaterItemEventArgs
     protected override RepeaterItemEventArgs CreateEventArgs(RepeaterItem item)
     {
         return new RepeaterItemEventArgs(item);
+    }
+
+    protected override void SetDataItem(RepeaterItem item, object dataItem)
+    {
+        item.DataItem = dataItem;
     }
 }
 
@@ -270,5 +277,10 @@ public class Repeater<T> : RepeaterBase<T, RepeaterItem<T>, RepeaterItemEventArg
     protected override RepeaterItemEventArgs<T> CreateEventArgs(RepeaterItem<T> item)
     {
         return new RepeaterItemEventArgs<T>(item);
+    }
+
+    protected override void SetDataItem(RepeaterItem<T> item, T dataItem)
+    {
+        item.DataItem = dataItem;
     }
 }

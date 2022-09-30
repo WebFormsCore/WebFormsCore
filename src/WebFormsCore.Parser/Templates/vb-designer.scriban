@@ -99,6 +99,24 @@ Partial Class {{ type.InheritsClassName }}
 {{- for prop in type.Ids }}
     Protected {{ prop.Name }} As {{ prop.DisplayType }}
 {{- end }}
+
+    {{- for template in type.Templates }}
+    {{- if template.ControlsType }}
+
+    Public Class {{ template.ControlsType }}
+        Implements WebFormsCore.UI.ITemplateControls
+    {{- for prop in template.Ids }}
+        Public {{ prop.Name }} As {{ prop.DisplayType }}
+    {{- end }}
+
+        Public Sub Load(container As WebFormsCore.UI.Control) Implements WebFormsCore.UI.ITemplateControls.Load
+        {{- for prop in template.Ids }}
+            {{ prop.Name }} = DirectCast(container.FindControl("{{ prop.Name }}"), {{ prop.DisplayType }})
+        {{- end }}
+        End Sub
+    End Class
+    {{- end }}
+    {{- end }}
 End Class
 {{- end }}
 

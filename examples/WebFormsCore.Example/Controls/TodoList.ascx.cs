@@ -16,12 +16,11 @@ public partial class TodoList : Control
         }
     }
 
-    protected Task rptItems_OnItemDataBound(object? sender, RepeaterItemEventArgs e)
+    protected Task rptItems_OnItemDataBound(object? sender, RepeaterItemEventArgs<string> e)
     {
-        if (e.Item.FindControl("litValue") is Literal litValue)
-        {
-            litValue.Text = e.Item.DataItem?.ToString();
-        }
+        var controls = e.Item.FindControls<ItemControls>();
+
+        controls.litValue.Text = e.Item.DataItem;
 
         return Task.CompletedTask;
     }

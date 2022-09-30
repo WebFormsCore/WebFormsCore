@@ -13,7 +13,10 @@ public class RepeaterItemEventArgs : EventArgs
     /// <param name="item">
     /// The <see cref="T:System.Web.UI.WebControls.RepeaterItem" /> associated with the event. The <see cref="P:System.Web.UI.WebControls.RepeaterItemEventArgs.Item" /> property is set to this value.
     /// </param>
-    public RepeaterItemEventArgs(RepeaterItem item) => this.Item = item;
+    public RepeaterItemEventArgs(RepeaterItem item)
+    {
+        Item = item;
+    }
 
     /// <summary>
     /// Gets the <see cref="T:System.Web.UI.WebControls.RepeaterItem" /> associated with the event.
