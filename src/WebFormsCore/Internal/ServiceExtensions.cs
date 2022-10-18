@@ -26,6 +26,9 @@ public static class ServiceExtensions
 
         services.AddPooledControl<LiteralControl>();
         services.AddPooledControl<LiteralHtmlControl>();
+        services.AddPooledControl<HtmlBody>();
+        services.AddPooledControl<HtmlLink>();
+        services.AddPooledControl<HtmlForm>();
 
         services.AddSingleton<IViewStateSerializer<object?>, ObjectViewStateSerializer>();
         services.AddViewStateSerializer<string?, StringViewStateSerializer>();

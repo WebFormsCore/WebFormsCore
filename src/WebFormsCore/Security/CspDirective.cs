@@ -17,7 +17,7 @@ public class CspDirective
     public CspDirective(string name, string? defaultValue = null)
     {
         Name = name;
-        SourceList = new List<string>();
+        SourceList = new HashSet<string>();
 
         if (defaultValue != null)
         {
@@ -29,7 +29,7 @@ public class CspDirective
 
     public string Name { get; }
 
-    public List<string> SourceList { get; set; }
+    public HashSet<string> SourceList { get; set; }
 
     public string GenerateNonce()
     {

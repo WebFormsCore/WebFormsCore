@@ -21,7 +21,7 @@ public interface IWebObjectActivator
 
     LiteralControl CreateLiteral(object? value);
 
-    HtmlGenericControl CreateElement(string tagName);
+    HtmlContainerControl CreateElement(string tagName);
 }
 
 public interface IPostBackLoadHandler

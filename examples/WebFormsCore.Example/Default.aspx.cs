@@ -12,9 +12,6 @@ public partial class Default : Page
     protected override void OnInit(EventArgs args)
     {
         Csp.Enabled = true;
-        Csp.ScriptSrc.Mode = CspMode.Sha256;
-        Csp.FormAction.SourceList.Add("'none'");
-        Csp.StyleSrc.SourceList.Add("https://cdn.jsdelivr.net");
     }
 
     protected override void OnLoad(EventArgs args)

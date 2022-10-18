@@ -40,16 +40,16 @@ public sealed class ClientScriptManager
 
     public void RegisterStartupScript(Type type, string key, string script, bool addScriptTags)
     {
-        if (type == null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
         RegisterScriptBlock(type, key, script, ref _registeredClientStartupScripts, addScriptTags);
     }
 
     private void RegisterScriptBlock(Type type, string key, string script, ref ScriptDictionary? dictionary, bool addScriptTags)
     {
+        if (type == null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
         var dictionaryKey = (type, key);
 
         if (dictionary != null && dictionary.ContainsKey(dictionaryKey))

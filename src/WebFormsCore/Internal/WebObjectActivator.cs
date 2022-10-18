@@ -58,10 +58,20 @@ internal sealed class WebObjectActivator : IWebObjectActivator
         return CreateLiteral(value?.ToString() ?? "");
     }
 
-    public HtmlGenericControl CreateElement(string tagName)
+    public HtmlContainerControl CreateElement(string tagName)
     {
-        var control = CreateControl<LiteralHtmlControl>();
-        control.TagName = tagName;
-        return control;
+        switch (tagName)
+        {
+            case "body" or "BODY":
+                return CreateControl<HtmlBody>();
+            case "link" or "LINK":
+                return CreateControl<HtmlLink>();
+            case "script" or "SCRIPT":
+                return CreateControl<HtmlScript>();
+            default:
+                var control = CreateControl<LiteralHtmlControl>();
+                control.TagName = tagName;
+                return control;
+        }
     }
 }

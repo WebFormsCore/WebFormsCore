@@ -37,11 +37,13 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler
 
     private bool IsMultiLine => TextMode == TextBoxMode.MultiLine;
 
-    private bool SaveTextViewState => TextMode != TextBoxMode.Password && (TextChanged != null || !IsEnabled || !Visible || ReadOnly || GetType() != typeof (TextBox));
+    private bool IsReadOnly => !IsEnabled || !Visible || ReadOnly;
+
+    private bool SaveTextViewState => TextMode != TextBoxMode.Password && (TextChanged != null || IsReadOnly || GetType() != typeof (TextBox));
 
     protected override async Task OnPostbackAsync(CancellationToken token)
     {
-        if (Context.Request.Form[ClientID] is { } value)
+        if (!IsReadOnly && Context.Request.Form[ClientID] is { } value)
         {
             var isChanged = Text != value;
             Text = value;
