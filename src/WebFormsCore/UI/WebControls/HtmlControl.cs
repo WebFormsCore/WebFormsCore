@@ -10,6 +10,7 @@ namespace WebFormsCore.UI.WebControls
     public abstract class HtmlControl : Control, IAttributeAccessor
     {
         internal string _tagName;
+        private string _initialTagName;
         private AttributeCollection? _attributes;
 
         /// <summary>Initializes a new instance of the <see cref="T:WebFormsCore.UI.WebControls.HtmlControl" /> class using default values.</summary>
@@ -20,7 +21,11 @@ namespace WebFormsCore.UI.WebControls
 
         /// <summary>Initializes a new instance of the <see cref="T:WebFormsCore.UI.WebControls.HtmlControl" /> class using the specified tag.</summary>
         /// <param name="tag">A string that specifies the tag name of the control. </param>
-        protected HtmlControl(string tag) => _tagName = tag;
+        protected HtmlControl(string tag)
+        {
+            _tagName = tag;
+            _initialTagName = tag;
+        }
 
         /// <summary>Gets a collection of all attribute name and value pairs expressed on a server control tag within the ASP.NET page.</summary>
         /// <returns>A <see cref="T:WebFormsCore.UI.AttributeCollection" /> object that contains all attribute name and value pairs expressed on a server control tag within the Web page.</returns>
@@ -110,7 +115,7 @@ namespace WebFormsCore.UI.WebControls
         {
             base.ClearControl();
 
-            _tagName = "span";
+            _tagName = _initialTagName;
             _attributes?.Clear();
             _attributes?.CssStyle.Clear();
         }
