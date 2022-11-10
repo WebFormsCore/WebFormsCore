@@ -76,7 +76,7 @@ internal class ViewManager : IDisposable
         {
             try
             {
-                await GetTypeAsync(e.FullPath).AsTask();
+                await GetTypeAsync(path);
             }
             catch (Exception ex)
             {

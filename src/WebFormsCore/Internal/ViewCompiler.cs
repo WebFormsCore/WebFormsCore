@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -58,7 +59,12 @@ internal static class ViewCompiler
             );
         }
 
-        var type = RootNode.Parse(compilation, path, text);
+        var type = RootNode.Parse(
+            compilation,
+            path,
+            text,
+            namespaces: GetNamespaces(path)
+        );
 
         if (type.Inherits == null)
         {
@@ -76,6 +82,35 @@ internal static class ViewCompiler
         );
 
         return new ViewCompileResult(compilation, type);
+    }
+
+    private static IEnumerable<KeyValuePair<string, string>>? GetNamespaces(string path)
+    {
+        IEnumerable<KeyValuePair<string, string>>? namespaces = null;
+        var parentDirectory = Path.GetDirectoryName(path);
+
+        while (parentDirectory != null)
+        {
+            var webConfigPath = Path.Combine(parentDirectory, "web.config");
+
+            if (File.Exists(webConfigPath))
+            {
+                try
+                {
+                    namespaces = RootNode.GetNamespaces(
+                        File.ReadAllText(webConfigPath)
+                    );
+                }
+                catch (Exception e)
+                {
+                    // ignore
+                }
+            }
+
+            parentDirectory = Path.GetDirectoryName(parentDirectory);
+        }
+
+        return namespaces;
     }
 
     private static IReadOnlyList<MetadataReference> References

@@ -2,6 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -180,5 +181,43 @@ public class RootNode : ContainerNode
 
             Ids.Add(id);
         }
+    }
+
+    public static List<KeyValuePair<string, string>> GetNamespaces(string webConfigText)
+    {
+        var namespaces = new List<KeyValuePair<string, string>>();
+
+        if (string.IsNullOrEmpty(webConfigText))
+        {
+            return namespaces;
+        }
+
+        try
+        {
+            var controls = XElement.Parse(webConfigText)
+                .Descendants("system.web").FirstOrDefault()
+                ?.Descendants("pages").FirstOrDefault()
+                ?.Descendants("controls").FirstOrDefault();
+
+            if (controls != null)
+            {
+                foreach (var add in controls.Descendants("add"))
+                {
+                    var tagPrefix = add.Attribute("tagPrefix")?.Value;
+                    var namespaceName = add.Attribute("namespace")?.Value;
+
+                    if (tagPrefix != null && namespaceName != null)
+                    {
+                        namespaces.Add(new KeyValuePair<string, string>(tagPrefix, namespaceName));
+                    }
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // TODO: Diagnostic
+        }
+
+        return namespaces;
     }
 }

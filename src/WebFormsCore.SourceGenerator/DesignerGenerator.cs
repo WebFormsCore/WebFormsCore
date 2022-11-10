@@ -43,37 +43,7 @@ public abstract class DesignerGenerator : IIncrementalGenerator
         }
 
         var (webConfigPath, webConfigText) = files.FirstOrDefault(x => x.Path.EndsWith("web.config", StringComparison.OrdinalIgnoreCase));
-
-        var namespaces = new List<KeyValuePair<string, string>>();
-
-        if (!string.IsNullOrEmpty(webConfigText))
-        {
-            try
-            {
-                var controls = XElement.Parse(webConfigText)
-                    .Descendants("system.web").FirstOrDefault()
-                    ?.Descendants("pages").FirstOrDefault()
-                    ?.Descendants("controls").FirstOrDefault();
-
-                if (controls != null)
-                {
-                    foreach (var add in controls.Descendants("add"))
-                    {
-                        var tagPrefix = add.Attribute("tagPrefix")?.Value;
-                        var namespaceName = add.Attribute("namespace")?.Value;
-
-                        if (tagPrefix != null && namespaceName != null)
-                        {
-                            namespaces.Add(new KeyValuePair<string, string>(tagPrefix, namespaceName));
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // TODO: Diagnostic
-            }
-        }
+        var namespaces = RootNode.GetNamespaces(webConfigText);
 
         foreach (var (fullPath, text) in files)
         {

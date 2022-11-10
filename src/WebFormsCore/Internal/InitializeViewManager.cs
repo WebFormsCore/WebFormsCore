@@ -28,7 +28,7 @@ internal class InitializeViewManager : BackgroundService
         var objPrefix = "obj" + Path.DirectorySeparatorChar;
 
         var files = Directory.GetFiles(_environment.ContentRootPath, "*.*", SearchOption.AllDirectories)
-            .Where(i => Path.GetExtension((string?)i) is ".aspx" or ".ascx");
+            .Where(i => Path.GetExtension(i) is ".aspx" or ".ascx");
 
 #if NET
         await Parallel.ForEachAsync(files, stoppingToken, async (fullPath, _) =>

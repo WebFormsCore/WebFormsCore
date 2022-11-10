@@ -546,7 +546,7 @@ public class Parser
             return null;
         }
 
-        type = _compilation.GetType("System.Web.UI", "Control");
+        type = _compilation.GetType("WebFormsCore.UI", "Control");
 
         Diagnostics.Add(
             Diagnostic.Create(
