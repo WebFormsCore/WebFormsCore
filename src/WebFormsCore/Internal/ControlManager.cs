@@ -8,24 +8,58 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using WebFormsCore.Compiler;
 using WebFormsCore.Nodes;
+using WebFormsCore.UI;
 
 namespace WebFormsCore;
 
-internal class ViewManager : IDisposable
+public interface IControlManager
+{
+    Type GetType(string path);
+
+    ValueTask<Type> GetTypeAsync(string path);
+
+    bool TryGetPath(string fullPath, [NotNullWhen(true)] out string? path);
+
+    Task<bool> RenderPageAsync(
+        HttpContext context,
+        IServiceProvider provider,
+        string path,
+        Stream stream,
+        CancellationToken token);
+
+    Task<bool> RenderPageAsync(
+        HttpContext context,
+        IServiceProvider provider,
+        Type pageType,
+        Stream stream,
+        CancellationToken token);
+
+    Task<bool> RenderPageAsync(
+        HttpContext context,
+        IServiceProvider provider,
+        Page page,
+        Stream stream,
+        CancellationToken token);
+}
+
+public class ControlManager : IDisposable, IControlManager
 {
     private readonly ConcurrentDictionary<string, PageEntry> _pages = new();
     private readonly List<FileSystemWatcher> _watchers;
     private readonly IWebFormsEnvironment _environment;
-    private readonly ILogger<ViewManager> _logger;
+    private readonly ILogger<ControlManager> _logger;
     private readonly Dictionary<string, Type> _compiledViews;
 
-    public ViewManager(IWebFormsEnvironment environment, ILogger<ViewManager> logger)
+    public ControlManager(IWebFormsEnvironment environment, ILogger<ControlManager> logger)
     {
         _environment = environment;
         _logger = logger;
@@ -42,19 +76,22 @@ internal class ViewManager : IDisposable
             .Where(t => t.Attribute != null)
             .ToDictionary(t => t.Attribute.Path, t => t.Type, StringComparer.OrdinalIgnoreCase);
 
-        foreach (var extension in new[] { "*.aspx", "*.ascx" })
+        if (environment.EnableControlWatcher)
         {
-            var watcher = new FileSystemWatcher(environment.ContentRootPath, extension)
+            foreach (var extension in new[] { "*.aspx", "*.ascx" })
             {
-                IncludeSubdirectories = true,
-                EnableRaisingEvents = true
-            };
+                var watcher = new FileSystemWatcher(environment.ContentRootPath, extension)
+                {
+                    IncludeSubdirectories = true,
+                    EnableRaisingEvents = true
+                };
 
-            watcher.Changed += OnChanged;
-            watcher.Deleted += OnChanged;
-            watcher.Renamed += OnChanged;
+                watcher.Changed += OnChanged;
+                watcher.Deleted += OnChanged;
+                watcher.Renamed += OnChanged;
 
-            _watchers.Add(watcher);
+                _watchers.Add(watcher);
+            }
         }
     }
 
@@ -96,7 +133,6 @@ internal class ViewManager : IDisposable
         path = fullPath.Substring(_environment.ContentRootPath.Length).TrimStart('\\', '/');
         return true;
     }
-
 
     public async ValueTask<Type> GetTypeAsync(string path)
     {
@@ -141,14 +177,14 @@ internal class ViewManager : IDisposable
             return entry.Type;
         }
 
-        entry.Type = CompilePage(path);
+        entry.Type = CompileControl(path);
         entry.LastModified = File.GetLastWriteTimeUtc(entry.Path);
         entry.NextCheck = DateTimeOffset.Now.AddSeconds(5);
 
         return entry.Type;
     }
 
-    private Type CompilePage(string path)
+    private Type CompileControl(string path)
     {
         var sw = Stopwatch.StartNew();
 
@@ -166,7 +202,7 @@ internal class ViewManager : IDisposable
 
             if (attribute?.Hash == RootNode.GenerateHash(text))
             {
-                _logger.LogDebug("Using pre-compiled view of page {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
+                _logger.LogDebug("Using pre-compiled view of control {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
                 return type;
             }
 
@@ -206,6 +242,66 @@ internal class ViewManager : IDisposable
         _logger.LogDebug("Compiled view of page {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
 
         return type;
+    }
+
+    public async Task<bool> RenderPageAsync(
+        HttpContext context,
+        IServiceProvider provider,
+        string path,
+        Stream stream,
+        CancellationToken token)
+    {
+        var pageType = await GetTypeAsync(path);
+
+        return await RenderPageAsync(context, provider, pageType, stream, token);
+    }
+
+    public Task<bool> RenderPageAsync(
+        HttpContext context,
+        IServiceProvider provider,
+        Type pageType,
+        Stream stream,
+        CancellationToken token)
+    {
+        var page = (Page) ActivatorUtilities.GetServiceOrCreateInstance(provider, pageType);
+        return RenderPageAsync(context, provider, page, stream, token);
+    }
+
+    public async Task<bool> RenderPageAsync(
+        HttpContext context,
+        IServiceProvider provider,
+        Page page,
+        Stream stream,
+        CancellationToken token)
+    {
+        page.Initialize(provider, context);
+
+        await page.ProcessRequestAsync(token);
+
+        var response = context.Response;
+
+        if (page.Csp.Enabled)
+        {
+            response.Headers["Content-Security-Policy"] = page.Csp.ToString();
+        }
+
+#if NET
+        // await using
+        await
+#endif
+        using var textWriter = new StreamWriter(stream, Encoding.UTF8, 1024, true)
+        {
+            NewLine = "\n",
+            AutoFlush = false
+        };
+
+        await using var writer = new HtmlTextWriter(textWriter, stream);
+
+        context.Response.ContentType = "text/html";
+        await page.RenderAsync(writer, token);
+        await writer.FlushAsync();
+
+        return true;
     }
 
     private class PageEntry

@@ -11,13 +11,13 @@ namespace WebFormsCore;
 
 internal class InitializeViewManager : BackgroundService
 {
-    private readonly ViewManager _viewManager;
+    private readonly IControlManager _controlManager;
     private readonly IWebFormsEnvironment _environment;
     private readonly ILogger<InitializeViewManager> _logger;
 
-    public InitializeViewManager(ViewManager viewManager, IWebFormsEnvironment environment, ILogger<InitializeViewManager> logger)
+    public InitializeViewManager(IControlManager controlManager, IWebFormsEnvironment environment, ILogger<InitializeViewManager> logger)
     {
-        _viewManager = viewManager;
+        _controlManager = controlManager;
         _environment = environment;
         _logger = logger;
     }
@@ -37,13 +37,13 @@ internal class InitializeViewManager : BackgroundService
         foreach (var fullPath in files)
         {
 #endif
-            if (_viewManager.TryGetPath(fullPath, out var path) &&
+            if (_controlManager.TryGetPath(fullPath, out var path) &&
                 !path.StartsWith(binPrefix) &&
                 !path.StartsWith(objPrefix))
             {
                 try
                 {
-                    await _viewManager.GetTypeAsync(path);
+                    await _controlManager.GetTypeAsync(path);
                 }
                 catch (Exception ex)
                 {

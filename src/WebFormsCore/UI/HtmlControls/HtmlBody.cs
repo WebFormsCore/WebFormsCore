@@ -35,16 +35,20 @@ public class HtmlBody : HtmlContainerControl
 
         await base.RenderChildrenAsync(writer, token);
 
-        await writer.WriteAsync(@"<input id=""pagestate"" type=""hidden"" name=""__PAGESTATE"" value=""");
-        using (var viewState = viewStateManager.Write(Page, out var length))
+        if (viewStateManager.EnableViewState)
         {
-            await writer.WriteAsync(viewState.Memory.Slice(0, length), token);
-        }
-        await writer.WriteAsync(@"""/>");
+            await writer.WriteAsync(@"<input id=""pagestate"" type=""hidden"" name=""__PAGESTATE"" value=""");
+            using (var viewState = viewStateManager.Write(Page, out var length))
+            {
+                await writer.WriteAsync(viewState.Memory.Slice(0, length), token);
+            }
 
-        if (!Page.IsPostBack)
-        {
-            await Page.ClientScript.RenderStartupScripts(writer);
+            await writer.WriteAsync(@"""/>");
+
+            if (!Page.IsPostBack)
+            {
+                await Page.ClientScript.RenderStartupScripts(writer);
+            }
         }
     }
 }

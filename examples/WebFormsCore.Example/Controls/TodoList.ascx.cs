@@ -18,9 +18,14 @@ public partial class TodoList : Control
 
     protected Task rptItems_OnItemDataBound(object? sender, RepeaterItemEventArgs<string> e)
     {
+        if (e.Item.DataItem is not { } dataItem)
+        {
+            return Task.CompletedTask;
+        }
+
         var controls = e.Item.FindControls<ItemControls>();
 
-        controls.litValue.Text = e.Item.DataItem;
+        controls.litValue.Text = dataItem;
 
         return Task.CompletedTask;
     }

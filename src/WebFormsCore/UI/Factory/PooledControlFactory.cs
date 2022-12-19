@@ -29,4 +29,9 @@ internal sealed class PooledControlFactory<T> : IControlFactory<T>, IDisposable
             _pool.Return(control);
         }
     }
+
+    object IControlFactory.CreateControl(IServiceProvider provider)
+    {
+        return CreateControl(provider);
+    }
 }

@@ -29,7 +29,6 @@ public ref struct Lexer
     private int _column;
     private int _nodeOffset;
     private bool _ignoreNewLine;
-    private bool _toCode;
 
     public Lexer(string file, ReadOnlySpan<char> input)
     {
@@ -49,7 +48,6 @@ public ref struct Lexer
         _offset = 0;
         _nodeOffset = -1;
         _ignoreNewLine = false;
-        _toCode = false;
     }
 
     public string File { get; }
@@ -391,7 +389,7 @@ public ref struct Lexer
             return true;
         }
 
-        return ConsumeUntil(_startStatement, end, type, start, type == TokenType.Statement);
+        return ConsumeUntil(_startStatement, end, type, start);
     }
 
     private bool ConsumeInlineSkipWhiteSpace()
@@ -590,15 +588,12 @@ public ref struct Lexer
             ;
     }
 
-    private bool ConsumeUntil(ReadOnlySpan<char> start, ReadOnlySpan<char> end, TokenType? type, TokenPosition offsetStart, bool toCode = false)
+    private bool ConsumeUntil(ReadOnlySpan<char> start, ReadOnlySpan<char> end, TokenType? type, TokenPosition offsetStart)
     {
-        _toCode = toCode;
         var textStart = Position;
 
         if (!SkipUntil(start, end))
         {
-            _toCode = false;
-
             if (type.HasValue)
             {
                 AddNode(type.Value, new TokenRange(File, offsetStart, Position), CreateString(textStart, Position));
@@ -606,8 +601,6 @@ public ref struct Lexer
 
             return true;
         }
-
-        _toCode = false;
 
         if (type.HasValue)
         {

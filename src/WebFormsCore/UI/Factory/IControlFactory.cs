@@ -2,7 +2,12 @@
 
 namespace WebFormsCore.UI;
 
-public interface IControlFactory<out T>
+public interface IControlFactory
 {
-    T CreateControl(IServiceProvider provider);
+    object CreateControl(IServiceProvider provider);
+}
+
+public interface IControlFactory<out T> : IControlFactory
+{
+    new T CreateControl(IServiceProvider provider);
 }

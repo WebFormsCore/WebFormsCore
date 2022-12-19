@@ -7,11 +7,12 @@ using WebFormsCore.UI.HtmlControls;
 namespace WebFormsCore.UI;
 
 internal sealed class ControlFactory<T> : IControlFactory<T>
+    where T : notnull
 {
-    private readonly ViewManager _manager;
+    private readonly IControlManager _manager;
     private readonly string[] _viewPaths;
 
-    public ControlFactory(ViewManager manager)
+    public ControlFactory(IControlManager manager)
     {
         _manager = manager;
         _viewPaths = typeof(T).GetCustomAttributes<ViewPathAttribute>()
@@ -37,5 +38,10 @@ internal sealed class ControlFactory<T> : IControlFactory<T>
         throw new InvalidOperationException(
             $"Controls {typeof(T).FullName} has multiple views. Use <% Register Src %> instead."
         );
+    }
+
+    object IControlFactory.CreateControl(IServiceProvider provider)
+    {
+        return CreateControl(provider);
     }
 }

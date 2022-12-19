@@ -66,20 +66,21 @@ internal static class ViewCompiler
             namespaces: GetNamespaces(path)
         );
 
-        if (type.Inherits == null)
+
+        string? rootNamespace = null;
+
+        if (type.Inherits != null)
         {
-            throw new TypeLoadException($"Could not load type {RootNode.DetectInherits(text)}");
+            var assemblyName = type.Inherits.ContainingAssembly.ToDisplayString();
+            var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == assemblyName) ??
+                           Assembly.Load(assemblyName);
+
+            rootNamespace = assembly.GetCustomAttribute<RootNamespaceAttribute>()?.Namespace;
         }
 
-        var assemblyName = type.Inherits.ContainingAssembly.ToDisplayString();
-        var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == assemblyName) ??
-                       Assembly.Load(assemblyName);
+        var code = type.GenerateCode(rootNamespace);
 
-        var rootNamespace = assembly.GetCustomAttribute<RootNamespaceAttribute>()?.Namespace;
-
-        compilation = compilation.AddSyntaxTrees(
-            type.GenerateCode(rootNamespace)
-        );
+        compilation = compilation.AddSyntaxTrees(code);
 
         return new ViewCompileResult(compilation, type);
     }
@@ -125,6 +126,8 @@ internal static class ViewCompiler
 
                 foreach (var referencedAssembly in GetAssemblies())
                 {
+                    if (referencedAssembly.IsDynamic) continue;
+
                     references.Add(MetadataReference.CreateFromFile(referencedAssembly.Location));
                 }
 
@@ -140,12 +143,13 @@ internal static class ViewCompiler
         var returnAssemblies = new List<Assembly>();
         var loadedAssemblies = new HashSet<string>();
         var assembliesToCheck = new Queue<Assembly>();
-        var current = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
 
-        loadedAssemblies.Add(current.FullName);
-        returnAssemblies.Add(current);
-
-        assembliesToCheck.Enqueue(current);
+        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            loadedAssemblies.Add(assembly.FullName!);
+            returnAssemblies.Add(assembly);
+            assembliesToCheck.Enqueue(assembly);
+        }
 
         while(assembliesToCheck.Any())
         {
@@ -153,13 +157,21 @@ internal static class ViewCompiler
 
             foreach(var reference in assemblyToCheck.GetReferencedAssemblies())
             {
-                if (!loadedAssemblies.Contains(reference.FullName))
+                if (loadedAssemblies.Contains(reference.FullName))
                 {
-                    var assembly = Assembly.Load(reference);
-                    assembliesToCheck.Enqueue(assembly);
-                    loadedAssemblies.Add(reference.FullName);
-                    returnAssemblies.Add(assembly);
+                    continue;
                 }
+
+                var assembly = TryLoad(reference);
+
+                if (assembly == null)
+                {
+                    continue;
+                }
+
+                assembliesToCheck.Enqueue(assembly);
+                loadedAssemblies.Add(reference.FullName);
+                returnAssemblies.Add(assembly);
             }
         }
 
@@ -170,16 +182,36 @@ internal static class ViewCompiler
             {
                 var assemblyName = AssemblyName.GetAssemblyName(dllFile);
 
-                if (!loadedAssemblies.Contains(assemblyName.FullName))
+                if (loadedAssemblies.Contains(assemblyName.FullName))
                 {
-                    var assembly = Assembly.Load(assemblyName);
-                    loadedAssemblies.Add(assemblyName.FullName);
-                    returnAssemblies.Add(assembly);
+                    continue;
                 }
+
+                var assembly = TryLoad(assemblyName);
+
+                if (assembly == null)
+                {
+                    continue;
+                }
+
+                loadedAssemblies.Add(assemblyName.FullName);
+                returnAssemblies.Add(assembly);
             }
         }
 #endif
 
         return returnAssemblies;
+    }
+
+    private static Assembly? TryLoad(AssemblyName reference)
+    {
+        try
+        {
+            return Assembly.Load(reference);
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

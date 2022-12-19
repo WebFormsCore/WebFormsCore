@@ -7,79 +7,77 @@ using WebFormsCore;
 
 [assembly: PreApplicationStartMethod(typeof(PageHandlerFactory), nameof(PageHandlerFactory.Start))]
 
-namespace WebFormsCore
+namespace WebFormsCore;
+
+public class PageHandlerFactory : HttpTaskAsyncHandler
 {
+    private static IServiceProvider _provider;
 
-    public class PageHandlerFactory : HttpTaskAsyncHandler
+    public static void Start()
     {
-        private static IServiceProvider _provider;
-        
-        public static void Start()
+        DynamicModuleUtility.RegisterModule(typeof(LifeCycleModule));
+    }
+
+    public override async Task ProcessRequestAsync(HttpContext context)
+    {
+        if (_provider == null)
         {
-            DynamicModuleUtility.RegisterModule(typeof(LifeCycleModule));
+            return;
         }
 
-        public override async Task ProcessRequestAsync(HttpContext context)
+        await using var scope = _provider.CreateAsyncScope();
+
+        var application = scope.ServiceProvider.GetRequiredService<IWebFormsApplication>();
+        var path = application.GetPath(context);
+
+        if (path != null)
         {
-            if (_provider == null)
+            await application.ProcessAsync(context, path, scope.ServiceProvider, context.Request.TimedOutToken);
+        }
+    }
+
+    private sealed class LifeCycleModule : IHttpModule
+    {
+        private static readonly object Lock = new();
+        private bool _isInitialized;
+        private static int _initializedModuleCount;
+
+        public void Init(HttpApplication context)
+        {
+            lock (Lock)
             {
-                return;
-            }
+                _initializedModuleCount++;
 
-            await using var scope = _provider.CreateAsyncScope();
+                if (_initializedModuleCount != 1 || _isInitialized)
+                {
+                    return;
+                }
 
-            var application = scope.ServiceProvider.GetRequiredService<IWebFormsApplication>();
-            var path = application.GetPath(context);
+                _isInitialized = true;
 
-            if (path != null)
-            {
-                await application.ProcessAsync(context, path, scope.ServiceProvider, context.Request.TimedOutToken);
+                var services = new ServiceCollection();
+                services.AddWebForms();
+                services.AddLogging();
+                _provider = services.BuildServiceProvider();
             }
         }
 
-        private sealed class LifeCycleModule : IHttpModule
+        public void Dispose()
         {
-            private static readonly object Lock = new();
-            private bool _isInitialized;
-            private static int _initializedModuleCount;
-
-            public void Init(HttpApplication context)
+            lock (Lock)
             {
-                lock (Lock)
+                _initializedModuleCount--;
+
+                if (_initializedModuleCount != 0 || !_isInitialized)
                 {
-                    _initializedModuleCount++;
-                    
-                    if (_initializedModuleCount != 1 || _isInitialized)
-                    {
-                        return;
-                    }
-
-                    _isInitialized = true;
-
-                    var services = new ServiceCollection();
-                    services.AddWebForms();
-                    services.AddLogging();
-                    _provider = services.BuildServiceProvider();
+                    return;
                 }
-            }
 
-            public void Dispose()
-            {
-                lock (Lock)
-                {
-                    _initializedModuleCount--;
+                _isInitialized = false;
 
-                    if (_initializedModuleCount != 0 || !_isInitialized)
-                    {
-                        return;
-                    }
-
-                    _isInitialized = false;
-
-                    var disposable = _provider as IDisposable;
-                    _provider = null;
-                    disposable?.Dispose();
-                }
+                var disposable = _provider as IAsyncDisposable;
+                _provider = null;
+                disposable?.DisposeAsync().AsTask().ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
     }

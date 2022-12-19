@@ -37,11 +37,15 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         await writer.WriteAsync(UniqueID);
         await writer.WriteAsync(@"""/>");
 
-        await writer.WriteAsync(@"<input type=""hidden"" name=""__FORMSTATE"" value=""");
-        using (var viewState = viewStateManager.Write(this, out var length))
+        if (viewStateManager.EnableViewState)
         {
-            await writer.WriteAsync(viewState.Memory.Slice(0, length), token);
+            await writer.WriteAsync(@"<input type=""hidden"" name=""__FORMSTATE"" value=""");
+            using (var viewState = viewStateManager.Write(this, out var length))
+            {
+                await writer.WriteAsync(viewState.Memory.Slice(0, length), token);
+            }
+
+            await writer.WriteAsync(@"""/>");
         }
-        await writer.WriteAsync(@"""/>");
     }
 }

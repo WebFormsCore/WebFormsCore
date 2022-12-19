@@ -13,6 +13,9 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using WebFormsCore.Options;
 using WebFormsCore.UI;
 using WebFormsCore.UI.HtmlControls;
 
@@ -21,21 +24,36 @@ namespace WebFormsCore;
 public class ViewStateManager : IViewStateManager
 {
     private static readonly Action<HttpRequest, NameValueCollection> SetRequestForm;
+    private static readonly Type FormType;
+    private static readonly ConstructorInfo? FormConstructor;
 
     static ViewStateManager()
     {
         var field = typeof(HttpRequest).GetField("_form", BindingFlags.Instance | BindingFlags.NonPublic) ?? throw new InvalidOperationException("Could not find _form field on HttpRequest");
+
+        FormType = field.FieldType;
+        FormConstructor = FormType.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, Array.Empty<Type>(), null);
+
         var parameter = Expression.Parameter(typeof(HttpRequest), "request");
         var parameter2 = Expression.Parameter(typeof(NameValueCollection), "form");
-        var body = Expression.Assign(Expression.Field(parameter, field), parameter2);
+        Expression form = parameter2;
+
+        if (FormType != typeof(NameValueCollection))
+        {
+            form = Expression.Convert(parameter2, FormType);
+        }
+
+        var body = Expression.Assign(Expression.Field(parameter, field), form);
         SetRequestForm = Expression.Lambda<Action<HttpRequest, NameValueCollection>>(body, parameter, parameter2).Compile();
     }
 
     private readonly IServiceProvider _serviceProvider;
+    private readonly IOptions<ViewStateOptions> _options;
 
-    public ViewStateManager(IServiceProvider serviceProvider)
+    public ViewStateManager(IServiceProvider serviceProvider, IOptions<ViewStateOptions> options)
     {
         _serviceProvider = serviceProvider;
+        _options = options;
     }
 
 #if NET
@@ -53,6 +71,8 @@ public class ViewStateManager : IViewStateManager
     {
         return owner.EnumerateControls(c => c is not HtmlForm);
     }
+
+    public bool EnableViewState => _options.Value.Enabled;
 
     public IMemoryOwner<byte> Write(Control control, out int length)
     {
@@ -107,6 +127,11 @@ public class ViewStateManager : IViewStateManager
 
     public async ValueTask<HtmlForm?> LoadAsync(HttpContext context, Page page)
     {
+        if (!EnableViewState)
+        {
+            return null;
+        }
+
         var request = context.Request;
         var method = request.HttpMethod;
         var isPostback = method == "POST";
@@ -118,7 +143,7 @@ public class ViewStateManager : IViewStateManager
 
         if (context.Request.ContentType == "application/json")
         {
-            var data = new NameValueCollection();
+            var data = (NameValueCollection) (FormConstructor?.Invoke(Array.Empty<object>()) ?? Activator.CreateInstance(FormType) ?? throw new InvalidOperationException("Could not create form"));
             var json = await JsonSerializer.DeserializeAsync<JsonDocument>(request.InputStream);
 
             if (json != null)

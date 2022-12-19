@@ -2,8 +2,10 @@
 using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using WebFormsCore.Internal;
+using WebFormsCore.Options;
 using WebFormsCore.Serializer;
 using WebFormsCore.UI;
 using WebFormsCore.UI.Attributes;
@@ -17,12 +19,12 @@ public static class ServiceExtensions
     public static IServiceCollection AddWebFormsInternals(this IServiceCollection services)
     {
         services.AddHostedService<InitializeViewManager>();
-        services.AddSingleton<IViewStateManager, ViewStateManager>();
+        services.TryAddSingleton<IViewStateManager, ViewStateManager>();
 
-        services.AddSingleton(typeof(IControlFactory<>), typeof(ControlFactory<>));
-        services.AddSingleton<ViewManager>();
-        services.AddSingleton<IWebFormsApplication, WebFormsApplications>();
-        services.AddScoped<IWebObjectActivator, WebObjectActivator>();
+        services.TryAddSingleton(typeof(IControlFactory<>), typeof(ControlFactory<>));
+        services.TryAddSingleton<IControlManager, ControlManager>();
+        services.TryAddSingleton<IWebFormsApplication, WebFormsApplications>();
+        services.TryAddScoped<IWebObjectActivator, WebObjectActivator>();
 
         services.AddPooledControl<LiteralControl>();
         services.AddPooledControl<LiteralHtmlControl>();
@@ -51,9 +53,9 @@ public static class ServiceExtensions
         services.AddViewStateSerializer<Unit>();
         services.AddViewStateSerializer<AutoCompleteType>();
 
-        services.AddSingleton<IAttributeParser<string>, StringAttributeParser>();
-        services.AddSingleton<IAttributeParser<int>, Int32AttributeParser>();
-        services.AddSingleton<IAttributeParser<bool>, BoolAttributeParser>();
+        services.TryAddSingleton<IAttributeParser<string>, StringAttributeParser>();
+        services.TryAddSingleton<IAttributeParser<int>, Int32AttributeParser>();
+        services.TryAddSingleton<IAttributeParser<bool>, BoolAttributeParser>();
 
         return services;
     }

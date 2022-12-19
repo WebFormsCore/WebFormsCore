@@ -8,6 +8,8 @@ namespace WebFormsCore;
 
 public interface IViewStateManager
 {
+    bool EnableViewState { get; }
+
     IMemoryOwner<byte> Write(Control control, out int length);
 
     ValueTask<HtmlForm?> LoadAsync(HttpContext context, Page page);

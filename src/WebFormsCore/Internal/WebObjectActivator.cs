@@ -43,7 +43,10 @@ internal sealed class WebObjectActivator : IWebObjectActivator
 
     public object CreateControl(Type type)
     {
-        return ActivatorUtilities.CreateInstance(_serviceProvider, type);
+        var factoryType = typeof(IControlFactory<>).MakeGenericType(type);
+        var factory = (IControlFactory) _serviceProvider.GetRequiredService(factoryType);
+
+        return factory.CreateControl(_serviceProvider);
     }
 
     public LiteralControl CreateLiteral(string text)

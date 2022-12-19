@@ -20,11 +20,9 @@ public class RootNode : ContainerNode
     {
     }
 
-    public string? DesignerFullTypeName => Inherits != null
-        ? GetClassName(Inherits.ContainingNamespace.ToDisplayString(), Inherits.Name)
-        : null;
+    public string? DesignerFullTypeName => GetClassName(Inherits?.ContainingNamespace.ToDisplayString(), ClassName);
 
-    public string GetClassName(string? ns, string inherits)
+    public string GetClassName(string? ns, string? inherits)
     {
         return !string.IsNullOrEmpty(ns)
             ? $"{ns}.CompiledViews+{ClassName}"
@@ -41,7 +39,7 @@ public class RootNode : ContainerNode
 
     public INamedTypeSymbol? Inherits { get; set; }
 
-    public string? InheritsClassName => Inherits?.Name;
+    public string? InheritsClassName => Inherits?.Name ?? "global::WebFormsCore.UI.Page";
 
     public string? ClassName { get; set; }
 
@@ -54,8 +52,6 @@ public class RootNode : ContainerNode
     public string? Namespace { get; set; }
 
     public Language Language { get; set; } = Language.CSharp;
-
-    public bool AddFields { get; set; }
 
     public SyntaxTree GenerateCode(string? rootNamespace)
     {
