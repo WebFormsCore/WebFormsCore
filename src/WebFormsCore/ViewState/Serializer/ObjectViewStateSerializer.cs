@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace WebFormsCore.Serializer;
 
-public class ObjectViewStateSerializer : ViewStateSerializer<object?>
+public class ObjectViewStateSerializer : ViewStateSerializer<object>
 {
     private readonly IServiceProvider _provider;
 

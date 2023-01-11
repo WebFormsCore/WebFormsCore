@@ -7,6 +7,8 @@
         <RootNamespace>WebFormsCore</RootNamespace>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<ExtensionsVersion>7.0.0</ExtensionsVersion>
+		<NoWarn>$(NoWarn);CS0436</NoWarn>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
 	
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net6.0'">

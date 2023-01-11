@@ -295,7 +295,10 @@ public sealed class StateBag : IDictionary<string, object?>, IDictionary
         for (var i = 0; i < count; i++)
         {
             var key = reader.Read<string>();
-            var value = reader.Read<object?>();
+
+            if (key == null) continue;
+
+            var value = reader.Read<object>();
 
             if (value == null)
             {

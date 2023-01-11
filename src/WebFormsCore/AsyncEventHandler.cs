@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ public delegate Task AsyncEventHandler(object? sender, EventArgs e);
 
 public delegate Task AsyncEventHandler<in T>(object? sender, T e);
 
+[SuppressMessage("ReSharper", "ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract")]
 public static class AsyncEventHandlerHelper
 {
     private static readonly Func<MulticastDelegate, (int, object)> GetInvocationList = CreateGetInvocationList();

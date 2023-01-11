@@ -75,7 +75,7 @@ public abstract class DesignerGenerator : IIncrementalGenerator
 
                 types.Add(type);
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 // TODO: Diagnostic
             }

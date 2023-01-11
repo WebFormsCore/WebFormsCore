@@ -34,7 +34,8 @@ public ref struct ViewStateWriter
 
     public Span<byte> Span => _owner.Memory.Span.Slice(0, _length);
 
-    public void Write<T>(T value)
+    public void Write<T>(T? value)
+        where T : notnull
     {
         var serializer = _provider.GetService<IViewStateSerializer<T>>();
 

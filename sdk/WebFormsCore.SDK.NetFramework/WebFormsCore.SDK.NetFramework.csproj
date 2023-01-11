@@ -7,6 +7,7 @@
         <ArtifactsPath>$(BaseArtifactsPath)$(MSBuildProjectName)\</ArtifactsPath>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageType>MSBuildSdk</PackageType>
+        <NoWarn>$(NoWarn);NU5128</NoWarn>
     </PropertyGroup>
 
 </Project>

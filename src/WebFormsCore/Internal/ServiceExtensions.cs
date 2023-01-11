@@ -32,8 +32,8 @@ public static class ServiceExtensions
         services.AddPooledControl<HtmlLink>();
         services.AddPooledControl<HtmlForm>();
 
-        services.AddSingleton<IViewStateSerializer<object?>, ObjectViewStateSerializer>();
-        services.AddViewStateSerializer<string?, StringViewStateSerializer>();
+        services.AddSingleton<IViewStateSerializer<object>, ObjectViewStateSerializer>();
+        services.AddViewStateSerializer<string, StringViewStateSerializer>();
         services.AddViewStateSerializer<int>();
         services.AddViewStateSerializer<uint>();
         services.AddViewStateSerializer<short>();
@@ -86,6 +86,7 @@ public static class ServiceExtensions
 
     public static IServiceCollection AddViewStateSerializer<T, TSerializer>(this IServiceCollection services)
         where TSerializer : class, IViewStateSerializer<T>
+        where T : notnull
     {
         var offset = (byte)(1 + services.Count(i => i.ServiceType == typeof(ViewStateSerializerRegistration)));
 

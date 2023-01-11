@@ -4,7 +4,7 @@ namespace WebFormsCore.Nodes;
 
 public class TemplateNode : ElementNode
 {
-    public string ClassName { get; set; }
+    public string ClassName { get; set; } = default!;
 
     public Token Property { get; set; }
 

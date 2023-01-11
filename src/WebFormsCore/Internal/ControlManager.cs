@@ -74,7 +74,7 @@ public class ControlManager : IDisposable, IControlManager
                 Attribute = t.GetCustomAttribute<CompiledViewAttribute>()
             })
             .Where(t => t.Attribute != null)
-            .ToDictionary(t => t.Attribute.Path, t => t.Type, StringComparer.OrdinalIgnoreCase);
+            .ToDictionary(t => t.Attribute!.Path, t => t.Type, StringComparer.OrdinalIgnoreCase);
 
         if (environment.EnableControlWatcher)
         {

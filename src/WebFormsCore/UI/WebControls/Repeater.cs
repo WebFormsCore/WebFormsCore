@@ -175,7 +175,7 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
         InitializeItem(item);
         if (dataBind)
         {
-            SetDataItem(item, dataItem);
+            SetDataItem(item, dataItem!);
         }
 
         await ItemCreated.InvokeAsync(this, CreateEventArgs(item));

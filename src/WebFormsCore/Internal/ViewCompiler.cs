@@ -102,7 +102,7 @@ internal static class ViewCompiler
                         File.ReadAllText(webConfigPath)
                     );
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // ignore
                 }

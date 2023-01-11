@@ -5,10 +5,10 @@
         <PackageVersion>$(Version)</PackageVersion>
         <Authors>WebFormsCore</Authors>
         <RepositoryUrl>https://github.com/WebFormsCore/WebFormsCore</RepositoryUrl>
-        <Copyright>Copyright © 2022 WebFormsCore</Copyright>
+        <Copyright>Copyright © 2023 WebFormsCore</Copyright>
         <PackageTags>webformscore</PackageTags>
         <PackageProjectUrl>https://github.com/WebFormsCore/WebFormsCore</PackageProjectUrl>
-        <PackageLicenseUrl>https://github.com/WebFormsCore/WebFormsCore/blob/main/LICENSE</PackageLicenseUrl>
+        <PackageLicense>https://github.com/WebFormsCore/WebFormsCore/blob/main/LICENSE</PackageLicense>
     </PropertyGroup>
 
 </Project>

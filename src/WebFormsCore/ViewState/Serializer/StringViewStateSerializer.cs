@@ -4,7 +4,7 @@ using System.Text;
 
 namespace WebFormsCore.Serializer;
 
-public class StringViewStateSerializer : ViewStateSerializer<string?>
+public class StringViewStateSerializer : ViewStateSerializer<string>
 {
     private static readonly Encoding Encoding = Encoding.UTF8;
 

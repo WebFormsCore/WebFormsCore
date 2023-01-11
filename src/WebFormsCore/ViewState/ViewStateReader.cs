@@ -31,12 +31,13 @@ public ref struct ViewStateReader
         _owner = owner;
     }
 
-    public T Read<T>()
+    public T? Read<T>()
+        where T : notnull
     {
         var serializer = Provider.GetService<IViewStateSerializer<T>>();
 
         int length;
-        T value;
+        T? value;
 
         if (serializer != null)
         {
@@ -53,7 +54,7 @@ public ref struct ViewStateReader
                 throw new InvalidOperationException($"No serializer found for type {typeof(T).FullName}");
             }
 
-            value = (T)objSerializer.Read(_span, out length);
+            value = (T?) objSerializer.Read(_span, out length);
         }
 
         _span = _span.Slice(length);
