@@ -40,16 +40,21 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
         InvokeFrameworkInit(token);
         await InvokeInitAsync(token);
 
+        var isPost = Context.Request.IsMethod("POST");
         var form = await viewStateManager.LoadAsync(Context, this);
 
         if (form != null)
         {
             Forms.RemoveAll(i => i != form && i.Parent.Controls.Remove(i));
         }
+        else if (isPost)
+        {
+            Forms.RemoveAll(i => i.Parent.Controls.Remove(i));
+        }
 
         await InvokeLoadAsync(token, form);
 
-        if (Context.Request.IsMethod("POST"))
+        if (isPost)
         {
             var eventTarget = Context.Request.Form["__EVENTTARGET"].ToString();
 
@@ -57,6 +62,11 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
             {
                 var eventArgument = Context.Request.Form["__EVENTARGUMENT"];
                 await InvokePostbackAsync(token, form, eventTarget, eventArgument);
+            }
+
+            if (form != null)
+            {
+                await form.OnSubmitAsync(token);
             }
         }
 

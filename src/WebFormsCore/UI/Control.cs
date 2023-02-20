@@ -269,6 +269,7 @@ public partial class Control : System.Web.UI.Control
         _page = null;
         _form = null;
         _webObjectActivator = null;
+        _renderMethod = null;
     }
 
     private string GetUniqueIDPrefix()

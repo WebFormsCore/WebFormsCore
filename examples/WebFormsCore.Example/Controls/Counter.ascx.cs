@@ -10,16 +10,16 @@ namespace WebFormsCore.Example.Controls;
 
 public partial class Counter : Control
 {
-    [ViewState] private ushort _count;
+    [ViewState] protected ushort Count;
 
     protected override void OnPreRender(EventArgs args)
     {
-        litCounter.Text = _count.ToString();
+        litCounter.Text = Count.ToString();
     }
 
     protected Task btnIncrement_OnClick(object? sender, EventArgs e)
     {
-        _count++;
+        Count++;
         return Task.CompletedTask;
     }
 }

@@ -14,6 +14,13 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
     {
     }
 
+    public event AsyncEventHandler? Submit;
+
+    protected internal virtual async Task OnSubmitAsync(CancellationToken token)
+    {
+        await Submit.InvokeAsync(this, EventArgs.Empty);
+    }
+
     protected override void OnInit(EventArgs args)
     {
         Page.Forms.Add(this);

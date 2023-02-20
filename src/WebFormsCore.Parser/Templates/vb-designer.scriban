@@ -70,6 +70,8 @@
             {{- case child.Type }}
             {{- when "Statement" }}
             {{ child.Text }}
+            {{- when "Expression" }}
+            Await writer.WriteObjectAsync({{ child.Text }})
             {{- when "Text" }}
             Await controls({{ i }}).RenderAsync(writer, token) ' Text: {{ child.Text.CodeString }}
             {{- i = i + 1 }}
