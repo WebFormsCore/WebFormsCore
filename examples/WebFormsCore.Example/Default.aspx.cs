@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Threading.Tasks;
 using WebFormsCore.Security;
 using WebFormsCore.UI;
 
@@ -17,5 +18,11 @@ public partial class Default : Page
     protected override void OnLoad(EventArgs args)
     {
         title.InnerText = (PostbackCount++).ToString();
+    }
+
+    protected Task OnClick(object? sender, EventArgs e)
+    {
+        litDateTime.Text = tbPrefix.Text + "" + DateTime.Now.ToString(CultureInfo.InvariantCulture);
+        return Task.CompletedTask;
     }
 }

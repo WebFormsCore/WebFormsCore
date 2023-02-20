@@ -312,22 +312,22 @@ public sealed class CssStyleCollection
         var table = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
 
         var s = _state == null ? _style : (string?)_state["style"];
-        if (s != null)
+        if (s == null)
         {
-            Match match;
+            return table;
+        }
 
-            if ((match = StyleAttribRegex.Match(s, 0)).Success)
+        foreach (Match match in StyleAttribRegex.Matches(s))
+        {
+            var name = match.Groups["stylename"].Captures;
+            var values = match.Groups["styleval"].Captures;
+
+            for (var i = 0; i < name.Count; i++)
             {
-                var name = match.Groups["stylename"].Captures;
-                var values = match.Groups["styleval"].Captures;
+                var styleName = name[i].ToString();
+                var styleValue = values[i].ToString();
 
-                for (var i = 0; i < name.Count; i++)
-                {
-                    var styleName = name[i].ToString();
-                    var styleValue = values[i].ToString();
-
-                    table[styleName] = styleValue;
-                }
+                table[styleName] = styleValue;
             }
         }
 

@@ -21,7 +21,7 @@ internal class WebFormsApplications : IWebFormsApplication
     {
         if (string.IsNullOrEmpty(context.Request.Path)) return null;
 
-        var fullPath = Path.Combine(_environment.ContentRootPath, context.Request.Path.TrimStart('/'));
+        var fullPath = Path.Combine(_environment.ContentRootPath, context.Request.Path.ToString().TrimStart('/'));
 
         if (!_controlManager.TryGetPath(fullPath, out var path) || !File.Exists(fullPath))
         {
@@ -37,7 +37,7 @@ internal class WebFormsApplications : IWebFormsApplication
             context,
             provider,
             path,
-            context.Response.OutputStream,
+            context.Response.GetOutputStream(),
             token
         );
     }

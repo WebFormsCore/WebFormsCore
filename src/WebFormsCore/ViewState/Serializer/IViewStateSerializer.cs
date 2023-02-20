@@ -28,7 +28,7 @@ public abstract class ViewStateSerializer<T> : IViewStateSerializer<T>
 
     public bool CanSerialize(Type type)
     {
-        return typeof(T).IsAssignableFrom(type);
+        return typeof(T) == type;
     }
 
     bool IViewStateSerializer.TryWrite(object? value, Span<byte> span, out int length)

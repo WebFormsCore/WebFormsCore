@@ -23,7 +23,7 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     public ClientScriptManager ClientScript { get; }
 
-    protected override HttpContext Context => _context ??= HttpContext.Current ?? throw new InvalidOperationException("No HttpContext available.");
+    protected override HttpContext Context => _context ?? throw new InvalidOperationException("No HttpContext available.");
 
     public bool IsPostBack { get; set; }
 
@@ -49,12 +49,15 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
         await InvokeLoadAsync(token, form);
 
-        if (form != null)
+        if (Context.Request.IsMethod("POST"))
         {
-            var eventTarget = Context.Request.Form["__EVENTTARGET"];
-            var eventArgument = Context.Request.Form["__EVENTARGUMENT"];
+            var eventTarget = Context.Request.Form["__EVENTTARGET"].ToString();
 
-            await InvokePostbackAsync(token, form, eventTarget, eventArgument);
+            if (!string.IsNullOrEmpty(eventTarget))
+            {
+                var eventArgument = Context.Request.Form["__EVENTARGUMENT"];
+                await InvokePostbackAsync(token, form, eventTarget, eventArgument);
+            }
         }
 
         await InvokePreRenderAsync(token, form);

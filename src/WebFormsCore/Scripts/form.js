@@ -755,7 +755,28 @@ var morphdom = morphdomFactory(morphAttrs);
 function submitForm(form, eventTarget) {
     var pageState = document.getElementById("pagestate");
     var url = location.pathname + location.search;
-    var formData = new FormData(form);
+    var formData = form ? new FormData(form) : new FormData();
+    // Add all the form elements that are not in a form
+    var elements = document.body.querySelectorAll('input, select, textarea');
+    for (var i = 0; i < elements.length; i++) {
+        var element = elements[i];
+        if (element.hasAttribute('data-wfc-ignore') || element.type === "button" ||
+            element.type === "submit" || element.type === "reset") {
+            continue;
+        }
+        var form_1 = element.closest('form[data-wfc-form]');
+        if (form_1) {
+            continue;
+        }
+        if (element.type === "checkbox" || element.type === "radio") {
+            if (element.checked) {
+                formData.append(element.name, element.value);
+            }
+        }
+        else {
+            formData.append(element.name, element.value);
+        }
+    }
     if (pageState) {
         formData.append("__PAGESTATE", pageState.value);
     }
@@ -767,7 +788,7 @@ function submitForm(form, eventTarget) {
         method: "POST"
     };
     // Determine if we need to send the form data as JSON or as form data
-    if (document.body.querySelector('input[type="file"]')) {
+    if (document.body.querySelector('input[type="file"]:not([data-wfc-ignore])')) {
         request.body = formData;
     }
     else {
@@ -820,9 +841,7 @@ document.addEventListener('change', function (e) {
     if (e.target instanceof Element && e.target.hasAttribute('data-wfc-autopostback')) {
         var eventTarget = e.target.getAttribute('name');
         var form = e.target.closest('form[data-wfc-form]');
-        if (form) {
-            submitForm(form, eventTarget);
-        }
+        submitForm(form, eventTarget);
     }
 });
 document.addEventListener('click', function (e) {
@@ -835,10 +854,8 @@ document.addEventListener('click', function (e) {
         return;
     }
     var form = e.target.closest('form[data-wfc-form]');
-    if (form) {
-        e.preventDefault();
-        submitForm(form, eventTarget);
-    }
+    e.preventDefault();
+    submitForm(form, eventTarget);
 });
 document.addEventListener('keypress', function (e) {
     if (e.key !== 'Enter' && e.keyCode !== 13 && e.which !== 13) {
@@ -852,9 +869,6 @@ document.addEventListener('keypress', function (e) {
         return;
     }
     var form = e.target.closest('form[data-wfc-form]');
-    if (!form) {
-        return;
-    }
     var eventTarget = e.target.getAttribute('name');
     e.preventDefault();
     submitForm(form, eventTarget);

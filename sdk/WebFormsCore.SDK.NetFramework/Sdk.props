@@ -8,6 +8,10 @@
 	</PropertyGroup>
 
     <ItemGroup>
+        <Using Include="System.Web" />
+    </ItemGroup>
+
+    <ItemGroup>
         <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>

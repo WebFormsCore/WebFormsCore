@@ -1,10 +1,36 @@
 import morphdom from "morphdom/dist/morphdom-esm";
 
-function submitForm(form: HTMLFormElement, eventTarget?: string) {
+function submitForm(form?: HTMLFormElement, eventTarget?: string) {
     const pageState = document.getElementById("pagestate") as HTMLInputElement;
     const url = location.pathname + location.search;
 
-    const formData = new FormData(form);
+    const formData = form ? new FormData(form) : new FormData();
+
+    // Add all the form elements that are not in a form
+    const elements = document.body.querySelectorAll('input, select, textarea');
+
+    for (let i = 0; i < elements.length; i++) {
+        const element = elements[i] as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+        if (element.hasAttribute('data-wfc-ignore') || element.type === "button" ||
+                element.type === "submit" || element.type === "reset") {
+            continue;
+        }
+
+        const form = element.closest('form[data-wfc-form]') as HTMLFormElement;
+
+        if (form) {
+            continue;
+        }
+
+        if (element.type === "checkbox" || element.type === "radio") {
+            if ((element as HTMLInputElement).checked) {
+                formData.append(element.name, element.value);
+            }
+        } else {
+            formData.append(element.name, element.value);
+        }
+    }
 
     if (pageState) {
         formData.append("__PAGESTATE", pageState.value);
@@ -20,7 +46,7 @@ function submitForm(form: HTMLFormElement, eventTarget?: string) {
     };
 
     // Determine if we need to send the form data as JSON or as form data
-    if (document.body.querySelector('input[type="file"]')) {
+    if (document.body.querySelector('input[type="file"]:not([data-wfc-ignore])')) {
         request.body = formData;
     } else {
         const object = {};
@@ -83,9 +109,7 @@ document.addEventListener('change', function(e){
         const eventTarget = e.target.getAttribute('name');
         const form = e.target.closest('form[data-wfc-form]') as HTMLFormElement;
 
-        if (form) {
-            submitForm(form, eventTarget);
-        }
+        submitForm(form, eventTarget);
     }
 });
 
@@ -101,10 +125,9 @@ document.addEventListener('click', function(e){
     }
 
     const form = e.target.closest('form[data-wfc-form]') as HTMLFormElement;
-    if (form) {
-        e.preventDefault();
-        submitForm(form, eventTarget);
-    }
+
+    e.preventDefault();
+    submitForm(form, eventTarget);
 });
 
 document.addEventListener('keypress', function(e){
@@ -123,11 +146,6 @@ document.addEventListener('keypress', function(e){
     }
 
     const form = e.target.closest('form[data-wfc-form]') as HTMLFormElement;
-
-    if (!form) {
-        return;
-    }
-
     const eventTarget = e.target.getAttribute('name');
     e.preventDefault();
     submitForm(form, eventTarget);

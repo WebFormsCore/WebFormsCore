@@ -30,15 +30,15 @@ public class PageTest
         var featureCollection = new FeatureCollection();
         await using var stream = new MemoryStream();
 
-        var coreRequest = new Mock<Microsoft.AspNetCore.Http.HttpRequest>();
+        var coreRequest = new Mock<HttpRequest>();
         coreRequest.SetupGet(x => x.Method).Returns("GET");
 
-        var coreResponse = new Mock<Microsoft.AspNetCore.Http.HttpResponse>();
+        var coreResponse = new Mock<HttpResponse>();
         var headers = new HeaderDictionary();
         coreResponse.SetupGet(x => x.Headers).Returns(headers);
         coreResponse.SetupGet(x => x.Body).Returns(stream);
 
-        var coreContext = new Mock<Microsoft.AspNetCore.Http.HttpContext>();
+        var coreContext = new Mock<HttpContext>();
         coreContext.SetupGet(c => c.Request).Returns(coreRequest.Object);
         coreContext.SetupGet(c => c.Response).Returns(coreResponse.Object);
         coreContext.Setup(c => c.Features).Returns(featureCollection);

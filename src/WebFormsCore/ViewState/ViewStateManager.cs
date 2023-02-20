@@ -23,6 +23,7 @@ namespace WebFormsCore;
 
 public class ViewStateManager : IViewStateManager
 {
+#if NETFRAMEWORK
     private static readonly Action<HttpRequest, NameValueCollection> SetRequestForm;
     private static readonly Type FormType;
     private static readonly ConstructorInfo? FormConstructor;
@@ -46,6 +47,7 @@ public class ViewStateManager : IViewStateManager
         var body = Expression.Assign(Expression.Field(parameter, field), form);
         SetRequestForm = Expression.Lambda<Action<HttpRequest, NameValueCollection>>(body, parameter, parameter2).Compile();
     }
+#endif
 
     private readonly IServiceProvider _serviceProvider;
     private readonly IOptions<ViewStateOptions> _options;
@@ -69,7 +71,7 @@ public class ViewStateManager : IViewStateManager
 
     private static IEnumerable<Control> GetControls(Control owner)
     {
-        return owner.EnumerateControls(c => c is not HtmlForm);
+        return owner.EnumerateControls(static c => c is not HtmlForm);
     }
 
     public bool EnableViewState => _options.Value.Enabled;
@@ -133,8 +135,7 @@ public class ViewStateManager : IViewStateManager
         }
 
         var request = context.Request;
-        var method = request.HttpMethod;
-        var isPostback = method == "POST";
+        var isPostback = request.IsMethod("POST");
 
         if (!isPostback)
         {
@@ -143,8 +144,10 @@ public class ViewStateManager : IViewStateManager
 
         if (context.Request.ContentType == "application/json")
         {
+            var json = await JsonSerializer.DeserializeAsync<JsonDocument>(request.GetInputStream());
+
+#if NETFRAMEWORK
             var data = (NameValueCollection) (FormConstructor?.Invoke(Array.Empty<object>()) ?? Activator.CreateInstance(FormType) ?? throw new InvalidOperationException("Could not create form"));
-            var json = await JsonSerializer.DeserializeAsync<JsonDocument>(request.InputStream);
 
             if (json != null)
             {
@@ -155,19 +158,38 @@ public class ViewStateManager : IViewStateManager
             }
 
             SetRequestForm(request, data);
+#else
+            if (json != null)
+            {
+                var fields = new Dictionary<string, Microsoft.Extensions.Primitives.StringValues>();
+
+                foreach (var property in json.RootElement.EnumerateObject())
+                {
+                    fields[property.Name] = property.Value.GetString();
+                }
+
+                request.Form = new FormCollection(fields);
+            }
+#endif
         }
 
         page.IsPostBack = true;
 
-        var pageState = request.Form["__PAGESTATE"];
+        var pageState = request.GetFormValue("__PAGESTATE");
 
         if (pageState != null)
         {
             await LoadViewStateAsync(page, pageState);
         }
 
-        var formId = request.Form["__FORM"];
-        var formState = request.Form["__FORMSTATE"];
+        var formId = request.GetFormValue("__FORM");
+
+        if (formId == null)
+        {
+            return null;
+        }
+
+        var formState = request.GetFormValue("__FORMSTATE");
         var form = page.Forms.FirstOrDefault(i => i.UniqueID == formId);
 
         if (form != null && formState != null)
@@ -176,6 +198,7 @@ public class ViewStateManager : IViewStateManager
         }
 
         return form;
+
     }
 
     private ViewStateReaderOwner CreateReader(string base64)

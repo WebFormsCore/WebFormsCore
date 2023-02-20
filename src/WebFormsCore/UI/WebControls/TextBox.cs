@@ -39,11 +39,11 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler
 
     private bool IsReadOnly => !IsEnabled || !Visible || ReadOnly;
 
-    private bool SaveTextViewState => TextMode != TextBoxMode.Password && (TextChanged != null || IsReadOnly || GetType() != typeof (TextBox));
+    protected virtual bool SaveTextViewState => TextMode != TextBoxMode.Password && (TextChanged != null || IsReadOnly || GetType() != typeof (TextBox));
 
     protected override async Task OnPostbackAsync(CancellationToken token)
     {
-        if (!IsReadOnly && Context.Request.Form[ClientID] is { } value)
+        if (!IsReadOnly && Context.Request.GetFormValue(ClientID) is { } value)
         {
             var isChanged = Text != value;
             Text = value;

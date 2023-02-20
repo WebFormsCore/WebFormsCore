@@ -314,6 +314,8 @@ public class HtmlTextWriter : TextWriter
 
     public void WriteEncodedText(string text) => Write(WebUtility.HtmlEncode(text));
 
+    public Task WriteEncodedTextAsync(string text) => WriteAsync(WebUtility.HtmlEncode(text));
+
     public void WriteEncodedUrl(string url)
     {
         var index = url.IndexOf('?');

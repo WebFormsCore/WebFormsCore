@@ -6,8 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.UI.HtmlControls;
-using WebFormsCore.UI.WebControls;
-using HttpContext = System.Web.HttpContext;
 
 namespace WebFormsCore.UI;
 
@@ -254,7 +252,7 @@ public partial class Control : System.Web.UI.Control
     /// <returns>The specified <see cref="T:System.Web.HttpContext" /> object associated with the current request.</returns>
     [Browsable(false)]
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    protected virtual HttpContext Context => _page?.Context ?? HttpContext.Current ?? throw new InvalidOperationException("HttpContext is not available");
+    protected virtual HttpContext Context => Page.Context ?? throw new InvalidOperationException("HttpContext is not available");
 
     public virtual void ClearControl()
     {

@@ -16,7 +16,7 @@ public class HtmlScript : HtmlContainerControl
     {
         if (Uri.TryCreate(Attributes["src"], UriKind.Absolute, out var href))
         {
-            Page.Csp.StyleSrc.SourceList.Add($"{href.Scheme}://{href.Host}");
+            Page.Csp.ScriptSrc.SourceList.Add($"{href.Scheme}://{href.Host}");
         }
 
         return Task.CompletedTask;
