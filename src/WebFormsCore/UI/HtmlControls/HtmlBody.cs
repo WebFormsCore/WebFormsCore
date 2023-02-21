@@ -35,6 +35,11 @@ public class HtmlBody : HtmlContainerControl
 
         await base.RenderChildrenAsync(writer, token);
 
+        foreach (var control in Page.BodyControls)
+        {
+            await control.RenderInBodyAsync(writer, token);
+        }
+
         if (viewStateManager.EnableViewState)
         {
             await writer.WriteAsync(@"<input id=""pagestate"" type=""hidden"" name=""__PAGESTATE"" value=""");

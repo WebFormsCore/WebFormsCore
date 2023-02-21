@@ -313,7 +313,10 @@ public partial class Control : System.Web.UI.Control
     /// <param name="token"></param>
     public virtual async Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        await RenderChildrenAsync(writer, token);
+        if (Visible)
+        {
+            await RenderChildrenAsync(writer, token);
+        }
     }
 
     public void SetRenderMethodDelegate(RenderAsyncDelegate renderMethod)

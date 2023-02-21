@@ -217,13 +217,11 @@ public class ControlManager : IDisposable, IControlManager
         }
 
         using var assemblyStream = new MemoryStream();
-        using var symbolsStream = new MemoryStream();
 
         var emitOptions = new EmitOptions();
 
         var result = compilation.Emit(
             peStream: assemblyStream,
-            pdbStream: symbolsStream,
             options: emitOptions);
 
         if (!result.Success)
@@ -236,7 +234,7 @@ public class ControlManager : IDisposable, IControlManager
             throw new InvalidOperationException();
         }
 
-        var assembly = Assembly.Load(assemblyStream.ToArray(), symbolsStream.ToArray());
+        var assembly = Assembly.Load(assemblyStream.ToArray());
         type = assembly.GetType(designerType.DesignerFullTypeName!)!;
 
         _logger.LogDebug("Compiled view of page {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);

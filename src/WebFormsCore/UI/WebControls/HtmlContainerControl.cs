@@ -9,8 +9,6 @@ namespace WebFormsCore.UI.WebControls
     /// <summary>Serves as the abstract base class for HTML server controls that map to HTML elements that are required to have an opening and a closing tag.</summary>
     public abstract partial class HtmlContainerControl : HtmlControl
     {
-        [ViewState] private string? _innerHtml;
-
         /// <summary>Initializes a new instance of the <see cref="T:WebFormsCore.UI.WebControls.HtmlContainerControl" /> class using default values.</summary>
         protected HtmlContainerControl()
             : this("span")

@@ -109,8 +109,10 @@ public partial class Control
             }
         }
 
-        foreach (var control in Controls)
+        for (var i = 0; i < Controls.Count; i++)
         {
+            var control = Controls[i];
+
             if (form != null && control is HtmlForm && control != form) continue;
 
             await control.InvokePostbackAsync(token, form, target, argument);

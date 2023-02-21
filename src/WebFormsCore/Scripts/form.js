@@ -808,10 +808,14 @@ function submitForm(form, eventTarget) {
             onNodeAdded: function (node) {
             },
             onBeforeNodeDiscarded: function (node) {
+                var _a, _b;
                 if (node.tagName === "SCRIPT") {
                     return false;
                 }
                 if (node.tagName === 'FORM' && node.hasAttribute('data-wfc-form')) {
+                    return false;
+                }
+                if (node.tagName === 'DIV' && node.hasAttribute('data-wfc-owner') && ((_a = node.getAttribute('data-wfc-owner')) !== null && _a !== void 0 ? _a : "") !== ((_b = form === null || form === void 0 ? void 0 : form.id) !== null && _b !== void 0 ? _b : "")) {
                     return false;
                 }
             }

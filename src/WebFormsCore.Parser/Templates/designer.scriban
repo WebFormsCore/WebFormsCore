@@ -16,12 +16,12 @@
 
             {{- for prop in child.Events }}
             {{- if IsReturnTypeSame }}
-            {{ child.VariableName }}.{{ prop.EventName }} += {{ prop.MethodName }};
+            {{ child.VariableName }}.{{ prop.EventName }} += {{ $3 }}{{ prop.MethodName }};
             {{- else }}
             {{ child.VariableName }}.{{ prop.EventName }} += ({{ prop.Arguments }}) =>
             {
                 {{ if !prop.IsVoid }}var result = {{ end }}
-                {{- prop.MethodName }}({{ prop.Arguments }});
+                {{ $3 }}{{- prop.MethodName }}({{ prop.Arguments }});
                 return {{ prop.ReturnValue }};
             };
             {{- end }}
@@ -41,7 +41,7 @@
             {{- end }}
 
             {{- for prop in child.Templates }}
-            {{ child.VariableName }}.{{ prop.Property }} = new {{ prop.ClassName }}(WebActivator);
+            {{ child.VariableName }}.{{ prop.Property }} = new {{ prop.ClassName }}(WebActivator, this);
             {{- end }}
 
         {{- when "Element" }}
@@ -133,25 +133,6 @@ partial class {{ type.InheritsClassName }}
 
 public partial class CompiledViews
 {
-    {{- for template in type.Templates }}
-    public class {{ template.ClassName }} : WebFormsCore.UI.ITemplate
-    {
-        public {{ template.ClassName }}(WebFormsCore.IWebObjectActivator webActivator)
-        {
-            WebActivator = webActivator;
-        }
-
-        public WebFormsCore.IWebObjectActivator WebActivator { get; }
-
-        {{- write_methods template }}
-
-        public void InstantiateIn(WebFormsCore.UI.Control container)
-        {
-            {{ write_children template.AllChildren "container" }}
-        }
-    }
-    {{- end }}
-
     [WebFormsCore.CompiledView(@"{{ type.Path }}", "{{ type.Hash }}")]
     public class {{ type.ClassName }} : {{ type.InheritsClassName }}
     {
@@ -162,6 +143,28 @@ public partial class CompiledViews
             base.FrameworkInitialize();
             {{ write_children type.AllChildren "this" true }}
         }
+
+        {{- for template in type.Templates }}
+        public class {{ template.ClassName }} : WebFormsCore.UI.ITemplate
+        {
+            private readonly {{ type.ClassName }} _parent;
+
+            public {{ template.ClassName }}(WebFormsCore.IWebObjectActivator webActivator, {{ type.ClassName }} parent)
+            {
+                WebActivator = webActivator;
+                _parent = parent;
+            }
+
+            public WebFormsCore.IWebObjectActivator WebActivator { get; }
+
+            {{- write_methods template }}
+
+            public void InstantiateIn(WebFormsCore.UI.Control container)
+            {
+                {{ write_children template.AllChildren "container" false "_parent." }}
+            }
+        }
+        {{- end }}
     }
 }
 {{- if type.Namespace }}

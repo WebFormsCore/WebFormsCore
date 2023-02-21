@@ -9,3 +9,7 @@
         </div>
     </ItemTemplate>
 </wfc:Repeater>
+
+<wfc:BodyPlaceHolder runat="server" Visible="False">
+    Hello world!
+</wfc:BodyPlaceHolder>

@@ -6,6 +6,7 @@ using System.Web;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.Security;
 using WebFormsCore.UI.HtmlControls;
+using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI;
 
@@ -32,6 +33,8 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
     public List<HtmlForm> Forms { get; set; } = new();
 
     public override HtmlForm? Form => null;
+
+    internal List<BodyPlaceHolder> BodyControls { get; set; } = new();
 
     internal async Task<HtmlForm?> ProcessRequestAsync(CancellationToken token)
     {

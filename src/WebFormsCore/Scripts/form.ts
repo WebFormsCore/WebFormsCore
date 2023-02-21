@@ -76,6 +76,10 @@ function submitForm(form?: HTMLFormElement, eventTarget?: string) {
                     if (node.tagName === 'FORM' && node.hasAttribute('data-wfc-form')) {
                         return false;
                     }
+
+                    if (node.tagName === 'DIV' && node.hasAttribute('data-wfc-owner') && (node.getAttribute('data-wfc-owner') ?? "") !== (form?.id ?? "")) {
+                        return false;
+                    }
                 }
             };
 
