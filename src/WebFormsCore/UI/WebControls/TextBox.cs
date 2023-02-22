@@ -162,7 +162,15 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler
 
     protected virtual async Task RaisePostBackEventAsync(string? eventArgument)
     {
-        await EnterPressed.InvokeAsync(this, EventArgs.Empty);
+        if (eventArgument == "ENTER")
+        {
+            await EnterPressed.InvokeAsync(this, EventArgs.Empty);
+        }
+
+        if (eventArgument == "CHANGE")
+        {
+            await TextChanged.InvokeAsync(this, EventArgs.Empty);
+        }
     }
 
     Task IPostBackAsyncEventHandler.RaisePostBackEventAsync(string? eventArgument)

@@ -752,7 +752,7 @@ function morphdomFactory(morphAttrs) {
 
 var morphdom = morphdomFactory(morphAttrs);
 
-function submitForm(form, eventTarget) {
+function submitForm(form, eventTarget, eventArgument) {
     var pageState = document.getElementById("pagestate");
     var url = location.pathname + location.search;
     var formData = form ? new FormData(form) : new FormData();
@@ -782,8 +782,11 @@ function submitForm(form, eventTarget) {
     }
     if (eventTarget) {
         formData.append("__EVENTTARGET", eventTarget);
-        eventTarget = null;
     }
+    if (eventArgument) {
+        formData.append("__EVENTARGUMENT", eventArgument);
+    }
+    document.dispatchEvent(new CustomEvent("wfc:beforeSubmit", { detail: { form: form, eventTarget: eventTarget, formData: formData } }));
     var request = {
         method: "POST"
     };
@@ -804,8 +807,11 @@ function submitForm(form, eventTarget) {
     fetch(url, request)
         .then(function (r) { return r.text(); })
         .then(function (r) {
+        var newElements = [];
         var options = {
             onNodeAdded: function (node) {
+                newElements.push(node);
+                document.dispatchEvent(new CustomEvent("wfc:addNode", { detail: { node: node, form: form, eventTarget: eventTarget } }));
             },
             onBeforeNodeDiscarded: function (node) {
                 var _a, _b;
@@ -818,12 +824,17 @@ function submitForm(form, eventTarget) {
                 if (node.tagName === 'DIV' && node.hasAttribute('data-wfc-owner') && ((_a = node.getAttribute('data-wfc-owner')) !== null && _a !== void 0 ? _a : "") !== ((_b = form === null || form === void 0 ? void 0 : form.id) !== null && _b !== void 0 ? _b : "")) {
                     return false;
                 }
+                var result = document.dispatchEvent(new CustomEvent("wfc:discardNode", { detail: { node: node, form: form, eventTarget: eventTarget }, cancelable: true }));
+                if (!result) {
+                    return false;
+                }
             }
         };
         var parser = new DOMParser();
         var htmlDoc = parser.parseFromString(r, 'text/html');
         morphdom(document.head, htmlDoc.querySelector('head'), options);
         morphdom(document.body, htmlDoc.querySelector('body'), options);
+        document.dispatchEvent(new CustomEvent("wfc:afterSubmit", { detail: { form: form, eventTarget: eventTarget, newElements: newElements } }));
     });
 }
 var originalSubmit = HTMLFormElement.prototype.submit;
@@ -839,13 +850,6 @@ document.addEventListener('submit', function (e) {
     if (e.target instanceof Element && e.target.hasAttribute('data-wfc-form')) {
         e.preventDefault();
         submitForm(e.target);
-    }
-});
-document.addEventListener('change', function (e) {
-    if (e.target instanceof Element && e.target.hasAttribute('data-wfc-autopostback')) {
-        var eventTarget = e.target.getAttribute('name');
-        var form = e.target.closest('form[data-wfc-form]');
-        submitForm(form, eventTarget);
     }
 });
 document.addEventListener('click', function (e) {
@@ -875,5 +879,38 @@ document.addEventListener('keypress', function (e) {
     var form = e.target.closest('form[data-wfc-form]');
     var eventTarget = e.target.getAttribute('name');
     e.preventDefault();
-    submitForm(form, eventTarget);
+    submitForm(form, eventTarget, 'ENTER');
+});
+var timeouts = {};
+document.addEventListener('input', function (e) {
+    var _a;
+    if (!(e.target instanceof Element) || e.target.tagName !== "INPUT" || !e.target.hasAttribute('data-wfc-autopostback')) {
+        return;
+    }
+    var type = e.target.getAttribute('type');
+    if (type === "button" || type === "submit" || type === "reset") {
+        return;
+    }
+    var form = e.target.closest('form[data-wfc-form]');
+    var eventTarget = e.target.getAttribute('name');
+    var key = ((_a = form === null || form === void 0 ? void 0 : form.id) !== null && _a !== void 0 ? _a : '') + eventTarget;
+    if (timeouts[key]) {
+        clearTimeout(timeouts[key]);
+    }
+    timeouts[key] = setTimeout(function () {
+        delete timeouts[key];
+        submitForm(form, eventTarget, 'CHANGE');
+    }, 1000);
+});
+document.addEventListener('change', function (e) {
+    var _a;
+    if (e.target instanceof Element && e.target.hasAttribute('data-wfc-autopostback')) {
+        var eventTarget = e.target.getAttribute('name');
+        var form = e.target.closest('form[data-wfc-form]');
+        var key = ((_a = form === null || form === void 0 ? void 0 : form.id) !== null && _a !== void 0 ? _a : '') + eventTarget;
+        if (timeouts[key]) {
+            clearTimeout(timeouts[key]);
+        }
+        submitForm(form, eventTarget, 'CHANGE');
+    }
 });

@@ -1,6 +1,6 @@
 import morphdom from "morphdom/dist/morphdom-esm";
 
-function submitForm(form?: HTMLFormElement, eventTarget?: string) {
+function submitForm(form?: HTMLFormElement, eventTarget?: string, eventArgument?: string) {
     const pageState = document.getElementById("pagestate") as HTMLInputElement;
     const url = location.pathname + location.search;
 
@@ -38,8 +38,13 @@ function submitForm(form?: HTMLFormElement, eventTarget?: string) {
 
     if (eventTarget) {
         formData.append("__EVENTTARGET", eventTarget);
-        eventTarget = null;
     }
+
+    if (eventArgument) {
+        formData.append("__EVENTARGUMENT", eventArgument);
+    }
+
+    document.dispatchEvent(new CustomEvent("wfc:beforeSubmit", { detail: { form, eventTarget, formData } }));
 
     const request: RequestInit = {
         method: "POST",
@@ -67,6 +72,7 @@ function submitForm(form?: HTMLFormElement, eventTarget?: string) {
             const options = {
                 onNodeAdded(node) {
                     newElements.push(node);
+                    document.dispatchEvent(new CustomEvent("wfc:addNode", { detail: { node, form, eventTarget } }));
                 },
                 onBeforeNodeDiscarded(node) {
                     if (node.tagName === "SCRIPT") {
@@ -80,6 +86,12 @@ function submitForm(form?: HTMLFormElement, eventTarget?: string) {
                     if (node.tagName === 'DIV' && node.hasAttribute('data-wfc-owner') && (node.getAttribute('data-wfc-owner') ?? "") !== (form?.id ?? "")) {
                         return false;
                     }
+
+                    const result = document.dispatchEvent(new CustomEvent("wfc:discardNode", { detail: { node, form, eventTarget }, cancelable: true }));
+
+                    if (!result) {
+                        return false;
+                    }
                 }
             };
 
@@ -88,6 +100,8 @@ function submitForm(form?: HTMLFormElement, eventTarget?: string) {
 
             morphdom(document.head, htmlDoc.querySelector('head'), options);
             morphdom(document.body, htmlDoc.querySelector('body'), options);
+
+            document.dispatchEvent(new CustomEvent("wfc:afterSubmit", { detail: { form, eventTarget, newElements } }));
         });
 }
 
@@ -105,15 +119,6 @@ document.addEventListener('submit', function(e){
     if (e.target instanceof Element && e.target.hasAttribute('data-wfc-form')) {
         e.preventDefault();
         submitForm(e.target as HTMLFormElement);
-    }
-});
-
-document.addEventListener('change', function(e){
-    if(e.target instanceof Element && e.target.hasAttribute('data-wfc-autopostback')) {
-        const eventTarget = e.target.getAttribute('name');
-        const form = e.target.closest('form[data-wfc-form]') as HTMLFormElement;
-
-        submitForm(form, eventTarget);
     }
 });
 
@@ -152,5 +157,46 @@ document.addEventListener('keypress', function(e){
     const form = e.target.closest('form[data-wfc-form]') as HTMLFormElement;
     const eventTarget = e.target.getAttribute('name');
     e.preventDefault();
-    submitForm(form, eventTarget);
+    submitForm(form, eventTarget, 'ENTER');
+});
+
+const timeouts = {};
+
+document.addEventListener('input', function(e){
+    if (!(e.target instanceof Element) || e.target.tagName !== "INPUT" || !e.target.hasAttribute('data-wfc-autopostback')) {
+        return;
+    }
+
+    const type = e.target.getAttribute('type');
+
+    if (type === "button" || type === "submit" || type === "reset") {
+        return;
+    }
+
+    const form = e.target.closest('form[data-wfc-form]') as HTMLFormElement;
+    const eventTarget = e.target.getAttribute('name');
+    const key = (form?.id ?? '') + eventTarget;
+
+    if (timeouts[key]) {
+        clearTimeout(timeouts[key]);
+    }
+
+    timeouts[key] = setTimeout(() => {
+        delete timeouts[key];
+        submitForm(form, eventTarget, 'CHANGE');
+    }, 1000);
+});
+
+document.addEventListener('change', function(e){
+    if(e.target instanceof Element && e.target.hasAttribute('data-wfc-autopostback')) {
+        const eventTarget = e.target.getAttribute('name');
+        const form = e.target.closest('form[data-wfc-form]') as HTMLFormElement;
+        const key = (form?.id ?? '') + eventTarget;
+
+        if (timeouts[key]) {
+            clearTimeout(timeouts[key]);
+        }
+
+        submitForm(form, eventTarget, 'CHANGE');
+    }
 });

@@ -9,11 +9,10 @@ using System.IO.Compression;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Web;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using WebFormsCore.Options;
 using WebFormsCore.UI;
@@ -51,11 +50,17 @@ public class ViewStateManager : IViewStateManager
 
     private readonly IServiceProvider _serviceProvider;
     private readonly IOptions<ViewStateOptions> _options;
+    private readonly HashAlgorithm _hashAlgorithm;
+    private readonly int _hashLength;
 
     public ViewStateManager(IServiceProvider serviceProvider, IOptions<ViewStateOptions> options)
     {
         _serviceProvider = serviceProvider;
         _options = options;
+        _hashAlgorithm = !string.IsNullOrEmpty(options.Value.EncryptionKey)
+            ? new HMACSHA256(Encoding.UTF8.GetBytes(options.Value.EncryptionKey))
+            : SHA256.Create();
+        _hashLength = _hashAlgorithm.HashSize / 8;
     }
 
 #if NET
@@ -88,14 +93,15 @@ public class ViewStateManager : IViewStateManager
             }
 
             var state = writer.Span;
-
-            var maxLength = Base64.GetMaxEncodedToUtf8Length(state.Length + HeaderLength);
-            var resultOwner = MemoryPool<byte>.Shared.Rent(maxLength);
-            var result = resultOwner.Memory.Span;
+            var maxLength = Base64.GetMaxEncodedToUtf8Length(state.Length + HeaderLength + _hashLength);
+            var array = ArrayPool<byte>.Shared.Rent(maxLength);
+            var result = array.AsSpan();
 
             var header = result.Slice(0, HeaderLength);
-            var data = result.Slice(HeaderLength);
+            var hash = result.Slice(HeaderLength, _hashLength);
+            var data = result.Slice(HeaderLength + _hashLength);
 
+            // ReSharper disable once InlineOutVariableDeclaration
             int dataLength;
 #if NET
             if (Compression == ViewStateCompression.Brotoli && BrotliEncoder.TryCompress(state, data, out dataLength) && dataLength <= state.Length)
@@ -117,14 +123,27 @@ public class ViewStateManager : IViewStateManager
 
             BinaryPrimitives.WriteUInt16BigEndian(header.Slice(1, 2), (ushort)state.Length);
 
-            Base64.EncodeToUtf8InPlace(result, dataLength + HeaderLength, out length);
+            ComputeHash(array, dataLength, hash);
 
-            return resultOwner;
+            Base64.EncodeToUtf8InPlace(result, dataLength + HeaderLength + _hashLength, out length);
+
+            return new ArrayMemoryOwner<byte>(array, length);
         }
         finally
         {
             writer.Dispose();
         }
+    }
+
+    private void ComputeHash(byte[] data, int dataLength, Span<byte> hash)
+    {
+        var offset = HeaderLength + _hashLength;
+
+#if NETFRAMEWORK
+        _hashAlgorithm.ComputeHash(data, offset, dataLength).CopyTo(hash);
+#else
+        _hashAlgorithm.TryComputeHash(data.AsSpan(offset, dataLength), hash, out _);
+#endif
     }
 
     public async ValueTask<HtmlForm?> LoadAsync(HttpContext context, Page page)
@@ -205,9 +224,9 @@ public class ViewStateManager : IViewStateManager
     {
         var encoding = Encoding.UTF8;
         var byteLength = encoding.GetByteCount(base64);
-        var owner = MemoryPool<byte>.Shared.Rent(byteLength);
-
-        var span = owner.Memory.Span;
+        var array = ArrayPool<byte>.Shared.Rent(byteLength);
+        IMemoryOwner<byte> owner = new ArrayMemoryOwner<byte>(array, byteLength);
+        var span = array.AsSpan();
 
         byteLength = encoding.GetBytes(base64, span);
         span = span.Slice(0, byteLength);
@@ -220,11 +239,20 @@ public class ViewStateManager : IViewStateManager
         span = span.Slice(0, base64Length);
 
         var header = span.Slice(0, HeaderLength);
-        var offset = HeaderLength;
-        var length = (int)BinaryPrimitives.ReadUInt16BigEndian(header.Slice(1, 2));
-        var data = span.Slice(HeaderLength);
+        var hash = span.Slice(HeaderLength, _hashLength);
+        var data = span.Slice(HeaderLength + _hashLength);
+
+        Span<byte> computedHash = stackalloc byte[_hashLength];
+        ComputeHash(array, data.Length, computedHash);
+
+        if (!computedHash.SequenceEqual(hash))
+        {
+            throw new InvalidOperationException("The viewstate hash is invalid");
+        }
 
         var compression = (ViewStateCompression) header[0];
+        var length = (int)BinaryPrimitives.ReadUInt16BigEndian(header.Slice(1, 2));
+        var offset = HeaderLength + _hashLength;
 
         if (compression == ViewStateCompression.GZip)
         {
@@ -342,5 +370,23 @@ public class ViewStateManager : IViewStateManager
                 return false;
             }
         }
+    }
+
+    private sealed class ArrayMemoryOwner<T> : IMemoryOwner<byte>
+    {
+        private readonly byte[] _array;
+
+        public ArrayMemoryOwner(byte[] array, int length)
+        {
+            _array = array;
+            Memory = new Memory<byte>(array, 0, length);
+        }
+
+        public void Dispose()
+        {
+            ArrayPool<byte>.Shared.Return(_array);
+        }
+
+        public Memory<byte> Memory { get; }
     }
 }
