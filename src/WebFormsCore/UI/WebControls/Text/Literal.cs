@@ -9,7 +9,7 @@ public partial class Literal : Control, ITextControl
 
     [ViewState] public string? Text { get; set; }
 
-    [ViewState] public LiteralMode Mode { get; set; }
+    [ViewState] public LiteralMode Mode { get; set; } = LiteralMode.Transform;
 
     public override Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
@@ -26,5 +26,13 @@ public partial class Literal : Control, ITextControl
     {
         get => Text ?? string.Empty;
         set => Text = value;
+    }
+
+    public override void ClearControl()
+    {
+        base.ClearControl();
+
+        Text = null;
+        Mode = LiteralMode.Transform;
     }
 }
