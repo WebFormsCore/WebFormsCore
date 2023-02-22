@@ -6,20 +6,24 @@ public class RepeaterItem : Control, IDataItemContainer
 {
     private object? _dataItem;
 
+    public override string UniqueID => Parent.UniqueID + IdSeparator + base.UniqueID;
+
+    public override string ClientID => Parent.ClientID + '_' + base.ClientID;
+
     public RepeaterItem(int itemIndex, ListItemType itemType)
     {
         ItemIndex = itemIndex;
         ItemType = itemType;
     }
 
+    protected virtual object? GetDataItem() => _dataItem;
+
+    protected virtual void SetDataItem(object? value) => _dataItem = value;
+
     public virtual object? DataItem
     {
-        get => _dataItem;
-        set
-        {
-            _dataItem = value;
-            OnDataItemChanged();
-        }
+        get => GetDataItem();
+        set => SetDataItem(value);
     }
 
     public virtual int ItemIndex { get; set; }
@@ -29,10 +33,6 @@ public class RepeaterItem : Control, IDataItemContainer
     public virtual Task DataBindAsync()
     {
         return Task.CompletedTask;
-    }
-
-    protected virtual void OnDataItemChanged()
-    {
     }
 
     int IDataItemContainer.DataItemIndex => ItemIndex;
@@ -52,15 +52,10 @@ public class RepeaterItem<T> : RepeaterItem
     public new T? DataItem
     {
         get => _dataItem;
-        set
-        {
-            _dataItem = value!;
-            base.DataItem = value;
-        }
+        set => _dataItem = value!;
     }
 
-    protected override void OnDataItemChanged()
-    {
-        _dataItem = (T?)base.DataItem;
-    }
+    protected override object? GetDataItem() => _dataItem;
+
+    protected override void SetDataItem(object? value) => _dataItem = (T) value!;
 }

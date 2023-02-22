@@ -141,6 +141,9 @@ public partial class CompiledViews
         protected override void FrameworkInitialize()
         {
             base.FrameworkInitialize();
+            {{- if type.RenderName }}
+            SetRenderMethodDelegate({{ type.RenderName }});
+            {{- end }}
             {{ write_children type.AllChildren "this" true }}
         }
 

@@ -52,6 +52,7 @@ public static class ServiceExtensions
         services.AddViewStateSerializer<TextBoxMode>();
         services.AddViewStateSerializer<Unit>();
         services.AddViewStateSerializer<AutoCompleteType>();
+        services.AddViewStateSerializer<LiteralMode>();
 
         services.TryAddSingleton<IAttributeParser<string>, StringAttributeParser>();
         services.TryAddSingleton<IAttributeParser<int>, Int32AttributeParser>();

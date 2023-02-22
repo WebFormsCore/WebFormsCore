@@ -9,11 +9,17 @@ public partial class Literal : Control, ITextControl
 
     [ViewState] public string? Text { get; set; }
 
+    [ViewState] public LiteralMode Mode { get; set; }
+
     public override Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        return string.IsNullOrEmpty(Text)
-            ? Task.CompletedTask
-            : writer.WriteAsync(Text);
+        if (string.IsNullOrEmpty(Text))
+            return Task.CompletedTask;
+
+        if (Mode == LiteralMode.Encode)
+            return writer.WriteEncodedTextAsync(Text);
+
+        return writer.WriteAsync(Text);
     }
 
     string ITextControl.Text

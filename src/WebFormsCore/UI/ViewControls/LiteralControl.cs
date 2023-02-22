@@ -17,7 +17,6 @@ public sealed class LiteralControl : Control, ITextControl
     public LiteralControl()
     {
         _text = string.Empty;
-        EnableViewState = false;
     }
 
     public override bool EnableViewState

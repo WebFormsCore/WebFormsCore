@@ -1,21 +1,24 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace WebFormsCore.UI.WebControls;
 
-public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPostBackLoadHandler
+public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPostBackLoadHandler, INamingContainer
     where TItem : RepeaterItem
 {
-    private readonly List<TItem> _items = new();
+    private readonly List<(TItem Item, Control? Seperator)> _items = new();
+    private Control? _header;
+    private Control? _footer;
 
     [ViewState] private int _itemCount;
 
     public virtual string? ItemType { get; set; }
 
-    public IReadOnlyList<TItem> Items => _items;
+    public IEnumerable<TItem> Items => _items.Select(x => x.Item);
 
     public event AsyncEventHandler<TEventArgs>? ItemCreated;
 
@@ -44,25 +47,16 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
 
         Clear();
 
-        if (HeaderTemplate != null) await CreateItemAsync(ListItemType.Header);
-
         for (var i = 0; i < count; i++)
         {
             await CreateItemAsync();
         }
-
-        if (FooterTemplate != null) await CreateItemAsync(ListItemType.Footer);
     }
 
     public async Task DataBindAsync()
     {
         Clear();
-
-        if (HeaderTemplate != null) await CreateItemAsync(ListItemType.Header, true);
-
         await LoadDataSource();
-
-        if (FooterTemplate != null) await CreateItemAsync(ListItemType.Footer, true);
     }
 
     [Obsolete("Use DataBindAsync instead.")]
@@ -71,40 +65,115 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
         DataBindAsync().GetAwaiter().GetResult();
     }
 
-    public async Task AddItemAsync(T data)
+    public async Task AddAsync(T data)
     {
-        if (_itemCount == 0 && HeaderTemplate != null)
-        {
-            await CreateItemAsync(ListItemType.Header, true);
-        }
-
-        TItem? footer = null;
-        if (FooterTemplate != null && _itemCount > 0)
-        {
-            var index = _items.Count - 1;
-            footer = _items[index];
-            _items.RemoveAt(index);
-            Controls.Remove(footer);
-        }
-
         await CreateItemAsync(true, data);
+    }
 
-        if (footer != null)
+    public void Remove(RepeaterItem item)
+    {
+        var index = _items.FindIndex(x => x.Item == item);
+
+        if (index == -1)
         {
-            _items.Add(footer);
-            Controls.Add(footer);
+            throw new InvalidOperationException("Item not found.");
         }
-        else if (FooterTemplate != null)
+
+        RemoveAt(index);
+    }
+
+    public void RemoveAt(int index)
+    {
+        var (item, separator) = _items[index];
+        _items.RemoveAt(index);
+        _itemCount--;
+
+        Controls.Remove(item);
+
+        if (separator is not null)
         {
-            await CreateItemAsync(ListItemType.Footer, true);
+            Controls.Remove(separator);
+        }
+
+        if (_itemCount == 0)
+        {
+            Clear();
+        }
+        else
+        {
+            // Remove the separator of the first item.
+            if (index == 0)
+            {
+                var (firstItem, firstSeparator) = _items[0];
+
+                if (firstSeparator != null)
+                {
+                    Controls.Remove(firstSeparator);
+                    _items[0] = (firstItem, null);
+                }
+            }
+
+            UpdateNames();
+        }
+    }
+
+    public void Swap(int index1, int index2)
+    {
+        (_items[index1], _items[index2]) = (_items[index2], _items[index1]);
+        UpdateNames();
+    }
+
+    public void Swap(TItem item1, TItem item2)
+    {
+        var index1 = _items.FindIndex(x => x.Item == item1);
+        var index2 = _items.FindIndex(x => x.Item == item2);
+
+        if (index1 == -1 || index2 == -1)
+        {
+            throw new InvalidOperationException("Item not found.");
+        }
+
+        Swap(index1, index2);
+    }
+
+    /// <summary>
+    /// Updates the names of the items and separators so they are the same when the page is posted back.
+    /// </summary>
+    private void UpdateNames()
+    {
+        for (var i = 0; i < _items.Count; i++)
+        {
+            var (item, separator) = _items[i];
+
+            item.ID = $"i{i}";
+
+            if (separator is not null)
+            {
+                separator.ID = $"s{i}";
+            }
         }
     }
 
     protected override async Task RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        foreach (var item in _items)
+        if (_header is not null)
         {
+            await _header.RenderAsync(writer, token);
+        }
+
+        foreach (var (item, separator) in _items)
+        {
+            if (separator is not null)
+            {
+                await separator.RenderAsync(writer, token);
+            }
+
             await item.RenderAsync(writer, token);
+        }
+
+        if (_footer is not null)
+        {
+            await _footer.RenderAsync(writer, token);
         }
     }
 
@@ -112,12 +181,24 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
     {
         _itemCount = 0;
         _items.Clear();
+        _header = null;
+        _footer = null;
         Controls.Clear();
     }
 
+    public TItem this[int index] => _items[index].Item;
+
     protected virtual async Task LoadDataSource()
     {
-        if (DataSource is not IEnumerable dataSource) return;
+        if (DataSource is null)
+        {
+            return;
+        }
+
+        if (DataSource is not IEnumerable dataSource)
+        {
+            throw new InvalidOperationException("DataSource is not an IEnumerable.");
+        }
 
         foreach (var dataItem in dataSource)
         {
@@ -145,33 +226,44 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
         contentTemplate?.InstantiateIn(item);
     }
 
-    protected ValueTask<TItem> CreateItemAsync(bool useDataSource = false, T? dataItem = default)
+    protected async ValueTask<TItem> CreateItemAsync(bool useDataSource = false, T? dataItem = default)
     {
-        var itemType = (_itemCount % 2 == 0) ? ListItemType.Item : ListItemType.AlternatingItem;
-        return CreateItemAsync(itemType, useDataSource, dataItem);
+        if (_header == null && HeaderTemplate != null)
+        {
+            _header = await CreateItemAsync(ListItemType.Header, true);
+            _header.ID = "h";
+        }
+
+        Control? separator = null;
+
+        var index = _itemCount;
+
+        if (index > 0)
+        {
+            separator = await CreateItemAsync(ListItemType.Separator);
+            separator.ID = $"s{index}";
+        }
+
+        var itemType = (index % 2 == 0) ? ListItemType.Item : ListItemType.AlternatingItem;
+        var item = await CreateItemAsync(itemType, useDataSource, dataItem);
+
+        item.ID = $"i{index}";
+        _items.Add((item, separator));
+
+        if (_footer == null && FooterTemplate != null)
+        {
+            _footer = await CreateItemAsync(ListItemType.Footer, true);
+            _footer.ID = "f";
+        }
+
+        return item;
     }
 
     private async ValueTask<TItem> CreateItemAsync(ListItemType itemType, bool dataBind = false, T? dataItem = default)
     {
-        int itemIndex;
-
-        if (itemType is ListItemType.Item or ListItemType.AlternatingItem)
-        {
-            if (_itemCount > 0)
-            {
-                await CreateItemAsync(ListItemType.Separator);
-            }
-
-            itemIndex = _itemCount++;
-        }
-        else
-        {
-            itemIndex = -1;
-        }
-
+        var itemIndex = itemType is ListItemType.Item or ListItemType.AlternatingItem ? _itemCount++ : -1;
         var item = CreateItem(itemIndex, itemType);
 
-        _items.Add(item);
         InitializeItem(item);
         if (dataBind)
         {
@@ -185,8 +277,6 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
         {
             await item.DataBindAsync();
             await ItemDataBound.InvokeAsync(this, CreateEventArgs(item));
-
-            item.DataItem = null;
         }
 
         return item;

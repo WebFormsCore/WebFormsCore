@@ -11,7 +11,7 @@ public partial class TodoList : Control
     {
         if (tbItem.Text is {} value)
         {
-            await rptItems.AddItemAsync(value);
+            await rptItems.AddAsync(value);
             tbItem.Text = "";
         }
     }
@@ -27,6 +27,15 @@ public partial class TodoList : Control
 
         controls.litValue.Text = dataItem;
 
+        return Task.CompletedTask;
+    }
+
+    protected Task btnRemove_OnClick(object? sender, EventArgs e)
+    {
+        var button = (Button) sender!;
+        var item = (RepeaterItem<string>) button.NamingContainer!;
+
+        rptItems.Remove(item);
         return Task.CompletedTask;
     }
 }

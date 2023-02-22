@@ -27,6 +27,30 @@ public class ControlCollection : ICollection, ICollection<Control>
         Owner.AddedControl(child, index);
     }
 
+    public virtual void Swap(int oldIndex, int newIndex)
+    {
+        (_list[oldIndex], _list[newIndex]) = (_list[newIndex], _list[oldIndex]);
+    }
+
+    public void Swap(Control control, int newIndex)
+    {
+        Swap(IndexOf(control), newIndex);
+    }
+
+    public void Swap(Control control1, Control control2)
+    {
+        Swap(IndexOf(control1), IndexOf(control2));
+    }
+
+    public void MoveToLast(int oldIndex)
+    {
+        Swap(oldIndex, Count - 1);
+    }
+
+    public void MoveToLast(Control control)
+    {
+        MoveToLast(IndexOf(control));
+    }
 
     public virtual void Clear()
     {

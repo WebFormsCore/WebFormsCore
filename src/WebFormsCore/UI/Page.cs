@@ -34,7 +34,7 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     public override HtmlForm? Form => null;
 
-    internal List<BodyPlaceHolder> BodyControls { get; set; } = new();
+    internal List<IBodyControl> BodyControls { get; set; } = new();
 
     internal async Task<HtmlForm?> ProcessRequestAsync(CancellationToken token)
     {

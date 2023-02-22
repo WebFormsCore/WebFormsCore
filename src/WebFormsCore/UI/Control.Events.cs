@@ -113,6 +113,11 @@ public partial class Control
         {
             var control = Controls[i];
 
+            if (!control.IsInPage)
+            {
+                continue;
+            }
+
             if (form != null && control is HtmlForm && control != form) continue;
 
             await control.InvokePostbackAsync(token, form, target, argument);

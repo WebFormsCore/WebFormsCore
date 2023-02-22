@@ -308,6 +308,11 @@ public partial class Control : System.Web.UI.Control
     /// <see langword="true" /> if the <see cref="T:WebFormsCore.UI.StateBag" /> instance is case-insensitive; otherwise, <see langword="false" />. The default is <see langword="false" />.</returns>
     protected virtual bool ViewStateIgnoresCase => false;
 
+    /// <summary>
+    /// True if the control is added to the page.
+    /// </summary>
+    internal bool IsInPage => _page is not null || _parent is { IsInPage: true };
+
     /// <summary>Sends server control content to a provided <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object, which writes the content to be rendered on the client.</summary>
     /// <param name="writer">The <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object that receives the server control content. </param>
     /// <param name="token"></param>
@@ -492,8 +497,6 @@ public partial class Control : System.Web.UI.Control
         OccasionalFields.NamedControls = null;
     }
 
-
-
     /// <summary>Searches the current naming container for a server control with the specified <paramref name="id" /> parameter.</summary>
     /// <param name="id">The identifier for the control to be found. </param>
     /// <returns>The specified control, or <see langword="null" /> if the specified control does not exist.</returns>
@@ -571,8 +574,6 @@ public partial class Control : System.Web.UI.Control
 
     protected virtual void OnWriteViewState(ref ViewStateWriter writer)
     {
-        if (!EnableViewStateBag) return;
-
         writer.Write(_visible);
 
         var length = (byte)(_viewState?.ViewStateCount ?? 0);
@@ -587,8 +588,6 @@ public partial class Control : System.Web.UI.Control
 
     protected virtual void OnLoadViewState(ref ViewStateReader reader)
     {
-        if (!EnableViewStateBag) return;
-
         _visible = reader.Read<bool>();
 
         var length = reader.Read<byte>();

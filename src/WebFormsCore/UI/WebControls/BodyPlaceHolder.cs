@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI.WebControls;
 
-public class BodyPlaceHolder : PlaceHolder
+public class BodyPlaceHolder : PlaceHolder, IBodyControl
 {
     protected override void OnInit(EventArgs args)
     {

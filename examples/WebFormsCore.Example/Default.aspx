@@ -11,13 +11,6 @@
 <body id="Body" runat="server">
 
     <div class="container">
-
-        <div class="mb-2">
-            <wfc:TextBox runat="server" ID="tbPrefix" />
-            <wfc:Literal runat="server" ID="litDateTime" />
-            <wfc:Button runat="server" Text="Update DateTime" OnClick="OnClick" />
-        </div>
-
         <div class="mt-4">
             <div class="row">
                 <div class="col-6">

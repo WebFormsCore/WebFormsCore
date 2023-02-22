@@ -70,13 +70,15 @@ public class ViewStateManager : IViewStateManager
 #endif
 
     /// <summary>
-    /// Header length: compression + length
+    /// Header length: compression + length + control count
     /// </summary>
-    private const int HeaderLength = sizeof(byte) + sizeof(ushort);
+    private const int HeaderLength = sizeof(byte) + sizeof(ushort) + sizeof(ushort);
 
     private static IEnumerable<Control> GetControls(Control owner)
     {
-        return owner.EnumerateControls(static c => c is not HtmlForm);
+        return owner
+            .EnumerateControls(static c => c is not HtmlForm)
+            .Where(i => i.EnableViewState);
     }
 
     public bool EnableViewState => _options.Value.Enabled;
@@ -87,13 +89,22 @@ public class ViewStateManager : IViewStateManager
 
         try
         {
+            ushort controlCount = 0;
+
             foreach (var child in GetControls(control))
             {
                 child.WriteViewState(ref writer);
+                controlCount++;
             }
 
             var state = writer.Span;
             var maxLength = Base64.GetMaxEncodedToUtf8Length(state.Length + HeaderLength + _hashLength);
+
+            if (maxLength > _options.Value.MaxBytes)
+            {
+                throw new ViewStateException("Viewstate exceeds maximum size");
+            }
+
             var array = ArrayPool<byte>.Shared.Rent(maxLength);
             var result = array.AsSpan();
 
@@ -122,6 +133,7 @@ public class ViewStateManager : IViewStateManager
             }
 
             BinaryPrimitives.WriteUInt16BigEndian(header.Slice(1, 2), (ushort)state.Length);
+            BinaryPrimitives.WriteUInt16BigEndian(header.Slice(3, 2), controlCount);
 
             ComputeHash(array, dataLength, hash);
 
@@ -220,10 +232,22 @@ public class ViewStateManager : IViewStateManager
 
     }
 
-    private ViewStateReaderOwner CreateReader(string base64)
+    private ViewStateReaderOwner CreateReader(string base64, out int controlCount)
     {
+        var totalHeaderLength = HeaderLength + _hashLength;
         var encoding = Encoding.UTF8;
         var byteLength = encoding.GetByteCount(base64);
+
+        if (byteLength > _options.Value.MaxBytes)
+        {
+            throw new ViewStateException("Viewstate exceeds maximum size");
+        }
+
+        if (byteLength < totalHeaderLength)
+        {
+            throw new ViewStateException("Viewstate is too short");
+        }
+
         var array = ArrayPool<byte>.Shared.Rent(byteLength);
         IMemoryOwner<byte> owner = new ArrayMemoryOwner<byte>(array, byteLength);
         var span = array.AsSpan();
@@ -233,7 +257,12 @@ public class ViewStateManager : IViewStateManager
 
         if (Base64.DecodeFromUtf8InPlace(span, out var base64Length) != OperationStatus.Done)
         {
-            throw new InvalidOperationException("Could not decode base64");
+            throw new ViewStateException("Could not decode base64");
+        }
+
+        if (base64Length < totalHeaderLength)
+        {
+            throw new ViewStateException("Viewstate is too short");
         }
 
         span = span.Slice(0, base64Length);
@@ -247,21 +276,25 @@ public class ViewStateManager : IViewStateManager
 
         if (!computedHash.SequenceEqual(hash))
         {
-            throw new InvalidOperationException("The viewstate hash is invalid");
+            throw new ViewStateException("The viewstate hash is invalid");
         }
 
         var compression = (ViewStateCompression) header[0];
-        var length = (int)BinaryPrimitives.ReadUInt16BigEndian(header.Slice(1, 2));
+        controlCount = BinaryPrimitives.ReadUInt16BigEndian(header.Slice(3, 2));
+
         var offset = HeaderLength + _hashLength;
+
+        int actualLength;
+        var length = (int)BinaryPrimitives.ReadUInt16BigEndian(header.Slice(1, 2));
 
         if (compression == ViewStateCompression.GZip)
         {
             var decodedOwner = MemoryPool<byte>.Shared.Rent(length);
             var decoded = decodedOwner.Memory.Span;
 
-            if (!TryDecompress(data, decoded, out length))
+            if (!TryDecompress(data, decoded, out actualLength))
             {
-                throw new InvalidOperationException("Could not decompress the viewstate");
+                throw new ViewStateException("Could not decompress the viewstate");
             }
 
             owner.Dispose();
@@ -274,9 +307,9 @@ public class ViewStateManager : IViewStateManager
             var decodedOwner = MemoryPool<byte>.Shared.Rent(length);
             var decoded = decodedOwner.Memory.Span;
 
-            if (!BrotliDecoder.TryDecompress(data, decoded, out length))
+            if (!BrotliDecoder.TryDecompress(data, decoded, out actualLength))
             {
-                throw new InvalidOperationException("Could not decompress the viewstate");
+                throw new ViewStateException("Could not decompress the viewstate");
             }
 
             owner.Dispose();
@@ -284,29 +317,47 @@ public class ViewStateManager : IViewStateManager
             offset = 0;
         }
 #endif
+        else
+        {
+            actualLength = data.Length;
+        }
+
+        if (actualLength != length)
+        {
+            throw new ViewStateException("The viewstate length does not match the header");
+        }
 
         return new ViewStateReaderOwner(owner, _serviceProvider, offset);
     }
 
     private async ValueTask LoadViewStateAsync(Control owner, string viewState)
     {
-        using var wrapper = CreateReader(viewState);
+        using var wrapper = CreateReader(viewState, out var controlCount);
         using var enumerator = GetControls(owner).GetEnumerator();
+        var actualControlCount = 0;
 
         while (true)
         {
-            var control = LoadViewState(enumerator, wrapper);
+            var control = LoadViewState(enumerator, wrapper, ref actualControlCount);
 
             if (control == null) break;
 
             await control.AfterPostBackLoadAsync();
+        }
+
+        if (actualControlCount != controlCount)
+        {
+            throw new ViewStateException("The control count does not match the viewstate");
         }
     }
 
     /// <summary>
     /// Try to load the view state for as many controls as possible with the span-reader.
     /// </summary>
-    private static IPostBackLoadHandler? LoadViewState(IEnumerator<Control> controls, ViewStateReaderOwner owner)
+    private static IPostBackLoadHandler? LoadViewState(
+        IEnumerator<Control> controls,
+        ViewStateReaderOwner owner,
+        ref int actualControlCount)
     {
         var reader = owner.CreateReader();
 
@@ -314,9 +365,10 @@ public class ViewStateManager : IViewStateManager
         {
             while (controls.MoveNext())
             {
-                var control = controls.Current!;
+                var control = controls.Current;
 
                 control.LoadViewState(ref reader);
+                actualControlCount++;
 
                 if (control is IPostBackLoadHandler handler)
                 {
