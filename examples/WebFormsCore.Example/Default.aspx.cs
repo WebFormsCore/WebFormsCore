@@ -9,7 +9,7 @@ public partial class Default : Page
 
     protected override void OnInit(EventArgs args)
     {
-        Csp.Enabled = true;
+        // Csp.Enabled = true;
     }
 
     protected override void OnLoad(EventArgs args)

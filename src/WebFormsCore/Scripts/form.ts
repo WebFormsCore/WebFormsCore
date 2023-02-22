@@ -65,7 +65,14 @@ function submitForm(form?: HTMLFormElement, eventTarget?: string, eventArgument?
     }
 
     fetch(url, request)
-        .then(r => r.text())
+        .then(r => {
+            if (!r.ok) {
+                document.dispatchEvent(new CustomEvent("wfc:submitError", { detail: { form, eventTarget, response: r } }));
+                throw new Error(r.statusText);
+            }
+
+            return r.text();
+        })
         .then(r => {
             const newElements = [];
 

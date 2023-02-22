@@ -251,7 +251,15 @@ public class ControlManager : IDisposable, IControlManager
     {
         var pageType = await GetTypeAsync(path);
 
-        return await RenderPageAsync(context, provider, pageType, stream, token);
+        try
+        {
+            return await RenderPageAsync(context, provider, pageType, stream, token);
+        }
+        catch (ViewStateException)
+        {
+            context.Response.StatusCode = 400;
+            return false;
+        }
     }
 
     public Task<bool> RenderPageAsync(

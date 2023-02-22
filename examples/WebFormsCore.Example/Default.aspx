@@ -41,5 +41,10 @@
         </div>
     </div>
 
+    <script>
+    document.addEventListener("wfc:submitError", function () {
+        alert('Invalid viewstate');
+    });
+    </script>
 </body>
 </html>

@@ -805,7 +805,13 @@ function submitForm(form, eventTarget, eventArgument) {
         };
     }
     fetch(url, request)
-        .then(function (r) { return r.text(); })
+        .then(function (r) {
+        if (!r.ok) {
+            document.dispatchEvent(new CustomEvent("wfc:submitError", { detail: { form: form, eventTarget: eventTarget, response: r } }));
+            throw new Error(r.statusText);
+        }
+        return r.text();
+    })
         .then(function (r) {
         var newElements = [];
         var options = {
