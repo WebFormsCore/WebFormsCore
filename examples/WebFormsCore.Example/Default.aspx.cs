@@ -10,6 +10,7 @@ public partial class Default : Page
     protected override void OnInit(EventArgs args)
     {
         // Csp.Enabled = true;
+        EnablePageViewState = false;
     }
 
     protected override void OnLoad(EventArgs args)

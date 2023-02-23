@@ -20,6 +20,8 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
         ClientScript = new ClientScriptManager(this);
     }
 
+    public bool EnablePageViewState { get; set; } = true;
+
     public Csp Csp { get; set; } = new();
 
     public ClientScriptManager ClientScript { get; }
@@ -33,6 +35,8 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
     public List<HtmlForm> Forms { get; set; } = new();
 
     public override HtmlForm? Form => null;
+
+    public object GetDataItem() => throw new NotImplementedException();
 
     internal List<IBodyControl> BodyControls { get; set; } = new();
 

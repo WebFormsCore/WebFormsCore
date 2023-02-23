@@ -94,7 +94,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler
                 break;
         }
 
-        if (AutoPostBack) writer.AddAttribute("data-wfc-autopostback", null);
+        if (TextChanged != null) writer.AddAttribute("data-wfc-autopostback", null);
     }
 
     protected override void SetAttribute(string name, string? value)
@@ -165,11 +165,6 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler
         if (eventArgument == "ENTER")
         {
             await EnterPressed.InvokeAsync(this, EventArgs.Empty);
-        }
-
-        if (eventArgument == "CHANGE")
-        {
-            await TextChanged.InvokeAsync(this, EventArgs.Empty);
         }
     }
 

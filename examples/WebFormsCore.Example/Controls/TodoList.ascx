@@ -1,6 +1,7 @@
 <%@ Control language="C#" Inherits="WebFormsCore.Example.Controls.TodoList" %>
 
-<wfc:TextBox runat="server" ID="tbItem" class="form-control" OnEnterPressed="tbItem_OnEnterPressed" />
+<wfc:TextBox runat="server" ID="tbItem" class="form-control" OnEnterPressed="tbItem_OnEnterPressed" OnTextChanged="tbItem_OnTextChanged" />
+<wfc:Literal runat="server" ID="litExample" />
 
 <wfc:Repeater runat="server" ID="rptItems" OnItemDataBound="rptItems_OnItemDataBound" ItemType="System.String">
     <ItemTemplate ControlsType="ItemControls">

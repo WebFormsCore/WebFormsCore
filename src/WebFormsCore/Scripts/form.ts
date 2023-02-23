@@ -1,135 +1,160 @@
-import morphdom from "morphdom/dist/morphdom-esm";
+import morphAttrs from "morphdom/src/morphAttrs";
+import morphdomFactory from "morphdom/src/morphdom";
+import { Mutex } from 'async-mutex';
 
-function submitForm(form?: HTMLFormElement, eventTarget?: string, eventArgument?: string) {
-    const pageState = document.getElementById("pagestate") as HTMLInputElement;
-    const url = location.pathname + location.search;
+const morphdom = morphdomFactory(morphAttrs);
 
-    const formData = form ? new FormData(form) : new FormData();
+const postbackMutex = new Mutex();
 
-    // Add all the form elements that are not in a form
-    const elements = document.body.querySelectorAll('input, select, textarea');
+async function submitForm(form?: HTMLFormElement, eventTarget?: string, eventArgument?: string) {
+    const release = await postbackMutex.acquire();
+    try {
+        const pageState = document.getElementById("pagestate") as HTMLInputElement;
+        const url = location.pathname + location.search;
 
-    for (let i = 0; i < elements.length; i++) {
-        const element = elements[i] as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+        const formData = form ? new FormData(form) : new FormData();
 
-        if (element.hasAttribute('data-wfc-ignore') || element.type === "button" ||
-                element.type === "submit" || element.type === "reset") {
-            continue;
-        }
+        if (pageState) {
+            // Add all the form elements that are not in a form
+            const elements = document.body.querySelectorAll('input, select, textarea');
 
-        const form = element.closest('form[data-wfc-form]') as HTMLFormElement;
+            for (let i = 0; i < elements.length; i++) {
+                const element = elements[i] as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
-        if (form) {
-            continue;
-        }
-
-        if (element.type === "checkbox" || element.type === "radio") {
-            if ((element as HTMLInputElement).checked) {
-                formData.append(element.name, element.value);
-            }
-        } else {
-            formData.append(element.name, element.value);
-        }
-    }
-
-    if (pageState) {
-        formData.append("__PAGESTATE", pageState.value);
-    }
-
-    if (eventTarget) {
-        formData.append("__EVENTTARGET", eventTarget);
-    }
-
-    if (eventArgument) {
-        formData.append("__EVENTARGUMENT", eventArgument);
-    }
-
-    document.dispatchEvent(new CustomEvent("wfc:beforeSubmit", { detail: { form, eventTarget, formData } }));
-
-    const request: RequestInit = {
-        method: "POST",
-    };
-
-    // Determine if we need to send the form data as JSON or as form data
-    if (document.body.querySelector('input[type="file"]:not([data-wfc-ignore])')) {
-        request.body = formData;
-    } else {
-        const object = {};
-        formData.forEach(function(value, key){
-            object[key] = value;
-        });
-        request.body = JSON.stringify(object);
-        request.headers = {
-            "Content-Type": "application/json",
-        };
-    }
-
-    fetch(url, request)
-        .then(r => {
-            if (!r.ok) {
-                document.dispatchEvent(new CustomEvent("wfc:submitError", { detail: { form, eventTarget, response: r } }));
-                throw new Error(r.statusText);
-            }
-
-            return r.text();
-        })
-        .then(r => {
-            const newElements = [];
-
-            const options = {
-                onNodeAdded(node) {
-                    newElements.push(node);
-                    document.dispatchEvent(new CustomEvent("wfc:addNode", { detail: { node, form, eventTarget } }));
-                },
-                onBeforeNodeDiscarded(node) {
-                    if (node.tagName === "SCRIPT") {
-                        return false;
-                    }
-
-                    if (node.tagName === 'FORM' && node.hasAttribute('data-wfc-form')) {
-                        return false;
-                    }
-
-                    if (node.tagName === 'DIV' && node.hasAttribute('data-wfc-owner') && (node.getAttribute('data-wfc-owner') ?? "") !== (form?.id ?? "")) {
-                        return false;
-                    }
-
-                    const result = document.dispatchEvent(new CustomEvent("wfc:discardNode", { detail: { node, form, eventTarget }, cancelable: true }));
-
-                    if (!result) {
-                        return false;
-                    }
+                if (element.hasAttribute('data-wfc-ignore') || element.type === "button" ||
+                    element.type === "submit" || element.type === "reset") {
+                    continue;
                 }
+
+                const form = element.closest('form[data-wfc-form]') as HTMLFormElement;
+
+                if (form) {
+                    continue;
+                }
+
+                if (element.type === "checkbox" || element.type === "radio") {
+                    if ((element as HTMLInputElement).checked) {
+                        formData.append(element.name, element.value);
+                    }
+                } else {
+                    formData.append(element.name, element.value);
+                }
+            }
+
+            formData.append("__PAGESTATE", pageState.value);
+        }
+
+        if (eventTarget) {
+            formData.append("__EVENTTARGET", eventTarget);
+        }
+
+        if (eventArgument) {
+            formData.append("__EVENTARGUMENT", eventArgument);
+        }
+
+        document.dispatchEvent(new CustomEvent("wfc:beforeSubmit", {detail: {form, eventTarget, formData}}));
+
+        const request: RequestInit = {
+            method: "POST",
+        };
+
+        // Determine if we need to send the form data as JSON or as form data
+        if (document.body.querySelector('input[type="file"]:not([data-wfc-ignore])')) {
+            request.body = formData;
+        } else {
+            const object = {};
+            formData.forEach(function (value, key) {
+                object[key] = value;
+            });
+            request.body = JSON.stringify(object);
+            request.headers = {
+                "Content-Type": "application/json",
             };
+        }
 
-            const parser = new DOMParser();
-            const htmlDoc = parser.parseFromString(r, 'text/html');
+        const response = await fetch(url, request)
 
-            morphdom(document.head, htmlDoc.querySelector('head'), options);
-            morphdom(document.body, htmlDoc.querySelector('body'), options);
+        if (!response.ok) {
+            document.dispatchEvent(new CustomEvent("wfc:submitError", {
+                detail: {
+                    form,
+                    eventTarget,
+                    response: response
+                }
+            }));
+            throw new Error(response.statusText);
+        }
 
-            document.dispatchEvent(new CustomEvent("wfc:afterSubmit", { detail: { form, eventTarget, newElements } }));
-        });
+        const text = await response.text();
+        const newElements = [];
+
+        const options = {
+            onNodeAdded(node) {
+                newElements.push(node);
+                document.dispatchEvent(new CustomEvent("wfc:addNode", {detail: {node, form, eventTarget}}));
+            },
+            onBeforeElUpdated: function(fromEl, toEl) {
+                if (fromEl === document.activeElement && fromEl.tagName === "INPUT") {
+                    return false
+                }
+            },
+            onBeforeNodeDiscarded(node) {
+                if (node.tagName === "SCRIPT") {
+                    return false;
+                }
+
+                if (node.tagName === 'FORM' && node.hasAttribute('data-wfc-form')) {
+                    return false;
+                }
+
+                if (node.tagName === 'DIV' && node.hasAttribute('data-wfc-owner') && (node.getAttribute('data-wfc-owner') ?? "") !== (form?.id ?? "")) {
+                    return false;
+                }
+
+                const result = document.dispatchEvent(new CustomEvent("wfc:discardNode", {
+                    detail: {
+                        node,
+                        form,
+                        eventTarget
+                    }, cancelable: true
+                }));
+
+                if (!result) {
+                    return false;
+                }
+            }
+        };
+
+        const parser = new DOMParser();
+        const htmlDoc = parser.parseFromString(text, 'text/html');
+
+        morphdom(document.head, htmlDoc.querySelector('head'), options);
+        morphdom(document.body, htmlDoc.querySelector('body'), options);
+
+        document.dispatchEvent(new CustomEvent("wfc:afterSubmit", {detail: {form, eventTarget, newElements}}));
+    } finally {
+        release();
+    }
 }
 
 const originalSubmit = HTMLFormElement.prototype.submit;
 
-HTMLFormElement.prototype.submit = function() {
+HTMLFormElement.prototype.submit = async function() {
     if (this.hasAttribute('data-wfc-form')) {
-        submitForm(this);
+        await submitForm(this);
     } else {
         originalSubmit.call(this);
     }
 };
 
-document.addEventListener('submit', function(e){
+document.addEventListener('submit', async function(e){
     if (e.target instanceof Element && e.target.hasAttribute('data-wfc-form')) {
         e.preventDefault();
-        submitForm(e.target as HTMLFormElement);
+        await submitForm(e.target as HTMLFormElement);
     }
 });
 
-document.addEventListener('click', function(e){
+document.addEventListener('click', async function(e){
     if (!(e.target instanceof Element)) {
         return;
     }
@@ -143,10 +168,10 @@ document.addEventListener('click', function(e){
     const form = e.target.closest('form[data-wfc-form]') as HTMLFormElement;
 
     e.preventDefault();
-    submitForm(form, eventTarget);
+    await submitForm(form, eventTarget);
 });
 
-document.addEventListener('keypress', function(e){
+document.addEventListener('keypress', async function(e){
     if (e.key !== 'Enter' && e.keyCode !== 13 && e.which !== 13) {
         return;
     }
@@ -164,7 +189,7 @@ document.addEventListener('keypress', function(e){
     const form = e.target.closest('form[data-wfc-form]') as HTMLFormElement;
     const eventTarget = e.target.getAttribute('name');
     e.preventDefault();
-    submitForm(form, eventTarget, 'ENTER');
+    await submitForm(form, eventTarget, 'ENTER');
 });
 
 const timeouts = {};
@@ -188,13 +213,13 @@ document.addEventListener('input', function(e){
         clearTimeout(timeouts[key]);
     }
 
-    timeouts[key] = setTimeout(() => {
+    timeouts[key] = setTimeout(async () => {
         delete timeouts[key];
-        submitForm(form, eventTarget, 'CHANGE');
+        await submitForm(form, eventTarget, 'CHANGE');
     }, 1000);
 });
 
-document.addEventListener('change', function(e){
+document.addEventListener('change', async function(e){
     if(e.target instanceof Element && e.target.hasAttribute('data-wfc-autopostback')) {
         const eventTarget = e.target.getAttribute('name');
         const form = e.target.closest('form[data-wfc-form]') as HTMLFormElement;
@@ -204,6 +229,6 @@ document.addEventListener('change', function(e){
             clearTimeout(timeouts[key]);
         }
 
-        submitForm(form, eventTarget, 'CHANGE');
+        setTimeout(() => submitForm(form, eventTarget, 'CHANGE'), 10);
     }
 });

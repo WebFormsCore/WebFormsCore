@@ -42,13 +42,16 @@ public class HtmlBody : HtmlContainerControl
 
         if (viewStateManager.EnableViewState)
         {
-            await writer.WriteAsync(@"<input id=""pagestate"" type=""hidden"" name=""__PAGESTATE"" value=""");
-            using (var viewState = viewStateManager.Write(Page, out var length))
+            if (Page.EnablePageViewState)
             {
-                await writer.WriteAsync(viewState.Memory.Slice(0, length), token);
-            }
+                await writer.WriteAsync(@"<input id=""pagestate"" type=""hidden"" name=""__PAGESTATE"" value=""");
+                using (var viewState = viewStateManager.Write(Page, out var length))
+                {
+                    await writer.WriteAsync(viewState.Memory.Slice(0, length), token);
+                }
 
-            await writer.WriteAsync(@"""/>");
+                await writer.WriteAsync(@"""/>");
+            }
 
             if (!Page.IsPostBack)
             {

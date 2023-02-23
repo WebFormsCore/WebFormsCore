@@ -11,7 +11,7 @@ public partial class TodoList : Control
     {
         if (tbItem.Text is {} value)
         {
-            await rptItems.AddItemAsync(value);
+            await rptItems.AddAsync(value);
             tbItem.Text = "";
         }
     }

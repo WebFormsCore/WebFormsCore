@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
-        "lib": ["ES2019", "DOM"]
+        "lib": ["ES2017", "DOM"],
+        "target": "ES2017"
     }
 }
