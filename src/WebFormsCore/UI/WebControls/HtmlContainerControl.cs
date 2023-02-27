@@ -36,7 +36,12 @@ namespace WebFormsCore.UI.WebControls
                     return textControl.Text;
                 }
 
-                throw new InvalidOperationException("InnerHtml can only be set when there is a single LiteralControl child.");
+                if (Controls.Count == 0)
+                {
+                    return string.Empty;
+                }
+
+                throw new InvalidOperationException("InnerHtml can only be get when there is a single LiteralControl child.");
             }
             set
             {
@@ -46,11 +51,11 @@ namespace WebFormsCore.UI.WebControls
                 }
                 else if (Controls.Count > 0)
                 {
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException("InnerHtml can only be set when there is a single LiteralControl child.");
                 }
                 else
                 {
-                    Controls.Add(WebActivator.CreateLiteral(value));
+                    Controls.AddWithoutPageEvents(WebActivator.CreateLiteral(value));
                 }
             }
         }

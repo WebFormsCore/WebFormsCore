@@ -8,12 +8,7 @@ public class EmptyControlCollection : ControlCollection
     {
     }
 
-    public override void Add(Control child)
-    {
-        throw new NotSupportedException();
-    }
-
-    public override void AddAt(int index, Control child)
+    public override void AddWithoutPageEvents(Control child)
     {
         throw new NotSupportedException();
     }

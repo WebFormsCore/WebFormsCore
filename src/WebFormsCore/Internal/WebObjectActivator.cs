@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.ObjectPool;
 using WebFormsCore.UI;
 using WebFormsCore.UI.Attributes;
 using WebFormsCore.UI.HtmlControls;
@@ -12,11 +10,13 @@ namespace WebFormsCore;
 
 internal sealed class WebObjectActivator : IWebObjectActivator
 {
+    private readonly IControlManager _controlManager;
     private readonly IServiceProvider _serviceProvider;
 
-    public WebObjectActivator(IServiceProvider serviceProvider)
+    public WebObjectActivator(IServiceProvider serviceProvider, IControlManager controlManager)
     {
         _serviceProvider = serviceProvider;
+        _controlManager = controlManager;
     }
 
     public T ParseAttribute<T>(string attributeValue)
@@ -35,18 +35,29 @@ internal sealed class WebObjectActivator : IWebObjectActivator
     }
 
     public T CreateControl<T>()
+        where T : Control
     {
         var factory = _serviceProvider.GetRequiredService<IControlFactory<T>>();
-
         return factory.CreateControl(_serviceProvider);
     }
 
-    public object CreateControl(Type type)
+    public Control CreateControl(Type type)
     {
         var factoryType = typeof(IControlFactory<>).MakeGenericType(type);
         var factory = (IControlFactory) _serviceProvider.GetRequiredService(factoryType);
-
         return factory.CreateControl(_serviceProvider);
+    }
+
+    public Control CreateControl(string fullPath)
+    {
+        if (_controlManager.TryGetPath(fullPath, out var path))
+        {
+            fullPath = path;
+        }
+
+        var type = _controlManager.GetType(fullPath);
+
+        return CreateControl(type);
     }
 
     public LiteralControl CreateLiteral(string text)

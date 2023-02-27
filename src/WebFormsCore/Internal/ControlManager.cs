@@ -11,7 +11,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -53,7 +52,7 @@ public interface IControlManager
 
 public class ControlManager : IDisposable, IControlManager
 {
-    private readonly ConcurrentDictionary<string, PageEntry> _pages = new();
+    private readonly ConcurrentDictionary<string, ControlEntry> _controls = new();
     private readonly List<FileSystemWatcher> _watchers;
     private readonly IWebFormsEnvironment _environment;
     private readonly ILogger<ControlManager> _logger;
@@ -100,7 +99,7 @@ public class ControlManager : IDisposable, IControlManager
         var modifyTime = File.GetLastWriteTimeUtc(e.FullPath);
 
         if (!TryGetPath(e.FullPath, out var path) ||
-            !_pages.TryGetValue(path, out var entry) ||
+            !_controls.TryGetValue(path, out var entry) ||
             entry.LastModified >= modifyTime)
         {
             return;
@@ -117,7 +116,7 @@ public class ControlManager : IDisposable, IControlManager
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to re-compile page {Path}", e.FullPath);
+                _logger.LogError(ex, "Failed to re-compile control {Path}", e.FullPath);
             }
         });
     }
@@ -136,7 +135,7 @@ public class ControlManager : IDisposable, IControlManager
 
     public async ValueTask<Type> GetTypeAsync(string path)
     {
-        var entry = _pages.GetOrAdd(path, p => new PageEntry(p));
+        var entry = _controls.GetOrAdd(path, p => new ControlEntry(p));
 
         if (entry.Type != null) return entry.Type;
 
@@ -154,7 +153,7 @@ public class ControlManager : IDisposable, IControlManager
 
     public Type GetType(string path)
     {
-        var entry = _pages.GetOrAdd(path, p => new PageEntry(p));
+        var entry = _controls.GetOrAdd(path, p => new ControlEntry(p));
 
         if (entry.Type != null) return entry.Type;
 
@@ -170,7 +169,7 @@ public class ControlManager : IDisposable, IControlManager
         }
     }
 
-    private Type UpdateType(string path, PageEntry entry)
+    private Type UpdateType(string path, ControlEntry entry)
     {
         if (entry.Type != null)
         {
@@ -310,9 +309,9 @@ public class ControlManager : IDisposable, IControlManager
         return true;
     }
 
-    private class PageEntry
+    private class ControlEntry
     {
-        public PageEntry(string path)
+        public ControlEntry(string path)
         {
             Path = path;
         }

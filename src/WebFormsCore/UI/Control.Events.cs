@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WebFormsCore.UI.HtmlControls;
-using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI;
 
@@ -70,6 +67,8 @@ public partial class Control
         FrameworkInitialize();
         FrameworkInitialized();
 
+        _state = ControlState.FrameworkInitialized;
+
         foreach (var control in Controls)
         {
             control.InvokeFrameworkInit(token);
@@ -95,10 +94,16 @@ public partial class Control
         OnInit(EventArgs.Empty);
         await OnInitAsync(token);
 
-        foreach (var control in Controls)
+        InvokeTrackViewState(token);
+
+        for (var i = 0; i < Controls.Count; i++)
         {
+            var control = Controls[i];
+
             await control.InvokeInitAsync(token);
         }
+
+        _state = ControlState.Initialized;
     }
 
     internal async ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument)
@@ -142,12 +147,16 @@ public partial class Control
         OnLoad(EventArgs.Empty);
         await OnLoadAsync(token);
 
-        foreach (var control in Controls)
+        for (var i = 0; i < Controls.Count; i++)
         {
+            var control = Controls[i];
+
             if (form != null && control is HtmlForm && control != form) continue;
 
             await control.InvokeLoadAsync(token, form);
         }
+
+        _state = ControlState.Loaded;
     }
 
     internal async ValueTask InvokePreRenderAsync(CancellationToken token, HtmlForm? form)
@@ -157,11 +166,15 @@ public partial class Control
         OnPreRender(EventArgs.Empty);
         await OnPreRenderAsync(token);
 
-        foreach (var control in Controls)
+        for (var i = 0; i < Controls.Count; i++)
         {
+            var control = Controls[i];
+
             if (form != null && control is HtmlForm && control != form) continue;
 
             await control.InvokePreRenderAsync(token, form);
         }
+
+        _state = ControlState.PreRendered;
     }
 }

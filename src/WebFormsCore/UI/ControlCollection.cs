@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace WebFormsCore.UI;
 
-public class ControlCollection : ICollection, ICollection<Control>
+public class ControlCollection : IReadOnlyCollection<Control>
 {
     private readonly List<Control> _list = new();
     private string? _readOnlyErrorMsg;
@@ -14,17 +15,17 @@ public class ControlCollection : ICollection, ICollection<Control>
         Owner = owner ?? throw new ArgumentNullException(nameof(owner));
     }
 
-    public virtual void Add(Control child)
+    public virtual void AddWithoutPageEvents(Control child)
     {
         var index = Count;
         _list.Add(child);
         Owner.AddedControl(child, index);
     }
 
-    public virtual void AddAt(int index, Control child)
+    public virtual ValueTask AddAsync(Control child)
     {
-        _list.Insert(index, child);
-        Owner.AddedControl(child, index);
+        AddWithoutPageEvents(child);
+        return Owner.AddedControlAsync(child);
     }
 
     public virtual void Swap(int oldIndex, int newIndex)

@@ -13,9 +13,11 @@ public interface IWebObjectActivator
 
     T ParseAttribute<T, TConverter>(string attributeValue) where TConverter : TypeConverter;
 
-    T CreateControl<T>();
+    T CreateControl<T>() where T : Control;
 
-    object CreateControl(Type type);
+    Control CreateControl(Type type);
+
+    Control CreateControl(string fullPath);
 
     LiteralControl CreateLiteral(string text);
 

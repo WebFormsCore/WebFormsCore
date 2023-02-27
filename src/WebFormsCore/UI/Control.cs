@@ -11,6 +11,15 @@ namespace WebFormsCore.UI;
 
 public delegate Task RenderAsyncDelegate(HtmlTextWriter writer, ControlCollection controls, CancellationToken token);
 
+public enum ControlState
+{
+    Constructed,
+    FrameworkInitialized,
+    Initialized,
+    Loaded,
+    PreRendered,
+}
+
 public partial class Control : System.Web.UI.Control
 {
     protected const char IdSeparator = '$';
@@ -29,6 +38,7 @@ public partial class Control : System.Web.UI.Control
     private RenderAsyncDelegate? _renderMethod;
     private bool _visible = true;
     private bool _trackViewState;
+    private ControlState _state = ControlState.Constructed;
 
     public IWebObjectActivator WebActivator => _webObjectActivator ??= ServiceProvider.GetRequiredService<IWebObjectActivator>();
 
@@ -273,6 +283,7 @@ public partial class Control : System.Web.UI.Control
         _renderMethod = null;
         _visible = true;
         _trackViewState = false;
+        _state = ControlState.Constructed;
     }
 
     private string GetUniqueIDPrefix()
@@ -382,6 +393,29 @@ public partial class Control : System.Web.UI.Control
         else if (control._id != null || control._controls != null)
         {
             namingContainer.DirtyNameTable();
+        }
+
+        if (_state >= ControlState.FrameworkInitialized)
+        {
+            control.InvokeFrameworkInit(default);
+        }
+    }
+
+    internal async ValueTask AddedControlAsync(Control control)
+    {
+        if (_state >= ControlState.Initialized)
+        {
+            await control.InvokeInitAsync(default);
+        }
+
+        if (_state >= ControlState.Loaded)
+        {
+            await control.InvokeLoadAsync(default, Page.ActiveForm);
+        }
+
+        if (_state >= ControlState.PreRendered)
+        {
+            await control.InvokePreRenderAsync(default, Page.ActiveForm);
         }
     }
 
@@ -546,7 +580,7 @@ public partial class Control : System.Web.UI.Control
 
     public virtual void AddParsedSubObject(Control control)
     {
-        Controls.Add(control);
+        Controls.AddWithoutPageEvents(control);
     }
 
     protected virtual void OnInit(EventArgs args)
@@ -629,6 +663,8 @@ public partial class Control : System.Web.UI.Control
     protected virtual void FrameworkInitialized()
     {
     }
+
+    public Control LoadControl(string path) => WebActivator.CreateControl(path);
 
     private static readonly string[] AutomaticIDs =
     {

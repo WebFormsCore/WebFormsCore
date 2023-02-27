@@ -5,7 +5,7 @@ using Microsoft.Extensions.ObjectPool;
 namespace WebFormsCore.UI;
 
 internal sealed class PooledControlFactory<T> : IControlFactory<T>, IDisposable
-    where T : class
+    where T : Control
 {
     private readonly ObjectPool<T> _pool;
     private readonly ConcurrentStack<T> _controls = new();
@@ -30,7 +30,7 @@ internal sealed class PooledControlFactory<T> : IControlFactory<T>, IDisposable
         }
     }
 
-    object IControlFactory.CreateControl(IServiceProvider provider)
+    Control IControlFactory.CreateControl(IServiceProvider provider)
     {
         return CreateControl(provider);
     }

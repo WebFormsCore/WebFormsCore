@@ -271,7 +271,7 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
         }
 
         await ItemCreated.InvokeAsync(this, CreateEventArgs(item));
-        Controls.Add(item);
+        await Controls.AddAsync(item);
 
         if (dataBind)
         {

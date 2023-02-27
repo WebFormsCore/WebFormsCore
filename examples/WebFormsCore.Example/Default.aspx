@@ -32,7 +32,7 @@
                                 <strong>Todo list</strong>
                             </div>
                             <div class="card-body">
-                                <app:TodoList runat="server" />
+                                <wfc:PlaceHolder runat="server" ID="phTodoContainer" />
                             </div>
                         </div>
                     </form>

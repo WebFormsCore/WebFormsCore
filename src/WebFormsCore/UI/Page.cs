@@ -36,6 +36,8 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     public override HtmlForm? Form => null;
 
+    internal HtmlForm? ActiveForm { get; set; }
+
     public object GetDataItem() => throw new NotImplementedException();
 
     internal List<IBodyControl> BodyControls { get; set; } = new();
@@ -46,10 +48,11 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
         InvokeFrameworkInit(token);
         await InvokeInitAsync(token);
-        InvokeTrackViewState(token);
 
         var isPost = Context.Request.IsMethod("POST");
         var form = await viewStateManager.LoadAsync(Context, this);
+
+        ActiveForm = form;
 
         if (form != null)
         {
