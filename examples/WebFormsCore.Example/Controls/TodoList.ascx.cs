@@ -38,10 +38,4 @@ public partial class TodoList : Control
         rptItems.Remove(item);
         return Task.CompletedTask;
     }
-
-    protected Task tbItem_OnTextChanged(object? sender, EventArgs e)
-    {
-        tbItem.Text = tbItem.Text?.ToUpper();
-        return Task.CompletedTask;
-    }
 }

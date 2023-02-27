@@ -90,11 +90,13 @@ public partial class Control
     internal async ValueTask InvokeInitAsync(CancellationToken token)
     {
         if (token.IsCancellationRequested) return;
-        
         OnInit(EventArgs.Empty);
         await OnInitAsync(token);
 
         InvokeTrackViewState(token);
+
+        _state = ControlState.Initialized;
+        ViewState.TrackViewState();
 
         for (var i = 0; i < Controls.Count; i++)
         {
@@ -102,8 +104,6 @@ public partial class Control
 
             await control.InvokeInitAsync(token);
         }
-
-        _state = ControlState.Initialized;
     }
 
     internal async ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument)
@@ -147,6 +147,8 @@ public partial class Control
         OnLoad(EventArgs.Empty);
         await OnLoadAsync(token);
 
+        _state = ControlState.Loaded;
+
         for (var i = 0; i < Controls.Count; i++)
         {
             var control = Controls[i];
@@ -155,8 +157,6 @@ public partial class Control
 
             await control.InvokeLoadAsync(token, form);
         }
-
-        _state = ControlState.Loaded;
     }
 
     internal async ValueTask InvokePreRenderAsync(CancellationToken token, HtmlForm? form)
@@ -166,6 +166,8 @@ public partial class Control
         OnPreRender(EventArgs.Empty);
         await OnPreRenderAsync(token);
 
+        _state = ControlState.PreRendered;
+
         for (var i = 0; i < Controls.Count; i++)
         {
             var control = Controls[i];
@@ -174,7 +176,5 @@ public partial class Control
 
             await control.InvokePreRenderAsync(token, form);
         }
-
-        _state = ControlState.PreRendered;
     }
 }

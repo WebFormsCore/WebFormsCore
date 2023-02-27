@@ -6,6 +6,17 @@ const morphdom = morphdomFactory(morphAttrs);
 
 const postbackMutex = new Mutex();
 
+function syncBooleanAttrProp(fromEl, toEl, name) {
+    if (fromEl[name] !== toEl[name]) {
+        fromEl[name] = toEl[name];
+        if (fromEl[name]) {
+            fromEl.setAttribute(name, '');
+        } else {
+            fromEl.removeAttribute(name);
+        }
+    }
+}
+
 async function submitForm(form?: HTMLFormElement, eventTarget?: string, eventArgument?: string) {
     const release = await postbackMutex.acquire();
     try {
@@ -94,8 +105,17 @@ async function submitForm(form?: HTMLFormElement, eventTarget?: string, eventArg
                 document.dispatchEvent(new CustomEvent("wfc:addNode", {detail: {node, form, eventTarget}}));
             },
             onBeforeElUpdated: function(fromEl, toEl) {
-                if (fromEl === document.activeElement && fromEl.tagName === "INPUT") {
-                    return false
+                if (fromEl.tagName === "INPUT" && fromEl.type !== "hidden") {
+                    morphAttrs(fromEl, toEl);
+                    syncBooleanAttrProp(fromEl, toEl, 'checked');
+                    syncBooleanAttrProp(fromEl, toEl, 'disabled');
+
+                    // Only update the value if the value attribute is present
+                    if (toEl.hasAttribute('value')) {
+                        fromEl.value = toEl.value;
+                    }
+
+                    return false;
                 }
             },
             onBeforeNodeDiscarded(node) {

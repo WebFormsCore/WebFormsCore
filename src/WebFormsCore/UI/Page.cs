@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.DependencyInjection;
+using WebFormsCore.Events;
 using WebFormsCore.Security;
 using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
@@ -47,7 +48,18 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
         var viewStateManager = ServiceProvider.GetRequiredService<IViewStateManager>();
 
         InvokeFrameworkInit(token);
+
+        foreach (var pageService in ServiceProvider.GetServices<IPageService>())
+        {
+            await pageService.BeforeInitializeAsync(this);
+        }
+
         await InvokeInitAsync(token);
+
+        foreach (var pageService in ServiceProvider.GetServices<IPageService>())
+        {
+            await pageService.AfterInitializeAsync(this);
+        }
 
         var isPost = Context.Request.IsMethod("POST");
         var form = await viewStateManager.LoadAsync(Context, this);
@@ -67,7 +79,7 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
         if (isPost)
         {
-            var eventTarget = Context.Request.Form["__EVENTTARGET"].ToString();
+            var eventTarget = Context.Request.Form["__EVENTTARGET"];
 
             if (!string.IsNullOrEmpty(eventTarget))
             {

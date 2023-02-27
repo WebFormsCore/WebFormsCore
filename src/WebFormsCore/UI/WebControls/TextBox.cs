@@ -8,6 +8,9 @@ namespace WebFormsCore.UI.WebControls;
 
 public partial class TextBox : WebControl, IPostBackAsyncEventHandler
 {
+    [ViewState(nameof(SaveTextViewState))] private string? _text;
+    private bool _changedText;
+
     public TextBox()
         : base(HtmlTextWriterTag.Input)
     {
@@ -29,7 +32,15 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler
 
     [ViewState(nameof(IsMultiLine))] public int Rows { get; set; }
 
-    [ViewState(nameof(SaveTextViewState))] public string? Text { get; set; }
+    public string? Text
+    {
+        get => _text;
+        set
+        {
+            _text = value;
+            _changedText = true;
+        }
+    }
 
     public event AsyncEventHandler? TextChanged;
 
@@ -45,8 +56,8 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler
     {
         if (!IsReadOnly && Context.Request.GetFormValue(ClientID) is { } value)
         {
-            var isChanged = Text != value;
-            Text = value;
+            var isChanged = _text != value;
+            _text = value;
 
             if (TextChanged != null && isChanged)
             {
@@ -60,7 +71,12 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler
         await base.AddAttributesToRender(writer, token);
 
         if (ID != null) writer.AddAttribute(HtmlTextWriterAttribute.Name, ClientID);
-        writer.AddAttribute(HtmlTextWriterAttribute.Value, Text);
+
+        if (!Page.IsPostBack || _changedText)
+        {
+            writer.AddAttribute(HtmlTextWriterAttribute.Value, _text ?? string.Empty);
+        }
+
         if (MaxLength > 0) writer.AddAttribute(HtmlTextWriterAttribute.Maxlength, MaxLength.ToString(CultureInfo.InvariantCulture));
 
         switch (AutoCompleteType)

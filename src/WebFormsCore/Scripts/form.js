@@ -179,7 +179,7 @@
         return toEl;
     }
 
-    function syncBooleanAttrProp(fromEl, toEl, name) {
+    function syncBooleanAttrProp$1(fromEl, toEl, name) {
         if (fromEl[name] !== toEl[name]) {
             fromEl[name] = toEl[name];
             if (fromEl[name]) {
@@ -213,7 +213,7 @@
                     parentNode.selectedIndex = -1;
                 }
             }
-            syncBooleanAttrProp(fromEl, toEl, 'selected');
+            syncBooleanAttrProp$1(fromEl, toEl, 'selected');
         },
         /**
          * The "value" attribute is special for the <input> element since it sets
@@ -222,8 +222,8 @@
          * initial value.  Similar for the "checked" attribute, and "disabled".
          */
         INPUT: function(fromEl, toEl) {
-            syncBooleanAttrProp(fromEl, toEl, 'checked');
-            syncBooleanAttrProp(fromEl, toEl, 'disabled');
+            syncBooleanAttrProp$1(fromEl, toEl, 'checked');
+            syncBooleanAttrProp$1(fromEl, toEl, 'disabled');
 
             if (fromEl.value !== toEl.value) {
                 fromEl.value = toEl.value;
@@ -899,6 +899,17 @@
 
     const morphdom = morphdomFactory(morphAttrs);
     const postbackMutex = new Mutex();
+    function syncBooleanAttrProp(fromEl, toEl, name) {
+        if (fromEl[name] !== toEl[name]) {
+            fromEl[name] = toEl[name];
+            if (fromEl[name]) {
+                fromEl.setAttribute(name, '');
+            }
+            else {
+                fromEl.removeAttribute(name);
+            }
+        }
+    }
     async function submitForm(form, eventTarget, eventArgument) {
         const release = await postbackMutex.acquire();
         try {
@@ -972,7 +983,14 @@
                     document.dispatchEvent(new CustomEvent("wfc:addNode", { detail: { node, form, eventTarget } }));
                 },
                 onBeforeElUpdated: function (fromEl, toEl) {
-                    if (fromEl === document.activeElement && fromEl.tagName === "INPUT") {
+                    if (fromEl.tagName === "INPUT" && fromEl.type !== "hidden") {
+                        morphAttrs(fromEl, toEl);
+                        syncBooleanAttrProp(fromEl, toEl, 'checked');
+                        syncBooleanAttrProp(fromEl, toEl, 'disabled');
+                        // Only update the value if the value attribute is present
+                        if (toEl.hasAttribute('value')) {
+                            fromEl.value = toEl.value;
+                        }
                         return false;
                     }
                 },
