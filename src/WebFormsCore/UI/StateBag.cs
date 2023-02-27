@@ -103,7 +103,7 @@ public sealed class StateBag : IDictionary<string, object?>, IDictionary
 
     public void Add(string key, object? value)
     {
-        if (value == null && _storeInView)
+        if (value == null)
         {
             _bag.Remove(key);
             return;

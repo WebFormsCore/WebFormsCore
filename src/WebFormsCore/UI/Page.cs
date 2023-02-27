@@ -46,6 +46,7 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
         InvokeFrameworkInit(token);
         await InvokeInitAsync(token);
+        InvokeTrackViewState(token);
 
         var isPost = Context.Request.IsMethod("POST");
         var form = await viewStateManager.LoadAsync(Context, this);

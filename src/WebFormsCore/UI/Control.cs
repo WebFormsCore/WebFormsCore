@@ -28,6 +28,7 @@ public partial class Control : System.Web.UI.Control
     private IWebObjectActivator? _webObjectActivator;
     private RenderAsyncDelegate? _renderMethod;
     private bool _visible = true;
+    private bool _trackViewState;
 
     public IWebObjectActivator WebActivator => _webObjectActivator ??= ServiceProvider.GetRequiredService<IWebObjectActivator>();
 
@@ -270,6 +271,8 @@ public partial class Control : System.Web.UI.Control
         _form = null;
         _webObjectActivator = null;
         _renderMethod = null;
+        _visible = true;
+        _trackViewState = false;
     }
 
     private string GetUniqueIDPrefix()
@@ -297,6 +300,12 @@ public partial class Control : System.Web.UI.Control
         {
             if (_viewState != null) return _viewState;
             _viewState = new StateBag(ViewStateIgnoresCase);
+
+            if (_trackViewState)
+            {
+                _viewState.TrackViewState();
+            }
+
             return _viewState;
         }
     }
@@ -543,6 +552,12 @@ public partial class Control : System.Web.UI.Control
     protected virtual void OnInit(EventArgs args)
     {
     }
+
+    protected virtual void TrackViewState()
+    {
+        _viewState?.TrackViewState();
+        _trackViewState = true;
+    }
     
     protected virtual Task OnInitAsync(CancellationToken token)
     {
@@ -576,13 +591,16 @@ public partial class Control : System.Web.UI.Control
     {
         writer.Write(_visible);
 
-        var length = (byte)(_viewState?.ViewStateCount ?? 0);
-
-        writer.Write(length);
-
-        if (length > 0)
+        if (EnableViewStateBag)
         {
-            ViewState.Write(ref writer);
+            var length = (byte)(_viewState?.ViewStateCount ?? 0);
+
+            writer.Write(length);
+
+            if (length > 0)
+            {
+                ViewState.Write(ref writer);
+            }
         }
     }
 
@@ -590,11 +608,14 @@ public partial class Control : System.Web.UI.Control
     {
         _visible = reader.Read<bool>();
 
-        var length = reader.Read<byte>();
-
-        if (length > 0)
+        if (EnableViewStateBag)
         {
-            ViewState.Read(ref reader, length);
+            var length = reader.Read<byte>();
+
+            if (length > 0)
+            {
+                ViewState.Read(ref reader, length);
+            }
         }
     }
 

@@ -69,11 +69,22 @@ public partial class Control
         
         FrameworkInitialize();
         FrameworkInitialized();
-        ViewState.TrackViewState();
 
         foreach (var control in Controls)
         {
             control.InvokeFrameworkInit(token);
+        }
+    }
+
+    internal void InvokeTrackViewState(CancellationToken token)
+    {
+        if (token.IsCancellationRequested) return;
+
+        TrackViewState();
+
+        foreach (var control in Controls)
+        {
+            control.InvokeTrackViewState(token);
         }
     }
 
