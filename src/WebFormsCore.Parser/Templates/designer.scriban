@@ -136,6 +136,13 @@ public partial class CompiledViews
     [WebFormsCore.CompiledView(@"{{ type.Path }}", "{{ type.Hash }}")]
     public class {{ type.ClassName }} : {{ type.InheritsClassName }}
     {
+        {{- for constructor in type.Constructors }}
+        public {{ type.ClassName }}({{- constructor.Parameters -}})
+            : base({{- constructor.Arguments -}})
+        {
+        }
+        {{ end -}}
+
         {{- write_methods type }}
 
         protected override void FrameworkInitialize()

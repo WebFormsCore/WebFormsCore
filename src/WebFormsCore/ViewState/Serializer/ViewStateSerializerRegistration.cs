@@ -2,4 +2,4 @@
 
 namespace WebFormsCore.Serializer;
 
-public record ViewStateSerializerRegistration(byte Id, Type Type, Type SerializerType);
+public record ViewStateSerializerRegistration(byte Id, Type SerializerType);

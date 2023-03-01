@@ -43,8 +43,20 @@ public class GenerateTest
                     public HtmlForm form1;
                 }
 
+                public interface IService
+                {
+
+                }
+
                 public partial class ControlTest
                 {
+                    private readonly IService _service;
+
+                    public ControlTest(IService service)
+                    {
+                        _service = service;
+                    }
+
                     public ITemplate Template { get; set; }
 
                     protected void btnIncrement_OnClick(object? sender, EventArgs e)

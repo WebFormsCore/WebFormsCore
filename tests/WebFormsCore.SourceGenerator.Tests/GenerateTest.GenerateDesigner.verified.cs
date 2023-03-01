@@ -282,6 +282,11 @@ public partial class CompiledViews
     [WebFormsCore.CompiledView(@"Example.ascx", "E2A364FA5B80EF5EA10E7D05559FEB3E")]
     public class Example_ascx : ControlTest
     {
+        public Example_ascx(global::Tests.IService service)
+            : base(service)
+        {
+        }
+        
 
         protected override void FrameworkInitialize()
         {

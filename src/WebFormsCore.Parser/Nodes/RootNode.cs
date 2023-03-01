@@ -37,6 +37,14 @@ public class RootNode : ContainerNode
 
     public List<ContainerNode> RenderMethods { get; set; } = new();
 
+    public IEnumerable<Constructor> Constructors => Inherits?.Constructors
+        .Where(c => c.DeclaredAccessibility == Accessibility.Public && c.Parameters.Length > 0)
+        .Select(c => new Constructor
+        {
+            Parameters = string.Join(", ", c.Parameters.Select(p => $"{p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} {p.Name}")),
+            Arguments = string.Join(", ", c.Parameters.Select(p => p.Name))
+        }) ?? Enumerable.Empty<Constructor>();
+
     public INamedTypeSymbol? Inherits { get; set; }
 
     public string? InheritsClassName => Inherits?.Name ?? "global::WebFormsCore.UI.Page";
@@ -216,4 +224,11 @@ public class RootNode : ContainerNode
 
         return namespaces;
     }
+}
+
+public class Constructor
+{
+    public string Parameters { get; set; }
+
+    public string Arguments { get; set; }
 }
