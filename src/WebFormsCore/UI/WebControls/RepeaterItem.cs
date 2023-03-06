@@ -10,11 +10,14 @@ public class RepeaterItem : Control, IDataItemContainer
 
     public override string ClientID => Parent.ClientID + '_' + base.ClientID;
 
-    public RepeaterItem(int itemIndex, ListItemType itemType)
+    public RepeaterItem(int itemIndex, ListItemType itemType, Repeater repeater)
     {
         ItemIndex = itemIndex;
         ItemType = itemType;
+        Repeater = repeater;
     }
+
+    public Repeater Repeater { get; }
 
     protected virtual object? GetDataItem() => _dataItem;
 
@@ -44,8 +47,8 @@ public class RepeaterItem<T> : RepeaterItem
 {
     private T? _dataItem;
 
-    public RepeaterItem(int itemIndex, ListItemType itemType)
-        : base(itemIndex, itemType)
+    public RepeaterItem(int itemIndex, ListItemType itemType, Repeater<T> repeater)
+        : base(itemIndex, itemType, repeater)
     {
     }
 

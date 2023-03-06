@@ -2,15 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace WebFormsCore.UI.WebControls;
 
-public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPostBackLoadHandler, INamingContainer
-    where TItem : RepeaterItem
+public abstract partial class Repeater : Control, IPostBackLoadHandler, INamingContainer
 {
-    private readonly List<(TItem Item, Control? Seperator)> _items = new();
+    private readonly List<(RepeaterItem Item, Control? Seperator)> _items = new();
     private Control? _header;
     private Control? _footer;
 
@@ -18,11 +18,11 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
 
     public virtual string? ItemType { get; set; }
 
-    public IEnumerable<TItem> Items => _items.Select(x => x.Item);
+    public event AsyncEventHandler<RepeaterItemEventArgs>? ItemCreated;
 
-    public event AsyncEventHandler<TEventArgs>? ItemCreated;
+    public event AsyncEventHandler<RepeaterItemEventArgs>? ItemDataBound;
 
-    public event AsyncEventHandler<TEventArgs>? ItemDataBound;
+    public IEnumerable<RepeaterItem> Items => _items.Select(x => x.Item);
 
     public ITemplate? HeaderTemplate { get; set; }
 
@@ -65,7 +65,7 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
         DataBindAsync().GetAwaiter().GetResult();
     }
 
-    public async Task AddAsync(T data)
+    public async Task AddAsync(object data)
     {
         await CreateItemAsync(true, data);
     }
@@ -123,7 +123,7 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
         UpdateNames();
     }
 
-    public void Swap(TItem item1, TItem item2)
+    public void Swap(RepeaterItem item1, RepeaterItem item2)
     {
         var index1 = _items.FindIndex(x => x.Item == item1);
         var index2 = _items.FindIndex(x => x.Item == item2);
@@ -186,7 +186,7 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
         Controls.Clear();
     }
 
-    public TItem this[int index] => _items[index].Item;
+    public RepeaterItem this[int index] => _items[index].Item;
 
     protected virtual async Task LoadDataSource()
     {
@@ -202,16 +202,11 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
 
         foreach (var dataItem in dataSource)
         {
-            if (dataItem is not T dataObject)
-            {
-                throw new InvalidOperationException("DataSource item is not of the correct type.");
-            }
-
-            await CreateItemAsync(true, dataObject);
+            await CreateItemAsync(true, dataItem);
         }
     }
 
-    protected virtual void InitializeItem(TItem item)
+    protected virtual void InitializeItem(RepeaterItem item)
     {
         var contentTemplate = item.ItemType switch
         {
@@ -226,7 +221,7 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
         contentTemplate?.InstantiateIn(item);
     }
 
-    protected async ValueTask<TItem> CreateItemAsync(bool useDataSource = false, T? dataItem = default)
+    protected virtual async ValueTask<RepeaterItem> CreateItemAsync(bool useDataSource = false, object? dataItem = default)
     {
         if (_header == null && HeaderTemplate != null)
         {
@@ -259,7 +254,7 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
         return item;
     }
 
-    private async ValueTask<TItem> CreateItemAsync(ListItemType itemType, bool dataBind = false, T? dataItem = default)
+    private async ValueTask<RepeaterItem> CreateItemAsync(ListItemType itemType, bool dataBind = false, object? dataItem = default)
     {
         var itemIndex = itemType is ListItemType.Item or ListItemType.AlternatingItem ? _itemCount++ : -1;
         var item = CreateItem(itemIndex, itemType);
@@ -270,13 +265,13 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
             SetDataItem(item, dataItem!);
         }
 
-        await ItemCreated.InvokeAsync(this, CreateEventArgs(item));
+        await InvokeItemCreated(item);
         await Controls.AddAsync(item);
 
         if (dataBind)
         {
             await item.DataBindAsync();
-            await ItemDataBound.InvokeAsync(this, CreateEventArgs(item));
+            await InvokeItemDataBound(item);
         }
 
         return item;
@@ -287,11 +282,22 @@ public abstract partial class RepeaterBase<T, TItem, TEventArgs> : Control, IPos
         // ignore
     }
 
-    protected abstract TItem CreateItem(int itemIndex, ListItemType itemType);
+    protected abstract RepeaterItem CreateItem(int itemIndex, ListItemType itemType);
 
-    protected abstract TEventArgs CreateEventArgs(TItem item);
+    protected virtual void SetDataItem(RepeaterItem item, object dataItem)
+    {
+        item.DataItem = dataItem;
+    }
 
-    protected abstract void SetDataItem(TItem item, T dataItem);
+    protected virtual ValueTask InvokeItemDataBound(RepeaterItem item)
+    {
+        return ItemDataBound.InvokeAsync(this, new RepeaterItemEventArgs(item));
+    }
+
+    protected virtual ValueTask InvokeItemCreated(RepeaterItem item)
+    {
+        return ItemCreated.InvokeAsync(this, new RepeaterItemEventArgs(item));
+    }
 }
 
 public enum ListItemType
@@ -306,26 +312,12 @@ public enum ListItemType
     Pager = 7
 }
 
-public class Repeater : RepeaterBase<object, RepeaterItem, RepeaterItemEventArgs>
+public class Repeater<T> : Repeater
 {
-    protected override RepeaterItem CreateItem(int itemIndex, ListItemType itemType)
-    {
-        return new RepeaterItem(itemIndex, itemType);
-    }
+    public new event AsyncEventHandler<RepeaterItemEventArgs<T>>? ItemCreated;
 
-    protected override RepeaterItemEventArgs CreateEventArgs(RepeaterItem item)
-    {
-        return new RepeaterItemEventArgs(item);
-    }
+    public new event AsyncEventHandler<RepeaterItemEventArgs<T>>? ItemDataBound;
 
-    protected override void SetDataItem(RepeaterItem item, object dataItem)
-    {
-        item.DataItem = dataItem;
-    }
-}
-
-public class Repeater<T> : RepeaterBase<T, RepeaterItem<T>, RepeaterItemEventArgs<T>>
-{
     public override string? ItemType
     {
         get => typeof(T).FullName;
@@ -337,40 +329,50 @@ public class Repeater<T> : RepeaterBase<T, RepeaterItem<T>, RepeaterItemEventArg
 
     protected override async Task LoadDataSource()
     {
-        switch (DataSource)
+        if (DataSource is not IAsyncEnumerable<T> asyncEnumerable)
         {
-            case IAsyncEnumerable<T> asyncEnumerable:
-                await foreach (var dataItem in asyncEnumerable)
-                {
-                    await CreateItemAsync(true, dataItem);
-                }
+            await base.LoadDataSource();
+            return;
+        }
 
-                break;
-            case IEnumerable<T> enumerable:
-                foreach (var dataItem in enumerable)
-                {
-                    await CreateItemAsync(true, dataItem);
-                }
-
-                break;
-            default:
-                await base.LoadDataSource();
-                break;
+        await foreach (var dataItem in asyncEnumerable)
+        {
+            await CreateItemAsync(true, dataItem);
         }
     }
 
-    protected override RepeaterItem<T> CreateItem(int itemIndex, ListItemType itemType)
+    protected override RepeaterItem CreateItem(int itemIndex, ListItemType itemType)
     {
-        return new RepeaterItem<T>(itemIndex, itemType);
+        return new RepeaterItem<T>(itemIndex, itemType, this);
     }
 
-    protected override RepeaterItemEventArgs<T> CreateEventArgs(RepeaterItem<T> item)
+    protected override void SetDataItem(RepeaterItem item, object dataItem)
     {
-        return new RepeaterItemEventArgs<T>(item);
+        if (dataItem is not T typedDataItem)
+        {
+            throw new InvalidOperationException("DataItem is not of the correct type.");
+        }
+
+        var typedItem = Unsafe.As<RepeaterItem<T>>(item);
+
+        typedItem.DataItem = typedDataItem;
     }
 
-    protected override void SetDataItem(RepeaterItem<T> item, T dataItem)
+    protected override async ValueTask InvokeItemDataBound(RepeaterItem item)
     {
-        item.DataItem = dataItem;
+        await base.InvokeItemDataBound(item);
+
+        var typedItem = Unsafe.As<RepeaterItem<T>>(item);
+
+        await ItemDataBound.InvokeAsync(this, new RepeaterItemEventArgs<T>(typedItem));
+    }
+
+    protected override async ValueTask InvokeItemCreated(RepeaterItem item)
+    {
+        await base.InvokeItemCreated(item);
+
+        var typedItem = Unsafe.As<RepeaterItem<T>>(item);
+
+        await ItemCreated.InvokeAsync(this, new RepeaterItemEventArgs<T>(typedItem));
     }
 }
