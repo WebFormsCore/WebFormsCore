@@ -47,7 +47,11 @@ public class RootNode : ContainerNode
 
     public INamedTypeSymbol? Inherits { get; set; }
 
-    public string? InheritsClassName => Inherits?.Name ?? "global::WebFormsCore.UI.Page";
+    public string? InheritsClassName => Inherits?.Name ?? (
+        Directives.Any(d => d.DirectiveType == DirectiveType.Page)
+            ? "global::WebFormsCore.UI.Page"
+            : "global::WebFormsCore.UI.Control"
+    );
 
     public string? ClassName { get; set; }
 
