@@ -50,7 +50,10 @@ public class RepeaterItem<T> : RepeaterItem
     public RepeaterItem(int itemIndex, ListItemType itemType, Repeater<T> repeater)
         : base(itemIndex, itemType, repeater)
     {
+        Repeater = repeater;
     }
+
+    public new Repeater<T> Repeater { get; }
 
     public new T? DataItem
     {
