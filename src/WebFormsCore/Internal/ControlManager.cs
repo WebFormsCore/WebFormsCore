@@ -28,22 +28,21 @@ public interface IControlManager
 
     bool TryGetPath(string fullPath, [NotNullWhen(true)] out string? path);
 
-    Task<bool> RenderPageAsync(
+    Task<Page> RenderPageAsync(
         HttpContext context,
         IServiceProvider provider,
         string path,
         Stream stream,
         CancellationToken token);
 
-    Task<bool> RenderPageAsync(
+    Task<Page> RenderPageAsync(
         HttpContext context,
         IServiceProvider provider,
         Type pageType,
         Stream stream,
         CancellationToken token);
 
-    Task<bool> RenderPageAsync(
-        HttpContext context,
+    Task RenderPageAsync(HttpContext context,
         IServiceProvider provider,
         Page page,
         Stream stream,
@@ -241,7 +240,7 @@ public class ControlManager : IDisposable, IControlManager
         return type;
     }
 
-    public async Task<bool> RenderPageAsync(
+    public async Task<Page> RenderPageAsync(
         HttpContext context,
         IServiceProvider provider,
         string path,
@@ -250,18 +249,10 @@ public class ControlManager : IDisposable, IControlManager
     {
         var pageType = await GetTypeAsync(path);
 
-        try
-        {
-            return await RenderPageAsync(context, provider, pageType, stream, token);
-        }
-        catch (ViewStateException)
-        {
-            context.Response.StatusCode = 400;
-            return false;
-        }
+        return await RenderPageAsync(context, provider, pageType, stream, token);
     }
 
-    public Task<bool> RenderPageAsync(
+    public async Task<Page> RenderPageAsync(
         HttpContext context,
         IServiceProvider provider,
         Type pageType,
@@ -269,10 +260,11 @@ public class ControlManager : IDisposable, IControlManager
         CancellationToken token)
     {
         var page = (Page) ActivatorUtilities.GetServiceOrCreateInstance(provider, pageType);
-        return RenderPageAsync(context, provider, page, stream, token);
+        await RenderPageAsync(context, provider, page, stream, token);
+        return page;
     }
 
-    public async Task<bool> RenderPageAsync(
+    public async Task RenderPageAsync(
         HttpContext context,
         IServiceProvider provider,
         Page page,
@@ -305,8 +297,6 @@ public class ControlManager : IDisposable, IControlManager
         context.Response.ContentType = "text/html";
         await page.RenderAsync(writer, token);
         await writer.FlushAsync();
-
-        return true;
     }
 
     private class ControlEntry

@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using WebFormsCore.UI;
 
 namespace WebFormsCore
 {
@@ -9,6 +10,6 @@ namespace WebFormsCore
     {
         string? GetPath(HttpContext context);
 
-        Task<bool> ProcessAsync(HttpContext context, string path, IServiceProvider provider, CancellationToken token);
+        Task<Page> ProcessAsync(HttpContext context, string path, IServiceProvider provider, CancellationToken token);
     }
 }

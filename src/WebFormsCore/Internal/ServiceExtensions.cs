@@ -21,7 +21,8 @@ public static class ServiceExtensions
         services.AddHostedService<InitializeViewManager>();
         services.TryAddSingleton<IViewStateManager, ViewStateManager>();
 
-        services.TryAddSingleton(typeof(IControlFactory<>), typeof(ControlFactory<>));
+        services.AddScoped<ScopedControlContainer>();
+        services.TryAddScoped(typeof(IControlFactory<>), typeof(ControlFactory<>));
         services.TryAddSingleton<IControlManager, ControlManager>();
         services.TryAddSingleton<IWebFormsApplication, WebFormsApplications>();
         services.TryAddScoped<IWebObjectActivator, WebObjectActivator>();
@@ -68,6 +69,16 @@ public static class ServiceExtensions
         if (typeof(T).GetCustomAttributes<ViewPathAttribute>().Any())
         {
             throw new InvalidOperationException("Cannot pool a control with a view path");
+        }
+
+        if (typeof(IDisposable).IsAssignableFrom(typeof(T)))
+        {
+            throw new InvalidOperationException("Cannot pool a control that implements IDisposable");
+        }
+
+        if (typeof(IAsyncDisposable).IsAssignableFrom(typeof(T)))
+        {
+            throw new InvalidOperationException("Cannot pool a control that implements IAsyncDisposable");
         }
 
         services.AddSingleton<ObjectPool<T>>(

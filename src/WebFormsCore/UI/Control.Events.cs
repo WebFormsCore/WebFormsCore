@@ -16,7 +16,7 @@ public static class ControlExtensions
         return container;
     }
 
-    internal static IEnumerable<Control> EnumerateControls(this Control control)
+    public static IEnumerable<Control> EnumerateControls(this Control control)
     {
         yield return control;
 
@@ -29,7 +29,7 @@ public static class ControlExtensions
         }
     }
 
-    internal static IEnumerable<Control> EnumerateControls(this Control control, Func<Control, bool> filter)
+    public  static IEnumerable<Control> EnumerateControls(this Control control, Func<Control, bool> filter)
     {
         yield return control;
 

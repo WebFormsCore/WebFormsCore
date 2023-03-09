@@ -364,7 +364,7 @@ public class Parser
             {
                 var member = _type?.GetMemberDeep(id.Value);
 
-                controlNode.FieldName = member?.Name ?? id;
+                controlNode.FieldName = member?.Name;
 
                 if (_container.Template == null)
                 {

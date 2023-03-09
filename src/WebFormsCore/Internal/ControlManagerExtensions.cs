@@ -7,7 +7,7 @@ namespace WebFormsCore;
 
 public static class ControlManagerExtensions
 {
-    public static Task<bool> RenderPageAsync(this IControlManager controlManager, HttpContext context, string path)
+    public static Task<Page> RenderPageAsync(this IControlManager controlManager, HttpContext context, string path)
     {
         return controlManager.RenderPageAsync(
             context,
@@ -18,7 +18,7 @@ public static class ControlManagerExtensions
         );
     }
 
-    public static Task<bool> RenderPageAsync(this IControlManager controlManager, HttpContext context, Type type)
+    public static Task<Page> RenderPageAsync(this IControlManager controlManager, HttpContext context, Type type)
     {
         return controlManager.RenderPageAsync(
             context,
@@ -29,7 +29,7 @@ public static class ControlManagerExtensions
         );
     }
 
-    public static Task<bool> RenderPageAsync(this IControlManager controlManager, HttpContext context, Page page)
+    public static Task RenderPageAsync(this IControlManager controlManager, HttpContext context, Page page)
     {
         return controlManager.RenderPageAsync(
             context,

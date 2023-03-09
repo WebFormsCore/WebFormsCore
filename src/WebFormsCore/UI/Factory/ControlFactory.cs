@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
-using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI;
 
@@ -24,22 +23,32 @@ internal sealed class ControlFactory<T> : IControlFactory<T>
 
     public T CreateControl(IServiceProvider provider)
     {
+        T control;
+
         if (_viewPaths.Length == 0)
         {
-            return ActivatorUtilities.CreateInstance<T>(provider);
+            control = ActivatorUtilities.CreateInstance<T>(provider);
         }
-
-        if (_viewPaths.Length == 1)
+        else if (_viewPaths.Length == 1)
         {
-            return (T)ActivatorUtilities.CreateInstance(
+            control = (T)ActivatorUtilities.CreateInstance(
                 provider,
                 _manager.GetType(_viewPaths[0])
             );
         }
+        else
+        {
+            throw new InvalidOperationException(
+                $"Controls {typeof(T).FullName} has multiple views. Use <% Register Src %> instead."
+            );
+        }
 
-        throw new InvalidOperationException(
-            $"Controls {typeof(T).FullName} has multiple views. Use <% Register Src %> instead."
-        );
+        if (control is IDisposable or IAsyncDisposable)
+        {
+            provider.GetRequiredService<ScopedControlContainer>().Register(control);
+        }
+
+        return control;
     }
 
     Control IControlFactory.CreateControl(IServiceProvider provider)
