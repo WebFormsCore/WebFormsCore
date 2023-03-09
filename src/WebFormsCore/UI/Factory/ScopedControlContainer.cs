@@ -6,7 +6,7 @@ namespace WebFormsCore.UI;
 
 internal sealed class ScopedControlContainer : IAsyncDisposable
 {
-    private readonly List<object> _controls = new();
+    private readonly HashSet<object> _controls = new();
 
     public void Register(object control)
     {
