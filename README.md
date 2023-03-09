@@ -27,7 +27,7 @@ In comparison to WebForms there are a few changes:
 Create a new .csproj that targets the SDK of WebFormsCore:
 
 ```xml
-<Project Sdk="WebFormsCore.SDK/0.0.1-alpha.8">
+<Project Sdk="WebFormsCore.SDK/0.0.1-alpha.9">
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
