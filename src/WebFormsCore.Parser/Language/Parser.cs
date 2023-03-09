@@ -25,6 +25,12 @@ public class Parser
         _container = _rootContainer;
     }
 
+    public static ReadOnlySpan<char> IncludeSpan => "include".AsSpan();
+
+    public static ReadOnlySpan<char> FileSpan => "file".AsSpan();
+
+    public static ReadOnlySpan<char> VirtualSpan => "virtual".AsSpan();
+
     public RootNode Root => _container.Root;
 
     public List<Diagnostic> Diagnostics { get; } = new();
@@ -65,7 +71,88 @@ public class Parser
             case TokenType.DocType:
                 ConsumeDocType(token);
                 break;
+            case TokenType.Comment:
+                ConsumeComment(ref lexer, token);
+                break;
         }
+    }
+
+    private void ConsumeComment(ref Lexer lexer, Token token)
+    {
+        var span = token.Text.Value.AsSpan().TrimStart();
+
+        if (span.Length == 0 || span[0] != '#')
+        {
+            return;
+        }
+
+        // Check for include
+        span = span.Slice(1).TrimStart();
+
+        if (!span.StartsWith(IncludeSpan, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        // Check for file
+        var index = span.IndexOf(FileSpan, StringComparison.OrdinalIgnoreCase);
+
+        if (index == -1)
+        {
+            index = span.IndexOf(VirtualSpan, StringComparison.OrdinalIgnoreCase);
+        }
+
+        if (index == -1)
+        {
+            return;
+        }
+
+        span = span.Slice(index + FileSpan.Length);
+
+        // Find attribute value
+        index = span.IndexOf('=');
+
+        if (index == -1)
+        {
+            return;
+        }
+
+        span = span.Slice(index + 1).TrimStart();
+
+        if (span.Length == 0 || span[0] is not ('"' or '\''))
+        {
+            return;
+        }
+
+        var quote = span[0];
+        span = span.Slice(1);
+
+        var end = span.IndexOf(quote);
+
+        if (end == -1)
+        {
+            return;
+        }
+
+        var path = span.Slice(0, end).ToString();
+        var directoryName = Path.GetDirectoryName(lexer.File);
+
+        if (directoryName is null)
+        {
+            return;
+        }
+
+        var fullPath = Path.Combine(directoryName, path);
+
+        if (!File.Exists(fullPath))
+        {
+            return;
+        }
+
+        var text = File.ReadAllText(fullPath);
+        var newLexer = new Lexer(path, text.AsSpan());
+
+        Parse(ref newLexer);
     }
 
     private void ConsumeText(Token token)

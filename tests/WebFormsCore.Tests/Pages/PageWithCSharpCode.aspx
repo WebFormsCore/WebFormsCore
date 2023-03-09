@@ -6,6 +6,6 @@
     <title>Page</title>
 </head>
 <body>
-    1 + 1 = <%= 1 + 1 %>
+    <!--#include file="Body.aspx" -->
 </body>
 </html>
