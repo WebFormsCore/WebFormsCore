@@ -63,7 +63,8 @@ internal static class ViewCompiler
             compilation,
             path,
             text,
-            namespaces: GetNamespaces(path)
+            namespaces: GetNamespaces(path),
+            addFields: false
         );
 
 

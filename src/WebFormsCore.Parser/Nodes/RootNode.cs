@@ -91,12 +91,13 @@ public class RootNode : ContainerNode
         string path,
         string? text,
         string? rootNamespace = null,
-        IEnumerable<KeyValuePair<string, string>>? namespaces = null)
+        IEnumerable<KeyValuePair<string, string>>? namespaces = null,
+        bool addFields = true)
     {
         if (text == null) return null;
 
         var lexer = new Lexer(path, text.AsSpan());
-        var parser = new Parser(compilation, rootNamespace);
+        var parser = new Parser(compilation, rootNamespace, addFields);
 
         if (namespaces != null)
         {

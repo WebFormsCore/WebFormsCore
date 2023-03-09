@@ -17,12 +17,14 @@ public class Parser
     private string? _itemType;
     private readonly Dictionary<string, List<string>> _namespaces = new(StringComparer.OrdinalIgnoreCase);
     private INamedTypeSymbol? _type;
+    private bool _addFields;
 
-    public Parser(Compilation compilation, string? rootNamespace)
+    public Parser(Compilation compilation, string? rootNamespace, bool addFields)
     {
         _compilation = compilation;
         _rootNamespace = rootNamespace;
         _container = _rootContainer;
+        _addFields = addFields;
     }
 
     public static ReadOnlySpan<char> IncludeSpan => "include".AsSpan();
@@ -368,7 +370,11 @@ public class Parser
 
                 if (_container.Template == null)
                 {
-                    Root.Ids.Add(new ControlId(id, controlType, member));
+                    if (controlNode.FieldName == null && _addFields)
+                    {
+                        Root.Ids.Add(new ControlId(id, controlType, member));
+                        controlNode.FieldName = id;
+                    }
                 }
                 else
                 {
