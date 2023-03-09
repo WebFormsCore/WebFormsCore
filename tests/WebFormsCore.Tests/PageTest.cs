@@ -27,7 +27,7 @@ public class PageTest
         await using var serviceProvider = services.BuildServiceProvider();
         await using var stream = new MemoryStream();
 
-        DisposableControl? control;
+        DisposableControl[] controls;
 
         await using (var scope = serviceProvider.CreateAsyncScope())
         {
@@ -56,13 +56,15 @@ public class PageTest
                 CancellationToken.None
             );
 
-            control = page.FindControl("control") as DisposableControl;
+            controls = page.EnumerateControls().OfType<DisposableControl>().ToArray();
 
-            Assert.NotNull(control);
-            Assert.False(control.IsDisposed);
+            Assert.Equal(2, controls.Length);
+            Assert.False(controls[0].IsDisposed, "Control in Page should not be disposed");
+            Assert.False(controls[1].IsDisposed, "Dynamic control should not be disposed");
         }
 
-        Assert.True(control.IsDisposed);
+        Assert.True(controls[0].IsDisposed, "Control in Page should be disposed");
+        Assert.True(controls[1].IsDisposed, "Dynamic control should be disposed");
 
         stream.Position = 0;
 

@@ -63,7 +63,12 @@ public partial class Control
     internal void InvokeFrameworkInit(CancellationToken token)
     {
         if (token.IsCancellationRequested) return;
-        
+
+        if (this is IDisposable or IAsyncDisposable)
+        {
+            Page.RegisterDisposable(this);
+        }
+
         FrameworkInitialize();
         FrameworkInitialized();
 

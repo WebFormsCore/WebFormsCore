@@ -7,7 +7,8 @@
     <title>Page</title>
 </head>
 <body>
-    <app:DisposableControl ID="control" runat="server" />
-    <!--#include file="Body.aspx" -->
+<app:DisposableControl runat="server" />
+<app:DynamicControl runat="server" />
+<!--#include file="Body.aspx" -->
 </body>
 </html>

@@ -15,6 +15,7 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 {
     private HttpContext? _context;
     private IServiceProvider? _serviceProvider;
+    private ScopedControlContainer? _scopedContainer;
 
     public Page()
     {
@@ -32,6 +33,8 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
     public bool IsPostBack { get; set; }
 
     protected override IServiceProvider ServiceProvider => _serviceProvider ?? throw new InvalidOperationException("Service provider not available.");
+
+    private ScopedControlContainer ScopedContainer => _scopedContainer ??= _serviceProvider?.GetRequiredService<ScopedControlContainer>() ?? throw new InvalidOperationException("Scoped control container not available.");
 
     public List<HtmlForm> Forms { get; set; } = new();
 
@@ -102,5 +105,10 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
     {
         _serviceProvider = provider;
         _context = context;
+    }
+
+    protected internal virtual void RegisterDisposable(Control control)
+    {
+        ScopedContainer.Register(control);
     }
 }

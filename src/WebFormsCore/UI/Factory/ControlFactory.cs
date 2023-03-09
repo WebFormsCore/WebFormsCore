@@ -23,32 +23,22 @@ internal sealed class ControlFactory<T> : IControlFactory<T>
 
     public T CreateControl(IServiceProvider provider)
     {
-        T control;
-
         if (_viewPaths.Length == 0)
         {
-            control = ActivatorUtilities.CreateInstance<T>(provider);
+            return ActivatorUtilities.CreateInstance<T>(provider);
         }
-        else if (_viewPaths.Length == 1)
+
+        if (_viewPaths.Length == 1)
         {
-            control = (T)ActivatorUtilities.CreateInstance(
+            return (T)ActivatorUtilities.CreateInstance(
                 provider,
                 _manager.GetType(_viewPaths[0])
             );
         }
-        else
-        {
-            throw new InvalidOperationException(
-                $"Controls {typeof(T).FullName} has multiple views. Use <% Register Src %> instead."
-            );
-        }
 
-        if (control is IDisposable or IAsyncDisposable)
-        {
-            provider.GetRequiredService<ScopedControlContainer>().Register(control);
-        }
-
-        return control;
+        throw new InvalidOperationException(
+            $"Controls {typeof(T).FullName} has multiple views. Use <% Register Src %> instead."
+        );
     }
 
     Control IControlFactory.CreateControl(IServiceProvider provider)
