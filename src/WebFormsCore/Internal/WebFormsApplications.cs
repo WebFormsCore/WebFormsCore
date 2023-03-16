@@ -9,36 +9,46 @@ namespace WebFormsCore.Internal;
 
 internal class WebFormsApplications : IWebFormsApplication
 {
+    private readonly IPageManager _pageManager;
     private readonly IControlManager _controlManager;
     private readonly IWebFormsEnvironment _environment;
 
-    public WebFormsApplications(IWebFormsEnvironment environment, IControlManager controlManager)
+    public WebFormsApplications(IWebFormsEnvironment environment, IPageManager pageManager, IControlManager controlManager)
     {
         _environment = environment;
+        _pageManager = pageManager;
         _controlManager = controlManager;
     }
 
-    public string? GetPath(HttpContext context)
+    public string? GetPath(string path)
     {
-        if (string.IsNullOrEmpty(context.Request.Path)) return null;
-
-        var fullPath = Path.Combine(_environment.ContentRootPath, context.Request.Path.ToString().TrimStart('/'));
-
-        if (!_controlManager.TryGetPath(fullPath, out var path) || !File.Exists(fullPath))
+        if (string.IsNullOrEmpty(path))
         {
             return null;
         }
 
-        return path;
+        if (_environment.ContentRootPath is null)
+        {
+            return null;
+        }
+
+        var fullPath = Path.Combine(_environment.ContentRootPath, path.TrimStart('/'));
+
+        if (!_controlManager.TryGetPath(fullPath, out var result) || !File.Exists(fullPath))
+        {
+            return null;
+        }
+
+        return result;
     }
 
-    public Task<Page> ProcessAsync(HttpContext context, string path, IServiceProvider provider, CancellationToken token)
+    public Task<Page> ProcessAsync(IHttpContext context, string path, IServiceProvider provider, CancellationToken token)
     {
-        return _controlManager.RenderPageAsync(
+        return _pageManager.RenderPageAsync(
             context,
             provider,
             path,
-            context.Response.GetOutputStream(),
+            context.Response.Body,
             token
         );
     }

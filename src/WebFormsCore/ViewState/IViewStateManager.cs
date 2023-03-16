@@ -11,5 +11,5 @@ public interface IViewStateManager
 
     IMemoryOwner<byte> Write(Control control, out int length);
 
-    ValueTask<HtmlForm?> LoadAsync(HttpContext context, Page page);
+    ValueTask<HtmlForm?> LoadAsync(IHttpContext context, Page page);
 }

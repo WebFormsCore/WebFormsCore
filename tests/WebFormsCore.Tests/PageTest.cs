@@ -18,6 +18,7 @@ public class PageTest
         var services = new ServiceCollection();
 
         services.AddWebFormsInternals();
+        services.AddWebFormsHosting();
         services.AddLogging();
         services.AddSingleton<IWebFormsEnvironment, TestEnvironment>();
 
@@ -31,24 +32,21 @@ public class PageTest
 
         await using (var scope = serviceProvider.CreateAsyncScope())
         {
-            var controlManager = serviceProvider.GetRequiredService<IControlManager>();
+            var pageManager = serviceProvider.GetRequiredService<IPageManager>();
 
-            var featureCollection = new FeatureCollection();
-
-            var coreRequest = new Mock<HttpRequest>();
+            var coreRequest = new Mock<IHttpRequest>();
             coreRequest.SetupGet(x => x.Method).Returns("GET");
 
-            var coreResponse = new Mock<HttpResponse>();
+            var coreResponse = new Mock<IHttpResponse>();
             var headers = new HeaderDictionary();
             coreResponse.SetupGet(x => x.Headers).Returns(headers);
             coreResponse.SetupGet(x => x.Body).Returns(stream);
 
-            var coreContext = new Mock<HttpContext>();
+            var coreContext = new Mock<IHttpContext>();
             coreContext.SetupGet(c => c.Request).Returns(coreRequest.Object);
             coreContext.SetupGet(c => c.Response).Returns(coreResponse.Object);
-            coreContext.Setup(c => c.Features).Returns(featureCollection);
 
-            var page = await controlManager.RenderPageAsync(
+            var page = await pageManager.RenderPageAsync(
                 coreContext.Object,
                 scope.ServiceProvider,
                 "Pages/Page.aspx",
@@ -75,7 +73,7 @@ public class PageTest
 
     public class TestEnvironment : IWebFormsEnvironment
     {
-        public string ContentRootPath => AppContext.BaseDirectory;
+        public string? ContentRootPath => AppContext.BaseDirectory;
 
         public bool EnableControlWatcher => false;
     }

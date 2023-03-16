@@ -191,7 +191,6 @@ public partial class CompiledViews
             var ctrl10 =  WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.TextBox>();
             ctrl6.AddParsedSubObject(ctrl10);
             ctrl10.ID = WebActivator.ParseAttribute<string>("tbUsername");
-            this.tbUsername = ctrl10;
         #line hidden
         
         #line 20 "Example.aspx"
@@ -207,7 +206,6 @@ public partial class CompiledViews
             var ctrl12 =  WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.TextBox>();
             ctrl6.AddParsedSubObject(ctrl12);
             ctrl12.ID = WebActivator.ParseAttribute<string>("tbPassword");
-            this.tbPassword = ctrl12;
         #line hidden
         
         #line 21 "Example.aspx"
@@ -225,7 +223,6 @@ public partial class CompiledViews
             ctrl14.ID = WebActivator.ParseAttribute<string>("btnLogin");
             ctrl14.Text = WebActivator.ParseAttribute<string>("Login");
             ((WebFormsCore.UI.IAttributeAccessor)ctrl14).SetAttribute("click", "btnLogin_Click");
-            this.btnLogin = ctrl14;
         #line hidden
         
         #line 22 "Example.aspx"
@@ -305,7 +302,6 @@ public partial class CompiledViews
             var ctrl0 =  WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.Literal>();
             this.AddParsedSubObject(ctrl0);
             ctrl0.ID = WebActivator.ParseAttribute<string>("litTest");
-            this.litTest = ctrl0;
         #line hidden
         
         #line 3 "Example.ascx"
@@ -322,7 +318,6 @@ public partial class CompiledViews
                 return System.Threading.Tasks.Task.CompletedTask;
             };
             ctrl1.ID = WebActivator.ParseAttribute<string>("btnIncrement");
-            this.btnIncrement = ctrl1;
         #line hidden
         
         #line 4 "Example.ascx"

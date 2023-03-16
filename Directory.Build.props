@@ -9,8 +9,7 @@
         <PackageTags>webformscore</PackageTags>
         <PackageProjectUrl>https://github.com/WebFormsCore/WebFormsCore</PackageProjectUrl>
         <PackageLicense>https://github.com/WebFormsCore/WebFormsCore/blob/main/LICENSE</PackageLicense>
-
-        <ExtensionsVersion>7.0.0</ExtensionsVersion>
+        <ExtensionsVersion>6.0.0</ExtensionsVersion>
     </PropertyGroup>
 
 </Project>

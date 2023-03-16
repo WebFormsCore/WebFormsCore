@@ -8,8 +8,8 @@ namespace WebFormsCore
 {
     public interface IWebFormsApplication
     {
-        string? GetPath(HttpContext context);
+        string? GetPath(string path);
 
-        Task<Page> ProcessAsync(HttpContext context, string path, IServiceProvider provider, CancellationToken token);
+        Task<Page> ProcessAsync(IHttpContext context, string path, IServiceProvider provider, CancellationToken token);
     }
 }

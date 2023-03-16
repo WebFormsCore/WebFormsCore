@@ -13,7 +13,7 @@ namespace WebFormsCore.UI;
 
 public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Page
 {
-    private HttpContext? _context;
+    private IHttpContext? _context;
     private IServiceProvider? _serviceProvider;
     private ScopedControlContainer? _scopedContainer;
 
@@ -28,7 +28,7 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     public ClientScriptManager ClientScript { get; }
 
-    protected override HttpContext Context => _context ?? throw new InvalidOperationException("No HttpContext available.");
+    protected override IHttpContext Context => _context ?? throw new InvalidOperationException("No HttpContext available.");
 
     public bool IsPostBack { get; set; }
 
@@ -64,7 +64,7 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
             await pageService.AfterInitializeAsync(this);
         }
 
-        var isPost = Context.Request.IsMethod("POST");
+        var isPost = Context.Request.Method == "POST";
         var form = await viewStateManager.LoadAsync(Context, this);
 
         ActiveForm = form;
@@ -82,11 +82,12 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
         if (isPost)
         {
-            var eventTarget = Context.Request.Form["__EVENTTARGET"];
-
-            if (!string.IsNullOrEmpty(eventTarget))
+            if (Context.Request.Form.TryGetValue("__EVENTTARGET", out var eventTarget))
             {
-                var eventArgument = Context.Request.Form["__EVENTARGUMENT"];
+                var eventArgument = Context.Request.Form.TryGetValue("__EVENTARGUMENT", out var eventArgumentValue)
+                    ? eventArgumentValue.ToString()
+                    : string.Empty;
+
                 await InvokePostbackAsync(token, form, eventTarget, eventArgument);
             }
 
@@ -101,7 +102,7 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
         return form;
     }
 
-    public void Initialize(IServiceProvider provider, HttpContext context)
+    public void Initialize(IServiceProvider provider, IHttpContext context)
     {
         _serviceProvider = provider;
         _context = context;

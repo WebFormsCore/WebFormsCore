@@ -3,15 +3,11 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.Buffers.Text;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using WebFormsCore.Options;
@@ -22,32 +18,6 @@ namespace WebFormsCore;
 
 public class ViewStateManager : IViewStateManager
 {
-#if NETFRAMEWORK
-    private static readonly Action<HttpRequest, NameValueCollection> SetRequestForm;
-    private static readonly Type FormType;
-    private static readonly ConstructorInfo? FormConstructor;
-
-    static ViewStateManager()
-    {
-        var field = typeof(HttpRequest).GetField("_form", BindingFlags.Instance | BindingFlags.NonPublic) ?? throw new InvalidOperationException("Could not find _form field on HttpRequest");
-
-        FormType = field.FieldType;
-        FormConstructor = FormType.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, Array.Empty<Type>(), null);
-
-        var parameter = Expression.Parameter(typeof(HttpRequest), "request");
-        var parameter2 = Expression.Parameter(typeof(NameValueCollection), "form");
-        Expression form = parameter2;
-
-        if (FormType != typeof(NameValueCollection))
-        {
-            form = Expression.Convert(parameter2, FormType);
-        }
-
-        var body = Expression.Assign(Expression.Field(parameter, field), form);
-        SetRequestForm = Expression.Lambda<Action<HttpRequest, NameValueCollection>>(body, parameter, parameter2).Compile();
-    }
-#endif
-
     private readonly IServiceProvider _serviceProvider;
     private readonly IOptions<ViewStateOptions> _options;
     private readonly HashAlgorithm _hashAlgorithm;
@@ -158,7 +128,7 @@ public class ViewStateManager : IViewStateManager
 #endif
     }
 
-    public async ValueTask<HtmlForm?> LoadAsync(HttpContext context, Page page)
+    public async ValueTask<HtmlForm?> LoadAsync(IHttpContext context, Page page)
     {
         if (!EnableViewState)
         {
@@ -166,70 +136,34 @@ public class ViewStateManager : IViewStateManager
         }
 
         var request = context.Request;
-        var isPostback = request.IsMethod("POST");
+        var isPostback = request.Method == "POST";
 
         if (!isPostback)
         {
             return null;
         }
 
-        if (context.Request.ContentType == "application/json")
-        {
-            var json = await JsonSerializer.DeserializeAsync<JsonDocument>(request.GetInputStream());
-
-#if NETFRAMEWORK
-            var data = (NameValueCollection) (FormConstructor?.Invoke(Array.Empty<object>()) ?? Activator.CreateInstance(FormType) ?? throw new InvalidOperationException("Could not create form"));
-
-            if (json != null)
-            {
-                foreach (var property in json.RootElement.EnumerateObject())
-                {
-                    data.Add(property.Name, property.Value.GetString());
-                }
-            }
-
-            SetRequestForm(request, data);
-#else
-            if (json != null)
-            {
-                var fields = new Dictionary<string, Microsoft.Extensions.Primitives.StringValues>();
-
-                foreach (var property in json.RootElement.EnumerateObject())
-                {
-                    fields[property.Name] = property.Value.GetString();
-                }
-
-                request.Form = new FormCollection(fields);
-            }
-#endif
-        }
-
         page.IsPostBack = true;
 
-        var pageState = request.GetFormValue("__PAGESTATE");
-
-        if (pageState != null)
+        if (request.Form.TryGetValue("__PAGESTATE", out var pageState))
         {
-            await LoadViewStateAsync(page, pageState);
+            await LoadViewStateAsync(page, pageState.ToString());
         }
 
-        var formId = request.GetFormValue("__FORM");
-
-        if (formId == null)
+        if (!request.Form.TryGetValue("__FORM", out var formId) ||
+            !request.Form.TryGetValue("__FORMSTATE", out var formState))
         {
             return null;
         }
 
-        var formState = request.GetFormValue("__FORMSTATE");
         var form = page.Forms.FirstOrDefault(i => i.UniqueID == formId);
 
-        if (form != null && formState != null)
+        if (form != null && !string.IsNullOrEmpty(formState))
         {
-            await LoadViewStateAsync(form, formState);
+            await LoadViewStateAsync(form, formState.ToString());
         }
 
         return form;
-
     }
 
     private ViewStateReaderOwner CreateReader(string base64, out int controlCount)
@@ -365,7 +299,7 @@ public class ViewStateManager : IViewStateManager
         {
             while (controls.MoveNext())
             {
-                var control = controls.Current;
+                var control = controls.Current!;
 
                 control.LoadViewState(ref reader);
                 actualControlCount++;

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using WebFormsCore.Implementation;
 
 namespace WebFormsCore.Middlewares;
 
@@ -17,7 +18,7 @@ public class PageMiddleware
 
     public Task Invoke(HttpContext context)
     {
-        var path = _application.GetPath(context);
+        var path = _application.GetPath(context.Request.Path);
 
         if (path != null)
         {
@@ -37,8 +38,15 @@ public class PageMiddleware
     {
         var path = context.GetEndpoint()?.Metadata.GetMetadata<PageAttribute>()?.Path;
 
-        return path != null
-            ? _application.ProcessAsync(context, path, context.RequestServices, context.RequestAborted)
-            : Task.CompletedTask;
+        if (path == null)
+        {
+            return Task.CompletedTask;
+        }
+
+
+        var contextImpl = new HttpContextImpl(); // TODO: Pooling
+        contextImpl.SetHttpContext(context);
+
+        return _application.ProcessAsync(contextImpl, path, context.RequestServices, context.RequestAborted);
     }
 }

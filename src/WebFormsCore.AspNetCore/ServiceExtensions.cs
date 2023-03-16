@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
 using Microsoft.Extensions.DependencyInjection;
+using WebFormsCore.Implementation;
 using WebFormsCore.Middlewares;
 
 namespace WebFormsCore;
@@ -21,7 +22,10 @@ public static class ServiceExtensions
         return context =>
         {
             var application = context.RequestServices.GetRequiredService<IWebFormsApplication>();
-            return application.ProcessAsync(context, path, context.RequestServices, context.RequestAborted);
+            var contextImpl = new HttpContextImpl(); // TODO: Pooling
+            contextImpl.SetHttpContext(context);
+
+            return application.ProcessAsync(contextImpl, path, context.RequestServices, context.RequestAborted);
         };
     }
 
@@ -45,7 +49,7 @@ public static class ServiceExtensions
         Task RequestDelegate(HttpContext context)
         {
             var application = context.RequestServices.GetRequiredService<IWebFormsApplication>();
-            var path = application.GetPath(context);
+            var path = application.GetPath(context.Request.Path);
 
             if (path == null)
             {
@@ -53,7 +57,10 @@ public static class ServiceExtensions
                 return Task.CompletedTask;
             }
 
-            return application.ProcessAsync(context, path, context.RequestServices, context.RequestAborted);
+            var contextImpl = new HttpContextImpl(); // TODO: Pooling
+            contextImpl.SetHttpContext(context);
+
+            return application.ProcessAsync(contextImpl, path, context.RequestServices, context.RequestAborted);
         }
 
         return app.MapFallback("{*path}", RequestDelegate);
@@ -62,6 +69,7 @@ public static class ServiceExtensions
     public static IServiceCollection AddWebForms(this IServiceCollection services)
     {
         services.AddWebFormsInternals();
+        services.AddWebFormsHosting();
         services.AddSingleton<IWebFormsEnvironment, WebFormsEnvironment>();
         return services;
     }

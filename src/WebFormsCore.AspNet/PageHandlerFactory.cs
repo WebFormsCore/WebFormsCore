@@ -4,6 +4,7 @@ using System.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using WebFormsCore;
+using WebFormsCore.Implementation;
 
 [assembly: PreApplicationStartMethod(typeof(PageHandlerFactory), nameof(PageHandlerFactory.Start))]
 
@@ -28,12 +29,17 @@ public class PageHandlerFactory : HttpTaskAsyncHandler
         await using var scope = _provider.CreateAsyncScope();
 
         var application = scope.ServiceProvider.GetRequiredService<IWebFormsApplication>();
-        var path = application.GetPath(context);
+        var path = application.GetPath(context.Request.Path);
 
-        if (path != null)
+        if (path == null)
         {
-            await application.ProcessAsync(context, path, scope.ServiceProvider, context.Request.TimedOutToken);
+            return;
         }
+
+        var contextImpl = new HttpContextImpl(); // TODO: Pooling
+        contextImpl.SetHttpContext(context, scope.ServiceProvider);
+
+        await application.ProcessAsync(contextImpl, path, scope.ServiceProvider, context.Request.TimedOutToken);
     }
 
     private sealed class LifeCycleModule : IHttpModule

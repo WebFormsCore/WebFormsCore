@@ -1,8 +1,17 @@
-﻿#if NETFRAMEWORK
+﻿using System.Text.RegularExpressions;
+
+#if NETFRAMEWORK
 namespace WebFormsCore;
 
 internal static class StringExtensions
 {
+    private static readonly Regex NewLineRegex = new(@"\r\n|\r|\n", RegexOptions.Compiled);
+
+    public static string ReplaceLineEndings(this string str, string replacement)
+    {
+        return NewLineRegex.Replace(str, replacement);
+    }
+
     public static bool StartsWith(this string str, char c)
     {
         return str.Length > 0 && str[0] == c;

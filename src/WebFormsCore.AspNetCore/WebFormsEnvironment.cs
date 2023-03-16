@@ -11,7 +11,7 @@ public class WebFormsEnvironment : IWebFormsEnvironment
         _environment = environment;
     }
 
-    public string ContentRootPath => _environment.ContentRootPath;
+    public string? ContentRootPath => _environment.ContentRootPath;
 
     public bool EnableControlWatcher => true; // TODO: Make this configurable
 }

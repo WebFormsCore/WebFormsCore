@@ -54,7 +54,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler
 
     protected override async Task OnPostbackAsync(CancellationToken token)
     {
-        if (!IsReadOnly && Context.Request.GetFormValue(ClientID) is { } value)
+        if (!IsReadOnly && ClientID != null && Context.Request.Form[ClientID] is { Count: > 0 } value)
         {
             var isChanged = _text != value;
             _text = value;

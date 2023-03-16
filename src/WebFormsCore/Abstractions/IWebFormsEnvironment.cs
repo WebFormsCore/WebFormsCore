@@ -2,7 +2,7 @@
 
 public interface IWebFormsEnvironment
 {
-    string ContentRootPath { get; }
+    string? ContentRootPath { get; }
 
     bool EnableControlWatcher { get; }
 }

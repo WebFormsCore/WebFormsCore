@@ -950,20 +950,7 @@
             const request = {
                 method: "POST",
             };
-            // Determine if we need to send the form data as JSON or as form data
-            if (document.body.querySelector('input[type="file"]:not([data-wfc-ignore])')) {
-                request.body = formData;
-            }
-            else {
-                const object = {};
-                formData.forEach(function (value, key) {
-                    object[key] = value;
-                });
-                request.body = JSON.stringify(object);
-                request.headers = {
-                    "Content-Type": "application/json",
-                };
-            }
+            request.body = formData;
             const response = await fetch(url, request);
             if (!response.ok) {
                 document.dispatchEvent(new CustomEvent("wfc:submitError", {

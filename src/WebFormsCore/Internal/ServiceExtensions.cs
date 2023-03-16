@@ -18,12 +18,11 @@ public static class ServiceExtensions
 {
     public static IServiceCollection AddWebFormsInternals(this IServiceCollection services)
     {
-        services.AddHostedService<InitializeViewManager>();
         services.TryAddSingleton<IViewStateManager, ViewStateManager>();
 
         services.AddScoped<ScopedControlContainer>();
         services.TryAddScoped(typeof(IControlFactory<>), typeof(ControlFactory<>));
-        services.TryAddSingleton<IControlManager, ControlManager>();
+        services.TryAddSingleton<IPageManager, PageManager>();
         services.TryAddSingleton<IWebFormsApplication, WebFormsApplications>();
         services.TryAddScoped<IWebObjectActivator, WebObjectActivator>();
 

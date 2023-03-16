@@ -24,6 +24,11 @@ internal class InitializeViewManager : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (_environment.ContentRootPath is null)
+        {
+            return;
+        }
+
         var binPrefix = "bin" + Path.DirectorySeparatorChar;
         var objPrefix = "obj" + Path.DirectorySeparatorChar;
 
