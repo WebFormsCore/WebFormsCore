@@ -43,6 +43,9 @@ public interface IPageManager
 
 public class PageManager : IPageManager
 {
+    private static readonly Encoding Utf8WithoutBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
+
     private readonly IControlManager _controlManager;
 
     public PageManager(IControlManager controlManager)
@@ -96,7 +99,7 @@ public class PageManager : IPageManager
         // await using
         await
 #endif
-            using var textWriter = new StreamWriter(stream, Encoding.UTF8, 1024, true)
+            using var textWriter = new StreamWriter(stream, Utf8WithoutBom, 1024, true)
             {
                 NewLine = "\n",
                 AutoFlush = false

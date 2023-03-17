@@ -48,6 +48,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solutio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.Compiler", "src\WebFormsCore.Compiler\WebFormsCore.Compiler.csproj", "{AF5CFBF4-A099-4F3C-8B3D-45BA22D000D3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.NativeAOT.Example", "examples\WebFormsCore.NativeAOT.Example\WebFormsCore.NativeAOT.Example.csproj", "{4BC6C1AC-D3DC-4C51-86DD-23FB27E2EC68}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -110,6 +112,10 @@ Global
 		{AF5CFBF4-A099-4F3C-8B3D-45BA22D000D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF5CFBF4-A099-4F3C-8B3D-45BA22D000D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF5CFBF4-A099-4F3C-8B3D-45BA22D000D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BC6C1AC-D3DC-4C51-86DD-23FB27E2EC68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BC6C1AC-D3DC-4C51-86DD-23FB27E2EC68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BC6C1AC-D3DC-4C51-86DD-23FB27E2EC68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BC6C1AC-D3DC-4C51-86DD-23FB27E2EC68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -123,6 +129,7 @@ Global
 		{62763BB2-942B-49A1-8808-ABB72EBF8942} = {15241878-5EF2-4C83-B402-3709025FACA6}
 		{42435A99-61E6-4B34-969E-D428F232430B} = {63EBE3DD-1F7B-41D8-9687-BCCA33B81324}
 		{FA8142FA-D5A1-42CC-9BBD-9E5A21972314} = {63EBE3DD-1F7B-41D8-9687-BCCA33B81324}
+		{4BC6C1AC-D3DC-4C51-86DD-23FB27E2EC68} = {210D9008-25A9-4ABE-8C8C-A7FDDC3381F6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {022403F7-A5A6-4639-8579-D9B56627AE73}

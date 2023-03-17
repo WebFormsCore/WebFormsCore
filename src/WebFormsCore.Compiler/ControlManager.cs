@@ -31,16 +31,8 @@ public class ControlManager : IDisposable, IControlManager
         _logger = logger;
         _watchers = new List<FileSystemWatcher>();
         _compiledViews = (Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly())
-            .GetTypes()
-            .Where(i => i.Name == "CompiledViews")
-            .SelectMany(t => t.GetNestedTypes())
-            .Select(t => new
-            {
-                Type = t,
-                Attribute = t.GetCustomAttribute<CompiledViewAttribute>()
-            })
-            .Where(t => t.Attribute != null)
-            .ToDictionary(t => t.Attribute!.Path, t => t.Type, StringComparer.OrdinalIgnoreCase);
+            .GetCustomAttributes<AssemblyViewAttribute>()
+            .ToDictionary(x => x.Path, x => x.Type, StringComparer.OrdinalIgnoreCase);
 
         if (environment is { EnableControlWatcher: true, ContentRootPath: not null })
         {

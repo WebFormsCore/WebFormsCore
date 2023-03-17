@@ -15,6 +15,9 @@ namespace WebFormsCore.Nodes;
 
 public class RootNode : ContainerNode
 {
+    private IReadOnlyList<Constructor>? _constructors;
+    private INamedTypeSymbol? _inherits;
+
     public RootNode()
         : base(NodeType.Root)
     {
@@ -37,15 +40,46 @@ public class RootNode : ContainerNode
 
     public List<ContainerNode> RenderMethods { get; set; } = new();
 
-    public IEnumerable<Constructor> Constructors => Inherits?.Constructors
-        .Where(c => c.DeclaredAccessibility == Accessibility.Public && c.Parameters.Length > 0)
-        .Select(c => new Constructor
+    public IEnumerable<Constructor> Constructors
+    {
+        get
         {
-            Parameters = string.Join(", ", c.Parameters.Select(p => $"{p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} {p.Name}")),
-            Arguments = string.Join(", ", c.Parameters.Select(p => p.Name))
-        }) ?? Enumerable.Empty<Constructor>();
+            if (_constructors != null)
+            {
+                return _constructors;
+            }
 
-    public INamedTypeSymbol? Inherits { get; set; }
+            _constructors = Inherits?.Constructors
+                .Where(c => c.DeclaredAccessibility == Accessibility.Public && c.Parameters.Length > 0)
+                .Select(c => new Constructor
+                {
+                    Parameters = string.Join(", ",
+                        c.Parameters.Select(p => $"{p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} {p.Name}")),
+                    Arguments = string.Join(", ", c.Parameters.Select(p => p.Name))
+                })
+                .ToArray();
+
+            if (_constructors is null or { Count: 0 })
+            {
+                _constructors = new[]
+                {
+                    new Constructor()
+                };
+            }
+
+            return _constructors;
+        }
+    }
+
+    public INamedTypeSymbol? Inherits
+    {
+        get => _inherits;
+        set
+        {
+            _inherits = value;
+            _constructors = null;
+        }
+    }
 
     public string? InheritsClassName => Inherits?.Name ?? (
         Directives.Any(d => d.DirectiveType == DirectiveType.Page)
