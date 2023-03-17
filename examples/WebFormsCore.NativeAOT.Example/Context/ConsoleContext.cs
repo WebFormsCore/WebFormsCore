@@ -1,20 +1,28 @@
-﻿using Microsoft.Extensions.Primitives;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Primitives;
 
 namespace WebFormsCore.NativeAOT.Example.Context;
 
 public class ConsoleContext : IHttpContext
 {
-    public ConsoleContext(IServiceProvider requestServices)
+    public ConsoleContext(AsyncServiceScope scope)
     {
-        RequestServices = requestServices;
+        Scope = scope;
     }
 
-    public IHttpRequest Request { get; } = new ConsoleRequest();
+    public AsyncServiceScope Scope { get; set; }
 
-    public IHttpResponse Response { get; } = new ConsoleResponse();
+    public ConsoleRequest Request { get; } = new();
 
-    public IServiceProvider RequestServices { get; }
+    public ConsoleResponse Response { get; } = new();
+
+    public IServiceProvider RequestServices => Scope.ServiceProvider;
+
     public CancellationToken RequestAborted => default;
+
+    IHttpRequest IHttpContext.Request => Request;
+
+    IHttpResponse IHttpContext.Response => Response;
 }
 
 public class ConsoleRequest : IHttpRequest
@@ -34,12 +42,14 @@ public class ConsoleResponse : IHttpResponse
 {
     public ConsoleResponse()
     {
-        Body = Console.OpenStandardOutput();
+        Body = new MemoryStream();
     }
 
-    public Stream Body { get; }
+    public MemoryStream Body { get; }
 
     public string ContentType { get; set; } = "text/html";
 
     public IDictionary<string, StringValues> Headers { get; } = new Dictionary<string, StringValues>();
+
+    Stream IHttpResponse.Body => Body;
 }
