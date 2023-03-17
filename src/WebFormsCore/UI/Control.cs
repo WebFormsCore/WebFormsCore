@@ -666,6 +666,8 @@ public partial class Control : System.Web.UI.Control
 
     public Control LoadControl(string path) => WebActivator.CreateControl(path);
 
+    public Control LoadControl<T>() where T : Control => WebActivator.CreateControl<T>();
+
     private static readonly string[] AutomaticIDs =
     {
       "ctl00",

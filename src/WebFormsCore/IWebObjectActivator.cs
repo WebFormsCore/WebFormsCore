@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using WebFormsCore.UI;
 using WebFormsCore.UI.HtmlControls;
@@ -13,9 +14,17 @@ public interface IWebObjectActivator
 
     T ParseAttribute<T, TConverter>(string attributeValue) where TConverter : TypeConverter;
 
-    T CreateControl<T>() where T : Control;
+    T CreateControl<
+#if NET
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+        T>() where T : Control;
 
-    Control CreateControl(Type type);
+    Control CreateControl(
+#if NET
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+        Type type);
 
     Control CreateControl(string fullPath);
 

@@ -2,4 +2,4 @@
 
 Hello world
 
-<wfc:TextBox Text="Hello world" />
+<wfc:TextBox Text="Hello world" runat="server" />

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,7 @@ public static class ServiceExtensions
         services.TryAddSingleton<IPageManager, PageManager>();
         services.TryAddSingleton<IWebFormsApplication, WebFormsApplications>();
         services.TryAddScoped<IWebObjectActivator, WebObjectActivator>();
+        services.TryAddSingleton<IControlManager, DefaultControlManager>();
 
         services.AddPooledControl<LiteralControl>();
         services.AddPooledControl<LiteralHtmlControl>();
@@ -96,7 +98,11 @@ public static class ServiceExtensions
         return services;
     }
 
-    public static IServiceCollection AddViewStateSerializer<T, TSerializer>(this IServiceCollection services)
+    public static IServiceCollection AddViewStateSerializer<T,
+#if NET
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+        TSerializer>(this IServiceCollection services)
         where TSerializer : class, IViewStateSerializer<T>
         where T : notnull
     {

@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\WebFormsCore.Compiler\WebFormsCore.Compiler.csproj" />
+      <ProjectReference Include="..\WebFormsCore\WebFormsCore.csproj" />
     </ItemGroup>
 
 </Project>

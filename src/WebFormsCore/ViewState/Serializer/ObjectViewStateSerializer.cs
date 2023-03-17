@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace WebFormsCore.Serializer;
-
+#if NET
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
 public class ObjectViewStateSerializer : ViewStateSerializer<object>
 {
     private readonly Dictionary<byte, IViewStateSerializer> _serializers;
