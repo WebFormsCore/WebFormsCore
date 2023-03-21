@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using WebFormsCore;
-using WebFormsCore.NativeAOT.Example;
-using WebFormsCore.NativeAOT.Example.Context;
+﻿using WebFormsCore.NativeAOT.Example.Context;
 
 var services = new ServiceCollection();
 

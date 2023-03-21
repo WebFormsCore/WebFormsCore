@@ -106,6 +106,7 @@ Public Partial Class CompiledViews
             Dim ctrl1 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.HtmlControls.HtmlBody)()
             ctrl0.AddParsedSubObject(ctrl1)
             ctrl1.ID = WebActivator.ParseAttribute(Of String)("Body")
+            Me.Body = ctrl1
             #End ExternalSource
             #ExternalSource("DefaultPage.aspx", 6)
             ctrl1.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "" + vbLf + "    "))
@@ -142,6 +143,7 @@ Public Partial Class CompiledViews
                 Return System.Threading.Tasks.Task.CompletedTask
             End function
             ctrl5.ID = WebActivator.ParseAttribute(Of String)("btnAdd")
+            Me.btnAdd = ctrl5
             #End ExternalSource
             #ExternalSource("DefaultPage.aspx", 11)
             ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("Add"))
@@ -154,6 +156,7 @@ Public Partial Class CompiledViews
             ctrl4.AddParsedSubObject(ctrl6)
             ctrl6.ID = WebActivator.ParseAttribute(Of String)("rptItems")
             ctrl6.ItemTemplate = new Template_DefaultPage_ctrl6_ItemTemplate(WebActivator)
+            Me.rptItems = ctrl6
             #End ExternalSource
             #ExternalSource("DefaultPage.aspx", 12)
             ctrl6.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                    "))

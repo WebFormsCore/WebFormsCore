@@ -2,12 +2,30 @@
 #line hidden
 
 [assembly:WebFormsCore.RootNamespaceAttribute("Tests")]
+[assembly:WebFormsCore.AssemblyViewAttribute(@"Example.aspx", typeof(Tests.CompiledViews.Example_aspx))]
+[assembly:WebFormsCore.AssemblyViewAttribute(@"Example.ascx", typeof(Tests.CompiledViews.Example_ascx))]
+
+
+namespace Tests
+{
+internal static class ControlsServiceProviderExtensions
+{
+    public static void AddAssemblyControls(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddTransient<Tests.PageTest, Tests.CompiledViews.Example_aspx>(services);
+        global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddTransient<Tests.CompiledViews.Example_aspx>(services);
+        global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddTransient<Tests.ControlTest, Tests.CompiledViews.Example_ascx>(services);
+        global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddTransient<Tests.CompiledViews.Example_ascx>(services);
+    }
+}
+}
+
+
 namespace Tests
 {
 [WebFormsCore.ViewPath(@"Example.aspx")]
 partial class PageTest
 {
-    protected global::WebFormsCore.UI.HtmlControls.HtmlForm form1;
     protected global::WebFormsCore.UI.WebControls.TextBox tbUsername;
     protected global::WebFormsCore.UI.WebControls.TextBox tbPassword;
     protected global::WebFormsCore.UI.WebControls.Button btnLogin;
@@ -18,6 +36,11 @@ public partial class CompiledViews
     [WebFormsCore.CompiledView(@"Example.aspx", "22DDCDE287F9E65746E03EDFC747C09D")]
     public class Example_aspx : PageTest
     {
+        public Example_aspx()
+            : base()
+        {
+        }
+        
 
         private async System.Threading.Tasks.Task Render_0(WebFormsCore.UI.HtmlTextWriter writer, WebFormsCore.UI.ControlCollection controls, System.Threading.CancellationToken token)
         {
@@ -191,6 +214,7 @@ public partial class CompiledViews
             var ctrl10 =  WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.TextBox>();
             ctrl6.AddParsedSubObject(ctrl10);
             ctrl10.ID = WebActivator.ParseAttribute<string>("tbUsername");
+            this.tbUsername = ctrl10;
         #line hidden
         
         #line 20 "Example.aspx"
@@ -206,6 +230,7 @@ public partial class CompiledViews
             var ctrl12 =  WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.TextBox>();
             ctrl6.AddParsedSubObject(ctrl12);
             ctrl12.ID = WebActivator.ParseAttribute<string>("tbPassword");
+            this.tbPassword = ctrl12;
         #line hidden
         
         #line 21 "Example.aspx"
@@ -223,6 +248,7 @@ public partial class CompiledViews
             ctrl14.ID = WebActivator.ParseAttribute<string>("btnLogin");
             ctrl14.Text = WebActivator.ParseAttribute<string>("Login");
             ((WebFormsCore.UI.IAttributeAccessor)ctrl14).SetAttribute("click", "btnLogin_Click");
+            this.btnLogin = ctrl14;
         #line hidden
         
         #line 22 "Example.aspx"
@@ -302,6 +328,7 @@ public partial class CompiledViews
             var ctrl0 =  WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.Literal>();
             this.AddParsedSubObject(ctrl0);
             ctrl0.ID = WebActivator.ParseAttribute<string>("litTest");
+            this.litTest = ctrl0;
         #line hidden
         
         #line 3 "Example.ascx"
@@ -318,6 +345,7 @@ public partial class CompiledViews
                 return System.Threading.Tasks.Task.CompletedTask;
             };
             ctrl1.ID = WebActivator.ParseAttribute<string>("btnIncrement");
+            this.btnIncrement = ctrl1;
         #line hidden
         
         #line 4 "Example.ascx"

@@ -1,4 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
+    <Import Project="..\..\sdk\WebFormsCore.SDK\Sdk\Sdk.props" /> 
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -6,26 +7,9 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <PublishAot>true</PublishAot>
+        <UseASPNetCore>false</UseASPNetCore>
+        <WebFormsCoreUseNuget>false</WebFormsCoreUseNuget>
     </PropertyGroup>
-
-    <ItemGroup>
-        <ProjectCapability Include="Web" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**" />
-        <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**" />
-        <AdditionalFiles Condition="Exists('web.config')" Include="web.config" Exclude="bin\**;obj\**" />
-        <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
-
-        <AdditionalFiles Update="**/*.aspx">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="**/*.ascx">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-    </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\WebFormsCore\WebFormsCore.csproj" />
@@ -36,4 +20,5 @@
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0-preview.2.23128.3" />
     </ItemGroup>
 
+    <Import Project="..\..\sdk\WebFormsCore.SDK\Sdk\Sdk.targets" />
 </Project>
