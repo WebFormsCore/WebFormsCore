@@ -10,12 +10,12 @@ namespace WebFormsCore;
 
 public class DefaultControlManager : IControlManager
 {
-    private readonly IWebFormsEnvironment _environment;
+    private readonly string? _contentRoot;
     private readonly Dictionary<string, Type> _types;
 
-    public DefaultControlManager(IWebFormsEnvironment environment)
+    public DefaultControlManager(IWebFormsEnvironment? environment = null)
     {
-        _environment = environment;
+        _contentRoot = environment?.ContentRootPath ?? AppContext.BaseDirectory;
         _types = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(a => a.GetCustomAttributes<AssemblyViewAttribute>())
             .ToDictionary(x => NormalizePath(x.Path), x => x.Type, StringComparer.OrdinalIgnoreCase);
@@ -48,13 +48,13 @@ public class DefaultControlManager : IControlManager
             return true;
         }
 
-        if (_environment.ContentRootPath is null || !fullPath.StartsWith(_environment.ContentRootPath))
+        if (_contentRoot is null || !fullPath.StartsWith(_contentRoot))
         {
             path = null;
             return false;
         }
 
-        path = fullPath.Substring(_environment.ContentRootPath.Length).TrimStart('\\', '/');
+        path = fullPath.Substring(_contentRoot.Length).TrimStart('\\', '/');
         return true;
     }
 
