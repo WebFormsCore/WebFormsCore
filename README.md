@@ -27,7 +27,7 @@ In comparison to WebForms there are a few changes:
 Create a new .csproj that targets the SDK of WebFormsCore:
 
 ```xml
-<Project Sdk="WebFormsCore.SDK/0.0.1-alpha.9">
+<Project Sdk="WebFormsCore.SDK/0.0.1-alpha.10">
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
@@ -43,9 +43,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddWebForms();
 
 var app = builder.Build();
-
-// Uncomment the following if you want to more compability: https://github.com/dotnet/systemweb-adapters/blob/main/docs/usage_guidance.md
-// app.UseSystemWebAdapters();
 
 // Map '/' to 'Default.aspx'
 app.MapAspx("/", "Default.aspx");
