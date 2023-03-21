@@ -17,11 +17,15 @@ public class RootNamespaceAttribute : Attribute
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
 public class AssemblyViewAttribute : Attribute
 {
-public AssemblyViewAttribute(string path, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type)
-{
-    Path = path;
-    Type = type;
-}
+    public AssemblyViewAttribute(string path,
+#if NET
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+        Type type)
+    {
+        Path = path;
+        Type = type;
+    }
 
     public string Path { get; }
 
