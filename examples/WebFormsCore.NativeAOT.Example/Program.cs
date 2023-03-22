@@ -13,9 +13,4 @@ var pageManager = provider.GetRequiredService<IPageManager>();
 await using var scope = provider.CreateAsyncScope();
 var consoleContext = new ConsoleContext(scope.ServiceProvider);
 
-await pageManager.RenderPageAsync(
-    consoleContext,
-    provider,
-    "Test.aspx",
-    consoleContext.Response.Body,
-    CancellationToken.None);
+await pageManager.RenderPageAsync(consoleContext, "Test.aspx", CancellationToken.None);

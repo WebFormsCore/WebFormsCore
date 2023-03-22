@@ -46,13 +46,7 @@ public class PageTest
             coreContext.SetupGet(c => c.Request).Returns(coreRequest.Object);
             coreContext.SetupGet(c => c.Response).Returns(coreResponse.Object);
 
-            var page = await pageManager.RenderPageAsync(
-                coreContext.Object,
-                scope.ServiceProvider,
-                "Pages/Page.aspx",
-                stream,
-                CancellationToken.None
-            );
+            var page = await pageManager.RenderPageAsync(coreContext.Object,  "Pages/Page.aspx");
 
             controls = page.EnumerateControls().OfType<DisposableControl>().ToArray();
 

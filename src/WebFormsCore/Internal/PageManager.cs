@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -8,38 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.UI;
 
 namespace WebFormsCore;
-
-public interface IControlManager
-{
-    Type GetType(string path);
-
-    ValueTask<Type> GetTypeAsync(string path);
-
-    bool TryGetPath(string fullPath, [NotNullWhen(true)] out string? path);
-}
-
-public interface IPageManager
-{
-    Task<Page> RenderPageAsync(
-        IHttpContext context,
-        IServiceProvider provider,
-        string path,
-        Stream stream,
-        CancellationToken token);
-
-    Task<Page> RenderPageAsync(
-        IHttpContext context,
-        IServiceProvider provider,
-        Type pageType,
-        Stream stream,
-        CancellationToken token);
-
-    Task RenderPageAsync(IHttpContext context,
-        IServiceProvider provider,
-        Page page,
-        Stream stream,
-        CancellationToken token);
-}
 
 public class PageManager : IPageManager
 {
@@ -55,36 +22,30 @@ public class PageManager : IPageManager
 
     public async Task<Page> RenderPageAsync(
         IHttpContext context,
-        IServiceProvider provider,
         string path,
-        Stream stream,
         CancellationToken token)
     {
         var pageType = await _controlManager.GetTypeAsync(path);
 
-        return await RenderPageAsync(context, provider, pageType, stream, token);
+        return await RenderPageAsync(context, pageType, token);
     }
 
     public async Task<Page> RenderPageAsync(
         IHttpContext context,
-        IServiceProvider provider,
         Type pageType,
-        Stream stream,
         CancellationToken token)
     {
-        var page = (Page) ActivatorUtilities.GetServiceOrCreateInstance(provider, pageType);
-        await RenderPageAsync(context, provider, page, stream, token);
+        var page = (Page) ActivatorUtilities.GetServiceOrCreateInstance(context.RequestServices, pageType);
+        await RenderPageAsync(context, page, token);
         return page;
     }
 
     public async Task RenderPageAsync(
         IHttpContext context,
-        IServiceProvider provider,
         Page page,
-        Stream stream,
         CancellationToken token)
     {
-        page.Initialize(provider, context);
+        page.Initialize(context);
 
         await page.ProcessRequestAsync(token);
 
@@ -95,6 +56,7 @@ public class PageManager : IPageManager
             response.Headers["Content-Security-Policy"] = page.Csp.ToString();
         }
 
+        var stream = context.Response.Body;
 #if NET
         // await using
         await

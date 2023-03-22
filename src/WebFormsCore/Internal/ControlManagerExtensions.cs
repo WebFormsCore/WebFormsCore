@@ -10,9 +10,7 @@ public static class ControlManagerExtensions
     {
         return controlManager.RenderPageAsync(
             context,
-            context.RequestServices,
             path,
-            context.Response.Body,
             context.RequestAborted
         );
     }
@@ -21,9 +19,7 @@ public static class ControlManagerExtensions
     {
         return controlManager.RenderPageAsync(
             context,
-            context.RequestServices,
             type,
-            context.Response.Body,
             context.RequestAborted
         );
     }
@@ -32,9 +28,7 @@ public static class ControlManagerExtensions
     {
         return controlManager.RenderPageAsync(
             context,
-            context.RequestServices,
             page,
-            context.Response.Body,
             context.RequestAborted
         );
     }

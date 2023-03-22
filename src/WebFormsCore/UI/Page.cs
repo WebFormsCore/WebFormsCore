@@ -2,19 +2,16 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.Events;
 using WebFormsCore.Security;
 using WebFormsCore.UI.HtmlControls;
-using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI;
 
 public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Page
 {
     private IHttpContext? _context;
-    private IServiceProvider? _serviceProvider;
     private ScopedControlContainer? _scopedContainer;
 
     public Page()
@@ -32,9 +29,9 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     public bool IsPostBack { get; set; }
 
-    protected override IServiceProvider ServiceProvider => _serviceProvider ?? throw new InvalidOperationException("Service provider not available.");
+    protected override IServiceProvider ServiceProvider => Context.RequestServices;
 
-    private ScopedControlContainer ScopedContainer => _scopedContainer ??= _serviceProvider?.GetRequiredService<ScopedControlContainer>() ?? throw new InvalidOperationException("Scoped control container not available.");
+    private ScopedControlContainer ScopedContainer => _scopedContainer ??= ServiceProvider.GetRequiredService<ScopedControlContainer>();
 
     public List<HtmlForm> Forms { get; set; } = new();
 
@@ -102,9 +99,8 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
         return form;
     }
 
-    public void Initialize(IServiceProvider provider, IHttpContext context)
+    protected internal virtual void Initialize(IHttpContext context)
     {
-        _serviceProvider = provider;
         _context = context;
     }
 

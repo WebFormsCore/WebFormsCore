@@ -10,6 +10,6 @@ namespace WebFormsCore
     {
         string? GetPath(string path);
 
-        Task<Page> ProcessAsync(IHttpContext context, string path, IServiceProvider provider, CancellationToken token);
+        Task<Page> ProcessAsync(IHttpContext context, string path, CancellationToken token);
     }
 }

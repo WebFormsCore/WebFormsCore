@@ -47,6 +47,6 @@ public class PageMiddleware
         var contextImpl = new HttpContextImpl(); // TODO: Pooling
         contextImpl.SetHttpContext(context);
 
-        return _application.ProcessAsync(contextImpl, path, context.RequestServices, context.RequestAborted);
+        return _application.ProcessAsync(contextImpl, path, context.RequestAborted);
     }
 }

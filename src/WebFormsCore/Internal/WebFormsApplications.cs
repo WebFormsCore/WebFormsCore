@@ -42,14 +42,8 @@ internal class WebFormsApplications : IWebFormsApplication
         return result;
     }
 
-    public Task<Page> ProcessAsync(IHttpContext context, string path, IServiceProvider provider, CancellationToken token)
+    public Task<Page> ProcessAsync(IHttpContext context, string path, CancellationToken token)
     {
-        return _pageManager.RenderPageAsync(
-            context,
-            provider,
-            path,
-            context.Response.Body,
-            token
-        );
+        return _pageManager.RenderPageAsync(context, path, token);
     }
 }

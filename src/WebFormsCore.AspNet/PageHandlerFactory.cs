@@ -39,7 +39,7 @@ public class PageHandlerFactory : HttpTaskAsyncHandler
         var contextImpl = new HttpContextImpl(); // TODO: Pooling
         contextImpl.SetHttpContext(context, scope.ServiceProvider);
 
-        await application.ProcessAsync(contextImpl, path, scope.ServiceProvider, context.Request.TimedOutToken);
+        await application.ProcessAsync(contextImpl, path, context.Request.TimedOutToken);
     }
 
     private sealed class LifeCycleModule : IHttpModule

@@ -25,7 +25,7 @@ public static class ServiceExtensions
             var contextImpl = new HttpContextImpl(); // TODO: Pooling
             contextImpl.SetHttpContext(context);
 
-            return application.ProcessAsync(contextImpl, path, context.RequestServices, context.RequestAborted);
+            return application.ProcessAsync(contextImpl, path, context.RequestAborted);
         };
     }
 
@@ -60,7 +60,7 @@ public static class ServiceExtensions
             var contextImpl = new HttpContextImpl(); // TODO: Pooling
             contextImpl.SetHttpContext(context);
 
-            return application.ProcessAsync(contextImpl, path, context.RequestServices, context.RequestAborted);
+            return application.ProcessAsync(contextImpl, path, context.RequestAborted);
         }
 
         return app.MapFallback("{*path}", RequestDelegate);
