@@ -1,7 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
+using System.Web;
+using HttpMultipartParser;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Primitives;
 using WebFormsCore.Implementation;
 
 namespace WebFormsCore;
@@ -53,6 +60,43 @@ public class WebFormsCoreMiddleware
 
         var context = new HttpContextImpl(); // TODO: Pooling
         context.SetHttpContext(env, scope.ServiceProvider);
+
+        if (context.Request is {Method: "POST", ContentType: { } contentType})
+        {
+            var stream = context.Request.Body;
+
+            if (contentType.Contains("multipart/form-data"))
+            {
+                var parser = await MultipartFormDataParser.ParseAsync(stream);
+                var dictionary = new Dictionary<string, StringValues>();
+
+                foreach (var parameter in parser.Parameters)
+                {
+                    dictionary[parameter.Name] = parameter.Data;
+                }
+
+                context.Request.Form = dictionary;
+            }
+            else if (contentType.Contains("application/x-www-form-urlencoded"))
+            {
+                string input;
+
+                using (var reader = new StreamReader(stream))
+                {
+                    input = await reader.ReadToEndAsync();
+                }
+
+                var dictionary = new Dictionary<string, StringValues>();
+                var coll = HttpUtility.ParseQueryString(input);
+
+                foreach (var key in coll.AllKeys)
+                {
+                    dictionary[key] = coll.GetValues(key);
+                }
+
+                context.Request.Form = dictionary;
+            }
+        }
 
         await application.ProcessAsync(context, path, context.RequestAborted);
     }

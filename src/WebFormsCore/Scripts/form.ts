@@ -17,6 +17,20 @@ function syncBooleanAttrProp(fromEl, toEl, name) {
     }
 }
 
+function hasElementFile(element: HTMLElement) {
+    const elements = document.body.querySelectorAll('input[type="file"]');
+
+    for (let i = 0; i < elements.length; i++) {
+        const element = elements[i] as HTMLInputElement;
+
+        if (element.files.length > 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 async function submitForm(form?: HTMLFormElement, eventTarget?: string, eventArgument?: string) {
     const release = await postbackMutex.acquire();
     try {
@@ -24,8 +38,13 @@ async function submitForm(form?: HTMLFormElement, eventTarget?: string, eventArg
         const url = location.pathname + location.search;
 
         const formData = form ? new FormData(form) : new FormData();
+        let hasFile = form ? hasElementFile(form) : false;
 
         if (pageState) {
+            if (!hasFile) {
+                hasFile = hasElementFile(document.body);
+            }
+
             // Add all the form elements that are not in a form
             const elements = document.body.querySelectorAll('input, select, textarea');
 
@@ -67,7 +86,7 @@ async function submitForm(form?: HTMLFormElement, eventTarget?: string, eventArg
             method: "POST",
         };
 
-        request.body = formData;
+        request.body = hasFile ? formData : new URLSearchParams(formData as any);
         const response = await fetch(url, request)
 
         if (!response.ok) {

@@ -92,8 +92,6 @@ Add the following in your `web.config`
 It's currently not supported to map custom routes to .aspx files in ASP.NET.
 
 ### OWIN (.NET Framework)
-> **Note:** OWIN support is experimental. Postbacks are not supported yet.
-
 > **Note:** [Rider and Visual Studio 2022 17.5 (17.4 and 17.6 or higher are **supported**) doesn't support debugging .NET Framework applications with the new project system.](https://github.com/CZEMacLeod/MSBuild.SDK.SystemWeb/issues/51#issuecomment-1444781463)
 
 Create a new .csproj that targets the SDK of WebFormsCore.NetFramework:

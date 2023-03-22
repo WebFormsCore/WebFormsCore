@@ -23,15 +23,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebFormsCore.Tests", "tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebFormsCore.AspNet", "src\WebFormsCore.AspNet\WebFormsCore.AspNet.csproj", "{537989AF-860A-4A92-A68A-93BCDE17310A}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "WebFormsCore.VisualBasic.Example", "examples\WebFormsCore.VisualBasic.Example\WebFormsCore.VisualBasic.Example.vbproj", "{CC7EECA5-D7AF-4727-A169-84A59B532093}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "WebFormsCore.VisualBasic.Example", "examples\WebFormsCore.VisualBasic.Example\WebFormsCore.VisualBasic.Example.vbproj", "{CC7EECA5-D7AF-4727-A169-84A59B532093}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebForms.Parser.Tests", "tests\WebForms.Parser.Tests\WebForms.Parser.Tests.csproj", "{84EEE407-78A2-4729-8ECC-DA59DBE9FF1F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebForms.Parser.Tests", "tests\WebForms.Parser.Tests\WebForms.Parser.Tests.csproj", "{84EEE407-78A2-4729-8ECC-DA59DBE9FF1F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{15241878-5EF2-4C83-B402-3709025FACA6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompareWebForms", "tools\CompareWebForms\CompareWebForms.csproj", "{62763BB2-942B-49A1-8808-ABB72EBF8942}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompareWebForms", "tools\CompareWebForms\CompareWebForms.csproj", "{62763BB2-942B-49A1-8808-ABB72EBF8942}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.SDK", "sdk\WebFormsCore.SDK\WebFormsCore.SDK.csproj", "{42435A99-61E6-4B34-969E-D428F232430B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebFormsCore.SDK", "sdk\WebFormsCore.SDK\WebFormsCore.SDK.csproj", "{42435A99-61E6-4B34-969E-D428F232430B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SDK", "SDK", "{63EBE3DD-1F7B-41D8-9687-BCCA33B81324}"
 	ProjectSection(SolutionItems) = preProject
@@ -39,22 +39,20 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SDK", "SDK", "{63EBE3DD-1F7
 		sdk\Directory.Build.targets = sdk\Directory.Build.targets
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.SDK.NetFramework", "sdk\WebFormsCore.SDK.NetFramework\WebFormsCore.SDK.NetFramework.csproj", "{FA8142FA-D5A1-42CC-9BBD-9E5A21972314}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebFormsCore.SDK.NetFramework", "sdk\WebFormsCore.SDK.NetFramework\WebFormsCore.SDK.NetFramework.csproj", "{FA8142FA-D5A1-42CC-9BBD-9E5A21972314}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solution Items", "{B877EA5F-01EF-4767-A1AF-3E5186E7BD6F}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.Compiler", "src\WebFormsCore.Compiler\WebFormsCore.Compiler.csproj", "{AF5CFBF4-A099-4F3C-8B3D-45BA22D000D3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebFormsCore.Compiler", "src\WebFormsCore.Compiler\WebFormsCore.Compiler.csproj", "{AF5CFBF4-A099-4F3C-8B3D-45BA22D000D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.NativeAOT.Example", "examples\WebFormsCore.NativeAOT.Example\WebFormsCore.NativeAOT.Example.csproj", "{4BC6C1AC-D3DC-4C51-86DD-23FB27E2EC68}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebFormsCore.NativeAOT.Example", "examples\WebFormsCore.NativeAOT.Example\WebFormsCore.NativeAOT.Example.csproj", "{4BC6C1AC-D3DC-4C51-86DD-23FB27E2EC68}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Targets", "Targets", "{D50A9F85-42C7-485C-8931-539B27F00A8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.Owin", "src\WebFormsCore.Owin\WebFormsCore.Owin.csproj", "{AA5BEFF7-747C-48E0-92C4-83F8AC17EA28}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.NetFx.Example", "examples\WebFormsCore.NetFx.Example\WebFormsCore.NetFx.Example.csproj", "{4191EECB-01A4-48F4-832B-44B8AA913FC0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebFormsCore.Owin", "src\WebFormsCore.Owin\WebFormsCore.Owin.csproj", "{AA5BEFF7-747C-48E0-92C4-83F8AC17EA28}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -126,10 +124,6 @@ Global
 		{AA5BEFF7-747C-48E0-92C4-83F8AC17EA28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA5BEFF7-747C-48E0-92C4-83F8AC17EA28}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA5BEFF7-747C-48E0-92C4-83F8AC17EA28}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4191EECB-01A4-48F4-832B-44B8AA913FC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4191EECB-01A4-48F4-832B-44B8AA913FC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4191EECB-01A4-48F4-832B-44B8AA913FC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4191EECB-01A4-48F4-832B-44B8AA913FC0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -137,17 +131,16 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{08DE48DE-29C0-4F46-947C-C6F470475A2A} = {726D3801-795C-4C82-8B50-4AB15C7F004B}
 		{C3CC0944-3BB8-449F-97AF-27D574160E65} = {210D9008-25A9-4ABE-8C8C-A7FDDC3381F6}
+		{83FD23DA-B242-4D59-B1A6-D8C1BF2916B1} = {D50A9F85-42C7-485C-8931-539B27F00A8F}
 		{1BF92442-DB6E-468C-8070-3736A855677B} = {726D3801-795C-4C82-8B50-4AB15C7F004B}
+		{537989AF-860A-4A92-A68A-93BCDE17310A} = {D50A9F85-42C7-485C-8931-539B27F00A8F}
 		{CC7EECA5-D7AF-4727-A169-84A59B532093} = {210D9008-25A9-4ABE-8C8C-A7FDDC3381F6}
 		{84EEE407-78A2-4729-8ECC-DA59DBE9FF1F} = {726D3801-795C-4C82-8B50-4AB15C7F004B}
 		{62763BB2-942B-49A1-8808-ABB72EBF8942} = {15241878-5EF2-4C83-B402-3709025FACA6}
 		{42435A99-61E6-4B34-969E-D428F232430B} = {63EBE3DD-1F7B-41D8-9687-BCCA33B81324}
 		{FA8142FA-D5A1-42CC-9BBD-9E5A21972314} = {63EBE3DD-1F7B-41D8-9687-BCCA33B81324}
 		{4BC6C1AC-D3DC-4C51-86DD-23FB27E2EC68} = {210D9008-25A9-4ABE-8C8C-A7FDDC3381F6}
-		{537989AF-860A-4A92-A68A-93BCDE17310A} = {D50A9F85-42C7-485C-8931-539B27F00A8F}
-		{83FD23DA-B242-4D59-B1A6-D8C1BF2916B1} = {D50A9F85-42C7-485C-8931-539B27F00A8F}
 		{AA5BEFF7-747C-48E0-92C4-83F8AC17EA28} = {D50A9F85-42C7-485C-8931-539B27F00A8F}
-		{4191EECB-01A4-48F4-832B-44B8AA913FC0} = {210D9008-25A9-4ABE-8C8C-A7FDDC3381F6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {022403F7-A5A6-4639-8579-D9B56627AE73}

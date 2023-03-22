@@ -910,13 +910,27 @@
             }
         }
     }
+    function hasElementFile(element) {
+        const elements = document.body.querySelectorAll('input[type="file"]');
+        for (let i = 0; i < elements.length; i++) {
+            const element = elements[i];
+            if (element.files.length > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
     async function submitForm(form, eventTarget, eventArgument) {
         const release = await postbackMutex.acquire();
         try {
             const pageState = document.getElementById("pagestate");
             const url = location.pathname + location.search;
             const formData = form ? new FormData(form) : new FormData();
+            let hasFile = form ? hasElementFile(form) : false;
             if (pageState) {
+                if (!hasFile) {
+                    hasFile = hasElementFile(document.body);
+                }
                 // Add all the form elements that are not in a form
                 const elements = document.body.querySelectorAll('input, select, textarea');
                 for (let i = 0; i < elements.length; i++) {
@@ -949,7 +963,7 @@
             const request = {
                 method: "POST",
             };
-            request.body = formData;
+            request.body = hasFile ? formData : new URLSearchParams(formData);
             const response = await fetch(url, request);
             if (!response.ok) {
                 document.dispatchEvent(new CustomEvent("wfc:submitError", {
