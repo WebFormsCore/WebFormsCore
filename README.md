@@ -30,7 +30,7 @@ In comparison to WebForms, there are a few changes:
 Create a new .csproj that uses the SDK `WebFormsCore.SDK`:
 
 ```xml
-<Project Sdk="WebFormsCore.SDK/0.0.1-alpha.10">
+<Project Sdk="WebFormsCore.SDK/0.0.1-alpha.11">
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
@@ -64,7 +64,7 @@ app.Run();
 Create a new .csproj that uses the SDK `WebFormsCore.SDK.NetFramework`:
 
 ```xml
-<Project Sdk="WebFormsCore.SDK.NetFramework/0.0.1-alpha.10">
+<Project Sdk="WebFormsCore.SDK.NetFramework/0.0.1-alpha.11">
 
     <PropertyGroup>
         <TargetFramework>net472</TargetFramework>
@@ -98,7 +98,7 @@ Currently, it is not supported to map custom routes to .aspx files in ASP.NET.
 Create a new .csproj that uses the SDK `WebFormsCore.SDK.NetFramework` and add `<UseOwin>true</UseOwin>` to the PropertyGroup:
 
 ```xml
-<Project Sdk="WebFormsCore.SDK.NetFramework/0.0.1-alpha.10">
+<Project Sdk="WebFormsCore.SDK.NetFramework/0.0.1-alpha.11">
 
     <PropertyGroup>
         <TargetFramework>net472</TargetFramework>

@@ -40,6 +40,14 @@ jobs:
           PROJECT_FILE_PATH: src/WebFormsCore.AspNet/WebFormsCore.AspNet.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
 
+      - name: Publish WebFormsCore.Owin
+        uses: alirezanet/publish-nuget@v3.0.4
+        with:
+          VERSION_FILE_PATH: Directory.Build.props
+          PROJECT_FILE_PATH: src/WebFormsCore.Owin/WebFormsCore.Owin.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+
+
       - name: Publish WebFormsCore.AspNetCore
         uses: alirezanet/publish-nuget@v3.0.4
         with:
