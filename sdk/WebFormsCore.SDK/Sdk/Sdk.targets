@@ -9,6 +9,7 @@
     <PropertyGroup>
         <UseASPNetCore Condition="$(UseASPNetCore) == ''">true</UseASPNetCore>
         <WebFormsCoreUseNuget Condition="$(WebFormsCoreUseNuget) == ''">true</WebFormsCoreUseNuget>
+        <WebFormsCoreUseCompiler Condition="$(WebFormsCoreUseNuget) == ''">true</WebFormsCoreUseCompiler>
     </PropertyGroup>
 
     <ItemGroup Condition="$(ImplicitUsings) == 'enable'">
@@ -16,7 +17,7 @@
         <Using Include="WebFormsCore.UI" />
     </ItemGroup>
 
-    <!-- Begin Source Generator Configuration -->
+    <!-- Source Generator Configuration -->
     <ItemGroup>
         <Compile Remove="**/**.designer.cs" />
 
@@ -38,12 +39,21 @@
         <None Include="web.config" />
         <AdditionalFiles Include="web.config" Exclude="bin\**;obj\**" />
     </ItemGroup>
-    <!-- End Source Generator Configuration -->
 
+    <!-- NuGet references -->
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true'">
-        <PackageReference Condition="$(UseASPNetCore) == 'true'" Include="WebFormsCore.AspNetCore" Version="0.0.1-alpha.9" />
-        <PackageReference Condition="$(UseASPNetCore) == 'false'" Include="WebFormsCore" Version="0.0.1-alpha.9" />
-        <PackageReference Include="WebFormsCore.SourceGenerator" Version="0.0.1-alpha.9" OutputItemType="Analyzer" />
+        <PackageReference Condition="$(UseASPNetCore) == 'true'" Include="WebFormsCore.AspNetCore" Version="0.0.1-alpha.10" />
+        <PackageReference Condition="$(UseASPNetCore) == 'false'" Include="WebFormsCore" Version="0.0.1-alpha.10" />
+        <PackageReference Include="WebFormsCore.SourceGenerator" Version="0.0.1-alpha.10" OutputItemType="Analyzer" />
+    </ItemGroup>
+
+    <!-- Control Compiler -->
+    <PropertyGroup Condition="$(WebFormsCoreUseCompiler) == 'true'">
+        <DefineConstants>$(DefineConstants);WFC_COMPILER</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true' and $(WebFormsCoreUseCompiler) == 'true'">
+        <PackageReference Include="WebFormsCore.Compiler" Version="0.0.1-alpha.10" />
     </ItemGroup>
 
     <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.Web" />

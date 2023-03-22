@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Web;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 
 namespace WebFormsCore.Implementation;
@@ -22,10 +19,12 @@ public class HttpResponseImpl : IHttpResponse
 
     public Stream Body => _httpResponse.Body;
 
-    public string ContentType
+    public string? ContentType
     {
         get => _httpResponse.ContentType;
+#pragma warning disable CS8601 // In ASP.NET Core 7.0 this is nullable
         set => _httpResponse.ContentType = value;
+#pragma warning restore CS8601
     }
 
     public IDictionary<string, StringValues> Headers => _httpResponse.Headers;

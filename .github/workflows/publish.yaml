@@ -54,6 +54,13 @@ jobs:
           PROJECT_FILE_PATH: src/WebFormsCore.Parser/WebFormsCore.Parser.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
 
+      - name: Publish WebFormsCore.Compiler
+        uses: alirezanet/publish-nuget@v3.0.4
+        with:
+          VERSION_FILE_PATH: Directory.Build.props
+          PROJECT_FILE_PATH: src/WebFormsCore.Compiler/WebFormsCore.Compiler.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+
       - name: Publish WebFormsCore.SourceGenerator
         uses: alirezanet/publish-nuget@v3.0.4
         with:

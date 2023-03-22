@@ -938,7 +938,6 @@
                         formData.append(element.name, element.value);
                     }
                 }
-                formData.append("__PAGESTATE", pageState.value);
             }
             if (eventTarget) {
                 formData.append("__EVENTTARGET", eventTarget);

@@ -51,8 +51,6 @@ async function submitForm(form?: HTMLFormElement, eventTarget?: string, eventArg
                     formData.append(element.name, element.value);
                 }
             }
-
-            formData.append("__PAGESTATE", pageState.value);
         }
 
         if (eventTarget) {

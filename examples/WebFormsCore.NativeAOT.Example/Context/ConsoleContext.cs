@@ -13,4 +13,5 @@ public class ConsoleContext : IHttpContext
 
     public IServiceProvider RequestServices { get; }
     public CancellationToken RequestAborted => default;
+    public IFeatureCollection Features { get; } = new FeatureCollection();
 }

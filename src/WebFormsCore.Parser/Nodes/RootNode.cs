@@ -267,7 +267,7 @@ public class RootNode : ContainerNode
 
 public class Constructor
 {
-    public string Parameters { get; set; }
+    public string Parameters { get; set; } = null!;
 
-    public string Arguments { get; set; }
+    public string Arguments { get; set; } = null!;
 }

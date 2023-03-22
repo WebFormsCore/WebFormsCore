@@ -99,24 +99,6 @@
 [assembly:WebFormsCore.AssemblyViewAttribute(@"{{ type.Path }}", typeof({{ type.Namespace ? (type.Namespace + ".") : "" }}CompiledViews.{{ type.ClassName }}))]
 {{- end }}
 
-{{ if RootNamespace }}
-namespace {{ RootNamespace }}
-{
-{{- end }}
-internal static class ControlsServiceProviderExtensions
-{
-    public static void AddAssemblyControls(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
-    {
-        {{- for type in Types }}
-        global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddTransient<{{ (type.Namespace ? (type.Namespace + ".") : "") + type.InheritsClassName }}, {{ (type.Namespace ? (type.Namespace + ".") : "") + "CompiledViews." + type.ClassName }}>(services);
-        global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddTransient<{{ (type.Namespace ? (type.Namespace + ".") : "") + "CompiledViews." + type.ClassName }}>(services);
-        {{- end }}
-    }
-}
-{{- if RootNamespace }}
-}
-{{- end }}
-
 {{ for type in Types }}
 {{- if type.Namespace }}
 namespace {{ type.Namespace }}

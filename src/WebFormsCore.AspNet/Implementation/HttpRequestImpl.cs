@@ -26,6 +26,9 @@ internal class HttpRequestImpl : IHttpRequest
     }
 
     public string Method => _httpRequest.HttpMethod;
+    public string Scheme => _httpRequest.Url.Scheme;
+    public bool IsHttps => _httpRequest.IsSecureConnection;
+    public string Protocol => _httpRequest.ServerVariables["SERVER_PROTOCOL"];
     public string ContentType => _httpRequest.ContentType;
     public Stream Body => _httpRequest.InputStream;
     public string Path => _httpRequest.Path;

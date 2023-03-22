@@ -6,5 +6,5 @@
 -->
 
 <Project>
-    <Import Project="Sdk.props" Sdk="MSBuild.SDK.SystemWeb" Version="4.0.82" />
+    <Import Project="Sdk.props" Sdk="MSBuild.SDK.SystemWeb" Version="4.0.88" />
 </Project>

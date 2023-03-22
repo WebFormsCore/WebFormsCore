@@ -1,34 +1,19 @@
-﻿<Project Sdk="MSBuild.SDK.SystemWeb/4.0.82">
+﻿<Project>
+    <Import Project="..\..\sdk\WebFormsCore.SDK.NetFramework\Sdk\Sdk.props" />
 
     <PropertyGroup>
-		<MvcBuildViews>false</MvcBuildViews>
-		<TargetFramework>net472</TargetFramework>
-		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-		<GeneratedBindingRedirectsAction>Overwrite</GeneratedBindingRedirectsAction>
-		<LangVersion>10</LangVersion>
-	</PropertyGroup>
-
-    <ItemGroup>
-        <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**" />
-        <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**" />
-        <Content Remove="Controls\Counter.ascx" />
-        <Content Remove="Controls\TodoList.ascx" />
-        <Content Remove="Default.aspx" />
-        <AdditionalFiles Condition="Exists('web.config')" Include="web.config" Exclude="bin\**;obj\**" />
-        <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
-
-        <AdditionalFiles Update="**/*.aspx">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="**/*.ascx">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-    </ItemGroup>
+        <TargetFramework>net472</TargetFramework>
+        <WebFormsCoreUseNuget>false</WebFormsCoreUseNuget>
+        <LangVersion>10</LangVersion>
+        <Nullable>enable</Nullable>
+        <UseOwin>true</UseOwin>
+    </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\WebFormsCore.AspNet\WebFormsCore.AspNet.csproj" />
+        <ProjectReference Include="..\..\src\WebFormsCore.Owin\WebFormsCore.Owin.csproj" />
         <ProjectReference Include="..\..\src\WebFormsCore.SourceGenerator\WebFormsCore.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
+    <Import Project="..\..\sdk\WebFormsCore.SDK.NetFramework\Sdk\Sdk.targets" />
 </Project>

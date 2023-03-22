@@ -10,6 +10,8 @@
         <PackageProjectUrl>https://github.com/WebFormsCore/WebFormsCore</PackageProjectUrl>
         <PackageLicense>https://github.com/WebFormsCore/WebFormsCore/blob/main/LICENSE</PackageLicense>
         <ExtensionsVersion>6.0.0</ExtensionsVersion>
+        <NoWarn>$(NoWarn);CS0436;CS9057;ASP0000</NoWarn>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
 
 </Project>

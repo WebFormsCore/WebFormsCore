@@ -5,6 +5,9 @@ namespace WebFormsCore.NativeAOT.Example.Context;
 public class ConsoleRequest : IHttpRequest
 {
     public string Method => "GET";
+    public string Scheme => "http";
+    public bool IsHttps => false;
+    public string Protocol => "HTTP/1.1";
 
     public string? ContentType => null;
 

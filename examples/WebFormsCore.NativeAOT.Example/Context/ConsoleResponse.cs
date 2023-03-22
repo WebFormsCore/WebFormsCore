@@ -11,7 +11,7 @@ public class ConsoleResponse : IHttpResponse
 
     public Stream Body { get; }
 
-    public string ContentType { get; set; } = "text/html";
+    public string? ContentType { get; set; } = "text/html";
 
     public IDictionary<string, StringValues> Headers { get; } = new Dictionary<string, StringValues>();
 }

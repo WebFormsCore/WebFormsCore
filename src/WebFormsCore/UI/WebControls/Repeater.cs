@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI.WebControls;
 
-public abstract partial class Repeater : Control, IPostBackLoadHandler, INamingContainer
+public partial class Repeater : Control, IPostBackLoadHandler, INamingContainer
 {
     private readonly List<(RepeaterItem Item, Control? Seperator)> _items = new();
     private Control? _header;
@@ -282,7 +282,10 @@ public abstract partial class Repeater : Control, IPostBackLoadHandler, INamingC
         // ignore
     }
 
-    protected abstract RepeaterItem CreateItem(int itemIndex, ListItemType itemType);
+    protected virtual RepeaterItem CreateItem(int itemIndex, ListItemType itemType)
+    {
+        return new RepeaterItem(itemIndex, itemType, this);
+    }
 
     protected virtual void SetDataItem(RepeaterItem item, object dataItem)
     {

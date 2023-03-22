@@ -189,7 +189,9 @@ public class ViewStateManager : IViewStateManager
         byteLength = encoding.GetBytes(base64, span);
         span = span.Slice(0, byteLength);
 
-        if (Base64.DecodeFromUtf8InPlace(span, out var base64Length) != OperationStatus.Done)
+        var result = Base64.DecodeFromUtf8InPlace(span, out var base64Length);
+
+        if (result != OperationStatus.Done)
         {
             throw new ViewStateException("Could not decode base64");
         }

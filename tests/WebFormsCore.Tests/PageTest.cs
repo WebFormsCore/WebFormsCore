@@ -18,7 +18,7 @@ public class PageTest
         var services = new ServiceCollection();
 
         services.AddWebFormsInternals();
-        services.AddWebFormsControlCompiler();
+        services.AddWebFormsCompiler();
         services.AddLogging();
         services.AddSingleton<IWebFormsEnvironment, TestEnvironment>();
 

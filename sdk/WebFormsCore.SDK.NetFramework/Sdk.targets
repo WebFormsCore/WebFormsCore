@@ -8,7 +8,7 @@
         <Using Include="WebFormsCore.UI" />
     </ItemGroup>
 
-    <!-- Begin Source Generator Configuration -->
+    <!-- Source Generator Configuration -->
     <ItemGroup>
         <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -28,12 +28,30 @@
         <None Include="web.config" />
         <AdditionalFiles Include="web.config" Exclude="bin\**;obj\**" />
     </ItemGroup>
-    <!-- End Source Generator Configuration -->
 
+    <!-- NuGet references -->
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true'">
-        <PackageReference Include="WebFormsCore.AspNet" Version="$version$" />
+        <PackageReference Condition="$(UseOwin) != 'true'" Include="WebFormsCore.AspNet" Version="$version$" />
+        <PackageReference Condition="$(UseOwin) == 'true'" Include="WebFormsCore.Owin" Version="$version$" />
         <PackageReference Include="WebFormsCore.SourceGenerator" Version="$version$" OutputItemType="Analyzer" />
     </ItemGroup>
 
-    <Import Project="Sdk.targets" Sdk="MSBuild.SDK.SystemWeb" Version="4.0.82" />
+    <PropertyGroup Condition="$(UseOwin) == 'true'">
+        <DefineConstants>$(DefineConstants);OWIN</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Condition="$(UseOwin) == 'true'" Include="Microsoft.Owin.Host.SystemWeb" Version="4.2.2" />
+    </ItemGroup>
+
+    <!-- Control Compiler -->
+    <PropertyGroup Condition="$(WebFormsCoreUseCompiler) == 'true'">
+        <DefineConstants>$(DefineConstants);WFC_COMPILER</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true' and $(WebFormsCoreUseCompiler) == 'true'">
+        <PackageReference Include="WebFormsCore.Compiler" Version="$version$" />
+    </ItemGroup>
+
+    <Import Project="Sdk.targets" Sdk="MSBuild.SDK.SystemWeb" Version="4.0.88" />
 </Project>

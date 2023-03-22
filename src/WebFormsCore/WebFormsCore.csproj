@@ -6,8 +6,6 @@
         <Nullable>enable</Nullable>
         <RootNamespace>WebFormsCore</RootNamespace>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<NoWarn>$(NoWarn);CS0436</NoWarn>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
 
 	<ItemGroup>

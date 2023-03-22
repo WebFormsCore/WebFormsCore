@@ -11,11 +11,11 @@
 
             {{- for prop in child.Events }}
             {{- if IsReturnTypeSame }}
-            AddHandler {{ child.VariableName }}.{{ prop.Event.Name }}, AddressOf {{ prop.Method.Name }}
+            AddHandler {{ child.VariableName }}.{{ prop.Event.Name }}, AddressOf {{ $3 }}{{ prop.Method.Name }}
             {{- else }}
             AddHandler {{ child.VariableName }}.{{ prop.Event.Name }}, Function({{ prop.Arguments }})
                 {{ if !prop.IsVoid }}Dim result = {{ end }}
-                {{- prop.Method.Name }}({{ prop.Arguments }})
+                {{ $3 }}{{- prop.Method.Name }}({{ prop.Arguments }})
                 Return {{ prop.ReturnValue }}
             End function
             {{- end }}
@@ -35,7 +35,7 @@
             {{- end }}
 
             {{- for prop in child.Templates }}
-            {{ child.VariableName }}.{{ prop.Property }} = new {{ prop.ClassName }}(WebActivator)
+            {{ child.VariableName }}.{{ prop.Property }} = new {{ prop.ClassName }}(WebActivator, Me)
             {{- end }}
 
         {{- when "Element" }}
@@ -89,6 +89,9 @@ Imports Microsoft.VisualBasic
 {{- if RootNamespace }}
 <Assembly:WebFormsCore.RootNamespaceAttribute("{{ RootNamespace }}")>
 {{- end }}
+{{- for type in Types }}
+<Assembly:WebFormsCore.AssemblyViewAttribute("{{ type.Path }}", GetType({{ type.Namespace ? (type.Namespace + ".") : "" }}CompiledViews.{{ type.ClassName }}))>
+{{- end }}
 
 {{- for type in Types }}
 {{- if type.VbNamespace }}
@@ -123,22 +126,7 @@ End Class
 {{- end }}
 
 Public Partial Class CompiledViews
-    {{- for template in type.Templates }}
-    Public Class {{ template.ClassName }}
-        Implements WebFormsCore.UI.ITemplate
-        Public Sub New(webActivator As WebFormsCore.IWebObjectActivator)
-            Me.WebActivator = webActivator
-        End Sub
-
-        Public WebActivator As WebFormsCore.IWebObjectActivator
-
-        {{- write_methods template }}
-
-        Public Sub InstantiateIn(container As WebFormsCore.UI.Control) Implements WebFormsCore.UI.ITemplate.InstantiateIn
-            {{- write_children template.Children "container" }}
-        End Sub
-    End Class
-    {{- end }}
+    
 
      <WebFormsCore.CompiledView("{{ type.Path }}", "{{ type.Hash }}")>
      Public Class {{ type.ClassName }}
@@ -148,8 +136,32 @@ Public Partial Class CompiledViews
 
         Protected Overrides Sub FrameworkInitialize()
             MyBase.FrameworkInitialize()
+            {{- if type.RenderName }}
+            SetRenderMethodDelegate(AddressOf {{ type.RenderName }});
+            {{- end }}
             {{ write_children type.AllChildren "Me" true }}
         End Sub
+	
+        {{- for template in type.Templates }}
+        Public Class {{ template.ClassName }}
+            Implements WebFormsCore.UI.ITemplate
+
+	        Private ReadOnly _parent As {{ type.ClassName }}
+
+            Public Sub New(webActivator As WebFormsCore.IWebObjectActivator, parent As {{ type.ClassName }})
+                Me.WebActivator = webActivator
+		        Me._parent = parent
+            End Sub
+
+            Public WebActivator As WebFormsCore.IWebObjectActivator
+
+            {{- write_methods template }}
+
+            Public Sub InstantiateIn(container As WebFormsCore.UI.Control) Implements WebFormsCore.UI.ITemplate.InstantiateIn
+                {{ write_children template.AllChildren "container" false "_parent." }}
+            End Sub
+        End Class
+        {{- end }}
     End Class
 End Class
 {{- if type.VbNamespace }}

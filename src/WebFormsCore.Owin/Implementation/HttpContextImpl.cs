@@ -1,23 +1,21 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
-using System.Web;
 
 namespace WebFormsCore.Implementation;
 
 internal class HttpContextImpl : IHttpContext
 {
-    private HttpContext _httpContext;
-    private HttpRequestImpl _request = new();
-    private HttpResponseImpl _response = new();
+    private IDictionary<string, object> _env;
+    private readonly HttpRequestImpl _request = new();
+    private readonly HttpResponseImpl _response = new();
     private readonly FeatureCollection _features = new();
 
-    public void SetHttpContext(HttpContext httpContext, IServiceProvider requestServices)
+    public void SetHttpContext(IDictionary<string, object> env, IServiceProvider requestServices)
     {
-        _httpContext = httpContext;
-        _request.SetHttpRequest(httpContext.Request);
-        _response.SetHttpResponse(httpContext.Response);
+        _env = env;
+        _request.SetHttpRequest(env);
+        _response.SetHttpResponse(env);
         RequestServices = requestServices;
     }
 
@@ -26,12 +24,12 @@ internal class HttpContextImpl : IHttpContext
         _features.Reset();
         _request.Reset();
         _response.Reset();
-        _httpContext = null!;
+        _env = null!;
     }
 
     public IHttpRequest Request => _request;
     public IHttpResponse Response => _response;
     public IServiceProvider RequestServices { get; private set; }
-    public CancellationToken RequestAborted => _httpContext.Request.TimedOutToken;
+    public CancellationToken RequestAborted => _env["owin.CallCancelled"] as CancellationToken? ?? CancellationToken.None;
     public IFeatureCollection Features => _features;
 }

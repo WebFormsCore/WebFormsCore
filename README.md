@@ -9,7 +9,9 @@ It's heavily inspired by WebForms but is not a direct port. There are a lot of b
 In comparison to WebForms there are a few changes:
 
 - **Targets .NET Framework 4.7.2 and NET 6.0**  
-  You can use WebForms Core on .NET and .NET Framework 🎉
+  You can use WebForms Core on .NET (ASP.NET Core) and .NET Framework (ASP.NET and OWIN) 🎉
+- **NativeAOT support**  
+  WebForms Core supports Native AOT compilation for .NET 8.0 (preview 2 or higher).
 - **Rendering is asynchronous**  
   By default, ASP.NET Core doesn't allow synchronous operations. This is done [to prevent thread starvation and app hangs](https://makolyte.com/aspnet-invalidoperationexception-synchronous-operations-are-disallowed/).
 - **Designer source generators**  
@@ -24,6 +26,7 @@ In comparison to WebForms there are a few changes:
   Experimental support for Content Security Policy.
 
 ## Getting started
+### ASP.NET Core (.NET 6.0)
 Create a new .csproj that targets the SDK of WebFormsCore:
 
 ```xml
@@ -48,12 +51,95 @@ var app = builder.Build();
 app.MapAspx("/", "Default.aspx");
 
 // Map all .aspx files
+// For example, if you have a file named 'About.aspx' you can access it by going to '/About.aspx'
 app.MapFallbackToAspx();
 
 app.Run();
 ```
 
-_Optional:_ Create the file `web.config` with the control namespaces:
+### ASP.NET (.NET Framework)
+> **Note:** [Rider and Visual Studio 2022 17.5 (17.4 and 17.6 or higher are **supported**) doesn't support debugging .NET Framework applications with the new project system.](https://github.com/CZEMacLeod/MSBuild.SDK.SystemWeb/issues/51#issuecomment-1444781463)
+
+Create a new .csproj that targets the SDK of WebFormsCore.NetFramework:
+
+```xml
+<Project Sdk="WebFormsCore.SDK.NetFramework/0.0.1-alpha.10">
+
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <LangVersion>10</LangVersion>
+    </PropertyGroup>
+
+</Project>
+```
+
+Add the following in your `web.config`
+
+> **Note:** This example will remove all the HTTP handlers that are registered by default so it doesn't conflict with .NET Framework WebForms.
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <system.webServer>
+    <handlers>
+      <clear />
+      <add verb="*" path="*.aspx" name="WebFormsCore-ASPX" type="WebFormsCore.PageHandlerFactory" />
+    </handlers>
+  </system.webServer>
+</configuration>	
+```	
+
+It's currently not supported to map custom routes to .aspx files in ASP.NET.
+
+### OWIN (.NET Framework)
+> **Note:** OWIN support is experimental. Postbacks are not supported yet.
+
+> **Note:** [Rider and Visual Studio 2022 17.5 (17.4 and 17.6 or higher are **supported**) doesn't support debugging .NET Framework applications with the new project system.](https://github.com/CZEMacLeod/MSBuild.SDK.SystemWeb/issues/51#issuecomment-1444781463)
+
+Create a new .csproj that targets the SDK of WebFormsCore.NetFramework:
+
+```xml
+<Project Sdk="WebFormsCore.SDK.NetFramework/0.0.1-alpha.10">
+
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <LangVersion>10</LangVersion>
+        <UseOwin>true</UseOwin>
+    </PropertyGroup>
+
+</Project>
+```
+
+Create the file `Startup.cs` and add the following:
+
+```cs
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Owin;
+using Owin;
+using Application;
+
+[assembly: OwinStartup(typeof(Startup))]
+
+namespace Application
+{
+    public class Startup
+    {
+        public void Configuration(IAppBuilder app)
+        {
+            var services = new ServiceCollection();
+
+            services.UseOwinWebForms();
+
+            app.Use<WebFormsCoreMiddleware>(services);
+        }
+    }
+}
+```
+
+It's currently not supported to map custom routes to .aspx files in OWIN.
+
+## Global controls
+In the `web.config` you can register the controls that can be used without registering them in the page or control:
 
 ```xml
 <configuration>
@@ -68,4 +154,20 @@ _Optional:_ Create the file `web.config` with the control namespaces:
 </configuration>
 ```
 
-Every `.aspx` file in the project will now be handled.
+## Runtime Compiler
+The runtime compiler is a feature that allows you to recompile the page (`.aspx`) and controls (`.ascx`) at runtime.
+As of alpha.11 the runtime compiler is not included in the SDK. This is to reduce the size of the Native AOT binaries and for security reasons.
+
+To add the runtime compiler to your project, add the following to your .csproj:
+
+```xml
+<PropertyGroup>
+    <WebFormsCoreUseCompiler>true</WebFormsCoreUseCompiler>
+</PropertyGroup>
+```
+
+and add the following to your `Program.cs`:
+
+```cs
+builder.Services.AddWebFormsCompiler();
+```
