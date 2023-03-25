@@ -8,7 +8,7 @@ namespace WebFormsCore.Implementation;
 public class HttpResponseImpl : IHttpResponse
 {
     private HttpResponse _httpResponse;
-    private readonly StringValuesImpl _headers = new();
+    private readonly NameValueDictionary _headers = new();
 
     public void SetHttpResponse(HttpResponse httpResponse)
     {

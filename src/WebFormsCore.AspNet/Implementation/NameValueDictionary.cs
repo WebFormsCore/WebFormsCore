@@ -6,7 +6,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace WebFormsCore.Implementation;
 
-internal class StringValuesImpl : IDictionary<string, StringValues>, IReadOnlyDictionary<string, StringValues>
+internal class NameValueDictionary : IDictionary<string, StringValues>, IReadOnlyDictionary<string, StringValues>
 {
     private NameValueCollection _nameValueCollection;
 

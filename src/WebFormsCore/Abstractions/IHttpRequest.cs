@@ -20,5 +20,7 @@ public interface IHttpRequest
 
     string Path { get; }
 
+    IReadOnlyDictionary<string, StringValues> Query { get; set; }
+
     IReadOnlyDictionary<string, StringValues> Form { get; set; }
 }

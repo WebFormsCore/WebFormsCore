@@ -7,7 +7,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace WebFormsCore.Implementation;
 
-internal class StringValuesImpl : IReadOnlyDictionary<string, StringValues>
+internal class FormCollectionDictionary : IReadOnlyDictionary<string, StringValues>
 {
     private IFormCollection _formCollection = default!;
 

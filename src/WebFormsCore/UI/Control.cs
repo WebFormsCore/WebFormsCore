@@ -265,6 +265,10 @@ public partial class Control : System.Web.UI.Control
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     protected virtual IHttpContext Context => Page.Context ?? throw new InvalidOperationException("HttpContext is not available");
 
+    protected IHttpRequest Request => Context.Request;
+
+    protected IHttpResponse Response => Context.Response;
+
     public virtual void ClearControl()
     {
         EffectiveClientIDModeValue = ClientIDMode.Inherit;

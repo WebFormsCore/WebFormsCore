@@ -58,6 +58,8 @@ public class HtmlTextWriter : TextWriter
 
     public bool UseAsync { get; set; } = DefaultAsync;
 
+    public bool AutoFlush { get; set; } = true;
+
     internal void Clear()
     {
         _openTags.Clear();
@@ -162,6 +164,7 @@ public class HtmlTextWriter : TextWriter
         }
 
         InnerWriter.Write(TagRightChar);
+        if (AutoFlush) Flush();
 
         _openTags.Push(name);
     }
@@ -199,6 +202,7 @@ public class HtmlTextWriter : TextWriter
 
         _openTags.Push(name);
         await WriteAsync(TagRightChar);
+        if (AutoFlush) await FlushAsync();
     }
 
     public void RenderEndTag()
@@ -210,6 +214,7 @@ public class HtmlTextWriter : TextWriter
         Write(EndTagLeftChars);
         Write(tag);
         WriteLine(TagRightChar);
+        if (AutoFlush) Flush();
     }
 
     public async ValueTask RenderEndTagAsync()
@@ -221,6 +226,7 @@ public class HtmlTextWriter : TextWriter
         await WriteAsync(EndTagLeftChars);
         await WriteAsync(tag);
         await WriteLineAsync(TagRightChar);
+        if (AutoFlush) await FlushAsync();
     }
 
     public void WriteAttribute(string name, string? value, bool encode = true)
@@ -234,6 +240,7 @@ public class HtmlTextWriter : TextWriter
         Write(EqualsDoubleQuoteString);
         Write(value);
         Write(DoubleQuoteChar);
+        if (AutoFlush) Flush();
     }
 
     public async ValueTask WriteAttributeAsync(string name, string? value, bool encode = true)
@@ -247,6 +254,7 @@ public class HtmlTextWriter : TextWriter
         await WriteAsync(EqualsDoubleQuoteString);
         await WriteAsync(value);
         await WriteAsync(DoubleQuoteChar);
+        if (AutoFlush) await FlushAsync();
     }
 
     public void WriteStyleAttribute(string? name, string? value, bool encode = true)
@@ -263,6 +271,7 @@ public class HtmlTextWriter : TextWriter
         Write(value);
         Write(SemicolonChar);
         Write(SpaceChar);
+        if (AutoFlush) Flush();
     }
 
     public async ValueTask WriteStyleAttributeAsync(string? name, string? value, bool encode = true)
@@ -279,18 +288,21 @@ public class HtmlTextWriter : TextWriter
         await WriteAsync(value);
         await WriteAsync(SemicolonChar);
         await WriteAsync(SpaceChar);
+        if (AutoFlush) await FlushAsync();
     }
 
     public void WriteBeginTag(string name)
     {
         Write(TagLeftChar);
         Write(name);
+        if (AutoFlush) Flush();
     }
 
     public async ValueTask WriteBeginTagAsync(string name)
     {
         await WriteAsync(TagLeftChar);
         await WriteAsync(name);
+        if (AutoFlush) await FlushAsync();
     }
 
     public void WriteBreak()
@@ -298,6 +310,7 @@ public class HtmlTextWriter : TextWriter
         Write(TagLeftChar);
         Write("br");
         Write(SelfClosingTagEnd);
+        if (AutoFlush) Flush();
     }
 
     public async ValueTask WriteBreakAsync()
@@ -305,16 +318,26 @@ public class HtmlTextWriter : TextWriter
         await WriteAsync(TagLeftChar);
         await WriteAsync("br");
         await WriteAsync(SelfClosingTagEnd);
+        if (AutoFlush)  await FlushAsync();
     }
 
     public async ValueTask WriteSelfClosingAsync()
     {
         await WriteAsync(SelfClosingTagEnd);
+        if (AutoFlush) await FlushAsync();
     }
 
-    public void WriteEncodedText(string text) => Write(WebUtility.HtmlEncode(text));
+    public void WriteEncodedText(string text)
+    {
+        Write(WebUtility.HtmlEncode(text));
+        if (AutoFlush) Flush();
+    }
 
-    public Task WriteEncodedTextAsync(string? text) => WriteAsync(WebUtility.HtmlEncode(text));
+    public async Task WriteEncodedTextAsync(string? text)
+    {
+        await WriteAsync(WebUtility.HtmlEncode(text));
+        if (AutoFlush) await FlushAsync();
+    }
 
     public void WriteEncodedUrl(string url)
     {
@@ -328,9 +351,15 @@ public class HtmlTextWriter : TextWriter
         {
             Write(Uri.EscapeDataString(url));
         }
+
+        if (AutoFlush) Flush();
     }
 
-    public void WriteEncodedUrlParameter(string urlText) => Write(Uri.EscapeDataString(urlText));
+    public void WriteEncodedUrlParameter(string urlText)
+    {
+        Write(Uri.EscapeDataString(urlText));
+        if (AutoFlush) Flush();
+    }
 
     public void WriteEndTag(string tagName)
     {
@@ -338,6 +367,7 @@ public class HtmlTextWriter : TextWriter
         Write(SlashChar);
         Write(tagName);
         Write(TagRightChar);
+        if (AutoFlush) Flush();
     }
 
     public async ValueTask WriteEndTagAsync(string tagName)
@@ -346,6 +376,7 @@ public class HtmlTextWriter : TextWriter
         await WriteAsync(SlashChar);
         await WriteAsync(tagName);
         await WriteAsync(TagRightChar);
+        if (AutoFlush) await FlushAsync();
     }
 
     public void WriteFullBeginTag(string tagName) => Write($"{TagLeftChar}{tagName}{TagRightChar}");
@@ -370,86 +401,103 @@ public class HtmlTextWriter : TextWriter
     public override void Write(ulong value)
     {
         InnerWriter.Write(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(uint value)
     {
         InnerWriter.Write(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(string format, params object?[] arg)
     {
         InnerWriter.Write(format, arg);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(string format, object? arg0, object? arg1, object? arg2)
     {
         InnerWriter.Write(format, arg0, arg1, arg2);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(string format, object? arg0, object? arg1)
     {
         InnerWriter.Write(format, arg0, arg1);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(string format, object? arg0)
     {
         InnerWriter.Write(format, arg0);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(string? value)
     {
         InnerWriter.Write(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(object? value)
     {
         InnerWriter.Write(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(long value)
     {
         InnerWriter.Write(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(int value)
     {
         InnerWriter.Write(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(double value)
     {
         InnerWriter.Write(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(decimal value)
     {
         InnerWriter.Write(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(char[] buffer, int index, int count)
     {
         InnerWriter.Write(buffer, index, count);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(char[]? buffer)
     {
         InnerWriter.Write(buffer);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(char value)
     {
         InnerWriter.Write(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(bool value)
     {
         InnerWriter.Write(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(float value)
     {
         InnerWriter.Write(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public async Task WriteObjectAsync(object? value)
@@ -457,88 +505,105 @@ public class HtmlTextWriter : TextWriter
         if (value == null) return;
 
         await WriteAsync(value.ToString());
+        if (AutoFlush) await FlushAsync();
     }
 
-    public override Task WriteAsync(string? value)
+    public override async Task WriteAsync(string? value)
     {
         if (UseAsync)
         {
-            return InnerWriter.WriteAsync(value);
+            await InnerWriter.WriteAsync(value);
+            if (AutoFlush) await InnerWriter.FlushAsync();
+            return;
         }
 
         // ReSharper disable once MethodHasAsyncOverload
         InnerWriter.Write(value);
-        return Task.CompletedTask;
+        // ReSharper disable once MethodHasAsyncOverload
+        if (AutoFlush) InnerWriter.Flush();
     }
 
-    public override Task WriteAsync(char value)
+    public override async Task WriteAsync(char value)
     {
         if (UseAsync)
         {
-            return InnerWriter.WriteAsync(value);
+            await InnerWriter.WriteAsync(value);
+            if (AutoFlush) await InnerWriter.FlushAsync();
+            return;
         }
 
         // ReSharper disable once MethodHasAsyncOverload
         InnerWriter.Write(value);
-        return Task.CompletedTask;
+        // ReSharper disable once MethodHasAsyncOverload
+        if (AutoFlush) InnerWriter.Flush();
     }
 
 #if NET
-    public override Task WriteAsync(StringBuilder? value,
+    public override async Task WriteAsync(StringBuilder? value,
         CancellationToken cancellationToken = new CancellationToken())
     {
-        return InnerWriter.WriteAsync(value, cancellationToken);
+        await InnerWriter.WriteAsync(value, cancellationToken);
+        if (AutoFlush) await InnerWriter.FlushAsync();
     }
 
-    public override Task WriteAsync(ReadOnlyMemory<char> buffer,
+    public override async Task WriteAsync(ReadOnlyMemory<char> buffer,
         CancellationToken cancellationToken = new CancellationToken())
     {
-        return InnerWriter.WriteAsync(buffer, cancellationToken);
+        await InnerWriter.WriteAsync(buffer, cancellationToken);
+        if (AutoFlush) await InnerWriter.FlushAsync();
     }
 
-    public override Task WriteLineAsync(ReadOnlyMemory<char> buffer,
+    public override async Task WriteLineAsync(ReadOnlyMemory<char> buffer,
         CancellationToken cancellationToken = new CancellationToken())
     {
-        return InnerWriter.WriteAsync(buffer, cancellationToken);
+        await InnerWriter.WriteAsync(buffer, cancellationToken);
+        if (AutoFlush) await InnerWriter.FlushAsync();
     }
 
     public override void Write(ReadOnlySpan<char> buffer)
     {
         InnerWriter.Write(buffer);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void Write(StringBuilder? value)
     {
         InnerWriter.Write(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(ReadOnlySpan<char> buffer)
     {
         InnerWriter.WriteLine(buffer);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(StringBuilder? value)
     {
         InnerWriter.WriteLine(value);
+        if (AutoFlush)  InnerWriter.Flush();
     }
 
-    public override Task WriteLineAsync(StringBuilder? value,
+    public override async Task WriteLineAsync(StringBuilder? value,
         CancellationToken cancellationToken = new CancellationToken())
     {
-        return InnerWriter.WriteLineAsync(value, cancellationToken);
+        await InnerWriter.WriteLineAsync(value, cancellationToken);
+        if (AutoFlush) await InnerWriter.FlushAsync();
     }
 #endif
 
-    public override Task WriteAsync(char[] buffer, int index, int count)
+    public override async Task WriteAsync(char[] buffer, int index, int count)
     {
         if (UseAsync)
         {
-            return InnerWriter.WriteAsync(buffer, index, count);
+            await InnerWriter.WriteAsync(buffer, index, count);
+            if (AutoFlush) await InnerWriter.FlushAsync();
         }
 
         // ReSharper disable once MethodHasAsyncOverload
         InnerWriter.Write(buffer, index, count);
-        return Task.CompletedTask;
+        // ReSharper disable once MethodHasAsyncOverload
+        if (AutoFlush)  InnerWriter.Flush();
     }
 
     //
@@ -548,139 +613,169 @@ public class HtmlTextWriter : TextWriter
     public override void WriteLine(string format, object? arg0)
     {
         InnerWriter.WriteLine(format, arg0);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(ulong value)
     {
         InnerWriter.WriteLine(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(uint value)
     {
         InnerWriter.WriteLine(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(string format, params object?[] arg)
     {
         InnerWriter.WriteLine(format, arg);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(string format, object? arg0, object? arg1, object? arg2)
     {
         InnerWriter.WriteLine(format, arg0, arg1, arg2);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(string format, object? arg0, object? arg1)
     {
         InnerWriter.WriteLine(format, arg0, arg1);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(string? value)
     {
         InnerWriter.WriteLine(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(float value)
     {
         InnerWriter.WriteLine(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine()
     {
         InnerWriter.WriteLine();
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(long value)
     {
         InnerWriter.WriteLine(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(int value)
     {
         InnerWriter.WriteLine(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(double value)
     {
         InnerWriter.WriteLine(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(decimal value)
     {
         InnerWriter.WriteLine(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(char[] buffer, int index, int count)
     {
         InnerWriter.WriteLine(buffer, index, count);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(char[]? buffer)
     {
         InnerWriter.WriteLine(buffer);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(char value)
     {
         InnerWriter.WriteLine(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(bool value)
     {
         InnerWriter.WriteLine(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public override void WriteLine(object? value)
     {
         InnerWriter.WriteLine(value);
+        if (AutoFlush) InnerWriter.Flush();
     }
 
-    public override Task WriteLineAsync()
+    public override async Task WriteLineAsync()
     {
         if (UseAsync)
         {
-            return InnerWriter.WriteLineAsync();
+            await InnerWriter.WriteLineAsync();
+            if (AutoFlush) await InnerWriter.FlushAsync();
+            return;
         }
 
         // ReSharper disable once MethodHasAsyncOverload
         InnerWriter.WriteLine();
-        return Task.CompletedTask;
+        // ReSharper disable once MethodHasAsyncOverload
+        if (AutoFlush) InnerWriter.Flush();
     }
 
-    public override Task WriteLineAsync(char value)
+    public override async Task WriteLineAsync(char value)
     {
         if (UseAsync)
         {
-            return InnerWriter.WriteLineAsync(value);
+            await InnerWriter.WriteLineAsync(value);
+            if (AutoFlush) await InnerWriter.FlushAsync();
+            return;
         }
 
         // ReSharper disable once MethodHasAsyncOverload
         InnerWriter.WriteLine(value);
-        return Task.CompletedTask;
+        // ReSharper disable once MethodHasAsyncOverload
+        if (AutoFlush) InnerWriter.Flush();
     }
 
-    public override Task WriteLineAsync(char[] buffer, int index, int count)
+    public override async Task WriteLineAsync(char[] buffer, int index, int count)
     {
         if (UseAsync)
         {
-            return InnerWriter.WriteLineAsync(buffer, index, count);
+            await InnerWriter.WriteLineAsync(buffer, index, count);
+            if (AutoFlush) await InnerWriter.FlushAsync();
+            return;
         }
 
         // ReSharper disable once MethodHasAsyncOverload
         InnerWriter.WriteLine(buffer, index, count);
-        return Task.CompletedTask;
+        // ReSharper disable once MethodHasAsyncOverload
+        if (AutoFlush) InnerWriter.Flush();
     }
 
-    public override Task WriteLineAsync(string? value)
+    public override async Task WriteLineAsync(string? value)
     {
         if (UseAsync)
         {
-            return InnerWriter.WriteLineAsync(value);
+            await InnerWriter.WriteLineAsync(value);
+            if (AutoFlush) await InnerWriter.FlushAsync();
+            return;
         }
 
         // ReSharper disable once MethodHasAsyncOverload
         InnerWriter.WriteLine(value);
-        return Task.CompletedTask;
+        // ReSharper disable once MethodHasAsyncOverload
+        if (AutoFlush) InnerWriter.Flush();
     }
 
     public async Task WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken token = default)
@@ -708,6 +803,7 @@ public class HtmlTextWriter : TextWriter
         }
 
         await _stream.WriteAsync(buffer, token);
+        if (AutoFlush) await _stream.FlushAsync(token);
     }
 
     public async Task WriteLineAsync(ReadOnlyMemory<byte> buffer, CancellationToken token = default)
@@ -736,6 +832,7 @@ public class HtmlTextWriter : TextWriter
 
         await _stream.WriteAsync(buffer, token);
         await _stream.WriteAsync(_newLineBytes, token);
+        if (AutoFlush) await _stream.FlushAsync(token);
     }
 
     private (IMemoryOwner<char> Owner, int Length) ByteToChars(ReadOnlySpan<byte> buffer)

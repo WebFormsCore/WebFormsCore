@@ -70,6 +70,7 @@ public class PageManager : IPageManager
         await using var writer = new HtmlTextWriter(textWriter, stream);
 
         context.Response.ContentType = "text/html";
+
         await page.RenderAsync(writer, token);
         await writer.FlushAsync();
     }

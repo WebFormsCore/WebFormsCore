@@ -16,4 +16,6 @@ public class ConsoleRequest : IHttpRequest
     public string Path => "/";
 
     public IReadOnlyDictionary<string, StringValues> Form { get; set; } = new Dictionary<string, StringValues>();
+
+    public IReadOnlyDictionary<string, StringValues> Query { get; set; } = new Dictionary<string, StringValues>();
 }
