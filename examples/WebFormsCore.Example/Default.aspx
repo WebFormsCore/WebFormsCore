@@ -15,7 +15,7 @@
     <div class="mt-4">
         <div class="row">
             <div class="col-6">
-                <form runat="server" method="post">
+                <form runat="server" method="post" ID="formCounter">
                     <div class="card">
                         <div class="card-header">
                             <strong>Counter</strong>
@@ -42,7 +42,7 @@
 
             </div>
             <div class="col-6">
-                <form runat="server" method="post">
+                <form runat="server" method="post" ID="formTodo">
                     <div class="card">
                         <div class="card-header">
                             <strong>Todo list</strong>

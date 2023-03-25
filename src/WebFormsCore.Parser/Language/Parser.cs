@@ -392,6 +392,8 @@ public class Parser
                 }
             }
 
+            var implementsAttributeAccessor = controlType.AllInterfaces.Any(x => x.Name == "IAttributeAccessor" && x.ContainingNamespace.ToString() == "WebFormsCore.UI");
+
             foreach (var attribute in attributes)
             {
                 var key = attribute.Key.Value;
@@ -439,7 +441,10 @@ public class Parser
                     continue;
                 }
 
-                controlNode.Attributes.Add(attribute.Key, attribute.Value);
+                if (implementsAttributeAccessor)
+                {
+                    controlNode.Attributes.Add(attribute.Key, attribute.Value);
+                }
             }
 
             node = controlNode;

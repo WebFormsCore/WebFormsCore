@@ -9,11 +9,18 @@ public class ControlCollection : IReadOnlyCollection<Control>
 {
     private readonly List<Control> _list = new();
     private string? _readOnlyErrorMsg;
+    private readonly List<Control> _namingContainerChildren = new();
 
     public ControlCollection(Control owner)
     {
         Owner = owner ?? throw new ArgumentNullException(nameof(owner));
     }
+
+    internal void AddNamingContainerChild(Control control) => _namingContainerChildren.Add(control);
+
+    internal void RemoveNamingContainerChild(Control control) => _namingContainerChildren.Remove(control);
+
+    public IReadOnlyList<Control> NamingContainerChildren => _namingContainerChildren;
 
     public virtual void AddWithoutPageEvents(Control child)
     {
