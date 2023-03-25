@@ -28,7 +28,7 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Publish WebFormsCore
-        uses: GerardSmit/publish-nuget@v3.1.0
+        uses: GerardSmit/publish-nuget@v3.1.1
         with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: Directory.Build.props
