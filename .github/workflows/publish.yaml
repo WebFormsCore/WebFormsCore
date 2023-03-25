@@ -27,65 +27,17 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Publish WebFormsCore
-        uses: alirezanet/publish-nuget@v3.0.4
+        uses: GerardSmit/publish-nuget@v3.1.0
         with:
-          VERSION_FILE_PATH: Directory.Build.props
-          PROJECT_FILE_PATH: src/WebFormsCore/WebFormsCore.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-
-      - name: Publish WebFormsCore.AspNet
-        uses: alirezanet/publish-nuget@v3.0.4
-        with:
           VERSION_FILE_PATH: Directory.Build.props
-          PROJECT_FILE_PATH: src/WebFormsCore.AspNet/WebFormsCore.AspNet.csproj
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-
-      - name: Publish WebFormsCore.Owin
-        uses: alirezanet/publish-nuget@v3.0.4
-        with:
-          VERSION_FILE_PATH: Directory.Build.props
-          PROJECT_FILE_PATH: src/WebFormsCore.Owin/WebFormsCore.Owin.csproj
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-
-
-      - name: Publish WebFormsCore.AspNetCore
-        uses: alirezanet/publish-nuget@v3.0.4
-        with:
-          VERSION_FILE_PATH: Directory.Build.props
-          PROJECT_FILE_PATH: src/WebFormsCore.AspNetCore/WebFormsCore.AspNetCore.csproj
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-
-      - name: Publish WebFormsCore.Parser
-        uses: alirezanet/publish-nuget@v3.0.4
-        with:
-          VERSION_FILE_PATH: Directory.Build.props
-          PROJECT_FILE_PATH: src/WebFormsCore.Parser/WebFormsCore.Parser.csproj
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-
-      - name: Publish WebFormsCore.Compiler
-        uses: alirezanet/publish-nuget@v3.0.4
-        with:
-          VERSION_FILE_PATH: Directory.Build.props
-          PROJECT_FILE_PATH: src/WebFormsCore.Compiler/WebFormsCore.Compiler.csproj
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-
-      - name: Publish WebFormsCore.SourceGenerator
-        uses: alirezanet/publish-nuget@v3.0.4
-        with:
-          VERSION_FILE_PATH: Directory.Build.props
-          PROJECT_FILE_PATH: src/WebFormsCore.SourceGenerator/WebFormsCore.SourceGenerator.csproj
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-
-      - name: Publish WebFormsCore.SDK
-        uses: alirezanet/publish-nuget@v3.0.4
-        with:
-          VERSION_FILE_PATH: Directory.Build.props
-          PROJECT_FILE_PATH: sdk/WebFormsCore.SDK/WebFormsCore.SDK.csproj
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-
-      - name: Publish WebFormsCore.SDK.NetFramework
-        uses: alirezanet/publish-nuget@v3.0.4
-        with:
-          VERSION_FILE_PATH: Directory.Build.props
-          PROJECT_FILE_PATH: sdk/WebFormsCore.SDK.NetFramework/WebFormsCore.SDK.NetFramework.csproj
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          PROJECT_FILE_PATH: |
+            src/WebFormsCore/WebFormsCore.csproj
+            src/WebFormsCore.AspNet/WebFormsCore.AspNet.csproj
+            src/WebFormsCore.Owin/WebFormsCore.Owin.csproj
+            src/WebFormsCore.AspNetCore/WebFormsCore.AspNetCore.csproj
+            src/WebFormsCore.Parser/WebFormsCore.Parser.csproj
+            src/WebFormsCore.Compiler/WebFormsCore.Compiler.csproj
+            src/WebFormsCore.SourceGenerator/WebFormsCore.SourceGenerator.csproj
+            sdk/WebFormsCore.SDK/WebFormsCore.SDK.csproj
+            sdk/WebFormsCore.SDK.NetFramework/WebFormsCore.SDK.NetFramework.csproj
