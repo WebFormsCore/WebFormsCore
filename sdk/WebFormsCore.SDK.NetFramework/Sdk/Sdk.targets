@@ -38,9 +38,9 @@
 
     <!-- NuGet references -->
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true'">
-        <PackageReference Condition="$(UseOwin) != 'true'" Include="WebFormsCore.AspNet" Version="0.0.1-alpha.11" />
-        <PackageReference Condition="$(UseOwin) == 'true'" Include="WebFormsCore.Owin" Version="0.0.1-alpha.11" />
-        <PackageReference Include="WebFormsCore.SourceGenerator" Version="0.0.1-alpha.11" OutputItemType="Analyzer" />
+        <PackageReference Condition="$(UseOwin) != 'true'" Include="WebFormsCore.AspNet" Version="0.0.1-alpha.12" />
+        <PackageReference Condition="$(UseOwin) == 'true'" Include="WebFormsCore.Owin" Version="0.0.1-alpha.12" />
+        <PackageReference Include="WebFormsCore.SourceGenerator" Version="0.0.1-alpha.12" OutputItemType="Analyzer" />
     </ItemGroup>
 
     <PropertyGroup Condition="$(UseOwin) == 'true'">
@@ -57,7 +57,7 @@
     </PropertyGroup>
 
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true' and $(WebFormsCoreUseCompiler) == 'true'">
-        <PackageReference Include="WebFormsCore.Compiler" Version="0.0.1-alpha.11" />
+        <PackageReference Include="WebFormsCore.Compiler" Version="0.0.1-alpha.12" />
     </ItemGroup>
 
     <Import Project="Sdk.targets" Sdk="MSBuild.SDK.SystemWeb" Version="4.0.88" />

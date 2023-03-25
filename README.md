@@ -30,7 +30,7 @@ In comparison to WebForms, there are a few changes:
 Create a new .csproj that uses the SDK `WebFormsCore.SDK`:
 
 ```xml
-<Project Sdk="WebFormsCore.SDK/0.0.1-alpha.11">
+<Project Sdk="WebFormsCore.SDK/0.0.1-alpha.12">
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
@@ -64,7 +64,7 @@ app.Run();
 Create a new .csproj that uses the SDK `WebFormsCore.SDK.NetFramework`:
 
 ```xml
-<Project Sdk="WebFormsCore.SDK.NetFramework/0.0.1-alpha.11">
+<Project Sdk="WebFormsCore.SDK.NetFramework/0.0.1-alpha.12">
 
     <PropertyGroup>
         <TargetFramework>net472</TargetFramework>
@@ -98,7 +98,7 @@ Currently, it is not supported to map custom routes to .aspx files in ASP.NET.
 Create a new .csproj that uses the SDK `WebFormsCore.SDK.NetFramework` and add `<UseOwin>true</UseOwin>` to the PropertyGroup:
 
 ```xml
-<Project Sdk="WebFormsCore.SDK.NetFramework/0.0.1-alpha.11">
+<Project Sdk="WebFormsCore.SDK.NetFramework/0.0.1-alpha.12">
 
     <PropertyGroup>
         <TargetFramework>net472</TargetFramework>
@@ -155,7 +155,7 @@ In the `web.config` you can register the controls that can be used without regis
 
 ## Runtime Compiler
 The runtime compiler is a feature that allows you to recompile the page (`.aspx`) and controls (`.ascx`) at runtime.
-As of alpha.11, the runtime compiler is not included in the SDK. This is to reduce the size of the Native AOT binaries and for security reasons.
+As of alpha.12, the runtime compiler is not included in the SDK. This is to reduce the size of the Native AOT binaries and for security reasons.
 
 To add the runtime compiler to your project, add the following to your .csproj:
 
