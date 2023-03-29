@@ -9,7 +9,7 @@ using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI;
 
-public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Page
+public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Page, IInternalPage
 {
     private IHttpContext? _context;
     private ScopedControlContainer? _scopedContainer;
@@ -103,6 +103,8 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
     {
         _context = context;
     }
+
+    void IInternalPage.Initialize(IHttpContext context) => Initialize(context);
 
     protected internal virtual void RegisterDisposable(Control control)
     {

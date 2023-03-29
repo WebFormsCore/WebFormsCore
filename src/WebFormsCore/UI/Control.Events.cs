@@ -48,7 +48,7 @@ public static class ControlExtensions
     }
 }
 
-public partial class Control
+public partial class Control : IInternalControl
 {
     internal void LoadViewState(ref ViewStateReader reader)
     {
@@ -182,4 +182,38 @@ public partial class Control
             await control.InvokePreRenderAsync(token, form);
         }
     }
+
+    #region IInternalControl
+
+    void IInternalControl.InvokeFrameworkInit(CancellationToken token)
+    {
+        InvokeFrameworkInit(token);
+    }
+
+    void IInternalControl.InvokeTrackViewState(CancellationToken token)
+    {
+        InvokeTrackViewState(token);
+    }
+
+    ValueTask IInternalControl.InvokeInitAsync(CancellationToken token)
+    {
+        return InvokeInitAsync(token);
+    }
+
+    ValueTask IInternalControl.InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument)
+    {
+        return InvokePostbackAsync(token, form, target, argument);
+    }
+
+    ValueTask IInternalControl.InvokeLoadAsync(CancellationToken token, HtmlForm? form)
+    {
+        return InvokeLoadAsync(token, form);
+    }
+
+    ValueTask IInternalControl.InvokePreRenderAsync(CancellationToken token, HtmlForm? form)
+    {
+        return InvokePreRenderAsync(token, form);
+    }
+
+    #endregion
 }

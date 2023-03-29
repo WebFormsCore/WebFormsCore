@@ -51,7 +51,7 @@ public abstract class DesignerGenerator : IIncrementalGenerator
 
             try
             {
-                var path = fullPath;
+                var path = fullPath.Replace('\\', '/');
 
                 if (directory != null && path.StartsWith(directory))
                 {

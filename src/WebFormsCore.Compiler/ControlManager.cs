@@ -57,12 +57,9 @@ public class ControlManager : IDisposable, IControlManager
     {
         var modifyTime = File.GetLastWriteTimeUtc(e.FullPath);
 
-        if (!TryGetPath(e.FullPath, out var path) ||
-            !_controls.TryGetValue(path, out var entry) ||
-            entry.LastModified >= modifyTime)
-        {
-            return;
-        }
+        if (!TryGetPath(e.FullPath, out var path)) return;
+        if (!_controls.TryGetValue(path, out var entry)) return;
+        if (entry.LastModified >= modifyTime) return;
 
         entry.LastModified = modifyTime;
         entry.Type = null;
@@ -88,7 +85,9 @@ public class ControlManager : IDisposable, IControlManager
             return false;
         }
 
-        path = fullPath.Substring(_environment.ContentRootPath.Length).TrimStart('\\', '/');
+        path = DefaultControlManager.NormalizePath(
+            fullPath.Substring(_environment.ContentRootPath.Length).TrimStart('\\', '/')
+        );
         return true;
     }
 

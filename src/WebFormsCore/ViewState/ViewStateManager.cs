@@ -166,6 +166,8 @@ public class ViewStateManager : IViewStateManager
         return form;
     }
 
+    public ValueTask LoadPageAsync(IHttpContext context, Page page, string viewState) => LoadViewStateAsync(page, viewState);
+
     private ViewStateReaderOwner CreateReader(string base64, out int controlCount)
     {
         var totalHeaderLength = HeaderLength + _hashLength;

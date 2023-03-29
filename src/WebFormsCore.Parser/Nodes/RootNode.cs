@@ -17,6 +17,8 @@ public class RootNode : ContainerNode
 {
     private IReadOnlyList<Constructor>? _constructors;
     private INamedTypeSymbol? _inherits;
+    private string? _path;
+    private string? _directory;
 
     public RootNode()
         : base(NodeType.Root)
@@ -89,7 +91,36 @@ public class RootNode : ContainerNode
 
     public string? ClassName { get; set; }
 
-    public string? Path { get; set; }
+    public string? Path
+    {
+        get => _path;
+        set
+        {
+            _path = value;
+            _directory = null;
+        }
+    }
+
+    private static readonly char[] DirectorySeparators = { '/', '\\' };
+
+    public string? Directory
+    {
+        get
+        {
+            if (_directory != null || Path == null)
+            {
+                return _directory;
+            }
+
+            var index = Path.LastIndexOfAny(DirectorySeparators);
+
+            _directory = index == -1
+                ? string.Empty
+                : Path.Substring(0, index);
+
+            return _directory;
+        }
+    }
 
     public string? Hash { get; set; }
 

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI;
 
-internal sealed class ScopedControlContainer : IAsyncDisposable
+internal sealed class ScopedControlContainer : IAsyncDisposable, IDisposable
 {
     private readonly HashSet<object> _controls = new();
 
@@ -24,6 +24,21 @@ internal sealed class ScopedControlContainer : IAsyncDisposable
             else if (control is IDisposable disposable)
             {
                 disposable.Dispose();
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        foreach (var control in _controls)
+        {
+            if (control is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+            else if (control is IAsyncDisposable)
+            {
+                throw new InvalidOperationException("Cannot dispose an IAsyncDisposable control synchronously.");
             }
         }
     }

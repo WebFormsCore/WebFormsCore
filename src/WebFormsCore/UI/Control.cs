@@ -143,6 +143,10 @@ public partial class Control : System.Web.UI.Control
 
     public bool SelfVisible => _visible;
 
+    public virtual string? AppRelativeVirtualPath => null;
+
+    public virtual string? TemplateSourceDirectory => null;
+
     /// <summary>Gets the unique, hierarchically qualified identifier for the server control.</summary>
     /// <returns>The fully qualified identifier for the server control.</returns>
     [Browsable(false)]

@@ -134,6 +134,24 @@ Public Partial Class CompiledViews
 
         {{- write_methods type }}
 
+        {{- if type.Path }}
+
+        Public Overrides ReadOnly Property AppRelativeVirtualPath As String
+            Get
+                Return "{{ type.Path }}"
+            End Get
+        End Property
+        {{- end }}
+
+        {{- if type.Directory }}
+
+        Public Overrides ReadOnly Property TemplateSourceDirectory As String
+            Get
+                Return "{{ type.Directory }}"
+            End Get
+        End Property
+        {{- end }}
+
         Protected Overrides Sub FrameworkInitialize()
             MyBase.FrameworkInitialize()
             {{- if type.RenderName }}

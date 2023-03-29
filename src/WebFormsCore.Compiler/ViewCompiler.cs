@@ -126,9 +126,16 @@ internal static class ViewCompiler
 
                 foreach (var referencedAssembly in GetAssemblies())
                 {
-                    if (referencedAssembly.IsDynamic) continue;
+                    if (referencedAssembly.IsDynamic || string.IsNullOrEmpty(referencedAssembly.Location)) continue;
 
-                    references.Add(MetadataReference.CreateFromFile(referencedAssembly.Location));
+                    try
+                    {
+                        references.Add(MetadataReference.CreateFromFile(referencedAssembly.Location));
+                    }
+                    catch (Exception)
+                    {
+                        // ignore
+                    }
                 }
 
                 _references = references.ToArray();

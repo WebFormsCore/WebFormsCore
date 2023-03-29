@@ -146,6 +146,16 @@ public partial class CompiledViews
         }
         {{ end -}}
 
+        {{- if type.Path }}
+
+        public override string AppRelativeVirtualPath => @"{{ type.Path }}";
+        {{- end }}
+
+        {{- if type.Directory }}
+
+        public override string TemplateSourceDirectory => @"{{ type.Directory }}";
+        {{- end }}
+
         {{- write_methods type }}
 
         protected override void FrameworkInitialize()

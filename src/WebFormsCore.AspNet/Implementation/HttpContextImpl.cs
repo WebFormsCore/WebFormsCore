@@ -31,7 +31,7 @@ internal class HttpContextImpl : IHttpContext
 
     public IHttpRequest Request => _request;
     public IHttpResponse Response => _response;
-    public IServiceProvider RequestServices { get; private set; }
+    public IServiceProvider RequestServices { get; internal set; }
     public CancellationToken RequestAborted => _httpContext.Request.TimedOutToken;
     public IFeatureCollection Features => _features;
 }

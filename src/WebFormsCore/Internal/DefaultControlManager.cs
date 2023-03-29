@@ -58,14 +58,11 @@ public class DefaultControlManager : IControlManager
         return true;
     }
 
-    private static string NormalizePath(string path)
+    public static string NormalizePath(string path)
     {
-        var separator = Path.DirectorySeparatorChar;
-        var otherSeparator = separator == '/' ? '\\' : '/';
-
-        return path.IndexOf(otherSeparator) == -1
+        return path.IndexOf('\\') == -1
             ? path
-            : path.Replace(otherSeparator, separator);
+            : path.Replace('\\', '/');
     }
 
 }
