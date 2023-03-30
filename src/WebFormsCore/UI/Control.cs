@@ -86,9 +86,9 @@ public partial class Control : System.Web.UI.Control
         {
             if (_form == null && _parent != null)
             {
-                if (_parent is HtmlForm page)
+                if (_parent is HtmlForm form)
                 {
-                    _form = page;
+                    _form = form;
                 }
                 else
                 {
@@ -387,7 +387,7 @@ public partial class Control : System.Web.UI.Control
     {
         control._parent?.Controls.Remove(control);
         control._parent = this;
-        control._page = _page;
+        control._page = _page ?? this as Page;
         control._form = _form;
 
         var namingContainer = this is INamingContainer ? this : NamingContainer;

@@ -1,6 +1,6 @@
 namespace WebFormsCore.UI;
 
-public interface IInternalPage
+public interface IInternalPage : IInternalControl
 {
     void Initialize(IHttpContext context);
 }

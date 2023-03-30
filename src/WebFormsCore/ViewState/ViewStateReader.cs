@@ -73,14 +73,17 @@ internal sealed class ViewStateReaderOwner : IDisposable
     private readonly IServiceProvider _provider;
     private readonly IMemoryOwner<byte> _memory;
 
-    public ViewStateReaderOwner(IMemoryOwner<byte> memory, IServiceProvider provider, int offset)
+    public ViewStateReaderOwner(IMemoryOwner<byte> memory, IServiceProvider provider, int offset, ushort controlCount)
     {
         Offset = offset;
+        ControlCount = controlCount;
         _memory = memory;
         _provider = provider;
     }
 
     public int Offset { get; set; }
+
+    public ushort ControlCount { get; }
 
     public ViewStateReader CreateReader()
     {

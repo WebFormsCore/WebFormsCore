@@ -185,6 +185,22 @@ public partial class Control : IInternalControl
 
     #region IInternalControl
 
+    IInternalPage IInternalControl.Page
+    {
+        get => Page;
+        set
+        {
+            _page = (Page)value;
+            _form = null;
+        }
+    }
+
+    bool IInternalControl.IsInPage => IsInPage;
+
+    Control IInternalControl.Control => this;
+
+    IHttpContext IInternalControl.Context => Context;
+
     void IInternalControl.InvokeFrameworkInit(CancellationToken token)
     {
         InvokeFrameworkInit(token);

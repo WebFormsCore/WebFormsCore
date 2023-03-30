@@ -10,7 +10,7 @@ namespace WebFormsCore.UI.HtmlControls;
 
 public class HtmlBody : HtmlContainerControl
 {
-    private static readonly string Script;
+    public static readonly string Script;
 
     static HtmlBody()
     {
@@ -26,6 +26,7 @@ public class HtmlBody : HtmlContainerControl
 
     protected override void OnInit(EventArgs args)
     {
+        // TODO: Move this to a better place.
         Page.ClientScript.RegisterStartupScript(typeof(Page), "FormPostback", Script, true);
     }
 

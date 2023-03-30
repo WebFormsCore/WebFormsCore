@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using WebFormsCore;
+using WebFormsCore.Abstractions;
 using WebFormsCore.Implementation;
 
 [assembly: PreApplicationStartMethod(typeof(PageHandlerFactory), nameof(PageHandlerFactory.Start))]
@@ -16,33 +19,18 @@ namespace WebFormsCore;
 
 public static class HttpContextExtensions
 {
-    public static IHttpContext CreateCoreContext(this HttpContext context)
+    public static IHttpContext GetCoreContext(this HttpContext context)
     {
         if (context.Items["WebFormsCore.HttpContext"] is IHttpContext webFormsCoreContext)
         {
             return webFormsCoreContext;
         }
 
-        var scope = PageHandlerFactory.Provider.CreateScope();
+        var scope = PageHandlerFactory.Factory.CreateScope(context, PageHandlerFactory.Provider);
         var webFormsCoreContextImpl = PageHandlerFactory.ContextPool.Get();
         webFormsCoreContextImpl.SetHttpContext(context, scope.ServiceProvider);
 
         context.Items["WebFormsCore.Scope"] = scope;
-        context.Items["WebFormsCore.HttpContext"] = webFormsCoreContextImpl;
-
-        return webFormsCoreContextImpl;
-    }
-
-    public static IHttpContext CreateCoreContext(this HttpContext context, IServiceProvider provider)
-    {
-        if (context.Items["WebFormsCore.HttpContext"] is HttpContextImpl webFormsCoreContext)
-        {
-           webFormsCoreContext.RequestServices = provider;
-           return webFormsCoreContext;
-        }
-
-        var webFormsCoreContextImpl = PageHandlerFactory.ContextPool.Get();
-        webFormsCoreContextImpl.SetHttpContext(context, provider);
         context.Items["WebFormsCore.HttpContext"] = webFormsCoreContextImpl;
 
         return webFormsCoreContextImpl;
@@ -53,6 +41,7 @@ public class PageHandlerFactory : HttpTaskAsyncHandler
 {
     internal static readonly ObjectPool<HttpContextImpl> ContextPool = new DefaultObjectPool<HttpContextImpl>(new ContextPooledObjectPolicy());
     internal static IServiceProvider Provider;
+    internal static IHttpServiceProviderFactory Factory;
 
     public static void Start()
     {
@@ -76,14 +65,14 @@ public class PageHandlerFactory : HttpTaskAsyncHandler
             return;
         }
 
-        var coreContext = context.CreateCoreContext();
+        var coreContext = context.GetCoreContext();
 
         await application.ProcessAsync(coreContext, path, context.Request.TimedOutToken);
     }
 
     private sealed class LifeCycleModule : IHttpModule
     {
-        private static readonly object Lock = new();
+        private static readonly object InitLock = new();
         private static readonly SemaphoreSlim HostLock = new(1, 1);
         private bool _isInitialized;
         private static int _initializedModuleCount;
@@ -97,7 +86,7 @@ public class PageHandlerFactory : HttpTaskAsyncHandler
                 application.AddOnEndRequestAsync(wrapper.BeginEventHandler, wrapper.EndEventHandler);
             }
 
-            lock (Lock)
+            lock (InitLock)
             {
                 _initializedModuleCount++;
 
@@ -108,11 +97,16 @@ public class PageHandlerFactory : HttpTaskAsyncHandler
 
                 _isInitialized = true;
 
-                var services = new ServiceCollection();
-                services.AddWebForms();
-                services.AddLogging();
+                var factoryType = AppDomain.CurrentDomain
+                    .GetAssemblies()
+                    .SelectMany(x => x.GetCustomAttributes<HttpServiceProviderFactoryAttribute>())
+                    .FirstOrDefault();
 
-                var provider = services.BuildServiceProvider();
+                Factory = factoryType != null
+                    ? (IHttpServiceProviderFactory)Activator.CreateInstance(factoryType.Type)
+                    : new DefaultHttpServiceProviderFactory();
+
+                var provider = Factory.CreateRootProvider(application);
                 Provider = provider;
                 StartHostedServices(provider);
             }
@@ -136,7 +130,7 @@ public class PageHandlerFactory : HttpTaskAsyncHandler
 
         public void Dispose()
         {
-            lock (Lock)
+            lock (InitLock)
             {
                 _initializedModuleCount--;
 
@@ -150,7 +144,7 @@ public class PageHandlerFactory : HttpTaskAsyncHandler
                 var provider = Provider;
                 Provider = null;
 
-                _ = Task.Run(async () =>
+                HostingEnvironment.QueueBackgroundWorkItem(async _ =>
                 {
                     await StopHostedServicesAsync(provider);
 
@@ -175,15 +169,15 @@ public class PageHandlerFactory : HttpTaskAsyncHandler
                 return;
             }
 
-            _ = Task.Run(async () =>
+            HostingEnvironment.QueueBackgroundWorkItem(async token =>
             {
-                await HostLock.WaitAsync();
+                await HostLock.WaitAsync(token);
 
                 try
                 {
                     foreach (var hostedService in hostedServices)
                     {
-                        await hostedService.StartAsync(default);
+                        await hostedService.StartAsync(token);
                     }
                 }
                 finally

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace WebFormsCore;
 
-internal static class EncodingExtensions
+public static class EncodingExtensions
 {
     public static unsafe string GetString(this Encoding encoding, ReadOnlySpan<byte> bytes)
     {

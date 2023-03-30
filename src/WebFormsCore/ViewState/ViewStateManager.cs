@@ -109,7 +109,7 @@ public class ViewStateManager : IViewStateManager
 
             Base64.EncodeToUtf8InPlace(result, dataLength + HeaderLength + _hashLength, out length);
 
-            return new ArrayMemoryOwner<byte>(array, length);
+            return new ArrayMemoryOwner(array, length, true);
         }
         finally
         {
@@ -128,7 +128,7 @@ public class ViewStateManager : IViewStateManager
 #endif
     }
 
-    public async ValueTask<HtmlForm?> LoadAsync(IHttpContext context, Page page)
+    public async ValueTask<HtmlForm?> LoadFromRequestAsync(IHttpContext context, Page page)
     {
         if (!EnableViewState)
         {
@@ -147,7 +147,7 @@ public class ViewStateManager : IViewStateManager
 
         if (request.Form.TryGetValue("__PAGESTATE", out var pageState))
         {
-            await LoadViewStateAsync(page, pageState.ToString());
+            await LoadFromBase64Async(page, pageState.ToString());
         }
 
         if (!request.Form.TryGetValue("__FORM", out var formId) ||
@@ -160,65 +160,52 @@ public class ViewStateManager : IViewStateManager
 
         if (form != null && !string.IsNullOrEmpty(formState))
         {
-            await LoadViewStateAsync(form, formState.ToString());
+            await LoadFromBase64Async(form, formState.ToString());
         }
 
         return form;
     }
 
-    public ValueTask LoadPageAsync(IHttpContext context, Page page, string viewState) => LoadViewStateAsync(page, viewState);
+    public async ValueTask LoadFromBase64Async(Control control, string viewState)
+    {
+        using var reader = CreateReader(viewState);
 
-    private ViewStateReaderOwner CreateReader(string base64, out int controlCount)
+        await LoadViewStateAsync(control, reader);
+    }
+
+    public async ValueTask LoadFromArrayAsync(Control control, byte[] viewState)
+    {
+        using var reader = CreateReader(new ArrayMemoryOwner(viewState, viewState.Length, false));
+
+        await LoadViewStateAsync(control, reader);
+    }
+
+    private ViewStateReaderOwner CreateReader(ArrayMemoryOwner arrayOwner)
     {
         var totalHeaderLength = HeaderLength + _hashLength;
-        var encoding = Encoding.UTF8;
-        var byteLength = encoding.GetByteCount(base64);
 
-        if (byteLength > _options.Value.MaxBytes)
-        {
-            throw new ViewStateException("Viewstate exceeds maximum size");
-        }
-
-        if (byteLength < totalHeaderLength)
+        if (arrayOwner.Memory.Length < totalHeaderLength)
         {
             throw new ViewStateException("Viewstate is too short");
         }
 
-        var array = ArrayPool<byte>.Shared.Rent(byteLength);
-        IMemoryOwner<byte> owner = new ArrayMemoryOwner<byte>(array, byteLength);
-        var span = array.AsSpan();
-
-        byteLength = encoding.GetBytes(base64, span);
-        span = span.Slice(0, byteLength);
-
-        var result = Base64.DecodeFromUtf8InPlace(span, out var base64Length);
-
-        if (result != OperationStatus.Done)
-        {
-            throw new ViewStateException("Could not decode base64");
-        }
-
-        if (base64Length < totalHeaderLength)
-        {
-            throw new ViewStateException("Viewstate is too short");
-        }
-
-        span = span.Slice(0, base64Length);
+        var span = arrayOwner.Memory.Span;
 
         var header = span.Slice(0, HeaderLength);
         var hash = span.Slice(HeaderLength, _hashLength);
         var data = span.Slice(HeaderLength + _hashLength);
 
         Span<byte> computedHash = stackalloc byte[_hashLength];
-        ComputeHash(array, data.Length, computedHash);
+        ComputeHash(arrayOwner.Array, data.Length, computedHash);
 
         if (!computedHash.SequenceEqual(hash))
         {
             throw new ViewStateException("The viewstate hash is invalid");
         }
 
+        IMemoryOwner<byte> owner = arrayOwner;
         var compression = (ViewStateCompression) header[0];
-        controlCount = BinaryPrimitives.ReadUInt16BigEndian(header.Slice(3, 2));
+        var controlCount = BinaryPrimitives.ReadUInt16BigEndian(header.Slice(3, 2));
 
         var offset = HeaderLength + _hashLength;
 
@@ -265,25 +252,56 @@ public class ViewStateManager : IViewStateManager
             throw new ViewStateException("The viewstate length does not match the header");
         }
 
-        return new ViewStateReaderOwner(owner, _serviceProvider, offset);
+        return new ViewStateReaderOwner(owner, _serviceProvider, offset, controlCount);
     }
 
-    private async ValueTask LoadViewStateAsync(Control owner, string viewState)
+    private ViewStateReaderOwner CreateReader(string base64)
     {
-        using var wrapper = CreateReader(viewState, out var controlCount);
+        var totalHeaderLength = HeaderLength + _hashLength;
+        var encoding = Encoding.UTF8;
+        var byteLength = encoding.GetByteCount(base64);
+
+        if (byteLength > _options.Value.MaxBytes)
+        {
+            throw new ViewStateException("Viewstate exceeds maximum size");
+        }
+
+        if (byteLength < totalHeaderLength)
+        {
+            throw new ViewStateException("Viewstate is too short");
+        }
+
+        var array = ArrayPool<byte>.Shared.Rent(byteLength);
+        var span = array.AsSpan();
+
+        byteLength = encoding.GetBytes(base64, span);
+        span = span.Slice(0, byteLength);
+
+        var result = Base64.DecodeFromUtf8InPlace(span, out var base64Length);
+
+        if (result != OperationStatus.Done)
+        {
+            throw new ViewStateException("Could not decode base64");
+        }
+
+        return CreateReader(new ArrayMemoryOwner(array, base64Length, true));
+    }
+
+    private async ValueTask LoadViewStateAsync(Control owner, ViewStateReaderOwner reader)
+    {
         using var enumerator = GetControls(owner).GetEnumerator();
         var actualControlCount = 0;
 
         while (true)
         {
-            var control = LoadViewState(enumerator, wrapper, ref actualControlCount);
+            var control = LoadViewState(enumerator, reader, ref actualControlCount);
 
             if (control == null) break;
 
             await control.AfterPostBackLoadAsync();
         }
 
-        if (actualControlCount != controlCount)
+        if (actualControlCount != reader.ControlCount)
         {
             throw new ViewStateException("The control count does not match the viewstate");
         }
@@ -362,21 +380,27 @@ public class ViewStateManager : IViewStateManager
         }
     }
 
-    private sealed class ArrayMemoryOwner<T> : IMemoryOwner<byte>
+    private sealed class ArrayMemoryOwner : IMemoryOwner<byte>
     {
-        private readonly byte[] _array;
+        private readonly bool _returnToPool;
 
-        public ArrayMemoryOwner(byte[] array, int length)
+        public ArrayMemoryOwner(byte[] array, int length, bool returnToPool)
         {
-            _array = array;
+            Array = array;
+            _returnToPool = returnToPool;
             Memory = new Memory<byte>(array, 0, length);
         }
 
-        public void Dispose()
-        {
-            ArrayPool<byte>.Shared.Return(_array);
-        }
+        public byte[] Array { get; }
 
         public Memory<byte> Memory { get; }
+
+        public void Dispose()
+        {
+            if (_returnToPool)
+            {
+                ArrayPool<byte>.Shared.Return(Array);
+            }
+        }
     }
 }

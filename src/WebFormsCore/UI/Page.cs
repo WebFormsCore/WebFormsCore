@@ -62,7 +62,7 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
         }
 
         var isPost = Context.Request.Method == "POST";
-        var form = await viewStateManager.LoadAsync(Context, this);
+        var form = await viewStateManager.LoadFromRequestAsync(Context, this);
 
         ActiveForm = form;
 
