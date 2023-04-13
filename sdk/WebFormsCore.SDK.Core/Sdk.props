@@ -1,0 +1,5 @@
+<Project>
+    <ItemGroup>
+        <ProjectCapability Include="Web" />
+    </ItemGroup>
+</Project>

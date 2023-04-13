@@ -25,7 +25,7 @@ public class DefaultControlManager : IControlManager
 
     public Type GetType(string path)
     {
-        path = NormalizePath(path);
+        path = NormalizePath(path).TrimStart('/');
 
         if (!_types.TryGetValue(path, out var type))
         {

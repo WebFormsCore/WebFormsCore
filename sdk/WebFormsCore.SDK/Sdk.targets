@@ -1,52 +1,17 @@
 <Project>
+    <Import Project="Core.targets" />
+
     <PropertyGroup>
         <UseASPNetCore Condition="$(UseASPNetCore) == ''">true</UseASPNetCore>
-        <WebFormsCoreUseNuget Condition="$(WebFormsCoreUseNuget) == ''">true</WebFormsCoreUseNuget>
-        <WebFormsCoreUseCompiler Condition="$(WebFormsCoreUseNuget) == ''">true</WebFormsCoreUseCompiler>
     </PropertyGroup>
-
-    <ItemGroup Condition="$(ImplicitUsings) == 'enable'">
-        <Using Include="WebFormsCore" />
-        <Using Include="WebFormsCore.UI" />
-    </ItemGroup>
-
-    <!-- Source Generator Configuration -->
-    <ItemGroup>
-        <Compile Remove="**/**.designer.cs" />
-
-        <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
-        <CompilerVisibleProperty Include="RootNamespace" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**">
-            <CopyToOutputDirectory Condition="$(PublishAot) != 'true'">PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**">
-            <CopyToOutputDirectory Condition="$(PublishAot) != 'true'">PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-    </ItemGroup>
-
-    <ItemGroup Condition="Exists('web.config')">
-        <None Include="web.config" />
-        <AdditionalFiles Include="web.config" Exclude="bin\**;obj\**" />
-    </ItemGroup>
 
     <!-- NuGet references -->
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true'">
         <PackageReference Condition="$(UseASPNetCore) == 'true'" Include="WebFormsCore.AspNetCore" Version="$version$" />
-        <PackageReference Condition="$(UseASPNetCore) == 'false'" Include="WebFormsCore" Version="$version$" />
-        <PackageReference Include="WebFormsCore.SourceGenerator" Version="$version$" OutputItemType="Analyzer" />
     </ItemGroup>
 
-    <!-- Control Compiler -->
-    <PropertyGroup Condition="$(WebFormsCoreUseCompiler) == 'true'">
-        <DefineConstants>$(DefineConstants);WFC_COMPILER</DefineConstants>
-    </PropertyGroup>
-
-    <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true' and $(WebFormsCoreUseCompiler) == 'true'">
-        <PackageReference Include="WebFormsCore.Compiler" Version="$version$" />
+    <ItemGroup>
+        <PackageReference Include="HttpStack.AspNetCore" Version="0.0.1-alpha.1" />
     </ItemGroup>
 
     <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.Web" />

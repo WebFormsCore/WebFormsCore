@@ -17,9 +17,11 @@ namespace WebFormsCore;
 
 public static class ServiceExtensions
 {
-    public static IServiceCollection AddWebFormsInternals(this IServiceCollection services)
+    public static IServiceCollection AddWebForms(this IServiceCollection services)
     {
         services.TryAddSingleton<IViewStateManager, ViewStateManager>();
+
+        services.TryAddSingleton<IWebFormsEnvironment, DefaultWebFormsEnvironment>();
 
         services.AddScoped<ScopedControlContainer>();
         services.TryAddScoped(typeof(IControlFactory<>), typeof(ControlFactory<>));

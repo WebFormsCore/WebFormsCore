@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-#if NETFRAMEWORK
+#if NETSTANDARD2_0
 namespace WebFormsCore;
 
 internal static class StreamExtensions

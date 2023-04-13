@@ -14,11 +14,11 @@ using System.Threading.Tasks;
 namespace WebFormsCore.UI;
 
 public class HtmlTextWriter : TextWriter
-#if NETFRAMEWORK
+#if NETSTANDARD2_0
     , IAsyncDisposable
 #endif
 {
-#if NETFRAMEWORK
+#if NETSTANDARD2_0
     private const bool DefaultAsync = false;
 #else
     private const bool DefaultAsync = true;

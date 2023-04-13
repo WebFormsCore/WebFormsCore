@@ -105,6 +105,10 @@ namespace {{ type.Namespace }}
 {
 {{- end }}
 
+{{- for ns in type.Namespaces }}
+using {{ ns }};
+{{- end }}
+
 {{- if AddFields }}
 [WebFormsCore.ViewPath(@"{{ type.Path }}")]
 partial class {{ type.InheritsClassName }}

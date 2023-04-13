@@ -242,6 +242,11 @@ public class Parser
             }
         }
 
+        if (element.DirectiveType is DirectiveType.Import && element.Attributes.TryGetValue("Namespace", out var nsImport))
+        {
+            Root.Namespaces.Add(nsImport.Value);
+        }
+
         if (element.DirectiveType is DirectiveType.Control or DirectiveType.Page)
         {
             if (element.Attributes.TryGetValue("language", out var languageStr))

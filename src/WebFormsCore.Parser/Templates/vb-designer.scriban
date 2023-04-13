@@ -98,6 +98,10 @@ Imports Microsoft.VisualBasic
 Namespace {{ type.VbNamespace }}
 {{- end }}
 
+{{- for ns in type.Namespaces }}
+Imports {{ ns }}
+{{- end }}
+
 {{- if AddFields }}
 <WebFormsCore.ViewPath("{{ type.Path }}")>
 Partial Class {{ type.InheritsClassName }}

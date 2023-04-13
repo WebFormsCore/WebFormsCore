@@ -130,6 +130,8 @@ public class RootNode : ContainerNode
 
     public Language Language { get; set; } = Language.CSharp;
 
+    public List<string> Namespaces { get; set; } = new();
+
     public SyntaxTree GenerateCode(string? rootNamespace)
     {
         var types = new List<RootNode>

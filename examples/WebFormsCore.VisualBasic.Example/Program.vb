@@ -1,3 +1,4 @@
+Imports HttpStack.AspNetCore
 Imports Microsoft.AspNetCore.Builder
 
 Module Program
@@ -7,8 +8,10 @@ Module Program
 
         Dim app = builder.Build()
 
-        app.MapAspx("/", "Default.aspx")
-        app.MapFallbackToAspx()
+        app.UseStack(sub(stack)
+            stack.UseWebFormsCore()
+        End Sub)
+
         app.Run()
     End Sub
 End Module

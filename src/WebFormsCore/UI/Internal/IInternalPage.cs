@@ -1,3 +1,5 @@
+using HttpStack;
+
 namespace WebFormsCore.UI;
 
 public interface IInternalPage : IInternalControl

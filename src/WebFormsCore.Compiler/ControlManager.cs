@@ -22,10 +22,10 @@ public class ControlManager : IDisposable, IControlManager
     private readonly ConcurrentDictionary<string, ControlEntry> _controls = new();
     private readonly List<FileSystemWatcher> _watchers;
     private readonly IWebFormsEnvironment _environment;
-    private readonly ILogger<ControlManager> _logger;
+    private readonly ILogger<ControlManager>? _logger;
     private readonly Dictionary<string, Type> _compiledViews;
 
-    public ControlManager(IWebFormsEnvironment environment, ILogger<ControlManager> logger)
+    public ControlManager(IWebFormsEnvironment environment, ILogger<ControlManager>? logger = null)
     {
         _environment = environment;
         _logger = logger;
@@ -72,7 +72,7 @@ public class ControlManager : IDisposable, IControlManager
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to re-compile control {Path}", e.FullPath);
+                _logger?.LogError(ex, "Failed to re-compile control {Path}", e.FullPath);
             }
         });
     }
@@ -164,7 +164,7 @@ public class ControlManager : IDisposable, IControlManager
 
             if (attribute?.Hash == RootNode.GenerateHash(text))
             {
-                _logger.LogDebug("Using pre-compiled view of control {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
+                _logger?.LogDebug("Using pre-compiled view of control {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
                 return type;
             }
 
@@ -190,7 +190,7 @@ public class ControlManager : IDisposable, IControlManager
         {
             foreach (var diagnostic in result.Diagnostics)
             {
-                _logger.LogError("Compilation error: {Message}", diagnostic.ToString());
+                _logger?.LogError("Compilation error: {Message}", diagnostic.ToString());
             }
 
             throw new InvalidOperationException();
@@ -199,7 +199,7 @@ public class ControlManager : IDisposable, IControlManager
         var assembly = Assembly.Load(assemblyStream.ToArray());
         type = assembly.GetType(designerType.DesignerFullTypeName!)!;
 
-        _logger.LogDebug("Compiled view of page {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
+        _logger?.LogDebug("Compiled view of page {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
 
         return type;
     }

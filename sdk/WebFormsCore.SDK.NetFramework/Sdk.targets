@@ -1,56 +1,30 @@
 <Project>
+    <Import Project="Core.targets" />
+
     <PropertyGroup>
-        <WebFormsCoreUseNuget Condition="$(WebFormsCoreUseNuget) == ''">true</WebFormsCoreUseNuget>
+        <UseOwin Condition="$(UseOwin) == ''">false</UseOwin>
     </PropertyGroup>
-
-    <ItemGroup Condition="$(ImplicitUsings) == 'enable'">
-        <Using Include="WebFormsCore" />
-        <Using Include="WebFormsCore.UI" />
-    </ItemGroup>
-
-    <!-- Source Generator Configuration -->
-    <ItemGroup>
-        <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <Compile Remove="**/**.designer.cs" />
-
-        <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
-        <CompilerVisibleProperty Include="RootNamespace" />
-    </ItemGroup>
-
-    <ItemGroup Condition="Exists('web.config')">
-        <None Include="web.config" />
-        <AdditionalFiles Include="web.config" Exclude="bin\**;obj\**" />
-    </ItemGroup>
 
     <!-- NuGet references -->
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true'">
         <PackageReference Condition="$(UseOwin) != 'true'" Include="WebFormsCore.AspNet" Version="$version$" />
         <PackageReference Condition="$(UseOwin) == 'true'" Include="WebFormsCore.Owin" Version="$version$" />
-        <PackageReference Include="WebFormsCore.SourceGenerator" Version="$version$" OutputItemType="Analyzer" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="HttpStack.AspNet" Version="0.0.1-alpha.1" />
     </ItemGroup>
 
     <PropertyGroup Condition="$(UseOwin) == 'true'">
-        <DefineConstants>$(DefineConstants);OWIN</DefineConstants>
+        <DefineConstants>$(DefineConstants);WFC_OWIN</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="$(UseOwin) == 'false'">
+        <DefineConstants>$(DefineConstants);WFC_ASPNET</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Condition="$(UseOwin) == 'true'" Include="Microsoft.Owin.Host.SystemWeb" Version="4.2.2" />
-    </ItemGroup>
-
-    <!-- Control Compiler -->
-    <PropertyGroup Condition="$(WebFormsCoreUseCompiler) == 'true'">
-        <DefineConstants>$(DefineConstants);WFC_COMPILER</DefineConstants>
-    </PropertyGroup>
-
-    <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true' and $(WebFormsCoreUseCompiler) == 'true'">
-        <PackageReference Include="WebFormsCore.Compiler" Version="$version$" />
     </ItemGroup>
 
     <Import Project="Sdk.targets" Sdk="MSBuild.SDK.SystemWeb" Version="4.0.88" />

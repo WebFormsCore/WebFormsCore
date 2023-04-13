@@ -1,7 +1,4 @@
 <Project>
     <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk.Web" />
-
-    <ItemGroup>
-        <ProjectCapability Include="Web" />
-    </ItemGroup>
+    <Import Project="Core.props" />
 </Project>

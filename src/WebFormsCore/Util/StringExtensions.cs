@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-#if NETFRAMEWORK
+#if NETSTANDARD2_0
 namespace WebFormsCore;
 
 internal static class StringExtensions

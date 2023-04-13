@@ -37,6 +37,8 @@ public abstract class DesignerGenerator : IIncrementalGenerator
             directory = Path.GetDirectoryName(mainSyntaxTree.FilePath);
         }
 
+        directory = directory?.Replace('\\', '/');
+
         if (!analyzer.GlobalOptions.TryGetValue("build_property.RootNamespace", out var ns))
         {
             ns = compilation.AssemblyName;

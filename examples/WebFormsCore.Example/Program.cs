@@ -1,3 +1,4 @@
+using HttpStack.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using WebFormsCore;
 
@@ -10,7 +11,9 @@ builder.Services.AddWebFormsCompiler();
 
 var app = builder.Build();
 
-app.MapAspx("/", "Default.aspx");
-app.MapFallbackToAspx();
+app.UseStack(stack =>
+{
+    stack.UseWebFormsCore();
+});
 
 app.Run();

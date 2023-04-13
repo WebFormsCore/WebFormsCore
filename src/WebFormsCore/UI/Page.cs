@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using HttpStack;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.Events;
 using WebFormsCore.Security;

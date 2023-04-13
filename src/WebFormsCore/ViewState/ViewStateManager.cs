@@ -9,6 +9,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using HttpStack;
 using Microsoft.Extensions.Options;
 using WebFormsCore.Options;
 using WebFormsCore.UI;
@@ -19,16 +20,16 @@ namespace WebFormsCore;
 public class ViewStateManager : IViewStateManager
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly IOptions<ViewStateOptions> _options;
+    private readonly IOptions<ViewStateOptions>? _options;
     private readonly HashAlgorithm _hashAlgorithm;
     private readonly int _hashLength;
 
-    public ViewStateManager(IServiceProvider serviceProvider, IOptions<ViewStateOptions> options)
+    public ViewStateManager(IServiceProvider serviceProvider, IOptions<ViewStateOptions>? options = null)
     {
         _serviceProvider = serviceProvider;
         _options = options;
-        _hashAlgorithm = !string.IsNullOrEmpty(options.Value.EncryptionKey)
-            ? new HMACSHA256(Encoding.UTF8.GetBytes(options.Value.EncryptionKey))
+        _hashAlgorithm = !string.IsNullOrEmpty(options?.Value.EncryptionKey)
+            ? new HMACSHA256(Encoding.UTF8.GetBytes(options!.Value.EncryptionKey))
             : SHA256.Create();
         _hashLength = _hashAlgorithm.HashSize / 8;
     }
@@ -51,7 +52,7 @@ public class ViewStateManager : IViewStateManager
             .Where(i => i.EnableViewState);
     }
 
-    public bool EnableViewState => _options.Value.Enabled;
+    public bool EnableViewState => _options?.Value.Enabled ?? true;
 
     public IMemoryOwner<byte> Write(Control control, out int length)
     {
@@ -70,7 +71,7 @@ public class ViewStateManager : IViewStateManager
             var state = writer.Span;
             var maxLength = Base64.GetMaxEncodedToUtf8Length(state.Length + HeaderLength + _hashLength);
 
-            if (maxLength > _options.Value.MaxBytes)
+            if (maxLength > (_options?.Value.MaxBytes ?? 102400))
             {
                 throw new ViewStateException("Viewstate exceeds maximum size");
             }
@@ -121,7 +122,7 @@ public class ViewStateManager : IViewStateManager
     {
         var offset = HeaderLength + _hashLength;
 
-#if NETFRAMEWORK
+#if NETSTANDARD2_0
         _hashAlgorithm.ComputeHash(data, offset, dataLength).CopyTo(hash);
 #else
         _hashAlgorithm.TryComputeHash(data.AsSpan(offset, dataLength), hash, out _);
@@ -261,7 +262,7 @@ public class ViewStateManager : IViewStateManager
         var encoding = Encoding.UTF8;
         var byteLength = encoding.GetByteCount(base64);
 
-        if (byteLength > _options.Value.MaxBytes)
+        if (byteLength > (_options?.Value.MaxBytes ?? 102400))
         {
             throw new ViewStateException("Viewstate exceeds maximum size");
         }

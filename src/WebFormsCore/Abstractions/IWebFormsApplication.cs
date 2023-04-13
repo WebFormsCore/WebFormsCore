@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using HttpStack;
 using WebFormsCore.UI;
 
 namespace WebFormsCore

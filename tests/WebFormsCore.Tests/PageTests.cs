@@ -1,9 +1,9 @@
 ﻿using System.Text;
-using Microsoft.AspNetCore.Http;
+using HttpStack;
+using HttpStack.Collections;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using WebFormsCore.Options;
-using WebFormsCore.Tests.Pages;
 using WebFormsCore.UI;
 
 namespace WebFormsCore.Tests;
@@ -14,7 +14,7 @@ public partial class PageTest
     {
         var services = new ServiceCollection();
 
-        services.AddWebFormsInternals();
+        services.AddWebForms();
         services.AddWebFormsCompiler();
         services.AddLogging();
         services.AddSingleton<IWebFormsEnvironment, TestEnvironment>();

@@ -1,5 +1,5 @@
 <%@ Page language="C#" Inherits="WebFormsCore.Example.Default" Async="true" %>
-<%@ Import Namespace="WebFormsCore" %>
+<%@ Import Namespace="HttpStack" %>
 <%@ Register TagPrefix="app" Namespace="WebFormsCore.Example.Controls" %>
 
 <!DOCTYPE html>

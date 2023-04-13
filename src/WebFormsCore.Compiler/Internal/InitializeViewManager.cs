@@ -13,9 +13,9 @@ internal class InitializeViewManager : BackgroundService
 {
     private readonly IControlManager _controlManager;
     private readonly IWebFormsEnvironment _environment;
-    private readonly ILogger<InitializeViewManager> _logger;
+    private readonly ILogger<InitializeViewManager>? _logger;
 
-    public InitializeViewManager(IControlManager controlManager, IWebFormsEnvironment environment, ILogger<InitializeViewManager> logger)
+    public InitializeViewManager(IControlManager controlManager, IWebFormsEnvironment environment, ILogger<InitializeViewManager>? logger = null)
     {
         _controlManager = controlManager;
         _environment = environment;
@@ -52,7 +52,7 @@ internal class InitializeViewManager : BackgroundService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to re-compile page {Path}", path);
+                    _logger?.LogError(ex, "Failed to re-compile page {Path}", path);
                 }
             }
 #if NET
