@@ -35,7 +35,7 @@ internal class WebFormsApplications : IWebFormsApplication
 
         var fullPath = Path.Combine(_environment.ContentRootPath, path.TrimStart('/'));
 
-        if (!_controlManager.TryGetPath(fullPath, out var result) || !File.Exists(fullPath))
+        if (!_controlManager.TryGetPath(fullPath, out var result))
         {
             return null;
         }

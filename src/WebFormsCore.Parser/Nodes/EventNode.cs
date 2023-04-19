@@ -17,7 +17,7 @@ public class EventNode : Node
 
     public IMethodSymbol Method { get; init; }
 
-    public IMethodSymbol? Invoke => _invoke ??= Event.Type?.GetDeep<IMethodSymbol>("Invoke");
+    public IMethodSymbol? Invoke => _invoke ??= Event.Type.GetDeep<IMethodSymbol>("Invoke");
 
     public string EventName => Event.Name;
 

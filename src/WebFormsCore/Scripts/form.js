@@ -920,44 +920,62 @@
         }
         return false;
     }
+    function getForm(element) {
+        return element.closest('[data-wfc-form]');
+    }
+    function addInputs(formData, root, addFormElements) {
+        // Add all the form elements that are not in a form
+        const elements = root.querySelectorAll('input, select, textarea');
+        console.log(addFormElements, root, elements);
+        for (let i = 0; i < elements.length; i++) {
+            const element = elements[i];
+            if (element.hasAttribute('data-wfc-ignore') || element.type === "button" ||
+                element.type === "submit" || element.type === "reset") {
+                continue;
+            }
+            if (!addFormElements && getForm(element)) {
+                continue;
+            }
+            if (element.type === "checkbox" || element.type === "radio") {
+                if (element.checked) {
+                    formData.append(element.name, element.value);
+                }
+            }
+            else {
+                formData.append(element.name, element.value);
+            }
+        }
+    }
     async function submitForm(form, eventTarget, eventArgument) {
         const release = await postbackMutex.acquire();
         try {
             const pageState = document.getElementById("pagestate");
             const url = location.pathname + location.search;
-            const formData = form ? new FormData(form) : new FormData();
+            let formData;
+            if (form) {
+                if (form.tagName === "FORM") {
+                    formData = new FormData(form);
+                }
+                else {
+                    formData = new FormData();
+                    addInputs(formData, form, true);
+                }
+            }
+            else {
+                formData = new FormData();
+            }
             let hasFile = form ? hasElementFile(form) : false;
             if (pageState) {
                 if (!hasFile) {
                     hasFile = hasElementFile(document.body);
                 }
-                // Add all the form elements that are not in a form
-                const elements = document.body.querySelectorAll('input, select, textarea');
-                for (let i = 0; i < elements.length; i++) {
-                    const element = elements[i];
-                    if (element.hasAttribute('data-wfc-ignore') || element.type === "button" ||
-                        element.type === "submit" || element.type === "reset") {
-                        continue;
-                    }
-                    const form = element.closest('form[data-wfc-form]');
-                    if (form) {
-                        continue;
-                    }
-                    if (element.type === "checkbox" || element.type === "radio") {
-                        if (element.checked) {
-                            formData.append(element.name, element.value);
-                        }
-                    }
-                    else {
-                        formData.append(element.name, element.value);
-                    }
-                }
+                addInputs(formData, document.body, false);
             }
             if (eventTarget) {
-                formData.append("__EVENTTARGET", eventTarget);
+                formData.append("wfcTarget", eventTarget);
             }
             if (eventArgument) {
-                formData.append("__EVENTARGUMENT", eventArgument);
+                formData.append("wfcArgument", eventArgument);
             }
             document.dispatchEvent(new CustomEvent("wfc:beforeSubmit", { detail: { form, eventTarget, formData } }));
             const request = {
@@ -1051,7 +1069,7 @@
         if (!eventTarget) {
             return;
         }
-        const form = e.target.closest('form[data-wfc-form]');
+        const form = getForm(e.target);
         e.preventDefault();
         await submitForm(form, eventTarget);
     });
@@ -1066,7 +1084,7 @@
         if (type === "button" || type === "submit" || type === "reset") {
             return;
         }
-        const form = e.target.closest('form[data-wfc-form]');
+        const form = getForm(e.target);
         const eventTarget = e.target.getAttribute('name');
         e.preventDefault();
         await submitForm(form, eventTarget, 'ENTER');
@@ -1081,7 +1099,7 @@
         if (type === "button" || type === "submit" || type === "reset") {
             return;
         }
-        const form = e.target.closest('form[data-wfc-form]');
+        const form = getForm(e.target);
         const eventTarget = e.target.getAttribute('name');
         const key = ((_a = form === null || form === void 0 ? void 0 : form.id) !== null && _a !== void 0 ? _a : '') + eventTarget;
         if (timeouts[key]) {
@@ -1096,7 +1114,7 @@
         var _a;
         if (e.target instanceof Element && e.target.hasAttribute('data-wfc-autopostback')) {
             const eventTarget = e.target.getAttribute('name');
-            const form = e.target.closest('form[data-wfc-form]');
+            const form = getForm(e.target);
             const key = ((_a = form === null || form === void 0 ? void 0 : form.id) !== null && _a !== void 0 ? _a : '') + eventTarget;
             if (timeouts[key]) {
                 clearTimeout(timeouts[key]);

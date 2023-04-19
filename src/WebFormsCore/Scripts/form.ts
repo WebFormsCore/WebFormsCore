@@ -31,13 +31,57 @@ function hasElementFile(element: HTMLElement) {
     return false;
 }
 
-async function submitForm(form?: HTMLFormElement, eventTarget?: string, eventArgument?: string) {
+function getForm(element: Element) {
+    return element.closest('[data-wfc-form]') as HTMLElement
+}
+
+function addInputs(formData: FormData, root: HTMLElement, addFormElements: boolean) {
+    // Add all the form elements that are not in a form
+    const elements = root.querySelectorAll('input, select, textarea');
+
+    console.log(addFormElements, root, elements);
+
+    for (let i = 0; i < elements.length; i++) {
+        const element = elements[i] as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+        if (element.hasAttribute('data-wfc-ignore') || element.type === "button" ||
+            element.type === "submit" || element.type === "reset") {
+            continue;
+        }
+
+        if (!addFormElements && getForm(element)) {
+            continue;
+        }
+
+        if (element.type === "checkbox" || element.type === "radio") {
+            if ((element as HTMLInputElement).checked) {
+                formData.append(element.name, element.value);
+            }
+        } else {
+            formData.append(element.name, element.value);
+        }
+    }
+}
+
+async function submitForm(form?: HTMLElement, eventTarget?: string, eventArgument?: string) {
     const release = await postbackMutex.acquire();
     try {
         const pageState = document.getElementById("pagestate") as HTMLInputElement;
         const url = location.pathname + location.search;
 
-        const formData = form ? new FormData(form) : new FormData();
+        let formData: FormData
+
+        if (form) {
+            if (form.tagName === "FORM") {
+                formData = new FormData(form as HTMLFormElement);
+            } else {
+                formData = new FormData()
+                addInputs(formData, form, true);
+            }
+        } else {
+            formData = new FormData();
+        }
+
         let hasFile = form ? hasElementFile(form) : false;
 
         if (pageState) {
@@ -45,39 +89,15 @@ async function submitForm(form?: HTMLFormElement, eventTarget?: string, eventArg
                 hasFile = hasElementFile(document.body);
             }
 
-            // Add all the form elements that are not in a form
-            const elements = document.body.querySelectorAll('input, select, textarea');
-
-            for (let i = 0; i < elements.length; i++) {
-                const element = elements[i] as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-
-                if (element.hasAttribute('data-wfc-ignore') || element.type === "button" ||
-                    element.type === "submit" || element.type === "reset") {
-                    continue;
-                }
-
-                const form = element.closest('form[data-wfc-form]') as HTMLFormElement;
-
-                if (form) {
-                    continue;
-                }
-
-                if (element.type === "checkbox" || element.type === "radio") {
-                    if ((element as HTMLInputElement).checked) {
-                        formData.append(element.name, element.value);
-                    }
-                } else {
-                    formData.append(element.name, element.value);
-                }
-            }
+            addInputs(formData, document.body, false);
         }
 
         if (eventTarget) {
-            formData.append("__EVENTTARGET", eventTarget);
+            formData.append("wfcTarget", eventTarget);
         }
 
         if (eventArgument) {
-            formData.append("__EVENTARGUMENT", eventArgument);
+            formData.append("wfcArgument", eventArgument);
         }
 
         document.dispatchEvent(new CustomEvent("wfc:beforeSubmit", {detail: {form, eventTarget, formData}}));
@@ -189,7 +209,7 @@ document.addEventListener('click', async function(e){
         return;
     }
 
-    const form = e.target.closest('form[data-wfc-form]') as HTMLFormElement;
+    const form = getForm(e.target);
 
     e.preventDefault();
     await submitForm(form, eventTarget);
@@ -210,7 +230,7 @@ document.addEventListener('keypress', async function(e){
         return;
     }
 
-    const form = e.target.closest('form[data-wfc-form]') as HTMLFormElement;
+    const form = getForm(e.target);
     const eventTarget = e.target.getAttribute('name');
     e.preventDefault();
     await submitForm(form, eventTarget, 'ENTER');
@@ -229,7 +249,7 @@ document.addEventListener('input', function(e){
         return;
     }
 
-    const form = e.target.closest('form[data-wfc-form]') as HTMLFormElement;
+    const form = getForm(e.target);
     const eventTarget = e.target.getAttribute('name');
     const key = (form?.id ?? '') + eventTarget;
 
@@ -246,7 +266,7 @@ document.addEventListener('input', function(e){
 document.addEventListener('change', async function(e){
     if(e.target instanceof Element && e.target.hasAttribute('data-wfc-autopostback')) {
         const eventTarget = e.target.getAttribute('name');
-        const form = e.target.closest('form[data-wfc-form]') as HTMLFormElement;
+        const form = getForm(e.target);
         const key = (form?.id ?? '') + eventTarget;
 
         if (timeouts[key]) {

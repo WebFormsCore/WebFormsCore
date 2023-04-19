@@ -15,7 +15,27 @@ public partial class Button : WebControl, IPostBackAsyncEventHandler
 
     public event AsyncEventHandler? Click;
 
-    [ViewState] public string? Text { get; set; }
+    [ViewState]
+    public string? Text
+    {
+        get => Controls.Count == 1 && Controls[0] is LiteralControl literal ? literal.Text : null;
+        set
+        {
+            if (Controls.Count == 1 && Controls[0] is LiteralControl literal)
+            {
+                literal.Text = value ?? string.Empty;
+            }
+            else
+            {
+                Controls.Clear();
+
+                if (value != null)
+                {
+                    Controls.AddWithoutPageEvents(WebActivator.CreateLiteral(value));
+                }
+            }
+        }
+    }
 
     public async Task RaisePostBackEventAsync(string? eventArgument)
     {

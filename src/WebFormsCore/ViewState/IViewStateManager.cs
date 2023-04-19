@@ -10,7 +10,7 @@ public interface IViewStateManager
 {
     bool EnableViewState { get; }
 
-    IMemoryOwner<byte> Write(Control control, out int length);
+    IMemoryOwner<byte> WriteBase64(Control control, out int length);
 
     ValueTask<HtmlForm?> LoadFromRequestAsync(IHttpContext context, Page page);
 

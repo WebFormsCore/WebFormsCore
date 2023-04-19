@@ -47,7 +47,7 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         if (viewStateManager.EnableViewState)
         {
             await writer.WriteAsync(@"<input type=""hidden"" name=""__FORMSTATE"" value=""");
-            using (var viewState = viewStateManager.Write(this, out var length))
+            using (var viewState = viewStateManager.WriteBase64(this, out var length))
             {
                 await writer.WriteAsync(viewState.Memory.Slice(0, length), token);
             }

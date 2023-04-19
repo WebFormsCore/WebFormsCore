@@ -54,7 +54,7 @@ public class ViewStateManager : IViewStateManager
 
     public bool EnableViewState => _options?.Value.Enabled ?? true;
 
-    public IMemoryOwner<byte> Write(Control control, out int length)
+    public IMemoryOwner<byte> WriteBase64(Control control, out int length)
     {
         var writer = new ViewStateWriter(_serviceProvider);
 

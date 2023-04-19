@@ -42,19 +42,20 @@ public class DefaultControlManager : IControlManager
 
     public bool TryGetPath(string fullPath, [NotNullWhen(true)] out string? path)
     {
-        if (_types.ContainsKey(fullPath))
+        var current = fullPath;
+
+        if (_contentRoot != null && current.StartsWith(_contentRoot))
         {
-            path = fullPath;
-            return true;
+            current = current.Substring(_contentRoot.Length).TrimStart('\\', '/');
         }
 
-        if (_contentRoot is null || !fullPath.StartsWith(_contentRoot))
+        if (!_types.ContainsKey(current))
         {
             path = null;
             return false;
         }
 
-        path = fullPath.Substring(_contentRoot.Length).TrimStart('\\', '/');
+        path = current;
         return true;
     }
 

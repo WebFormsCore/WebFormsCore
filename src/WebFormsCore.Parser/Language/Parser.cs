@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.VisualBasic;
 using WebFormsCore.Collections.Comparers;
 using WebFormsCore.Models;
 using WebFormsCore.Nodes;
@@ -341,6 +342,38 @@ public class Parser
             Root.Templates.Add(templateNode);
 
             node = templateNode;
+        }
+        else if (runAt == RunAt.Server && !ns.HasValue && name.Text.Value.Equals("script", StringComparison.OrdinalIgnoreCase))
+        {
+            if (selfClosing)
+            {
+                return;
+            }
+
+            if (lexer.Peek() is { Type: TokenType.Text, Text.Value: var text })
+            {
+                lexer.Next();
+
+                if (Root.Language == Nodes.Language.CSharp)
+                {
+                    var tree = CSharpSyntaxTree.ParseText(text);
+                    var root = (Microsoft.CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax) tree.GetRoot();
+                }
+                else
+                {
+                    var tree = VisualBasicSyntaxTree.ParseText(text);
+                    var root = (Microsoft.CodeAnalysis.VisualBasic.Syntax.CompilationUnitSyntax) tree.GetRoot();
+                }
+
+                // TODO: Register script
+            }
+
+            if (lexer.Peek() is { Type: TokenType.TagClose })
+            {
+                lexer.Next();
+            }
+
+            return;
         }
         else if (runAt == RunAt.Server)
         {

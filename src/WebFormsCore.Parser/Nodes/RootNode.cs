@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Scriban;
+using WebFormsCore.Models;
 using Lexer = WebFormsCore.Language.Lexer;
 using Parser = WebFormsCore.Language.Parser;
 using TokenType = WebFormsCore.Models.TokenType;
@@ -41,6 +42,8 @@ public class RootNode : ContainerNode
     public List<ControlId> Ids { get; set; } = new();
 
     public List<ContainerNode> RenderMethods { get; set; } = new();
+
+    public List<TokenString> InlineScripts { get; set; } = new();
 
     public IEnumerable<Constructor> Constructors
     {

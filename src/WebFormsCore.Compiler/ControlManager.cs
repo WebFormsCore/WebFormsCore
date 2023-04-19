@@ -79,7 +79,7 @@ public class ControlManager : IDisposable, IControlManager
 
     public bool TryGetPath(string fullPath, [NotNullWhen(true)] out string? path)
     {
-        if (_environment.ContentRootPath is null || !fullPath.StartsWith(_environment.ContentRootPath))
+        if (_environment.ContentRootPath is null || !fullPath.StartsWith(_environment.ContentRootPath) || !File.Exists(fullPath))
         {
             path = null;
             return false;
@@ -88,6 +88,7 @@ public class ControlManager : IDisposable, IControlManager
         path = DefaultControlManager.NormalizePath(
             fullPath.Substring(_environment.ContentRootPath.Length).TrimStart('\\', '/')
         );
+
         return true;
     }
 

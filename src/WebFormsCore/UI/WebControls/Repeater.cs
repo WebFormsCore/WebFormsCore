@@ -259,14 +259,16 @@ public partial class Repeater : Control, IPostBackLoadHandler, INamingContainer
         var itemIndex = itemType is ListItemType.Item or ListItemType.AlternatingItem ? _itemCount++ : -1;
         var item = CreateItem(itemIndex, itemType);
 
+        Controls.AddWithoutPageEvents(item);
         InitializeItem(item);
+
         if (dataBind)
         {
             SetDataItem(item, dataItem!);
         }
 
         await InvokeItemCreated(item);
-        await Controls.AddAsync(item);
+        await AddedControlAsync(item);
 
         if (dataBind)
         {

@@ -78,9 +78,9 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
         if (isPost)
         {
-            if (Context.Request.Form.TryGetValue("__EVENTTARGET", out var eventTarget))
+            if (Context.Request.Form.TryGetValue("wfcTarget", out var eventTarget))
             {
-                var eventArgument = Context.Request.Form.TryGetValue("__EVENTARGUMENT", out var eventArgumentValue)
+                var eventArgument = Context.Request.Form.TryGetValue("wfcArgument", out var eventArgumentValue)
                     ? eventArgumentValue.ToString()
                     : string.Empty;
 

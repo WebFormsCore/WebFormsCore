@@ -11,7 +11,7 @@
             {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject(WebActivator.CreateLiteral({{ child.Text.CodeString }}));
 
         {{- when "Control" }}
-            var {{ child.VariableName }} =  WebActivator.CreateControl<{{ child.DisplayControlType }}>();
+            var {{ child.VariableName }} = WebActivator.CreateControl<{{ child.DisplayControlType }}>();
             {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject({{ child.VariableName }});
 
             {{- for prop in child.Events }}
