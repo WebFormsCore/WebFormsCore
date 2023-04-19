@@ -59,13 +59,13 @@ public partial class Control : System.Web.UI.Control
     {
         get
         {
-            if (_page == null && _parent != null)
+            if (_page == null)
             {
-                if (_parent is Page page)
+                if (this is Page page)
                 {
                     _page = page;
                 }
-                else
+                else if (_parent != null)
                 {
                     _page = _parent.Page;
                 }

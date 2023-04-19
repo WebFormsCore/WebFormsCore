@@ -15,7 +15,6 @@ public static class HttpStackExtensions
 
             if (path == null)
             {
-                context.Response.StatusCode = 404;
                 return next();
             }
 

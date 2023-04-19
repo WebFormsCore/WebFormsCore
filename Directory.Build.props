@@ -14,4 +14,8 @@
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <HttpStackVersion>0.0.1-alpha.2</HttpStackVersion>
+    </PropertyGroup>
+
 </Project>

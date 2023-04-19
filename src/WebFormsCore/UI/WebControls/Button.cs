@@ -9,7 +9,7 @@ namespace WebFormsCore.UI.WebControls;
 public partial class Button : WebControl, IPostBackAsyncEventHandler
 {
     public Button()
-        : base(HtmlTextWriterTag.Input)
+        : base(HtmlTextWriterTag.Button)
     {
     }
 
@@ -26,7 +26,6 @@ public partial class Button : WebControl, IPostBackAsyncEventHandler
     {
         await base.AddAttributesToRender(writer, token);
         writer.AddAttribute(HtmlTextWriterAttribute.Type, "button");
-        writer.AddAttribute(HtmlTextWriterAttribute.Value, Text);
         writer.AddAttribute("data-wfc-postback", UniqueID);
     }
 }

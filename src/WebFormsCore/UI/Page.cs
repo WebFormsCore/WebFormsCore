@@ -40,8 +40,6 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     internal HtmlForm? ActiveForm { get; set; }
 
-    public object GetDataItem() => throw new NotImplementedException();
-
     internal List<IBodyControl> BodyControls { get; set; } = new();
 
     internal async Task<HtmlForm?> ProcessRequestAsync(CancellationToken token)

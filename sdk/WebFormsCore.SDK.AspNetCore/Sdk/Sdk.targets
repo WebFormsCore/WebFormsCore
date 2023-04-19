@@ -8,9 +8,17 @@
 <Project>
     <Import Project="Core.targets" />
 
+    <PropertyGroup>
+        <UseASPNetCore Condition="$(UseASPNetCore) == ''">true</UseASPNetCore>
+    </PropertyGroup>
+
     <!-- NuGet references -->
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true'">
-        <PackageReference Include="WebFormsCore" Version="0.0.1-alpha.13" />
+        <PackageReference Condition="$(UseASPNetCore) == 'true'" Include="WebFormsCore.AspNetCore" Version="0.0.1-alpha.13" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="HttpStack.AspNetCore" Version="0.0.1-alpha.2" />
     </ItemGroup>
 
     <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.Web" />

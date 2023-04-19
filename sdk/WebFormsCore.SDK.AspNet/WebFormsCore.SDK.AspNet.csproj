@@ -8,6 +8,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageType>MSBuildSdk</PackageType>
         <NoWarn>$(NoWarn);NU5128</NoWarn>
+        <RootNamespace>WebFormsCore.SDK.NetFramework</RootNamespace>
     </PropertyGroup>
 
     <Target Name="CopyCommon" BeforeTargets="BeforeBuild">

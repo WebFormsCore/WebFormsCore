@@ -33,9 +33,6 @@ jobs:
           VERSION_FILE_PATH: Directory.Build.props
           PROJECT_FILE_PATH: |
             src/WebFormsCore/WebFormsCore.csproj
-            src/WebFormsCore.AspNet/WebFormsCore.AspNet.csproj
-            src/WebFormsCore.Owin/WebFormsCore.Owin.csproj
-            src/WebFormsCore.AspNetCore/WebFormsCore.AspNetCore.csproj
             src/WebFormsCore.Parser/WebFormsCore.Parser.csproj
             src/WebFormsCore.Compiler/WebFormsCore.Compiler.csproj
             src/WebFormsCore.SourceGenerator/WebFormsCore.SourceGenerator.csproj
