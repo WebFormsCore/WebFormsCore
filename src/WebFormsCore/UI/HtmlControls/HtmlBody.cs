@@ -56,7 +56,7 @@ public class HtmlBody : HtmlContainerControl
 
             if (!Page.IsPostBack)
             {
-                await Page.ClientScript.RenderStartupScripts(writer);
+                await Page.ClientScript.RenderStartupBody(writer);
             }
         }
     }

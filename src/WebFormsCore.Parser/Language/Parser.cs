@@ -656,6 +656,7 @@ public class Parser
             {
                 "form" or "FORM" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlForm"),
                 "body" or "BODY" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlBody"),
+                "head" or "HEAD" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlHead"),
                 "link" or "LINK" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlLink"),
                 "script" or "SCRIPT" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlScript"),
                 _ => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlGenericControl")

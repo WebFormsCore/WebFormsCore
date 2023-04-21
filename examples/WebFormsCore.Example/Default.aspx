@@ -12,6 +12,8 @@
 <body id="Body" runat="server">
 
 <div class="container">
+    <wfc:Choices runat="server" />
+
     <div class="mt-4">
         <div class="row">
             <div class="col-6">

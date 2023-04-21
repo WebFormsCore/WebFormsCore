@@ -50,6 +50,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.SDK", "sdk\Web
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.HttpListener.Example", "examples\WebFormsCore.HttpListener.Example\WebFormsCore.HttpListener.Example.csproj", "{DAFCC09E-99DB-4251-87BE-CCF4FE59C1DB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", "{6BD7E14E-80F4-4849-9959-86FD034114D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.Extensions.Choices", "src\WebFormsCore.Extensions.Choices\WebFormsCore.Extensions.Choices.csproj", "{BFE8DE6E-4BE6-4060-B838-ACBC5E5BECA6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -116,6 +120,10 @@ Global
 		{DAFCC09E-99DB-4251-87BE-CCF4FE59C1DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DAFCC09E-99DB-4251-87BE-CCF4FE59C1DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DAFCC09E-99DB-4251-87BE-CCF4FE59C1DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFE8DE6E-4BE6-4060-B838-ACBC5E5BECA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFE8DE6E-4BE6-4060-B838-ACBC5E5BECA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFE8DE6E-4BE6-4060-B838-ACBC5E5BECA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFE8DE6E-4BE6-4060-B838-ACBC5E5BECA6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -132,6 +140,7 @@ Global
 		{6BAD926F-C687-4852-9F2E-852F672BCAA8} = {63EBE3DD-1F7B-41D8-9687-BCCA33B81324}
 		{829FB9E3-8952-46DF-A854-C9DF7DE0E0E3} = {63EBE3DD-1F7B-41D8-9687-BCCA33B81324}
 		{DAFCC09E-99DB-4251-87BE-CCF4FE59C1DB} = {210D9008-25A9-4ABE-8C8C-A7FDDC3381F6}
+		{BFE8DE6E-4BE6-4060-B838-ACBC5E5BECA6} = {6BD7E14E-80F4-4849-9959-86FD034114D9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {022403F7-A5A6-4639-8579-D9B56627AE73}

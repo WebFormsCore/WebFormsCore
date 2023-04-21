@@ -37,7 +37,18 @@ function getForm(element: Element) {
 
 function addInputs(formData: FormData, root: HTMLElement, addFormElements: boolean) {
     // Add all the form elements that are not in a form
-    const elements = root.querySelectorAll('input, select, textarea');
+    const elements = [];
+
+    // @ts-ignore
+    for (const element of root.querySelectorAll('input, select, textarea')) {
+        if (!element.closest('[data-wfc-ignore]')) {
+            elements.push(element);
+        }
+    }
+
+    document.dispatchEvent(new CustomEvent("wfc:addInputs", {detail: {elements}}));
+
+    console.log(elements);
 
     for (let i = 0; i < elements.length; i++) {
         const element = elements[i] as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -119,6 +130,11 @@ async function submitForm(form?: HTMLElement, eventTarget?: string, eventArgumen
                 document.dispatchEvent(new CustomEvent("wfc:addNode", {detail: {node, form, eventTarget}}));
             },
             onBeforeElUpdated: function(fromEl, toEl) {
+                if (fromEl.hasAttribute('data-wfc-ignore') || toEl.hasAttribute('data-wfc-ignore')) {
+                    toEl.dispatchEvent(new CustomEvent("wfc:update", {detail: {node: toEl, source: fromEl, form, eventTarget}}));
+                    return false;
+                }
+
                 if (fromEl.tagName === "INPUT" && fromEl.type !== "hidden") {
                     morphAttrs(fromEl, toEl);
                     syncBooleanAttrProp(fromEl, toEl, 'checked');
@@ -133,7 +149,7 @@ async function submitForm(form?: HTMLElement, eventTarget?: string, eventArgumen
                 }
             },
             onBeforeNodeDiscarded(node) {
-                if (node.tagName === "SCRIPT") {
+                if (node.tagName === "SCRIPT" || node.tagName === "STYLE" || node.tagName === "LINK" && node.hasAttribute('rel') && node.getAttribute('rel') === 'stylesheet') {
                     return false;
                 }
 

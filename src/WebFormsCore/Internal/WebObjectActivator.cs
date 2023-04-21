@@ -76,6 +76,8 @@ internal sealed class WebObjectActivator : IWebObjectActivator
     {
         switch (tagName)
         {
+            case "head" or "HEAD":
+                return CreateControl<HtmlHead>();
             case "body" or "BODY":
                 return CreateControl<HtmlBody>();
             case "link" or "LINK":
