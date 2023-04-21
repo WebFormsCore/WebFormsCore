@@ -30,9 +30,7 @@ public class ControlManager : IDisposable, IControlManager
         _environment = environment;
         _logger = logger;
         _watchers = new List<FileSystemWatcher>();
-        _compiledViews = (Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly())
-            .GetCustomAttributes<AssemblyViewAttribute>()
-            .ToDictionary(x => x.Path, x => x.Type, StringComparer.OrdinalIgnoreCase);
+        _compiledViews = DefaultControlManager.GetCompiledControls();
 
         if (environment is { EnableControlWatcher: true, ContentRootPath: not null })
         {
@@ -66,6 +64,12 @@ public class ControlManager : IDisposable, IControlManager
 
         _ = Task.Run(async () =>
         {
+            if (!await IsFileReady(e.FullPath))
+            {
+                _logger?.LogWarning("File {Path} is still locked after 5s", e.FullPath);
+                return;
+            }
+
             try
             {
                 await GetTypeAsync(path);
@@ -75,6 +79,26 @@ public class ControlManager : IDisposable, IControlManager
                 _logger?.LogError(ex, "Failed to re-compile control {Path}", e.FullPath);
             }
         });
+    }
+
+    public static async Task<bool> IsFileReady(string filename, int timeOut = 5000)
+    {
+        var sw = Stopwatch.StartNew();
+
+        while (sw.ElapsedMilliseconds < timeOut)
+        {
+            try
+            {
+                using var fs = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None);
+                return fs.Length > 0;
+            }
+            catch (IOException)
+            {
+                await Task.Delay(100);
+            }
+        }
+
+        return false;
     }
 
     public bool TryGetPath(string fullPath, [NotNullWhen(true)] out string? path)
@@ -157,7 +181,10 @@ public class ControlManager : IDisposable, IControlManager
         }
 
         var fullPath = Path.Combine(_environment.ContentRootPath, path);
-        var text = File.ReadAllText(fullPath).ReplaceLineEndings("\n");
+
+        using var stream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using var reader = new StreamReader(stream);
+        var text = reader.ReadToEnd().ReplaceLineEndings("\n");
 
         if (type != null)
         {

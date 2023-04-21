@@ -31,4 +31,10 @@ public class MarshalViewStateSerializer<T> : ViewStateSerializer<T>
         length = Size;
         return MemoryMarshal.Read<T>(span);
     }
+
+    public override bool TryGetLength(T value, out int length)
+    {
+        length = Size;
+        return true;
+    }
 }

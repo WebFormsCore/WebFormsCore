@@ -37,4 +37,5 @@ jobs:
             src/WebFormsCore.Compiler/WebFormsCore.Compiler.csproj
             src/WebFormsCore.SourceGenerator/WebFormsCore.SourceGenerator.csproj
             sdk/WebFormsCore.SDK/WebFormsCore.SDK.csproj
-            sdk/WebFormsCore.SDK.NetFramework/WebFormsCore.SDK.NetFramework.csproj
+            sdk/WebFormsCore.SDK.AspNet/WebFormsCore.SDK.AspNet.csproj
+            sdk/WebFormsCore.SDK.AspNetCore/WebFormsCore.SDK.AspNetCore.csproj

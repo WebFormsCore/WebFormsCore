@@ -146,13 +146,13 @@ public class ViewStateManager : IViewStateManager
 
         page.IsPostBack = true;
 
-        if (request.Form.TryGetValue("__PAGESTATE", out var pageState))
+        if (request.Form.TryGetValue("wfcPageState", out var pageState))
         {
             await LoadFromBase64Async(page, pageState.ToString());
         }
 
-        if (!request.Form.TryGetValue("__FORM", out var formId) ||
-            !request.Form.TryGetValue("__FORMSTATE", out var formState))
+        if (!request.Form.TryGetValue("wfcForm", out var formId) ||
+            !request.Form.TryGetValue("wfcFormState", out var formState))
         {
             return null;
         }

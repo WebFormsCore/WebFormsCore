@@ -16,9 +16,7 @@ public class DefaultControlManager : IControlManager
     public DefaultControlManager(IWebFormsEnvironment? environment = null)
     {
         _contentRoot = environment?.ContentRootPath ?? AppContext.BaseDirectory;
-        _types = AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(a => a.GetCustomAttributes<AssemblyViewAttribute>())
-            .ToDictionary(x => NormalizePath(x.Path), x => x.Type, StringComparer.OrdinalIgnoreCase);
+        _types = GetCompiledControls();
     }
 
     public IEnumerable<Type> Types => _types.Values;
@@ -66,4 +64,10 @@ public class DefaultControlManager : IControlManager
             : path.Replace('\\', '/');
     }
 
+    public static Dictionary<string, Type> GetCompiledControls()
+    {
+        return AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(a => a.GetCustomAttributes<AssemblyViewAttribute>())
+            .ToDictionary(x => NormalizePath(x.Path), x => x.Type, StringComparer.OrdinalIgnoreCase);
+    }
 }

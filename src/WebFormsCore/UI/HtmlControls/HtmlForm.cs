@@ -40,13 +40,13 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
 
         await base.RenderChildrenAsync(writer, token);
 
-        await writer.WriteAsync(@"<input type=""hidden"" name=""__FORM"" value=""");
+        await writer.WriteAsync(@"<input type=""hidden"" name=""wfcForm"" value=""");
         await writer.WriteAsync(UniqueID);
         await writer.WriteAsync(@"""/>");
 
         if (viewStateManager.EnableViewState)
         {
-            await writer.WriteAsync(@"<input type=""hidden"" name=""__FORMSTATE"" value=""");
+            await writer.WriteAsync(@"<input type=""hidden"" name=""wfcFormState"" value=""");
             using (var viewState = viewStateManager.WriteBase64(this, out var length))
             {
                 await writer.WriteAsync(viewState.Memory.Slice(0, length), token);
@@ -55,4 +55,6 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
             await writer.WriteAsync(@"""/>");
         }
     }
+
+    protected override string GetUniqueIDPrefix() => "";
 }

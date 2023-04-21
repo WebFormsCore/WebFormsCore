@@ -8,6 +8,8 @@ public interface IViewStateSerializer
 
     bool TryWrite(object? value, Span<byte> span, out int length);
 
+    bool TryGetLength(object? value, out int length);
+
     object? Read(ReadOnlySpan<byte> span, out int length);
 }
 
@@ -17,6 +19,8 @@ public interface IViewStateSerializer<T> : IViewStateSerializer
     bool TryWrite(T? value, Span<byte> span, out int length);
 
     new T? Read(ReadOnlySpan<byte> span, out int length);
+
+    bool TryGetLength(T? value, out int length);
 }
 
 public abstract class ViewStateSerializer<T> : IViewStateSerializer<T>
@@ -26,9 +30,22 @@ public abstract class ViewStateSerializer<T> : IViewStateSerializer<T>
 
     public abstract T? Read(ReadOnlySpan<byte> span, out int length);
 
+    public abstract bool TryGetLength(T? value, out int length);
+
     public bool CanSerialize(Type type)
     {
         return typeof(T) == type;
+    }
+
+    bool IViewStateSerializer.TryGetLength(object? value, out int length)
+    {
+        if (value is not T t)
+        {
+            length = 0;
+            return false;
+        }
+
+        return TryGetLength(t, out length);
     }
 
     bool IViewStateSerializer.TryWrite(object? value, Span<byte> span, out int length)

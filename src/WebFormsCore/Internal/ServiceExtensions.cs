@@ -39,6 +39,7 @@ public static class ServiceExtensions
 
         services.AddSingleton<IViewStateSerializer<object>, ObjectViewStateSerializer>();
         services.AddViewStateSerializer<string, StringViewStateSerializer>();
+        services.AddViewStateSerializer<string[], ArrayViewStateSerializer<string>>();
         services.AddViewStateSerializer<int>();
         services.AddViewStateSerializer<uint>();
         services.AddViewStateSerializer<short>();
@@ -62,6 +63,8 @@ public static class ServiceExtensions
         services.TryAddSingleton<IAttributeParser<string>, StringAttributeParser>();
         services.TryAddSingleton<IAttributeParser<int>, Int32AttributeParser>();
         services.TryAddSingleton<IAttributeParser<bool>, BoolAttributeParser>();
+        services.TryAddSingleton<IAttributeParser<Unit>, UnitAttributeParser>();
+        services.TryAddSingleton<IAttributeParser<string[]>, ArrayAttributeParser<string>>();
 
         return services;
     }

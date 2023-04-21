@@ -39,8 +39,6 @@ function addInputs(formData: FormData, root: HTMLElement, addFormElements: boole
     // Add all the form elements that are not in a form
     const elements = root.querySelectorAll('input, select, textarea');
 
-    console.log(addFormElements, root, elements);
-
     for (let i = 0; i < elements.length; i++) {
         const element = elements[i] as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
@@ -66,7 +64,6 @@ function addInputs(formData: FormData, root: HTMLElement, addFormElements: boole
 async function submitForm(form?: HTMLElement, eventTarget?: string, eventArgument?: string) {
     const release = await postbackMutex.acquire();
     try {
-        const pageState = document.getElementById("pagestate") as HTMLInputElement;
         const url = location.pathname + location.search;
 
         let formData: FormData
@@ -82,15 +79,8 @@ async function submitForm(form?: HTMLElement, eventTarget?: string, eventArgumen
             formData = new FormData();
         }
 
-        let hasFile = form ? hasElementFile(form) : false;
-
-        if (pageState) {
-            if (!hasFile) {
-                hasFile = hasElementFile(document.body);
-            }
-
-            addInputs(formData, document.body, false);
-        }
+        let hasFile = hasElementFile(document.body);
+        addInputs(formData, document.body, false);
 
         if (eventTarget) {
             formData.append("wfcTarget", eventTarget);
@@ -103,7 +93,7 @@ async function submitForm(form?: HTMLElement, eventTarget?: string, eventArgumen
         document.dispatchEvent(new CustomEvent("wfc:beforeSubmit", {detail: {form, eventTarget, formData}}));
 
         const request: RequestInit = {
-            method: "POST",
+            method: "POST"
         };
 
         request.body = hasFile ? formData : new URLSearchParams(formData as any);

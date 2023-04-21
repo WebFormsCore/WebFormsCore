@@ -109,4 +109,6 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
     {
         ScopedContainer.Register(control);
     }
+
+    protected override string GetUniqueIDPrefix() => "p$";
 }

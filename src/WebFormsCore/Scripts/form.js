@@ -926,7 +926,6 @@
     function addInputs(formData, root, addFormElements) {
         // Add all the form elements that are not in a form
         const elements = root.querySelectorAll('input, select, textarea');
-        console.log(addFormElements, root, elements);
         for (let i = 0; i < elements.length; i++) {
             const element = elements[i];
             if (element.hasAttribute('data-wfc-ignore') || element.type === "button" ||
@@ -949,7 +948,6 @@
     async function submitForm(form, eventTarget, eventArgument) {
         const release = await postbackMutex.acquire();
         try {
-            const pageState = document.getElementById("pagestate");
             const url = location.pathname + location.search;
             let formData;
             if (form) {
@@ -964,13 +962,8 @@
             else {
                 formData = new FormData();
             }
-            let hasFile = form ? hasElementFile(form) : false;
-            if (pageState) {
-                if (!hasFile) {
-                    hasFile = hasElementFile(document.body);
-                }
-                addInputs(formData, document.body, false);
-            }
+            let hasFile = hasElementFile(document.body);
+            addInputs(formData, document.body, false);
             if (eventTarget) {
                 formData.append("wfcTarget", eventTarget);
             }
@@ -979,7 +972,7 @@
             }
             document.dispatchEvent(new CustomEvent("wfc:beforeSubmit", { detail: { form, eventTarget, formData } }));
             const request = {
-                method: "POST",
+                method: "POST"
             };
             request.body = hasFile ? formData : new URLSearchParams(formData);
             const response = await fetch(url, request);

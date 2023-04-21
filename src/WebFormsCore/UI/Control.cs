@@ -121,6 +121,7 @@ public partial class Control : System.Web.UI.Control
 
             var id = _id;
             _id = value;
+            IsAutomaticID = false;
 
             ClearCachedUniqueIDRecursive();
 
@@ -135,6 +136,8 @@ public partial class Control : System.Web.UI.Control
             }
         }
     }
+
+    public bool IsAutomaticID { get; private set; }
 
     public bool Visible
     {
@@ -293,9 +296,10 @@ public partial class Control : System.Web.UI.Control
         _visible = true;
         _trackViewState = false;
         _state = ControlState.Constructed;
+        IsAutomaticID = false;
     }
 
-    private string GetUniqueIDPrefix()
+    protected virtual string GetUniqueIDPrefix()
     {
         if (OccasionalFields.UniqueIDPrefix == null)
         {
@@ -513,6 +517,7 @@ public partial class Control : System.Web.UI.Control
 
         var index = _namingContainer.OccasionalFields.NamedControlsID++;
         _id = index >= 128 ? "c" + index.ToString(NumberFormatInfo.InvariantInfo) : AutomaticIDs[index];
+        IsAutomaticID = true;
         _namingContainer.DirtyNameTable();
         return _id;
     }

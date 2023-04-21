@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace WebFormsCore.Serializer;
-#if NET
-[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-#endif
+
 public class ObjectViewStateSerializer : ViewStateSerializer<object>
 {
     private readonly Dictionary<byte, IViewStateSerializer> _serializers;
@@ -28,6 +25,22 @@ public class ObjectViewStateSerializer : ViewStateSerializer<object>
             return true;
         }
 
+        var registration = GetRegistration(value);
+
+        span[0] = registration.Key;
+        span = span.Slice(1);
+
+        if (!registration.Value.TryWrite(value, span, out length))
+        {
+            return false;
+        }
+
+        length += 1;
+        return true;
+    }
+
+    private KeyValuePair<byte, IViewStateSerializer> GetRegistration(object value)
+    {
         var type = value.GetType();
         KeyValuePair<byte, IViewStateSerializer> registration = default;
 
@@ -45,16 +58,19 @@ public class ObjectViewStateSerializer : ViewStateSerializer<object>
             throw new InvalidOperationException($"No serializer found for type {type}");
         }
 
-        span[0] = registration.Key;
-        span = span.Slice(1);
+        return registration;
+    }
 
-        if (!registration.Value.TryWrite(value, span, out length))
+    public override bool TryGetLength(object? value, out int length)
+    {
+        if (value is null)
         {
-            return false;
+            length = 1;
+            return true;
         }
 
-        length += 1;
-        return true;
+        var registration = GetRegistration(value);
+        return registration.Value.TryGetLength(value, out length);
     }
 
     public override object? Read(ReadOnlySpan<byte> span, out int length)
