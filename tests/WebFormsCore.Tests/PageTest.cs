@@ -9,17 +9,21 @@ public partial class PageTest
     [Fact]
     public async Task PageWithControl()
     {
-        await using var result = await RenderAsync("Pages/Page.aspx");
+        DisposableControl[] controls;
 
-        var controls = result.Page.EnumerateControls()
-            .OfType<DisposableControl>()
-            .ToArray();
+        await using (var result = await RenderAsync("Pages/Page.aspx"))
+        {
+            controls = result.Page.EnumerateControls()
+                .OfType<DisposableControl>()
+                .ToArray();
 
-        Assert.Equal(2, controls.Length);
+            Assert.Equal(2, controls.Length);
+
+            await Verify(result.Html);
+        }
+
         Assert.True(controls[0].IsDisposed, "Control in Page should be disposed");
         Assert.True(controls[1].IsDisposed, "Dynamic control should be disposed");
-
-        await Verify(result.Html);
     }
 
 }

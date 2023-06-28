@@ -52,12 +52,8 @@ namespace {{ item.Namespace }}
         {{- if prop.Type == "bool" }}
             if ({{ prop.Name }}) flag |= {{ prop.Flag }};
         {{- else }}
-            {{- if prop.IsViewStateObject }}
-            var write{{ prop.Name }} = ((WebFormsCore.IViewStateObject) {{ prop.Name }}).WriteToViewState;
-            {{- else }}
-            var write{{ prop.Name }} = (defaultValues == null || {{ prop.Name }} != defaultValues.{{ prop.Name }})
+            var write{{ prop.Name }} = (defaultValues == null || writer.StoreInViewState({{ prop.Name }}, defaultValues.{{ prop.Name }}))
             {{- if prop.ValidateProperty }} && {{ prop.ValidateProperty }}{{ end -}};
-            {{- end }}
             if (write{{ prop.Name }}) flag |= {{ prop.Flag }};
         {{- end }}
         {{- end }}
@@ -65,10 +61,8 @@ namespace {{ item.Namespace }}
             writer.Write(flag);
 
         {{- for prop in item.Properties }}
-        {{- if prop.IsViewStateObject }}
-            if (write{{ prop.Name }}) ((WebFormsCore.IViewStateObject) {{ prop.Name }}).WriteViewState(ref writer);
-        {{- else if prop.Type != "bool" }}
-            if (write{{ prop.Name }}) writer.Write<{{ prop.Type }}>({{ prop.Name }});
+        {{- if prop.Type != "bool" }}
+            if (write{{ prop.Name }}) writer.Write<{{ prop.Type }}>({{ prop.Name }}, defaultValues == null ? default : defaultValues.{{ prop.Name }});
         {{- end }}
         {{- end }}
         }
@@ -81,12 +75,10 @@ namespace {{ item.Namespace }}
 
             var flag = reader.Read<{{ item.FlagType }}>();
         {{- for prop in item.Properties }}
-        {{- if prop.IsViewStateObject }}
-            if ((flag & {{ prop.Flag }}) != 0) ((WebFormsCore.IViewStateObject) {{ prop.Name }}).ReadViewState(ref reader);
-        {{- else if prop.Type == "bool" }}
+        {{- if prop.Type == "bool" }}
             {{ prop.Name }} = (flag & {{ prop.Flag }}) != 0;
         {{- else }}
-            if ((flag & {{ prop.Flag }}) != 0) {{ prop.Name }} = reader.Read<{{ prop.Type }}>();
+            if ((flag & {{ prop.Flag }}) != 0) {{ prop.Name }} = reader.Read<{{ prop.Type }}>({{ prop.Name }});
         {{- end }}
         {{- end }}
         }

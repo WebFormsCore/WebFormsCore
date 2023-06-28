@@ -22,30 +22,25 @@ public partial class PageTest
         services.AddOptions<ViewStateOptions>()
             .Configure(options => options.Enabled = false);
 
-        await using var serviceProvider = services.BuildServiceProvider();
+        var serviceProvider = services.BuildServiceProvider();
         await using var stream = new MemoryStream();
 
-        Page page;
+        var pageManager = serviceProvider.GetRequiredService<IPageManager>();
 
-        await using (var scope = serviceProvider.CreateAsyncScope())
-        {
-            var pageManager = serviceProvider.GetRequiredService<IPageManager>();
+        var coreRequest = new Mock<IHttpRequest>();
+        coreRequest.SetupGet(x => x.Method).Returns("GET");
 
-            var coreRequest = new Mock<IHttpRequest>();
-            coreRequest.SetupGet(x => x.Method).Returns("GET");
+        var coreResponse = new Mock<IHttpResponse>();
+        var headers = new HeaderDictionary();
+        coreResponse.SetupGet(x => x.Headers).Returns(headers);
+        coreResponse.SetupGet(x => x.Body).Returns(stream);
 
-            var coreResponse = new Mock<IHttpResponse>();
-            var headers = new HeaderDictionary();
-            coreResponse.SetupGet(x => x.Headers).Returns(headers);
-            coreResponse.SetupGet(x => x.Body).Returns(stream);
+        var coreContext = new Mock<IHttpContext>();
+        coreContext.SetupGet(c => c.Request).Returns(coreRequest.Object);
+        coreContext.SetupGet(c => c.Response).Returns(coreResponse.Object);
+        coreContext.SetupGet(c => c.RequestServices).Returns(serviceProvider);
 
-            var coreContext = new Mock<IHttpContext>();
-            coreContext.SetupGet(c => c.Request).Returns(coreRequest.Object);
-            coreContext.SetupGet(c => c.Response).Returns(coreResponse.Object);
-            coreContext.SetupGet(c => c.RequestServices).Returns(scope.ServiceProvider);
-
-            page = await pageManager.RenderPageAsync(coreContext.Object, path);
-        }
+        var page = await pageManager.RenderPageAsync(coreContext.Object, path);
 
         stream.Position = 0;
 

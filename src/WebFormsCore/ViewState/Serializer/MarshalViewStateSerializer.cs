@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -13,28 +14,18 @@ public class MarshalViewStateSerializer<T> : ViewStateSerializer<T>
 {
     private static readonly int Size = Unsafe.SizeOf<T>();
 
-    public override bool TryWrite(T value, Span<byte> span, out int length)
+    public override void Write(Type type, ref ViewStateWriter writer, T value, T defaultValue)
     {
-        length = Size;
-
-        if (span.Length < length)
-        {
-            return false;
-        }
-
-        MemoryMarshal.Write(span, ref value);
-        return true;
+        MemoryMarshal.Write(writer.AllocateUnsafe(Size), ref value);
     }
 
-    public override T Read(ReadOnlySpan<byte> span, out int length)
+    public override T Read(Type type, ref ViewStateReader reader, T defaultValue)
     {
-        length = Size;
-        return MemoryMarshal.Read<T>(span);
+        return MemoryMarshal.Read<T>(reader.ReadBytes(Size));
     }
 
-    public override bool TryGetLength(T value, out int length)
+    public override bool StoreInViewState(Type type, T value, T defaultValue)
     {
-        length = Size;
         return true;
     }
 }

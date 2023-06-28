@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.Serializer;
 
@@ -25,51 +26,114 @@ public ref struct ViewStateWriter
 
     public Span<byte> Span => _owner.Memory.Span.Slice(0, _length);
 
-    public void Write<T>(T? value)
+    public Span<byte> RemainingSpan => _span;
+
+    public Memory<byte> Memory => _owner.Memory.Slice(0, _length);
+
+    public int Length => _length;
+
+    public bool StoreInViewState(Type type, object? value, object? defaultValue)
+    {
+        var objSerializer = _provider
+            .GetServices<IViewStateSerializer>()
+            .FirstOrDefault(i => i.CanSerialize(type));
+
+        objSerializer ??= _provider.GetRequiredService<IDefaultViewStateSerializer>();
+
+        return objSerializer.StoreInViewState(type, value, defaultValue);
+    }
+
+    public bool StoreInViewState<T>(T? value, T? defaultValue)
         where T : notnull
     {
-        if (typeof(IViewStateObject).IsAssignableFrom(typeof(T)))
-        {
-            var instance = (IViewStateObject?)value;
-            if (instance == null)
-            {
-                throw new InvalidOperationException($"Cannot write null value for type {typeof(T).FullName}");
-            }
-
-            instance.WriteViewState(ref this);
-            return;
-        }
-
         var serializer = _provider.GetService<IViewStateSerializer<T>>();
-
-        int length;
 
         if (serializer != null)
         {
-            while (!serializer.TryWrite(value, _span, out length))
-            {
-                Grow();
-            }
+            return serializer.StoreInViewState(typeof(T), value, defaultValue);
+        }
+
+        return StoreInViewState(typeof(T), value, defaultValue);
+    }
+
+    public void Write(Type type, object? value, object? defaultValue = default)
+    {
+        var objSerializer = _provider
+            .GetServices<IViewStateSerializer>()
+            .FirstOrDefault(i => i.CanSerialize(type));
+
+        objSerializer ??= _provider.GetRequiredService<IDefaultViewStateSerializer>();
+
+        if (objSerializer == null)
+        {
+            throw new InvalidOperationException($"No serializer found for type {type.FullName}");
+        }
+
+        objSerializer.Write(type, ref this, value, defaultValue);
+    }
+
+    public void Write<T>(T? value, T? defaultValue = default)
+        where T : notnull
+    {
+        var serializer = _provider.GetService<IViewStateSerializer<T>>();
+
+        if (serializer != null)
+        {
+            serializer.Write(typeof(T), ref this, value, defaultValue);
         }
         else
         {
-            var objSerializer = _provider
-                .GetServices<IViewStateSerializer>()
-                .FirstOrDefault(i => i.CanSerialize(typeof(T)));
+            Write(typeof(T), value, defaultValue);
+        }
+    }
 
-            if (objSerializer == null)
-            {
-                throw new InvalidOperationException($"No serializer found for type {typeof(T).FullName}");
-            }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteByte(byte value)
+    {
+        if (_span.Length < 1) Grow();
 
-            while (!objSerializer.TryWrite(value, _span, out length))
-            {
-                Grow();
-            }
+        _span[0] = value;
+        Skip(1);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Span<byte> GetSpan(int length)
+    {
+        while (_span.Length < length)
+        {
+            Grow();
         }
 
-        _length += length;
+        return _span.Slice(0, length);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Span<byte> GetSpan(ViewStateWriterReservation reservation)
+    {
+        return _owner.Memory.Span.Slice(reservation.Offset, reservation.Length);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Skip(int length)
+    {
         _span = _span.Slice(length);
+        _length += length;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Span<byte> AllocateUnsafe(int length)
+    {
+        var span = _span.Slice(0, length);
+        Skip(length);
+        return span;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ViewStateWriterReservation Reserve(int length)
+    {
+        var span = new ViewStateWriterReservation(_length, length);
+        Skip(length);
+        return span;
     }
     
     private void Grow()
@@ -84,7 +148,7 @@ public ref struct ViewStateWriter
         _span = newMemory.Memory.Span.Slice(_length);
     }
 
-    internal void Dispose()
+    public void Dispose()
     {
         if (!_isDisposed)
         {
@@ -92,5 +156,17 @@ public ref struct ViewStateWriter
         }
 
         _isDisposed = true;
+    }
+}
+
+public readonly struct ViewStateWriterReservation
+{
+    public readonly int Offset;
+    public readonly int Length;
+
+    public ViewStateWriterReservation(int offset, int length)
+    {
+        Offset = offset;
+        Length = length;
     }
 }

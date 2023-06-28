@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace WebFormsCore.UI;
@@ -146,7 +147,6 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
 
     private readonly Dictionary<string, string?> _bag;
     private CssStyleCollection? _styleColl;
-    private bool _tracked;
     private readonly HashSet<string> _trackedKeys = new(StringComparer.OrdinalIgnoreCase);
 
     public AttributeCollection()
@@ -189,12 +189,10 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
 
     public CssStyleCollection CssStyle => _styleColl ??= new CssStyleCollection();
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Track(string key)
     {
-        if (_tracked)
-        {
-            _trackedKeys.Add(key);
-        }
+        _trackedKeys.Add(key);
     }
 
     public void Add(string key, string? value)
@@ -295,7 +293,6 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
     void IViewStateObject.TrackViewState()
     {
         _trackedKeys.Clear();
-        _tracked = true;
     }
 
     void IViewStateObject.WriteViewState(ref ViewStateWriter writer)

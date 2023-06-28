@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.Serializer;
 
@@ -31,41 +32,52 @@ public ref struct ViewStateReader
         _owner = owner;
     }
 
-    public T? Read<T>()
-        where T : notnull
+    public int Offset => _offset;
+
+    public object? Read(Type type, object? defaultValue = default)
     {
-        if (typeof(IViewStateObject).IsAssignableFrom(typeof(T)))
+        var objSerializer = Provider
+            .GetServices<IViewStateSerializer>()
+            .FirstOrDefault(i => i.CanSerialize(type));
+
+        objSerializer ??= Provider.GetRequiredService<IDefaultViewStateSerializer>();
+
+        if (objSerializer == null)
         {
-            var instance = (IViewStateObject) Activator.CreateInstance(typeof(T))!;
-            instance.ReadViewState(ref this);
-            return default;
+            throw new InvalidOperationException($"No serializer found for type {type}");
         }
 
-        var serializer = Provider.GetService<IViewStateSerializer<T>>();
+        return objSerializer.Read(type, ref this, defaultValue);
+    }
 
-        int length;
-        T? value;
+    public T? Read<T>(T? defaultValue = default)
+        where T : notnull
+    {
+        var serializer = Provider.GetService<IViewStateSerializer<T>>();
 
         if (serializer != null)
         {
-            value = serializer.Read(_span, out length);
-        }
-        else
-        {
-            var objSerializer = Provider
-                .GetServices<IViewStateSerializer>()
-                .FirstOrDefault(i => i.CanSerialize(typeof(T)));
-
-            if (objSerializer == null)
-            {
-                throw new InvalidOperationException($"No serializer found for type {typeof(T).FullName}");
-            }
-
-            value = (T?) objSerializer.Read(_span, out length);
+            return serializer.Read(typeof(T), ref this, defaultValue);
         }
 
+        return (T?) Read(typeof(T), defaultValue);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ReadOnlySpan<byte> ReadBytes(int length)
+    {
+        var span = _span.Slice(0, length);
         _span = _span.Slice(length);
         _offset += length;
+        return span;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public byte ReadByte()
+    {
+        var value = _span[0];
+        _span = _span.Slice(1);
+        _offset += 1;
         return value;
     }
 
@@ -75,17 +87,19 @@ public ref struct ViewStateReader
     }
 }
 
-internal sealed class ViewStateReaderOwner : IDisposable
+public sealed class ViewStateReaderOwner : IDisposable
 {
     private readonly IServiceProvider _provider;
-    private readonly IMemoryOwner<byte> _memory;
+    private readonly Memory<byte> _memory;
+    private readonly IDisposable? _disposable;
 
-    public ViewStateReaderOwner(IMemoryOwner<byte> memory, IServiceProvider provider, int offset, ushort controlCount)
+    public ViewStateReaderOwner(Memory<byte> memory, IServiceProvider provider, int offset = 0, ushort controlCount = 0, IDisposable? disposable = null)
     {
         Offset = offset;
         ControlCount = controlCount;
         _memory = memory;
         _provider = provider;
+        _disposable = disposable;
     }
 
     public int Offset { get; set; }
@@ -94,11 +108,11 @@ internal sealed class ViewStateReaderOwner : IDisposable
 
     public ViewStateReader CreateReader()
     {
-        return new ViewStateReader(_memory.Memory.Span.Slice(Offset), _provider, this);
+        return new ViewStateReader(_memory.Span.Slice(Offset), _provider, this);
     }
 
     public void Dispose()
     {
-        _memory?.Dispose();
+        _disposable?.Dispose();
     }
 }

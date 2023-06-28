@@ -251,7 +251,7 @@ public class ViewStateManager : IViewStateManager
             throw new ViewStateException("The viewstate length does not match the header");
         }
 
-        return new ViewStateReaderOwner(owner, _serviceProvider, offset, controlCount);
+        return new ViewStateReaderOwner(owner.Memory, _serviceProvider, offset, controlCount, owner);
     }
 
     private ViewStateReaderOwner CreateReader(string base64)

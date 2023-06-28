@@ -6,60 +6,59 @@ public interface IViewStateSerializer
 {
     bool CanSerialize(Type type);
 
-    bool TryWrite(object? value, Span<byte> span, out int length);
+    void Write(Type type, ref ViewStateWriter writer, object? value, object? defaultValue);
 
-    bool TryGetLength(object? value, out int length);
+    object? Read(Type type, ref ViewStateReader reader, object? defaultValue);
 
-    object? Read(ReadOnlySpan<byte> span, out int length);
+    bool StoreInViewState(Type type, object? value, object? defaultValue);
+}
+
+public interface IDefaultViewStateSerializer : IViewStateSerializer
+{
 }
 
 public interface IViewStateSerializer<T> : IViewStateSerializer
     where T : notnull
 {
-    bool TryWrite(T? value, Span<byte> span, out int length);
+    void Write(Type type, ref ViewStateWriter writer, T? value, T? defaultValue);
 
-    new T? Read(ReadOnlySpan<byte> span, out int length);
+    T? Read(Type type, ref ViewStateReader reader, T? defaultValue);
 
-    bool TryGetLength(T? value, out int length);
+    bool StoreInViewState(Type type, T? value, T? defaultValue);
 }
 
 public abstract class ViewStateSerializer<T> : IViewStateSerializer<T>
     where T : notnull
 {
-    public abstract bool TryWrite(T? value, Span<byte> span, out int length);
+    public abstract void Write(Type type, ref ViewStateWriter writer, T? value, T? defaultValue);
 
-    public abstract T? Read(ReadOnlySpan<byte> span, out int length);
+    public abstract T? Read(Type type, ref ViewStateReader reader, T? defaultValue);
 
-    public abstract bool TryGetLength(T? value, out int length);
+    public abstract bool StoreInViewState(Type type, T? value, T? defaultValue);
 
-    public bool CanSerialize(Type type)
+    public virtual bool CanSerialize(Type type)
     {
         return typeof(T) == type;
     }
 
-    bool IViewStateSerializer.TryGetLength(object? value, out int length)
+    void IViewStateSerializer.Write(Type type, ref ViewStateWriter writer, object? value, object? defaultValue)
     {
-        if (value is not T t)
-        {
-            length = 0;
-            return false;
-        }
-
-        return TryGetLength(t, out length);
+        Write(type, ref writer, (T?)value, defaultValue is null ? default : (T?)defaultValue);
     }
 
-    bool IViewStateSerializer.TryWrite(object? value, Span<byte> span, out int length)
+    object? IViewStateSerializer.Read(Type type, ref ViewStateReader reader, object? defaultValue)
     {
-        if (value is not T t)
+        return Read(type, ref reader, defaultValue is null ? default : (T?)defaultValue);
+    }
+
+    bool IViewStateSerializer.StoreInViewState(Type type, object? value, object? defaultValue)
+    {
+        if (value is not T t || defaultValue is not T d)
         {
             throw new InvalidOperationException("Invalid type");
         }
 
-        return TryWrite(t, span, out length);
+        return StoreInViewState(type, t, d);
     }
 
-    object? IViewStateSerializer.Read(ReadOnlySpan<byte> span, out int length)
-    {
-        return Read(span, out length);
-    }
 }

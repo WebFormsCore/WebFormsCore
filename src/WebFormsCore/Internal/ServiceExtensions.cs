@@ -37,28 +37,30 @@ public static class ServiceExtensions
         services.AddPooledControl<HtmlLink>();
         services.AddPooledControl<HtmlForm>();
 
-        services.AddSingleton<IViewStateSerializer<object>, ObjectViewStateSerializer>();
+        services.AddSingleton<IDefaultViewStateSerializer, DefaultViewStateSerializer>();
+        services.AddViewStateSerializer<ArrayViewStateSerializer>();
+        services.AddViewStateSerializer<ListViewStateSerializer>();
+        services.AddViewStateSerializer<ViewStateObjectSerializer>();
         services.AddViewStateSerializer<string, StringViewStateSerializer>();
-        services.AddViewStateSerializer<string[], ArrayViewStateSerializer<string>>();
-        services.AddViewStateSerializer<int>();
-        services.AddViewStateSerializer<uint>();
-        services.AddViewStateSerializer<short>();
-        services.AddViewStateSerializer<ushort>();
-        services.AddViewStateSerializer<byte>();
-        services.AddViewStateSerializer<sbyte>();
-        services.AddViewStateSerializer<long>();
-        services.AddViewStateSerializer<ulong>();
-        services.AddViewStateSerializer<float>();
-        services.AddViewStateSerializer<double>();
-        services.AddViewStateSerializer<decimal>();
-        services.AddViewStateSerializer<bool>();
-        services.AddViewStateSerializer<char>();
-        services.AddViewStateSerializer<DateTime>();
-        services.AddViewStateSerializer<DateTimeOffset>();
-        services.AddViewStateSerializer<TextBoxMode>();
-        services.AddViewStateSerializer<Unit>();
-        services.AddViewStateSerializer<AutoCompleteType>();
-        services.AddViewStateSerializer<LiteralMode>();
+        services.AddMarshalViewStateSerializer<int>();
+        services.AddMarshalViewStateSerializer<uint>();
+        services.AddMarshalViewStateSerializer<short>();
+        services.AddMarshalViewStateSerializer<ushort>();
+        services.AddMarshalViewStateSerializer<byte>();
+        services.AddMarshalViewStateSerializer<sbyte>();
+        services.AddMarshalViewStateSerializer<long>();
+        services.AddMarshalViewStateSerializer<ulong>();
+        services.AddMarshalViewStateSerializer<float>();
+        services.AddMarshalViewStateSerializer<double>();
+        services.AddMarshalViewStateSerializer<decimal>();
+        services.AddMarshalViewStateSerializer<bool>();
+        services.AddMarshalViewStateSerializer<char>();
+        services.AddMarshalViewStateSerializer<DateTime>();
+        services.AddMarshalViewStateSerializer<DateTimeOffset>();
+        services.AddMarshalViewStateSerializer<TextBoxMode>();
+        services.AddMarshalViewStateSerializer<Unit>();
+        services.AddMarshalViewStateSerializer<AutoCompleteType>();
+        services.AddMarshalViewStateSerializer<LiteralMode>();
 
         services.TryAddSingleton<IAttributeParser<string>, StringAttributeParser>();
         services.TryAddSingleton<IAttributeParser<int>, Int32AttributeParser>();
@@ -96,7 +98,7 @@ public static class ServiceExtensions
         return services;
     }
 
-    public static IServiceCollection AddViewStateSerializer<T>(this IServiceCollection services)
+    public static IServiceCollection AddMarshalViewStateSerializer<T>(this IServiceCollection services)
         where T : struct
     {
         AddViewStateSerializer<T, MarshalViewStateSerializer<T>>(services);
@@ -111,11 +113,23 @@ public static class ServiceExtensions
         where TSerializer : class, IViewStateSerializer<T>
         where T : notnull
     {
-        var offset = checked((byte)(1 + services.Count(i => i.ServiceType == typeof(ViewStateSerializerRegistration))));
+        AddViewStateSerializer<TSerializer>(services);
+        services.AddSingleton<IViewStateSerializer<T>>(p => p.GetRequiredService<TSerializer>());
+        return services;
+    }
 
-        services.AddSingleton<IViewStateSerializer<T>, TSerializer>();
-        services.AddSingleton<IViewStateSerializer>(p => p.GetRequiredService<IViewStateSerializer<T>>());
-        services.AddSingleton(new ViewStateSerializerRegistration(offset, typeof(IViewStateSerializer<T>)));
+    public static IServiceCollection AddViewStateSerializer<
+#if NET
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+        TSerializer>(this IServiceCollection services)
+        where TSerializer : class, IViewStateSerializer
+    {
+        var id = checked((byte)(DefaultViewStateSerializer.Offset + services.Count(i => i.ServiceType == typeof(ViewStateSerializerRegistration))));
+
+        services.AddSingleton<TSerializer>();
+        services.AddSingleton<IViewStateSerializer>(p => p.GetRequiredService<TSerializer>());
+        services.AddSingleton(new ViewStateSerializerRegistration(id, typeof(TSerializer)));
 
         return services;
     }
