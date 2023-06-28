@@ -7,7 +7,7 @@ namespace WebFormsCore.UI.WebControls;
 
 public partial class WebControl : Control, IAttributeAccessor
 {
-    private AttributeCollection? _attributes;
+    [ViewState] private AttributeCollection _attributes = new();
     private string? _tagName;
 
     /// <summary>Initializes a new instance of the <see cref="T:System.Web.UI.WebControls.WebControl" /> class that represents a <see langword="Span" /> HTML tag.</summary>
@@ -47,7 +47,7 @@ public partial class WebControl : Control, IAttributeAccessor
 
     /// <summary>Gets a collection of all attribute name and value pairs expressed on a server control tag within the ASP.NET page.</summary>
     /// <returns>A <see cref="T:WebFormsCore.UI.AttributeCollection" /> object that contains all attribute name and value pairs expressed on a server control tag within the Web page.</returns>
-    public AttributeCollection Attributes => _attributes ??= new AttributeCollection(ViewState);
+    public AttributeCollection Attributes => _attributes;
 
     protected virtual Task AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {

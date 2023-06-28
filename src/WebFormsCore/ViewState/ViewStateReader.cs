@@ -34,6 +34,13 @@ public ref struct ViewStateReader
     public T? Read<T>()
         where T : notnull
     {
+        if (typeof(IViewStateObject).IsAssignableFrom(typeof(T)))
+        {
+            var instance = (IViewStateObject) Activator.CreateInstance(typeof(T))!;
+            instance.ReadViewState(ref this);
+            return default;
+        }
+
         var serializer = Provider.GetService<IViewStateSerializer<T>>();
 
         int length;

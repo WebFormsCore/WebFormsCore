@@ -14,6 +14,7 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 {
     private IHttpContext? _context;
     private ScopedControlContainer? _scopedContainer;
+    public List<object>? _changedPostDataConsumers;
 
     public Page()
     {
@@ -44,6 +45,8 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     internal async Task<HtmlForm?> ProcessRequestAsync(CancellationToken token)
     {
+        IsPostBack = Context.Request.Method == "POST";
+
         var viewStateManager = ServiceProvider.GetRequiredService<IViewStateManager>();
 
         InvokeFrameworkInit(token);
@@ -60,7 +63,6 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
             await pageService.AfterInitializeAsync(this);
         }
 
-        var isPost = Context.Request.Method == "POST";
         var form = await viewStateManager.LoadFromRequestAsync(Context, this);
 
         ActiveForm = form;
@@ -69,14 +71,14 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
         {
             Forms.RemoveAll(i => i != form && i.Parent.Controls.Remove(i));
         }
-        else if (isPost)
+        else if (IsPostBack)
         {
             Forms.RemoveAll(i => i.Parent.Controls.Remove(i));
         }
 
         await InvokeLoadAsync(token, form);
 
-        if (isPost)
+        if (IsPostBack)
         {
             if (Context.Request.Form.TryGetValue("wfcTarget", out var eventTarget))
             {
@@ -87,6 +89,8 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
                 await InvokePostbackAsync(token, form, eventTarget, eventArgument);
             }
 
+            await RaiseChangedEventsAsync(token);
+
             if (form != null)
             {
                 await form.OnSubmitAsync(token);
@@ -96,6 +100,24 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
         await InvokePreRenderAsync(token, form);
 
         return form;
+    }
+
+    public async ValueTask RaiseChangedEventsAsync(CancellationToken cancellationToken)
+    {
+        if (_changedPostDataConsumers is not {} consumers) return;
+
+        foreach (var consumer in consumers)
+        {
+            if (consumer is IPostBackDataHandler handler)
+            {
+                handler.RaisePostDataChangedEvent();
+            }
+
+            if (consumer is IPostBackAsyncDataHandler eventHandler)
+            {
+                await eventHandler.RaisePostDataChangedEventAsync(cancellationToken);
+            }
+        }
     }
 
     protected internal virtual void Initialize(IHttpContext context)

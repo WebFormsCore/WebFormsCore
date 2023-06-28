@@ -5,6 +5,6 @@
 
 <% if (Count > 0) { %>
     <div class="alert alert-info p-2 mb-0 mt-4">
-        🎉 Counter is greater than 0.
+        🎉 Counter is greater than 0. It is <%= Count %>.
     </div>
 <% } %>

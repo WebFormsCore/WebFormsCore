@@ -623,11 +623,6 @@ public partial class Control : System.Web.UI.Control
     {
     }
 
-    protected virtual Task OnPostbackAsync(CancellationToken token)
-    {
-        return Task.CompletedTask;
-    }
-
     protected virtual Task OnLoadAsync(CancellationToken token)
     {
         return Task.CompletedTask;

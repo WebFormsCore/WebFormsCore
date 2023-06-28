@@ -5,7 +5,7 @@ namespace WebFormsCore.Language;
 
 internal class ParserContainer
 {
-    private readonly Stack<ElementNode> _elements = new();
+    private readonly Stack<ElementNode?> _elements = new();
     private readonly Stack<TemplateNode> _templates = new();
 
     public ParserContainer()
@@ -53,12 +53,19 @@ internal class ParserContainer
         Root.Directives.Add(node);
         Add(node);
     }
-    public void Push(ElementNode node)
+    public void Push(ElementNode? node)
     {
-        Add(node);
-        _elements.Push(node);
-        Current = node;
-        Parent = node;
+        if (node is not null)
+        {
+            Add(node);
+            _elements.Push(node);
+            Current = node;
+            Parent = node;
+        }
+        else
+        {
+            _elements.Push(null);
+        }
     }
 
     public ElementNode? Pop()
@@ -69,6 +76,12 @@ internal class ParserContainer
         }
         
         var current = _elements.Pop();
+
+        if (current is null)
+        {
+            return null;
+        }
+
         Current = current.Parent;
         Parent = (ContainerNode?) Current ?? Root;
 

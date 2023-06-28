@@ -31,11 +31,24 @@ public abstract class FixedLengthViewStateSerializer<T> : ViewStateSerializer<T>
             prefix = 1;
             length = 2;
         }
+        else if (TryGetLength(value, out var expectedLength) && expectedLength > span.Length)
+        {
+            length = 0;
+            return false;
+        }
         else
         {
-            var valueLength = WriteValue(value, span.Slice(2));
-            prefix = (ushort)(valueLength + Offset);
-            length = valueLength + 2;
+            try
+            {
+                var valueLength = WriteValue(value, span.Slice(2));
+                prefix = (ushort)(valueLength + Offset);
+                length = valueLength + 2;
+            }
+            catch (ArgumentException)
+            {
+                length = 0;
+                return false;
+            }
         }
 
         MemoryMarshal.Write(span.Slice(0, 2), ref prefix);

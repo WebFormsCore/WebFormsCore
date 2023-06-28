@@ -13,7 +13,7 @@ public partial class Default : Page
     protected override async Task OnInitAsync(CancellationToken token)
     {
         // Csp.Enabled = true;
-        EnablePageViewState = false;
+        // EnablePageViewState = false;
 
         await phTodoContainer.Controls.AddAsync(
             LoadControl("Controls/TodoList.ascx")
@@ -23,5 +23,10 @@ public partial class Default : Page
     protected override void OnLoad(EventArgs args)
     {
         title.InnerText = (PostbackCount++).ToString();
+    }
+
+    protected Task choices_OnValuesChanged(object? sender, EventArgs e)
+    {
+        return Task.CompletedTask;
     }
 }

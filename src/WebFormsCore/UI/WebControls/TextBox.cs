@@ -2,11 +2,12 @@ using System;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using HttpStack.Collections;
 using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI.WebControls;
 
-public partial class TextBox : WebControl, IPostBackAsyncEventHandler
+public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBackAsyncDataHandler
 {
     [ViewState(nameof(SaveTextViewState))] private string? _text;
     private bool _changedText;
@@ -51,20 +52,6 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler
     private bool IsReadOnly => !IsEnabled || !Visible || ReadOnly;
 
     protected virtual bool SaveTextViewState => TextMode != TextBoxMode.Password && (TextChanged != null || IsReadOnly || GetType() != typeof (TextBox));
-
-    protected override async Task OnPostbackAsync(CancellationToken token)
-    {
-        if (!IsReadOnly && UniqueID != null && Context.Request.Form[UniqueID] is { Count: > 0 } value)
-        {
-            var isChanged = _text != value;
-            _text = value;
-
-            if (TextChanged != null && isChanged)
-            {
-                await TextChanged.InvokeAsync(this, EventArgs.Empty);
-            }
-        }
-    }
 
     protected override async Task AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
@@ -176,6 +163,29 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler
         }
     }
 
+    protected virtual ValueTask<bool> LoadPostDataAsync(string postDataKey, IFormCollection postCollection, CancellationToken cancellationToken)
+    {
+        if (IsReadOnly || !postCollection.TryGetValue(postDataKey, out var value))
+        {
+            return new ValueTask<bool>(false);
+        }
+
+        var isChanged = !string.Equals(_text, value, StringComparison.Ordinal);
+        _text = value;
+
+        return new ValueTask<bool>(TextChanged != null && isChanged);
+    }
+
+    protected virtual ValueTask RaisePostDataChangedEventAsync(CancellationToken cancellationToken)
+    {
+        if (TextChanged != null)
+        {
+            return TextChanged.InvokeAsync(this, EventArgs.Empty);
+        }
+
+        return default;
+    }
+
     protected virtual async Task RaisePostBackEventAsync(string? eventArgument)
     {
         if (eventArgument == "ENTER")
@@ -186,4 +196,10 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler
 
     Task IPostBackAsyncEventHandler.RaisePostBackEventAsync(string? eventArgument)
         => RaisePostBackEventAsync(eventArgument);
+
+    ValueTask<bool> IPostBackAsyncDataHandler.LoadPostDataAsync(string postDataKey, IFormCollection postCollection, CancellationToken cancellationToken)
+        => LoadPostDataAsync(postDataKey, postCollection, cancellationToken);
+
+    ValueTask IPostBackAsyncDataHandler.RaisePostDataChangedEventAsync(CancellationToken cancellationToken)
+        => RaisePostDataChangedEventAsync(cancellationToken);
 }

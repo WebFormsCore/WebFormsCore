@@ -1,3 +1,6 @@
+#nullable enable
+#pragma warning disable CS8601 // Possible null reference assignment.
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,9 +15,17 @@ namespace {{ item.Namespace }}
     {
         private DefaultViewStateValues? _defaultViewStateValues;
 
-        protected override void TrackViewState()
+        {{ item.IsControl ? "protected override" : "private" }} void TrackViewState()
         {
+            {{- if item.IsControl }}
             base.TrackViewState();
+            {{- end }}
+
+            {{- for prop in item.Properties }}
+            {{- if prop.IsViewStateObject }}
+            ((WebFormsCore.IViewStateObject) {{ prop.Name }}).TrackViewState();
+            {{- end }}
+            {{- end }}
 
             #nullable disable
             _defaultViewStateValues = new DefaultViewStateValues
@@ -26,19 +37,27 @@ namespace {{ item.Namespace }}
             #nullable restore
         }
 
-		protected override void OnWriteViewState(ref ViewStateWriter writer)
+		{{ item.IsControl ? "protected override" : "private" }} void OnWriteViewState(ref ViewStateWriter writer)
         {
+            {{- if item.IsControl }}
             base.OnWriteViewState(ref writer);
+            {{- end }}
 
             var defaultValues = _defaultViewStateValues;
 
             {{ item.FlagType }} flag = 0;
         {{- for prop in item.Properties }}
+
+            // {{ prop.Name }}
         {{- if prop.Type == "bool" }}
             if ({{ prop.Name }}) flag |= {{ prop.Flag }};
         {{- else }}
+            {{- if prop.IsViewStateObject }}
+            var write{{ prop.Name }} = ((WebFormsCore.IViewStateObject) {{ prop.Name }}).WriteToViewState;
+            {{- else }}
             var write{{ prop.Name }} = (defaultValues == null || {{ prop.Name }} != defaultValues.{{ prop.Name }})
             {{- if prop.ValidateProperty }} && {{ prop.ValidateProperty }}{{ end -}};
+            {{- end }}
             if (write{{ prop.Name }}) flag |= {{ prop.Flag }};
         {{- end }}
         {{- end }}
@@ -46,19 +65,25 @@ namespace {{ item.Namespace }}
             writer.Write(flag);
 
         {{- for prop in item.Properties }}
-        {{- if prop.Type != "bool" }}
+        {{- if prop.IsViewStateObject }}
+            if (write{{ prop.Name }}) ((WebFormsCore.IViewStateObject) {{ prop.Name }}).WriteViewState(ref writer);
+        {{- else if prop.Type != "bool" }}
             if (write{{ prop.Name }}) writer.Write<{{ prop.Type }}>({{ prop.Name }});
         {{- end }}
         {{- end }}
         }
 
-		protected override void OnLoadViewState(ref ViewStateReader reader)
+		{{ item.IsControl ? "protected override" : "private" }} void OnLoadViewState(ref ViewStateReader reader)
         {
+            {{- if item.IsControl }}
             base.OnLoadViewState(ref reader);
+            {{- end }}
 
             var flag = reader.Read<{{ item.FlagType }}>();
         {{- for prop in item.Properties }}
-        {{- if prop.Type == "bool" }}
+        {{- if prop.IsViewStateObject }}
+            if ((flag & {{ prop.Flag }}) != 0) ((WebFormsCore.IViewStateObject) {{ prop.Name }}).ReadViewState(ref reader);
+        {{- else if prop.Type == "bool" }}
             {{ prop.Name }} = (flag & {{ prop.Flag }}) != 0;
         {{- else }}
             if ((flag & {{ prop.Flag }}) != 0) {{ prop.Name }} = reader.Read<{{ prop.Type }}>();
@@ -66,6 +91,8 @@ namespace {{ item.Namespace }}
         {{- end }}
         }
 
+        bool IViewStateObject.WriteToViewState => true;
+        void IViewStateObject.TrackViewState() => TrackViewState();
         void IViewStateObject.WriteViewState(ref ViewStateWriter writer) => OnWriteViewState(ref writer);
         void IViewStateObject.ReadViewState(ref ViewStateReader reader) => OnLoadViewState(ref reader);
 

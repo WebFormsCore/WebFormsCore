@@ -7,11 +7,11 @@ namespace WebFormsCore.UI.WebControls
     /// <summary>Defines the methods, properties, and events common to all HTML server controls in the ASP.NET page framework.</summary>
     [Designer("System.Web.UI.Design.HtmlIntrinsicControlDesigner, System.Design, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
     [ToolboxItem(false)]
-    public abstract class HtmlControl : Control, IAttributeAccessor
+    public abstract partial class HtmlControl : Control, IAttributeAccessor
     {
         internal string _tagName;
         private string _initialTagName;
-        private AttributeCollection? _attributes;
+        [ViewState] private AttributeCollection _attributes = new();
 
         /// <summary>Initializes a new instance of the <see cref="T:WebFormsCore.UI.WebControls.HtmlControl" /> class using default values.</summary>
         protected HtmlControl()
@@ -31,7 +31,7 @@ namespace WebFormsCore.UI.WebControls
         /// <returns>A <see cref="T:WebFormsCore.UI.AttributeCollection" /> object that contains all attribute name and value pairs expressed on a server control tag within the Web page.</returns>
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public AttributeCollection Attributes => _attributes ??= new AttributeCollection(ViewState);
+        public AttributeCollection Attributes => _attributes;
 
         /// <summary>Gets a collection of all cascading style sheet (CSS) properties applied to a specified HTML server control in the ASP.NET file.</summary>
         /// <returns>A <see cref="T:WebFormsCore.UI.CssStyleCollection" /> object that contains the style properties for the HTML server control.</returns>

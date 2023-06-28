@@ -20,7 +20,7 @@
             {{- else }}
             {{ child.VariableName }}.{{ prop.EventName }} += ({{ prop.Arguments }}) =>
             {
-                {{ if !prop.IsVoid }}var result = {{ end }}
+                {{ if !prop.IsVoid }}var result = {{ end -}}
                 {{ $3 }}{{- prop.MethodName }}({{ prop.Arguments }});
                 return {{ prop.ReturnValue }};
             };

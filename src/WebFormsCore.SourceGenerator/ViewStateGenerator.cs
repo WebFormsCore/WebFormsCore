@@ -81,7 +81,8 @@ namespace WebFormsCore.SourceGenerator
             string? Namespace,
             string Type,
             List<PropertyItem> Properties,
-            string FlagType
+            string FlagType,
+            bool IsControl
         );
 
         public record PropertyItem(
@@ -90,7 +91,8 @@ namespace WebFormsCore.SourceGenerator
             string Type,
             string? ValidateProperty,
             string? DefaultValue,
-            int Flag
+            int Flag,
+            bool IsViewStateObject
         );
 
         public record Model(
@@ -132,7 +134,8 @@ namespace WebFormsCore.SourceGenerator
                                 type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                                 validateProperty,
                                 variable.Initializer?.Value.ToString(),
-                                flag
+                                flag,
+                                type.AllInterfaces.Any(x => x.Name == "IViewStateObject")
                             ));
 
                             flag *= 2;
@@ -150,7 +153,8 @@ namespace WebFormsCore.SourceGenerator
                             type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                             validateProperty,
                             property.Initializer?.Value.ToString(),
-                            flag
+                            flag,
+                            type.AllInterfaces.Any(x => x.Name == "IViewStateObject")
                         ));
 
                         flag *= 2;
@@ -171,6 +175,22 @@ namespace WebFormsCore.SourceGenerator
                     typeName += typeParameterList.ToString();
                 }
 
+                var symbol = model.GetDeclaredSymbol(typeDeclaration) as ITypeSymbol;
+                var isControl = false;
+
+                var baseType = symbol?.BaseType;
+
+                while (baseType != null)
+                {
+                    if (baseType.Name == "Control")
+                    {
+                        isControl = true;
+                        break;
+                    }
+
+                    baseType = baseType.BaseType;
+                }
+
                 items.Add(new ClassItem(
                     ns,
                     typeName,
@@ -181,7 +201,8 @@ namespace WebFormsCore.SourceGenerator
                         <= 16 => "ushort",
                         <= 32 => "uint",
                         _ => "ulong"
-                    }
+                    },
+                    isControl
                 ));
             }
 

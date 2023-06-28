@@ -116,7 +116,27 @@ public partial class Control : IInternalControl
     {
         if (token.IsCancellationRequested) return;
 
-        await OnPostbackAsync(token);
+        if (UniqueID is {} uniqueId)
+        {
+            var didLoad = false;
+
+            if (this is IPostBackDataHandler dataHandler)
+            {
+                didLoad = dataHandler.LoadPostData(uniqueId, Page.Request.Form);
+            }
+
+            if (this is IPostBackAsyncDataHandler asyncDataHandler)
+            {
+                didLoad = await asyncDataHandler.LoadPostDataAsync(uniqueId, Page.Request.Form, token);
+            }
+
+            if (didLoad)
+            {
+                var handlers = Page._changedPostDataConsumers ??= new List<object>();
+
+                handlers.Add(this);
+            }
+        }
 
         if (target == UniqueID)
         {

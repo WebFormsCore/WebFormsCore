@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "lib": ["ES2017", "DOM"],
+        "lib": ["ES2017", "DOM", "DOM.Iterable"],
         "target": "ES2017"
     }
 }

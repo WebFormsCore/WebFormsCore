@@ -11,7 +11,7 @@ public enum ViewStateCompression : byte
     /// The view state is compressed with Brotli.
     /// </summary>
     /// <remarks>
-    /// Only supported in .NET 6
+    /// Only supported in .NET 6+.
     /// </remarks>
     Brotoli = 1,
 

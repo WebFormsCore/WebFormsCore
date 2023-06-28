@@ -18,7 +18,7 @@ public sealed class CssStyleCollection
         RegexOptions.Multiline |
         RegexOptions.ExplicitCapture);
 
-    private readonly StateBag? _state;
+    private readonly IDictionary<string, string?>? _state;
     private string? _style;
 
     private Dictionary<string, string?>? _table;
@@ -32,7 +32,7 @@ public sealed class CssStyleCollection
     /*
      * Constructs an CssStyleCollection given a StateBag.
      */
-    internal CssStyleCollection(StateBag? state)
+    internal CssStyleCollection(IDictionary<string, string?>? state)
     {
         _state = state;
     }
@@ -145,7 +145,13 @@ public sealed class CssStyleCollection
                 return _style ??= BuildString();
             }
 
-            return (string?)_state["style"];
+            if (!_state.TryGetValue("style", out var value))
+            {
+                value = BuildString();
+                _state["style"] = value;
+            }
+
+            return value;
         }
         set
         {

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
+using HttpStack.Collections;
 using WebFormsCore.UI;
 using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
@@ -54,4 +56,18 @@ public interface IPostBackEventHandler
 public interface IPostBackAsyncEventHandler
 {
     Task RaisePostBackEventAsync(string? eventArgument);
+}
+
+public interface IPostBackDataHandler
+{
+    bool LoadPostData(string postDataKey, IFormCollection postCollection);
+
+    void RaisePostDataChangedEvent();
+}
+
+public interface IPostBackAsyncDataHandler
+{
+    ValueTask<bool> LoadPostDataAsync(string postDataKey, IFormCollection postCollection, CancellationToken cancellationToken);
+
+    ValueTask RaisePostDataChangedEventAsync(CancellationToken cancellationToken);
 }

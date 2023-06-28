@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Text;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using WebFormsCore.Security;
 using ScriptDictionary = System.Collections.Generic.Dictionary<(System.Type, string), WebFormsCore.UI.RegisteredScript>;
 
@@ -52,7 +53,7 @@ public sealed class ClientScriptManager
                _startupBody.ContainsKey((type, key));
     }
 
-    public void RegisterStartupScript(Type type, string key, string script, bool addScriptTags = true)
+    public void RegisterStartupScript(Type type, string key, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true)
     {
         RegisterBlock(type, key, script, ref _startupBody, addScriptTags ? RegisterType.InlineScript : RegisterType.Raw);
     }

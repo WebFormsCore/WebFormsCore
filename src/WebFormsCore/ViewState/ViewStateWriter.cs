@@ -6,15 +6,6 @@ using WebFormsCore.Serializer;
 
 namespace WebFormsCore;
 
-public static class ViewStateWriterExtensions
-{
-    public static void Write<T>(ViewStateWriter writer, T value)
-        where T : IViewStateObject
-    {
-        value.WriteViewState(ref writer);
-    }
-}
-
 public ref struct ViewStateWriter
 {
     private readonly IServiceProvider _provider;
@@ -37,6 +28,18 @@ public ref struct ViewStateWriter
     public void Write<T>(T? value)
         where T : notnull
     {
+        if (typeof(IViewStateObject).IsAssignableFrom(typeof(T)))
+        {
+            var instance = (IViewStateObject?)value;
+            if (instance == null)
+            {
+                throw new InvalidOperationException($"Cannot write null value for type {typeof(T).FullName}");
+            }
+
+            instance.WriteViewState(ref this);
+            return;
+        }
+
         var serializer = _provider.GetService<IViewStateSerializer<T>>();
 
         int length;
