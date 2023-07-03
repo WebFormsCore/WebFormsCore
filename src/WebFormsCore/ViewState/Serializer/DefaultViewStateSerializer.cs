@@ -7,7 +7,7 @@ namespace WebFormsCore.Serializer;
 
 public class DefaultViewStateSerializer : IDefaultViewStateSerializer
 {
-    public const int Offset = 1;
+    public const int Offset = 3;
 
     private readonly Dictionary<byte, IViewStateSerializer> _serializers;
 
@@ -36,14 +36,16 @@ public class DefaultViewStateSerializer : IDefaultViewStateSerializer
             return;
         }
 
-        if (!TryGetRegistration(type, out var registration))
+        var valueType = value.GetType();
+
+        if (!TryGetRegistration(valueType, out var registration))
         {
             WriteFallback(type, ref writer, value, defaultValue);
             return;
         }
 
         writer.WriteByte(registration.Key);
-        registration.Value.Write(type, ref writer, value, defaultValue);
+        registration.Value.Write(valueType, ref writer, value, defaultValue);
     }
 
     public object? Read(Type type, ref ViewStateReader reader, object? defaultValue)

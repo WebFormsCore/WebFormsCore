@@ -41,6 +41,7 @@ public static class ServiceExtensions
         services.AddViewStateSerializer<ArrayViewStateSerializer>();
         services.AddViewStateSerializer<ListViewStateSerializer>();
         services.AddViewStateSerializer<ViewStateObjectSerializer>();
+        services.AddViewStateSerializer<EnumViewStateSerializer>();
         services.AddViewStateSerializer<string, StringViewStateSerializer>();
         services.AddMarshalViewStateSerializer<int>();
         services.AddMarshalViewStateSerializer<uint>();
@@ -55,12 +56,6 @@ public static class ServiceExtensions
         services.AddMarshalViewStateSerializer<decimal>();
         services.AddMarshalViewStateSerializer<bool>();
         services.AddMarshalViewStateSerializer<char>();
-        services.AddMarshalViewStateSerializer<DateTime>();
-        services.AddMarshalViewStateSerializer<DateTimeOffset>();
-        services.AddMarshalViewStateSerializer<TextBoxMode>();
-        services.AddMarshalViewStateSerializer<Unit>();
-        services.AddMarshalViewStateSerializer<AutoCompleteType>();
-        services.AddMarshalViewStateSerializer<LiteralMode>();
 
         services.TryAddSingleton<IAttributeParser<string>, StringAttributeParser>();
         services.TryAddSingleton<IAttributeParser<int>, Int32AttributeParser>();

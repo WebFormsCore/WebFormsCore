@@ -8,6 +8,13 @@ namespace WebFormsCore.Example.Controls;
 
 public partial class TodoList : Control
 {
+    protected override void OnLoad(EventArgs args)
+    {
+        base.OnLoad(args);
+
+        tbItem.TextMode = TextBoxMode.MultiLine;
+    }
+
     protected async Task tbItem_OnEnterPressed(object? sender, EventArgs e)
     {
         if (tbItem.Text is {} value)

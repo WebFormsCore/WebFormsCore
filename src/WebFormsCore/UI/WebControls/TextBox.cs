@@ -13,9 +13,10 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
     private bool _changedText;
 
     public TextBox()
-        : base(HtmlTextWriterTag.Input)
     {
     }
+
+    protected override HtmlTextWriterTag TagKey => IsMultiLine ? HtmlTextWriterTag.Textarea : HtmlTextWriterTag.Input;
 
     [ViewState] public bool AutoPostBack { get; set; }
 
@@ -53,16 +54,13 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
     protected virtual bool SaveTextViewState => TextMode != TextBoxMode.Password && (TextChanged != null || IsReadOnly || GetType() != typeof (TextBox));
 
+    private bool WriteValue => !Page.IsPostBack || _changedText;
+
     protected override async Task AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
         await base.AddAttributesToRender(writer, token);
 
         writer.AddAttribute(HtmlTextWriterAttribute.Name, UniqueID);
-
-        if (!Page.IsPostBack || _changedText)
-        {
-            writer.AddAttribute(HtmlTextWriterAttribute.Value, _text ?? string.Empty);
-        }
 
         if (MaxLength > 0) writer.AddAttribute(HtmlTextWriterAttribute.Maxlength, MaxLength.ToString(CultureInfo.InvariantCulture));
 
@@ -88,16 +86,28 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
         switch (TextMode)
         {
             case TextBoxMode.MultiLine:
-                writer.AddAttribute(HtmlTextWriterAttribute.Cols, Columns.ToString(CultureInfo.InvariantCulture));
-                writer.AddAttribute(HtmlTextWriterAttribute.Rows, Rows.ToString(CultureInfo.InvariantCulture));
+                if (Columns > 0) writer.AddAttribute(HtmlTextWriterAttribute.Cols, Columns.ToString(CultureInfo.InvariantCulture));
+                if (Rows > 0) writer.AddAttribute(HtmlTextWriterAttribute.Rows, Rows.ToString(CultureInfo.InvariantCulture));
                 if (!Wrap) writer.AddAttribute(HtmlTextWriterAttribute.Wrap, "off");
                 break;
             default:
                 writer.AddAttribute(HtmlTextWriterAttribute.Type, GetTypeAttributeValue(TextMode));
+                if (WriteValue) writer.AddAttribute(HtmlTextWriterAttribute.Value, _text ?? string.Empty);
+
                 break;
         }
 
         if (TextChanged != null) writer.AddAttribute("data-wfc-autopostback", null);
+    }
+
+    protected override async Task RenderContentsAsync(HtmlTextWriter writer, CancellationToken token)
+    {
+        await base.RenderContentsAsync(writer, token);
+
+        if (TextMode == TextBoxMode.MultiLine && WriteValue)
+        {
+            await writer.WriteEncodedTextAsync(_text ?? string.Empty);
+        }
     }
 
     protected override void SetAttribute(string name, string? value)
