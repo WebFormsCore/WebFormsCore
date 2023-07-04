@@ -28,4 +28,12 @@ public class MarshalViewStateSerializer<T> : ViewStateSerializer<T>
     {
         return true;
     }
+
+    public override void TrackViewState(Type type, T value, ViewStateProvider provider)
+    {
+        if (value is IViewStateObject serializable)
+        {
+            serializable.TrackViewState(provider);
+        }
+    }
 }

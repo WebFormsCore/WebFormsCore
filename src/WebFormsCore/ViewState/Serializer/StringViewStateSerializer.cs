@@ -47,4 +47,8 @@ public class StringViewStateSerializer : ViewStateSerializer<string>
     {
         return !string.Equals(value, defaultValue, StringComparison.Ordinal);
     }
+
+    public override void TrackViewState(Type type, string? value, ViewStateProvider provider)
+    {
+    }
 }

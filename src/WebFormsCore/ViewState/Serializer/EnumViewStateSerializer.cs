@@ -34,11 +34,8 @@ public class EnumViewStateSerializer : IViewStateSerializer
     {
         if (value is null)
         {
-            writer.WriteByte(0);
-            return;
+            throw new InvalidOperationException("Enum value cannot be null");
         }
-
-        writer.WriteByte(1);
 
         var underlyingType = Enum.GetUnderlyingType(type);
 
@@ -82,11 +79,6 @@ public class EnumViewStateSerializer : IViewStateSerializer
 
     public object? Read(Type type, ref ViewStateReader reader, object? defaultValue)
     {
-        if (reader.ReadByte() == 0)
-        {
-            return null;
-        }
-
         var underlyingType = Enum.GetUnderlyingType(type);
 
         if (underlyingType == typeof(byte))
@@ -135,5 +127,9 @@ public class EnumViewStateSerializer : IViewStateSerializer
     public bool StoreInViewState(Type type, object? value, object? defaultValue)
     {
         return !Equals(value, defaultValue);
+    }
+
+    public void TrackViewState(Type type, object? value, ViewStateProvider provider)
+    {
     }
 }

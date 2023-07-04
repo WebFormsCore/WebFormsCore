@@ -145,14 +145,9 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
         KeyToId = IdToKey.ToDictionary(x => x.Value, x => x.Key, StringComparer.OrdinalIgnoreCase);
     }
 
-    private readonly Dictionary<string, string?> _bag;
+    private readonly Dictionary<string, string?> _bag = new();
     private CssStyleCollection? _styleColl;
     private readonly HashSet<string> _trackedKeys = new(StringComparer.OrdinalIgnoreCase);
-
-    public AttributeCollection()
-    {
-        _bag = new Dictionary<string, string?>();
-    }
 
     public bool TryGetValue(string key, out string? value)
     {
@@ -290,7 +285,7 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
 
     bool IViewStateObject.WriteToViewState => _trackedKeys.Count > 0;
 
-    void IViewStateObject.TrackViewState()
+    void IViewStateObject.TrackViewState(ViewStateProvider provider)
     {
         _trackedKeys.Clear();
     }

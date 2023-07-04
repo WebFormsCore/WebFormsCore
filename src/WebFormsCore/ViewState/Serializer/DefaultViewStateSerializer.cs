@@ -7,7 +7,7 @@ namespace WebFormsCore.Serializer;
 
 public class DefaultViewStateSerializer : IDefaultViewStateSerializer
 {
-    public const int Offset = 3;
+    public const int Offset = 1;
 
     private readonly Dictionary<byte, IViewStateSerializer> _serializers;
 
@@ -24,6 +24,11 @@ public class DefaultViewStateSerializer : IDefaultViewStateSerializer
     }
 
     protected virtual object? ReadFallback(Type type, ref ViewStateReader reader, object? defaultValue)
+    {
+        throw new InvalidOperationException($"No serializer found for type {type.FullName}");
+    }
+
+    protected virtual void TrackViewStateFallback(Type type, object value)
     {
         throw new InvalidOperationException($"No serializer found for type {type.FullName}");
     }
@@ -76,6 +81,19 @@ public class DefaultViewStateSerializer : IDefaultViewStateSerializer
         }
 
         return registration.Value.StoreInViewState(type, value, defaultValue);
+    }
+
+    public void TrackViewState(Type type, object? value, ViewStateProvider provider)
+    {
+        if (value is null) return;
+
+        if (!TryGetRegistration(type, out var registration))
+        {
+            TrackViewStateFallback(type, value);
+            return;
+        }
+
+        registration.Value.TrackViewState(type, value, provider);
     }
 
     protected virtual bool StoreInViewStateFallback(Type type, object value, object defaultValue)

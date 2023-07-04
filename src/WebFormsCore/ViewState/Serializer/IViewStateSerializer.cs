@@ -11,6 +11,8 @@ public interface IViewStateSerializer
     object? Read(Type type, ref ViewStateReader reader, object? defaultValue);
 
     bool StoreInViewState(Type type, object? value, object? defaultValue);
+
+    void TrackViewState(Type type, object? value, ViewStateProvider provider);
 }
 
 public interface IDefaultViewStateSerializer : IViewStateSerializer
@@ -18,13 +20,14 @@ public interface IDefaultViewStateSerializer : IViewStateSerializer
 }
 
 public interface IViewStateSerializer<T> : IViewStateSerializer
-    where T : notnull
 {
     void Write(Type type, ref ViewStateWriter writer, T? value, T? defaultValue);
 
     T? Read(Type type, ref ViewStateReader reader, T? defaultValue);
 
     bool StoreInViewState(Type type, T? value, T? defaultValue);
+
+    void TrackViewState(Type type, T? value, ViewStateProvider provider);
 }
 
 public abstract class ViewStateSerializer<T> : IViewStateSerializer<T>
@@ -35,6 +38,8 @@ public abstract class ViewStateSerializer<T> : IViewStateSerializer<T>
     public abstract T? Read(Type type, ref ViewStateReader reader, T? defaultValue);
 
     public abstract bool StoreInViewState(Type type, T? value, T? defaultValue);
+
+    public abstract void TrackViewState(Type type, T? value, ViewStateProvider provider);
 
     public virtual bool CanSerialize(Type type)
     {
@@ -59,6 +64,21 @@ public abstract class ViewStateSerializer<T> : IViewStateSerializer<T>
         }
 
         return StoreInViewState(type, t, d);
+    }
+
+    void IViewStateSerializer.TrackViewState(Type type, object? value, ViewStateProvider provider)
+    {
+        if (value is null)
+        {
+            return;
+        }
+
+        if (value is not T t)
+        {
+            throw new InvalidOperationException("Invalid type");
+        }
+
+        TrackViewState(type, t, provider);
     }
 
 }

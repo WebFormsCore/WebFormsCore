@@ -42,6 +42,7 @@ public static class ServiceExtensions
         services.AddViewStateSerializer<ListViewStateSerializer>();
         services.AddViewStateSerializer<ViewStateObjectSerializer>();
         services.AddViewStateSerializer<EnumViewStateSerializer>();
+        services.AddViewStateSerializer<NullableViewStateSerializer>();
         services.AddViewStateSerializer<string, StringViewStateSerializer>();
         services.AddMarshalViewStateSerializer<int>();
         services.AddMarshalViewStateSerializer<uint>();

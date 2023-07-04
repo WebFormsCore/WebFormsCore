@@ -85,7 +85,7 @@ public partial class Control : IInternalControl
     {
         if (token.IsCancellationRequested) return;
 
-        TrackViewState();
+        TrackViewState(new ViewStateProvider(ServiceProvider));
 
         foreach (var control in Controls)
         {

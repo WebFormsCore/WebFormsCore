@@ -4,7 +4,7 @@
     {
         bool WriteToViewState { get; }
 
-        void TrackViewState();
+        void TrackViewState(ViewStateProvider provider);
 
         void WriteViewState(ref ViewStateWriter writer);
 

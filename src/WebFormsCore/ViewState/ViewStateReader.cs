@@ -51,7 +51,6 @@ public ref struct ViewStateReader
     }
 
     public T? Read<T>(T? defaultValue = default)
-        where T : notnull
     {
         var serializer = Provider.GetService<IViewStateSerializer<T>>();
 

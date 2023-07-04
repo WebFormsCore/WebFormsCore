@@ -31,7 +31,7 @@ public class LiteralHtmlControl : HtmlGenericControl
         return Attributes.RenderAsync(writer);
     }
 
-    protected override void TrackViewState()
+    protected override void TrackViewState(ViewStateProvider provider)
     {
     }
 

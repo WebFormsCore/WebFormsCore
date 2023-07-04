@@ -43,8 +43,8 @@ public ref struct ViewStateWriter
         return objSerializer.StoreInViewState(type, value, defaultValue);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool StoreInViewState<T>(T? value, T? defaultValue)
-        where T : notnull
     {
         var serializer = _provider.GetService<IViewStateSerializer<T>>();
 
@@ -72,8 +72,8 @@ public ref struct ViewStateWriter
         objSerializer.Write(type, ref this, value, defaultValue);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write<T>(T? value, T? defaultValue = default)
-        where T : notnull
     {
         var serializer = _provider.GetService<IViewStateSerializer<T>>();
 

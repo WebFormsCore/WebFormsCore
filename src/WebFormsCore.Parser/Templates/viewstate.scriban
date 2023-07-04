@@ -15,16 +15,14 @@ namespace {{ item.Namespace }}
     {
         private DefaultViewStateValues? _defaultViewStateValues;
 
-        {{ item.IsControl ? "protected override" : "private" }} void TrackViewState()
+        {{ item.IsControl ? "protected override" : "private" }} void TrackViewState(ViewStateProvider provider)
         {
             {{- if item.IsControl }}
-            base.TrackViewState();
+            base.TrackViewState(provider);
             {{- end }}
 
             {{- for prop in item.Properties }}
-            {{- if prop.IsViewStateObject }}
-            ((WebFormsCore.IViewStateObject) {{ prop.Name }}).TrackViewState();
-            {{- end }}
+            provider.TrackViewState<{{ prop.Type }}>({{ prop.Name }});
             {{- end }}
 
             #nullable disable
@@ -84,7 +82,7 @@ namespace {{ item.Namespace }}
         }
 
         bool IViewStateObject.WriteToViewState => true;
-        void IViewStateObject.TrackViewState() => TrackViewState();
+        void IViewStateObject.TrackViewState(ViewStateProvider provider) => TrackViewState(provider);
         void IViewStateObject.WriteViewState(ref ViewStateWriter writer) => OnWriteViewState(ref writer);
         void IViewStateObject.ReadViewState(ref ViewStateReader reader) => OnLoadViewState(ref reader);
 

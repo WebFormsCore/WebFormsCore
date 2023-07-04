@@ -4,6 +4,11 @@ namespace WebFormsCore.Serializer;
 
 public class ViewStateObjectSerializer : ViewStateSerializer<IViewStateObject>
 {
+    public override void TrackViewState(Type type, IViewStateObject? value, ViewStateProvider provider)
+    {
+        value?.TrackViewState(provider);
+    }
+
     public override bool CanSerialize(Type type)
     {
         return typeof(IViewStateObject).IsAssignableFrom(type);

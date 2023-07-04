@@ -70,6 +70,27 @@ public abstract class EnumerableViewStateSerializer<T> : IViewStateSerializer
 
     public bool StoreInViewState(Type type, object? value, object? defaultValue) => true;
 
+    public void TrackViewState(Type type, object? value, ViewStateProvider provider)
+    {
+        if (value is null)
+        {
+            return;
+        }
+
+        if (!IsSupported(type, out var itemType))
+        {
+            throw new InvalidOperationException("Invalid type");
+        }
+
+        foreach (var item in (IEnumerable)value)
+        {
+            if (item is IViewStateObject viewStateObject)
+            {
+                provider.TrackViewState(itemType, viewStateObject);
+            }
+        }
+    }
+
     protected abstract T Create(Type typeArgument, int count, T? defaultValue);
 
     protected abstract void Add(T collection, int index, object? value);

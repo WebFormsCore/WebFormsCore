@@ -45,7 +45,7 @@ public sealed partial class ListItem : IAttributeAccessor
 
     /// <summary>Gets a collection of attribute name and value pairs for the <see cref="T:System.Web.UI.WebControls.ListItem" /> that are not directly supported by the class.</summary>
     /// <returns>A <see cref="T:System.Web.UI.AttributeCollection" /> that contains a collection of name and value pairs.</returns>
-    public AttributeCollection Attributes => _attributes ??= new AttributeCollection();
+    public AttributeCollection Attributes => _attributes;
 
     /// <summary>Gets or sets a value indicating whether the list item is enabled.</summary>
     /// <returns>true if the list item is enabled; otherwise, false. The default is true.</returns>

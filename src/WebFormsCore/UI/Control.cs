@@ -608,7 +608,7 @@ public partial class Control : System.Web.UI.Control
     {
     }
 
-    protected virtual void TrackViewState()
+    protected virtual void TrackViewState(ViewStateProvider provider)
     {
         _viewState?.TrackViewState();
         _trackViewState = true;
