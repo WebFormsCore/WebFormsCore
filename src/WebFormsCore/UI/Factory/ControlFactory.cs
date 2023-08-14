@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,12 +9,14 @@ namespace WebFormsCore.UI;
 internal sealed class ControlFactory<T> : IControlFactory<T>
     where T : Control
 {
+    private readonly IControlInterceptor[] _interceptors;
     private readonly IControlManager _manager;
     private readonly string[] _viewPaths;
 
-    public ControlFactory(IControlManager manager)
+    public ControlFactory(IControlManager manager, IEnumerable<IControlInterceptor> interceptors)
     {
         _manager = manager;
+        _interceptors = interceptors.ToArray();
         _viewPaths = typeof(T).GetCustomAttributes<CompiledViewAttribute>().Any()
             ? Array.Empty<string>()
             : typeof(T).GetCustomAttributes<ViewPathAttribute>()
@@ -22,6 +25,18 @@ internal sealed class ControlFactory<T> : IControlFactory<T>
     }
 
     public T CreateControl(IServiceProvider provider)
+    {
+        var control = CreateControlInner(provider);
+
+        foreach (var interceptor in _interceptors)
+        {
+            control = interceptor.OnControlCreated(control);
+        }
+
+        return control;
+    }
+
+    private T CreateControlInner(IServiceProvider provider)
     {
         if (_viewPaths.Length == 0)
         {

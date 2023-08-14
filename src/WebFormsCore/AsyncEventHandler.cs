@@ -13,6 +13,20 @@ public delegate Task AsyncEventHandler<in T>(object? sender, T e);
 [SuppressMessage("ReSharper", "ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract")]
 public static class AsyncEventHandlerHelper
 {
+    #if NET8_0_OR_GREATER
+
+    private static (int, object) GetInvocationList(MulticastDelegate d)
+    {
+        return ((int) GetInvocationCountField(d), GetInvocationListField(d));
+
+        [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_invocationList")]
+        static extern ref object GetInvocationListField(MulticastDelegate d);
+
+        [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_invocationCount")]
+        static extern ref nint GetInvocationCountField(MulticastDelegate d);
+    }
+
+    #else
     private static readonly Func<MulticastDelegate, (int, object)> GetInvocationList = CreateGetInvocationList();
 
     private static Func<MulticastDelegate, (int, object)> CreateGetInvocationList()
@@ -36,6 +50,7 @@ public static class AsyncEventHandlerHelper
         var lambda = Expression.Lambda<Func<MulticastDelegate, (int, object)>>(tuple, parameter);
         return lambda.Compile();
     }
+    #endif
 
     public static async ValueTask InvokeAsync(this AsyncEventHandler? handler, object? sender, EventArgs e)
     {

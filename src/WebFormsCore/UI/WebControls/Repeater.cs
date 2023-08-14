@@ -13,6 +13,7 @@ public partial class Repeater : Control, IPostBackLoadHandler, INamingContainer
     private readonly List<(RepeaterItem Item, Control? Seperator)> _items = new();
     private Control? _header;
     private Control? _footer;
+    private bool _namesDirty;
 
     [ViewState] private int _itemCount;
 
@@ -113,14 +114,14 @@ public partial class Repeater : Control, IPostBackLoadHandler, INamingContainer
                 }
             }
 
-            UpdateNames();
+            _namesDirty = true;
         }
     }
 
     public void Swap(int index1, int index2)
     {
         (_items[index1], _items[index2]) = (_items[index2], _items[index1]);
-        UpdateNames();
+        _namesDirty = true;
     }
 
     public void Swap(RepeaterItem item1, RepeaterItem item2)
@@ -152,6 +153,16 @@ public partial class Repeater : Control, IPostBackLoadHandler, INamingContainer
                 separator.ID = $"s{i}";
             }
         }
+    }
+
+    protected override Task OnPreRenderAsync(CancellationToken token)
+    {
+        if (_namesDirty)
+        {
+            UpdateNames();
+        }
+
+        return base.OnPreRenderAsync(token);
     }
 
     protected override async Task RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
