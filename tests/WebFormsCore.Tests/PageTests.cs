@@ -2,7 +2,7 @@
 using HttpStack;
 using HttpStack.Collections;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
+using NSubstitute;
 using WebFormsCore.Options;
 using WebFormsCore.UI;
 
@@ -27,20 +27,20 @@ public partial class PageTest
 
         var pageManager = serviceProvider.GetRequiredService<IPageManager>();
 
-        var coreRequest = new Mock<IHttpRequest>();
-        coreRequest.SetupGet(x => x.Method).Returns("GET");
+        var coreRequest = Substitute.For<IHttpRequest>();
+        coreRequest.Method.Returns("GET");
 
-        var coreResponse = new Mock<IHttpResponse>();
+        var coreResponse = Substitute.For<IHttpResponse>();
         var headers = new HeaderDictionary();
-        coreResponse.SetupGet(x => x.Headers).Returns(headers);
-        coreResponse.SetupGet(x => x.Body).Returns(stream);
+        coreResponse.Headers.Returns(headers);
+        coreResponse.Body.Returns(stream);
 
-        var coreContext = new Mock<IHttpContext>();
-        coreContext.SetupGet(c => c.Request).Returns(coreRequest.Object);
-        coreContext.SetupGet(c => c.Response).Returns(coreResponse.Object);
-        coreContext.SetupGet(c => c.RequestServices).Returns(serviceProvider);
+        var coreContext = Substitute.For<IHttpContext>();
+        coreContext.Request.Returns(coreRequest);
+        coreContext.Response.Returns(coreResponse);
+        coreContext.RequestServices.Returns(serviceProvider);
 
-        var page = await pageManager.RenderPageAsync(coreContext.Object, path);
+        var page = await pageManager.RenderPageAsync(coreContext, path);
 
         stream.Position = 0;
 

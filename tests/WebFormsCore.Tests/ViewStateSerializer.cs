@@ -1,4 +1,4 @@
-using Moq;
+using NSubstitute;
 using WebFormsCore.Serializer;
 
 namespace WebFormsCore.Tests;
@@ -11,21 +11,22 @@ public class ViewStateSerializer
     [InlineData(null, 2)]
     public void Array(string[]? expected, int expectedLength)
     {
-        var provider = new Mock<IServiceProvider>();
+        var provider = Substitute.For<IServiceProvider>();
         var stringViewSerializer = new StringViewStateSerializer();
         var arraySerializer = new ArrayViewStateSerializer();
 
-        provider.Setup(x => x.GetService(typeof(IEnumerable<IViewStateSerializer>)))
+        provider
+            .GetService(typeof(IEnumerable<IViewStateSerializer>))
             .Returns(new IViewStateSerializer[] { stringViewSerializer, arraySerializer });
 
         // Write the value
-        var writer = new ViewStateWriter(provider.Object);
+        var writer = new ViewStateWriter(provider);
 
         writer.Write(expected);
         Assert.Equal(expectedLength, writer.Length);
 
         // Read the value
-        using var owner = new ViewStateReaderOwner(writer.Memory, provider.Object);
+        using var owner = new ViewStateReaderOwner(writer.Memory, provider);
         using var reader = owner.CreateReader();
 
         var result = reader.Read<string[]>();
@@ -46,21 +47,22 @@ public class ViewStateSerializer
     [MemberData(nameof(ListData))]
     public void List(List<string>? expected, int expectedLength)
     {
-        var provider = new Mock<IServiceProvider>();
+        var provider = Substitute.For<IServiceProvider>();
         var stringViewSerializer = new StringViewStateSerializer();
         var arraySerializer = new ListViewStateSerializer();
 
-        provider.Setup(x => x.GetService(typeof(IEnumerable<IViewStateSerializer>)))
+        provider
+            .GetService(typeof(IEnumerable<IViewStateSerializer>))
             .Returns(new IViewStateSerializer[] { stringViewSerializer, arraySerializer });
 
         // Write the value
-        var writer = new ViewStateWriter(provider.Object);
+        var writer = new ViewStateWriter(provider);
 
         writer.Write(expected);
         Assert.Equal(expectedLength, writer.Length);
 
         // Read the value
-        using var owner = new ViewStateReaderOwner(writer.Memory, provider.Object);
+        using var owner = new ViewStateReaderOwner(writer.Memory, provider);
         using var reader = owner.CreateReader();
 
         var result = reader.Read<List<string>>();
@@ -84,20 +86,21 @@ public class ViewStateSerializer
             expected.Add("Item");
         }
 
-        var provider = new Mock<IServiceProvider>();
+        var provider = Substitute.For<IServiceProvider>();
         var stringViewSerializer = new StringViewStateSerializer();
         var arraySerializer = new ListViewStateSerializer();
 
-        provider.Setup(x => x.GetService(typeof(IEnumerable<IViewStateSerializer>)))
+        provider
+            .GetService(typeof(IEnumerable<IViewStateSerializer>))
             .Returns(new IViewStateSerializer[] { stringViewSerializer, arraySerializer });
 
         // Write the value
-        var writer = new ViewStateWriter(provider.Object);
+        var writer = new ViewStateWriter(provider);
 
         writer.Write(expected);
 
         // Read the value
-        using var owner = new ViewStateReaderOwner(writer.Memory, provider.Object);
+        using var owner = new ViewStateReaderOwner(writer.Memory, provider);
         using var reader = owner.CreateReader();
 
         var result = reader.Read<List<string>>();
