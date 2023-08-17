@@ -184,11 +184,11 @@ async function submitForm(form?: HTMLElement, eventTarget?: string, eventArgumen
                 }
             },
             onBeforeElUpdated: function(fromEl, toEl) {
-                if (!toEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateNode", {cancelable: true, detail: {node: toEl, source: fromEl, form, eventTarget}}))) {
+                if (!fromEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateNode", {cancelable: true, bubbles: true, detail: {node: fromEl, source: toEl, form, eventTarget}}))) {
                     return false;
                 }
 
-                if (fromEl.nodeType === Node.ELEMENT_NODE && !toEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateElement", {cancelable: true, detail: {element: toEl, source: fromEl, form, eventTarget}}))) {
+                if (fromEl.nodeType === Node.ELEMENT_NODE && !fromEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateElement", {cancelable: true, bubbles: true, detail: {element: fromEl, source: toEl, form, eventTarget}}))) {
                     return false;
                 }
 
@@ -211,7 +211,7 @@ async function submitForm(form?: HTMLElement, eventTarget?: string, eventArgumen
             },
             onElUpdated(el) {
                 if (el.nodeType === Node.ELEMENT_NODE) {
-                    document.dispatchEvent(new CustomEvent("wfc:updateElement", {detail: {element: el, form, eventTarget}}));
+                    el.dispatchEvent(new CustomEvent("wfc:updateElement", { bubbles: true, detail: {element: el, form, eventTarget} }));
                 }
             },
             onBeforeNodeDiscarded(node) {
@@ -227,15 +227,11 @@ async function submitForm(form?: HTMLElement, eventTarget?: string, eventArgumen
                     return false;
                 }
 
-                const result = document.dispatchEvent(new CustomEvent("wfc:discardNode", {
-                    detail: {
-                        node,
-                        form,
-                        eventTarget
-                    }, cancelable: true
-                }));
+                if (!node.dispatchEvent(new CustomEvent("wfc:discardNode", { bubbles: true, cancelable: true, detail: { node, form, eventTarget } }))) {
+                    return false;
+                }
 
-                if (!result) {
+                if (node.nodeType === Node.ELEMENT_NODE && !node.dispatchEvent(new CustomEvent("wfc:discardElement", { bubbles: true, cancelable: true, detail: { element: node, form, eventTarget } }))) {
                     return false;
                 }
             }
@@ -324,10 +320,10 @@ document.addEventListener('input', function(e){
     postBackChange(e.target);
 });
 
-function postBackChange(target: Element, timeOut = 1000) {
+function postBackChange(target: Element, timeOut = 1000, eventArgument: string = 'CHANGE') {
     const form = getForm(target);
     const eventTarget = target.getAttribute('name');
-    const key = (form?.id ?? '') + eventTarget;
+    const key = (form?.id ?? '') + eventTarget + eventArgument;
 
     if (timeouts[key]) {
         clearTimeout(timeouts[key]);
@@ -335,15 +331,15 @@ function postBackChange(target: Element, timeOut = 1000) {
 
     timeouts[key] = setTimeout(async () => {
         delete timeouts[key];
-        await submitForm(form, eventTarget, 'CHANGE');
+        await submitForm(form, eventTarget, eventArgument);
     }, timeOut);
 }
 
-function postBack(target: Element) {
+function postBack(target: Element, eventArgument?: string) {
     const form = getForm(target);
     const eventTarget = target.getAttribute('name');
 
-    return submitForm(form, eventTarget, 'CHANGE');
+    return submitForm(form, eventTarget, eventArgument);
 }
 
 document.addEventListener('change', async function(e){
@@ -366,35 +362,50 @@ document.addEventListener('change', async function(e){
     bind: function(selectors, options) {
         const init = options.init ?? function() {};
         const update = options.update ?? function() {};
-        const submit = options.submit ?? function() {};
+        const submit = options.submit;
+        const destroy = options.destroy;
 
         for (const element of document.querySelectorAll(selectors)) {
             init(element);
+            update(element, element);
         }
 
         document.addEventListener('wfc:addElement', function (e: CustomEvent) {
-            const element = e.detail.element;
+            const { element } = e.detail;
 
             if (element.matches(selectors)) {
                 init(element);
-                update(element);
+                update(element, element);
             }
         });
 
-        document.addEventListener('wfc:updateElement', function (e: CustomEvent) {
-            const element = e.detail.element;
+        document.addEventListener('wfc:beforeUpdateElement', function (e: CustomEvent) {
+            const { element, source } = e.detail;
 
-            if (element.matches(selectors)) {
-                update(element);
+            if (element.matches(selectors) && update(element, source)) {
+                e.preventDefault();
             }
         });
 
-        document.addEventListener('wfc:beforeSubmit', function (e: CustomEvent) {
-            const container = e.detail.container;
+        if (submit) {
+            document.addEventListener('wfc:beforeSubmit', function (e: CustomEvent) {
+                const {container} = e.detail;
 
-            for (const element of container.querySelectorAll(selectors)) {
-                submit(element, container.formData);
-            }
-        });
+                for (const element of container.querySelectorAll(selectors)) {
+                    submit(element, container.formData);
+                }
+            });
+        }
+
+        if (destroy) {
+            document.addEventListener('wfc:discardElement', function (e: CustomEvent) {
+                const {element} = e.detail;
+
+                if (element.matches(selectors)) {
+                    destroy(element);
+                    e.preventDefault();
+                }
+            });
+        }
     }
 };

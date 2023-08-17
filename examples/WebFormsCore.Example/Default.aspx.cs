@@ -31,6 +31,7 @@ public partial class Default : Page
 
     protected Task choices_OnValuesChanged(object? sender, EventArgs e)
     {
+        choices.Values.Remove("1");
         return Task.CompletedTask;
     }
 }

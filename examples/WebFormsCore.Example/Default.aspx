@@ -12,7 +12,7 @@
 <body id="Body" runat="server">
 
 <div class="container">
-    <wfc:Choices runat="server" ID="choices" AutoPostBack="True" OnValuesChanged="choices_OnValuesChanged" />
+    <wfc:Choices runat="server" ID="choices" AutoPostBack="True" OnValuesChanged="choices_OnValuesChanged" Multiple="True" />
 
     <div class="mt-4">
         <div class="row">

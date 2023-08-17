@@ -12,21 +12,23 @@ public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyn
 
     [ViewState] public bool AutoPostBack { get; set; }
 
-    [ViewState] public List<ListItem> Items { get; set; } = new();
+    [ViewState] public bool Multiple { get; set; }
+
+    [ViewState] public List<ListItem> Items { get; private set; } = new();
 
     protected virtual bool SaveTextViewState => (ValuesChanged != null || IsReadOnly);
 
     public event AsyncEventHandler? ValuesChanged;
 
     private readonly ILogger<Choices>? _logger;
-    private List<string>? _values;
+    private ICollection<string>? _values;
 
     public Choices(ILogger<Choices>? logger = null)
     {
         _logger = logger;
     }
 
-    public List<string> Values
+    public ICollection<string> Values
     {
         get
         {
@@ -39,7 +41,7 @@ public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyn
             {
                 try
                 {
-                    _values = JsonSerializer.Deserialize<List<string>>(_json);
+                    _values = JsonSerializer.Deserialize(_json, JsonContext.Default.ICollectionString);
                 }
                 catch (Exception e)
                 {
@@ -51,7 +53,6 @@ public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyn
 
             return _values;
         }
-        set => _values = value;
     }
 
     protected override void OnInit(EventArgs args)
@@ -63,41 +64,61 @@ public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyn
         Page.ClientScript.RegisterStartupScript(typeof(Choices), "ChoicesStartup", """
             WebFormsCore.bind(".js-choice", {
                 init: function(element) {
-                    const input = element.querySelector('input');
-                    const choice = new Choices(input);
+                    const input = element.querySelector('input,select');
+                    const choice = new Choices(input, {
+                        allowHTML: true,
+                        removeItemButton: true
+                    });
 
+                    element.classList.remove('choices__inner');
                     element.input = input;
                     element.choice = choice;
 
-                    input.addEventListener('change', function (e) {
-                        if (element.hasAttribute('data-wfc-autopostback')) {
+                    input.addEventListener('change', function () {
+                        if (element.autoPostBack) {
                             WebFormsCore.postBackChange(input, 50);
                         }
                     });
                 },
-                update: function(element) {
-                    const { choice } = element;
+                update: function(element, newElement) {
+                    const { choice, input } = element;
+                    
+                    // Auto post back
+                    element.autoPostBack = newElement.hasAttribute('data-wfc-autopostback');
 
                     // Set disabled
-                    if (element.hasAttribute('data-wfc-disabled')) {
+                    if (newElement.hasAttribute('data-wfc-disabled')) {
                         choice.disable();
                     } else {
                         choice.enable();
                     }
 
                     // Set value
-                    const json = element.getAttribute('data-value');
+                    const json = newElement.getAttribute('data-value');
 
                     if (json) {
                         const values = JSON.parse(json);
-                        choice.clearStore();
-                        choice.setValue(values);
+
+                        if (input.tagName === 'INPUT') {
+                            choice.clearStore();
+                            choice.setValue(values);
+                        } else {
+                            choice.removeActiveItems();
+                            choice.setChoiceByValue(values);
+                        }
                     }
+                    
+                    return true;
                 },
                 submit: function(element, data) {
                     const { choice, input } = element;
 
-                    data.append(input.name, JSON.stringify(choice.getValue(true)));
+                    data.set(input.name, JSON.stringify(choice.getValue(true)));
+                },
+                destroy: function(element) {
+                    const { choice } = element;
+
+                    choice.destroy();
                 }
             });
             """);
@@ -107,7 +128,7 @@ public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyn
     {
         if (_values != null)
         {
-            _json = JsonSerializer.Serialize(_values);
+            _json = JsonSerializer.Serialize(_values, JsonContext.Default.ICollectionString);
         }
 
         base.OnPreRender(args);
@@ -120,7 +141,8 @@ public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyn
             writer.AddAttribute("data-value", _json);
         }
 
-        writer.AddAttribute(HtmlTextWriterAttribute.Class, "js-choice");
+        writer.AddAttribute(HtmlTextWriterAttribute.Class, "js-choice choices__inner");
+        writer.AddAttribute("data-wfc-ignore", null);
 
         if (IsReadOnly)
         {
@@ -134,18 +156,50 @@ public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyn
 
         await writer.RenderBeginTagAsync(HtmlTextWriterTag.Div);
         {
-            writer.AddAttribute("data-wfc-ignore", "");
-            await writer.RenderBeginTagAsync(HtmlTextWriterTag.Div);
-            {
-                writer.AddAttribute(HtmlTextWriterAttribute.Name, ClientID);
-                writer.AddAttribute(HtmlTextWriterAttribute.Class, "choices__inner"); // TODO: Fix padding
+            writer.AddAttribute(HtmlTextWriterAttribute.Name, ClientID);
 
-                await writer.RenderBeginTagAsync(HtmlTextWriterTag.Input);
-                await writer.RenderEndTagAsync();
+            if (Items.Count > 0)
+            {
+                writer.AddAttribute(HtmlTextWriterAttribute.Style, "display:none;");
+
+                if (Multiple)
+                {
+                    writer.AddAttribute(HtmlTextWriterAttribute.Multiple, null);
+                }
+
+                await writer.RenderBeginTagAsync(HtmlTextWriterTag.Select);
+                {
+                    foreach (var item in Items)
+                    {
+                        writer.AddAttribute(HtmlTextWriterAttribute.Value, item.Value);
+
+                        if (Values.Contains(item.Value))
+                        {
+                            writer.AddAttribute(HtmlTextWriterAttribute.Selected, null);
+                        }
+
+                        if (!item.Enabled)
+                        {
+                            writer.AddAttribute(HtmlTextWriterAttribute.Disabled, null);
+                        }
+
+                        await writer.RenderBeginTagAsync(HtmlTextWriterTag.Option);
+                        {
+                            await writer.WriteEncodedTextAsync(item.Text);
+                        }
+                        await writer.RenderEndTagAsync();
+                    }
+                }
             }
+            else
+            {
+                writer.AddAttribute(HtmlTextWriterAttribute.Style, "display:none;");
+                writer.AddAttribute(HtmlTextWriterAttribute.Type, "text");
+                await writer.RenderBeginTagAsync(HtmlTextWriterTag.Input);
+            }
+
             await writer.RenderEndTagAsync();
         }
-
         await writer.RenderEndTagAsync();
     }
 
@@ -154,6 +208,11 @@ public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyn
         if (IsReadOnly || !postCollection.TryGetValue(postDataKey, out var value))
         {
             return new ValueTask<bool>(false);
+        }
+
+        if (!Multiple && !string.IsNullOrEmpty(value))
+        {
+            value = $"[{value}]";
         }
 
         var isChanged = !string.Equals(_json ?? "[]", value, StringComparison.Ordinal);

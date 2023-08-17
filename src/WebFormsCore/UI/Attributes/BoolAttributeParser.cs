@@ -4,6 +4,11 @@ public class BoolAttributeParser : IAttributeParser<bool>
 {
     public bool Parse(string value)
     {
-        return bool.Parse(value);
+        return value switch
+        {
+            "True" => true,
+            "False" => false,
+            _ => bool.Parse(value)
+        };
     }
 }
