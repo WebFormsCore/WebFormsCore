@@ -48,6 +48,32 @@ class ViewStateContainer {
 
 }
 
+function postBackElement(element: Element, eventTarget?: string, eventArgument?: string) {
+    const form = getForm(element);
+    const streamPanel = getStreamPanel(element);
+
+    if (streamPanel) {
+        return sendToStream(streamPanel, eventTarget, eventArgument);
+    } else {
+        return submitForm(form, eventTarget, eventArgument);
+    }
+}
+
+function sendToStream(streamPanel: HTMLElement, eventTarget?: string, eventArgument?: string) {
+    const webSocket = streamPanel.webSocket as WebSocket;
+
+    if (!webSocket) {
+        throw new Error("No WebSocket connection");
+    }
+
+    const data = {
+        t: eventTarget,
+        a: eventArgument
+    };
+
+    webSocket.send(JSON.stringify(data));
+}
+
 function addElement(element: HTMLFormElement, formData: FormData) {
     if (element.type === "checkbox" || element.type === "radio") {
         if (element.checked) {
@@ -87,6 +113,10 @@ function getForm(element: Element) {
     return element.closest('[data-wfc-form]') as HTMLElement
 }
 
+function getStreamPanel(element: Element) {
+    return element.closest('[data-wfc-stream]') as HTMLElement
+}
+
 function addInputs(formData: FormData, root: HTMLElement, addFormElements: boolean) {
     // Add all the form elements that are not in a form
     const elements = [];
@@ -113,6 +143,10 @@ function addInputs(formData: FormData, root: HTMLElement, addFormElements: boole
         }
 
         if (!addFormElements && getForm(element)) {
+            continue;
+        }
+
+        if (getStreamPanel(element)) {
             continue;
         }
 
@@ -172,70 +206,7 @@ async function submitForm(form?: HTMLElement, eventTarget?: string, eventArgumen
         }
 
         const text = await response.text();
-        const newElements = [];
-
-        const options = {
-            onNodeAdded(node) {
-                newElements.push(node);
-                document.dispatchEvent(new CustomEvent("wfc:addNode", {detail: {node, form, eventTarget}}));
-
-                if (node.nodeType === Node.ELEMENT_NODE) {
-                    document.dispatchEvent(new CustomEvent("wfc:addElement", {detail: {element: node, form, eventTarget}}));
-                }
-            },
-            onBeforeElUpdated: function(fromEl, toEl) {
-                if (!fromEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateNode", {cancelable: true, bubbles: true, detail: {node: fromEl, source: toEl, form, eventTarget}}))) {
-                    return false;
-                }
-
-                if (fromEl.nodeType === Node.ELEMENT_NODE && !fromEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateElement", {cancelable: true, bubbles: true, detail: {element: fromEl, source: toEl, form, eventTarget}}))) {
-                    return false;
-                }
-
-                if (fromEl.hasAttribute('data-wfc-ignore') || toEl.hasAttribute('data-wfc-ignore')) {
-                    return false;
-                }
-
-                if (fromEl.tagName === "INPUT" && fromEl.type !== "hidden") {
-                    morphAttrs(fromEl, toEl);
-                    syncBooleanAttrProp(fromEl, toEl, 'checked');
-                    syncBooleanAttrProp(fromEl, toEl, 'disabled');
-
-                    // Only update the value if the value attribute is present
-                    if (toEl.hasAttribute('value')) {
-                        fromEl.value = toEl.value;
-                    }
-
-                    return false;
-                }
-            },
-            onElUpdated(el) {
-                if (el.nodeType === Node.ELEMENT_NODE) {
-                    el.dispatchEvent(new CustomEvent("wfc:updateElement", { bubbles: true, detail: {element: el, form, eventTarget} }));
-                }
-            },
-            onBeforeNodeDiscarded(node) {
-                if (node.tagName === "SCRIPT" || node.tagName === "STYLE" || node.tagName === "LINK" && node.hasAttribute('rel') && node.getAttribute('rel') === 'stylesheet') {
-                    return false;
-                }
-
-                if (node.tagName === 'FORM' && node.hasAttribute('data-wfc-form')) {
-                    return false;
-                }
-
-                if (node.tagName === 'DIV' && node.hasAttribute('data-wfc-owner') && (node.getAttribute('data-wfc-owner') ?? "") !== (form?.id ?? "")) {
-                    return false;
-                }
-
-                if (!node.dispatchEvent(new CustomEvent("wfc:discardNode", { bubbles: true, cancelable: true, detail: { node, form, eventTarget } }))) {
-                    return false;
-                }
-
-                if (node.nodeType === Node.ELEMENT_NODE && !node.dispatchEvent(new CustomEvent("wfc:discardElement", { bubbles: true, cancelable: true, detail: { element: node, form, eventTarget } }))) {
-                    return false;
-                }
-            }
-        };
+        const options = getMorpdomSettings(form);
 
         const parser = new DOMParser();
         const htmlDoc = parser.parseFromString(text, 'text/html');
@@ -243,9 +214,73 @@ async function submitForm(form?: HTMLElement, eventTarget?: string, eventArgumen
         morphdom(document.head, htmlDoc.querySelector('head'), options);
         morphdom(document.body, htmlDoc.querySelector('body'), options);
 
-        document.dispatchEvent(new CustomEvent("wfc:afterSubmit", {detail: {container, form, eventTarget, newElements}}));
+        document.dispatchEvent(new CustomEvent("wfc:afterSubmit", {detail: {container, form, eventTarget}}));
     } finally {
         release();
+    }
+}
+
+function getMorpdomSettings(form?: HTMLElement) {
+    return {
+        onNodeAdded(node) {
+            document.dispatchEvent(new CustomEvent("wfc:addNode", {detail: {node, form}}));
+
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                document.dispatchEvent(new CustomEvent("wfc:addElement", {detail: {element: node, form}}));
+            }
+        },
+        onBeforeElUpdated: function(fromEl, toEl) {
+            if (!fromEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateNode", {cancelable: true, bubbles: true, detail: {node: fromEl, source: toEl, form}}))) {
+                return false;
+            }
+
+            if (fromEl.nodeType === Node.ELEMENT_NODE && !fromEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateElement", {cancelable: true, bubbles: true, detail: {element: fromEl, source: toEl, form}}))) {
+                return false;
+            }
+
+            if (fromEl.hasAttribute('data-wfc-ignore') || toEl.hasAttribute('data-wfc-ignore')) {
+                return false;
+            }
+
+            if (fromEl.tagName === "INPUT" && fromEl.type !== "hidden") {
+                morphAttrs(fromEl, toEl);
+                syncBooleanAttrProp(fromEl, toEl, 'checked');
+                syncBooleanAttrProp(fromEl, toEl, 'disabled');
+
+                // Only update the value if the value attribute is present
+                if (toEl.hasAttribute('value')) {
+                    fromEl.value = toEl.value;
+                }
+
+                return false;
+            }
+        },
+        onElUpdated(el) {
+            if (el.nodeType === Node.ELEMENT_NODE) {
+                el.dispatchEvent(new CustomEvent("wfc:updateElement", { bubbles: true, detail: {element: el, form} }));
+            }
+        },
+        onBeforeNodeDiscarded(node) {
+            if (node.tagName === "SCRIPT" || node.tagName === "STYLE" || node.tagName === "LINK" && node.hasAttribute('rel') && node.getAttribute('rel') === 'stylesheet') {
+                return false;
+            }
+
+            if (node.tagName === 'FORM' && node.hasAttribute('data-wfc-form')) {
+                return false;
+            }
+
+            if (node.tagName === 'DIV' && node.hasAttribute('data-wfc-owner') && (node.getAttribute('data-wfc-owner') ?? "") !== (form?.id ?? "")) {
+                return false;
+            }
+
+            if (!node.dispatchEvent(new CustomEvent("wfc:discardNode", { bubbles: true, cancelable: true, detail: { node, form } }))) {
+                return false;
+            }
+
+            if (node.nodeType === Node.ELEMENT_NODE && !node.dispatchEvent(new CustomEvent("wfc:discardElement", { bubbles: true, cancelable: true, detail: { element: node, form } }))) {
+                return false;
+            }
+        }
     }
 }
 
@@ -277,10 +312,9 @@ document.addEventListener('click', async function(e){
         return;
     }
 
-    const form = getForm(e.target);
-
     e.preventDefault();
-    await submitForm(form, eventTarget);
+
+    postBackElement(e.target, eventTarget);
 });
 
 document.addEventListener('keypress', async function(e){
@@ -298,10 +332,11 @@ document.addEventListener('keypress', async function(e){
         return;
     }
 
-    const form = getForm(e.target);
     const eventTarget = e.target.getAttribute('name');
+
     e.preventDefault();
-    await submitForm(form, eventTarget, 'ENTER');
+
+    await postBackElement(e.target, eventTarget, 'ENTER');
 });
 
 const timeouts = {};
@@ -321,9 +356,9 @@ document.addEventListener('input', function(e){
 });
 
 function postBackChange(target: Element, timeOut = 1000, eventArgument: string = 'CHANGE') {
-    const form = getForm(target);
+    const container = getStreamPanel(target) ?? getForm(target);
     const eventTarget = target.getAttribute('name');
-    const key = (form?.id ?? '') + eventTarget + eventArgument;
+    const key = (container?.id ?? '') + eventTarget + eventArgument;
 
     if (timeouts[key]) {
         clearTimeout(timeouts[key]);
@@ -331,32 +366,31 @@ function postBackChange(target: Element, timeOut = 1000, eventArgument: string =
 
     timeouts[key] = setTimeout(async () => {
         delete timeouts[key];
-        await submitForm(form, eventTarget, eventArgument);
+        await postBackElement(target, eventTarget, eventArgument);
     }, timeOut);
 }
 
 function postBack(target: Element, eventArgument?: string) {
-    const form = getForm(target);
     const eventTarget = target.getAttribute('name');
 
-    return submitForm(form, eventTarget, eventArgument);
+    return postBackElement(target, eventTarget, eventArgument);
 }
 
 document.addEventListener('change', async function(e){
-    if(e.target instanceof Element && e.target.hasAttribute('data-wfc-autopostback')) {
+    if (e.target instanceof Element && e.target.hasAttribute('data-wfc-autopostback')) {
         const eventTarget = e.target.getAttribute('name');
-        const form = getForm(e.target);
-        const key = (form?.id ?? '') + eventTarget;
+        const container = getStreamPanel(e.target) ?? getForm(e.target);
+        const key = (container?.id ?? '') + eventTarget;
 
         if (timeouts[key]) {
             clearTimeout(timeouts[key]);
         }
 
-        setTimeout(() => submitForm(form, eventTarget, 'CHANGE'), 10);
+        setTimeout(() => postBackElement(e.target as Element, eventTarget, 'CHANGE'), 10);
     }
 });
 
-(window as any).WebFormsCore = {
+const WebFormsCore = {
     postBackChange,
     postBack,
     bind: function(selectors, options) {
@@ -409,3 +443,58 @@ document.addEventListener('change', async function(e){
         }
     }
 };
+
+WebFormsCore.bind('[data-wfc-stream]', {
+    init: function(element) {
+        const id = element.id;
+        let search = location.search;
+
+        if (!search) {
+            search = "?";
+        } else {
+            search += "&";
+        }
+
+        search += "__panel=" + id;
+
+        const webSocket = new WebSocket(
+            (location.protocol === "https:" ? "wss://" : "ws://") + location.host + location.pathname + search
+        );
+
+        element.webSocket = webSocket;
+        element.isUpdating = false;
+
+        webSocket.addEventListener('message', function(e) {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(`<!DOCTYPE html><html><body>${e.data}</body></html>`, 'text/html');
+
+            element.isUpdating = true;
+            morphdom(element, htmlDoc.getElementById(id), getMorpdomSettings());
+            element.isUpdating = false;
+        });
+    },
+    update: function(element, source) {
+        if (!element.isUpdating) {
+            return true;
+        }
+    },
+    destroy: function(element) {
+        const webSocket = element.webSocket as WebSocket;
+
+        if (webSocket) {
+            webSocket.close();
+        }
+    }
+})
+
+window.WebFormsCore = WebFormsCore;
+
+declare global {
+    interface Window {
+        WebFormsCore: typeof WebFormsCore;
+    }
+
+    interface Element {
+        webSocket: WebSocket | undefined;
+    }
+}

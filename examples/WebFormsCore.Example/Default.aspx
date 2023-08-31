@@ -44,8 +44,19 @@
 
             </div>
             <div class="col-6">
+                <div class="card">
+                    <div class="card-header">
+                        <strong>Clock</strong>
+                    </div>
+                    <div class="card-body">
+                        <wfc:StreamPanel runat="server">
+                            <app:Clock runat="server" />
+                        </wfc:StreamPanel>
+                    </div>
+                </div>
+
                 <form runat="server" method="post" ID="formTodo">
-                    <div class="card">
+                    <div class="mt-4 card">
                         <div class="card-header">
                             <strong>Todo list</strong>
                         </div>

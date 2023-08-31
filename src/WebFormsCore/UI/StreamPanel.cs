@@ -1,0 +1,227 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.IO;
+using System.Net.WebSockets;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
+using HttpStack;
+using WebFormsCore.UI.HtmlControls;
+
+namespace WebFormsCore.UI.WebControls;
+
+[JsonSerializable(typeof(WebSocketCommand))]
+internal partial class JsonContext : JsonSerializerContext
+{
+}
+
+internal record WebSocketCommand(
+    [property: JsonPropertyName("t"), Required] string EventTarget,
+    [property: JsonPropertyName("a")] string? EventArgument
+);
+
+public class StreamPanel : Control, INamingContainer
+{
+    private WebSocket _webSocket = null!;
+    private Task<WebSocketReceiveResult>? _receiveTask;
+#if NET
+    private TaskCompletionSource _stateHasChangedTcs = new();
+#else
+    private TaskCompletionSource<bool> _stateHasChangedTcs = new();
+#endif
+
+    internal bool IsWebSocket { get; set; }
+
+    public override bool EnableViewState => IsWebSocket;
+
+    public WebSocket WebSocket
+    {
+        get
+        {
+            if (_webSocket is null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return _webSocket;
+        }
+    }
+
+    public override void StateHasChanged()
+    {
+#if NET
+        _stateHasChangedTcs.TrySetResult();
+#else
+        _stateHasChangedTcs.TrySetResult(true);
+#endif
+    }
+
+    internal override void InvokeFrameworkInit(CancellationToken token)
+    {
+        if (!IsWebSocket) return;
+
+        base.InvokeFrameworkInit(token);
+    }
+
+    internal override void InvokeTrackViewState(CancellationToken token)
+    {
+        if (!IsWebSocket) return;
+
+        base.InvokeTrackViewState(token);
+    }
+
+    internal override ValueTask InvokeInitAsync(CancellationToken token)
+    {
+        if (!IsWebSocket) return default;
+
+        return base.InvokeInitAsync(token);
+    }
+
+    internal override ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument)
+    {
+        if (!IsWebSocket) return default;
+
+        return base.InvokePostbackAsync(token, form, target, argument);
+    }
+
+    internal override ValueTask InvokeLoadAsync(CancellationToken token, HtmlForm? form)
+    {
+        if (!IsWebSocket) return default;
+
+        return base.InvokeLoadAsync(token, form);
+    }
+
+    internal override ValueTask InvokePreRenderAsync(CancellationToken token, HtmlForm? form)
+    {
+        if (!IsWebSocket) return default;
+
+        return base.InvokePreRenderAsync(token, form);
+    }
+
+    internal async Task StartAsync(IHttpContext context, WebSocket websocket)
+    {
+        _webSocket = websocket;
+
+        await UpdateControlAsync();
+
+        var incoming = new byte[1024];
+
+        var status = WebSocketCloseStatus.NormalClosure;
+        var message = "Done";
+
+        try
+        {
+            while (true)
+            {
+                _receiveTask ??= _webSocket.ReceiveAsync(new ArraySegment<byte>(incoming), default);
+
+                var result = await Task.WhenAny(_receiveTask, _stateHasChangedTcs.Task);
+
+                if (result == _receiveTask)
+                {
+                    if (_receiveTask.Result.MessageType == WebSocketMessageType.Close)
+                    {
+                        break;
+                    }
+
+                    await UpdateAsync(_receiveTask.Result, incoming);
+                    _receiveTask = null;
+                }
+                else
+                {
+                    await UpdateControlAsync();
+
+#if NET
+                    _stateHasChangedTcs = new TaskCompletionSource();
+#else
+                    _stateHasChangedTcs = new TaskCompletionSource<bool>();
+#endif
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // ignored
+        }
+        catch
+        {
+            status = WebSocketCloseStatus.InternalServerError;
+            message = "Internal Server Error";
+        }
+
+        try
+        {
+            await _webSocket.CloseAsync(status, message, default);
+        }
+        catch
+        {
+            // ignored
+        }
+    }
+
+    private async ValueTask UpdateAsync(WebSocketReceiveResult result, byte[] incoming)
+    {
+        var memory = incoming.AsMemory(0, result.Count);
+        var command = JsonSerializer.Deserialize(memory.Span, JsonContext.Default.WebSocketCommand);
+
+        if (command is null)
+        {
+            return;
+        }
+
+        Page.IsPostBack = true;
+
+        await InvokePostbackAsync(default, null, command.EventTarget, command.EventArgument);
+        await Page.RaiseChangedEventsAsync(default);
+        Page.ClearChangedPostDataConsumers();
+
+        if (Form != null)
+        {
+            await Form.OnSubmitAsync(default);
+        }
+
+        await InvokePreRenderAsync(default, null);
+
+        await UpdateControlAsync();
+
+        Page.IsPostBack = false;
+    }
+
+    private async Task UpdateControlAsync(CancellationToken token = default)
+    {
+        using var memory = new MemoryStream();
+        using var textWriter = new StreamWriter(memory);
+        await using var writer = new HtmlTextWriter(textWriter);
+
+        await RenderAsync(writer, token);
+        await writer.FlushAsync();
+
+        memory.Position = 0;
+
+        var buffer = new byte[1024];
+
+        while (memory.Position < memory.Length)
+        {
+            var count = await memory.ReadAsync(buffer, 0, buffer.Length, token);
+            var isLast = memory.Position == memory.Length;
+
+            await _webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, count), WebSocketMessageType.Text, isLast, token);
+        }
+    }
+
+    public override async Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    {
+        writer.AddAttribute("id", UniqueID);
+        writer.AddAttribute("data-wfc-stream", null);
+        await writer.RenderBeginTagAsync("div");
+
+        if (IsWebSocket)
+        {
+            await base.RenderAsync(writer, token);
+        }
+
+        await writer.RenderEndTagAsync();
+    }
+}

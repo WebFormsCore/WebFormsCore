@@ -26,26 +26,20 @@ public partial class TodoList : Control
         }
     }
 
-    protected Task rptItems_OnItemDataBound(object? sender, RepeaterItemEventArgs<string> e)
+    protected void rptItems_OnItemDataBound(object? sender, RepeaterItemEventArgs<string> e)
     {
-        if (e.Item.DataItem is not { } dataItem)
-        {
-            return Task.CompletedTask;
-        }
+        if (e.Item.DataItem is not { } dataItem) return;
 
         var controls = e.Item.FindControls<ItemControls>();
 
         controls.litValue.Text = dataItem;
-
-        return Task.CompletedTask;
     }
 
-    protected Task btnRemove_OnClick(object? sender, EventArgs e)
+    protected void btnRemove_OnClick(object? sender, EventArgs e)
     {
         var button = (Button) sender!;
         var item = (RepeaterItem<string>) button.NamingContainer!;
 
         rptItems.Remove(item);
-        return Task.CompletedTask;
     }
 }

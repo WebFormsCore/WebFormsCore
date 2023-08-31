@@ -19,6 +19,9 @@ public partial class PageTest
 
             Assert.Equal(2, controls.Length);
 
+            Assert.False(controls[0].IsDisposed, "Control in Page should not be disposed");
+            Assert.False(controls[1].IsDisposed, "Dynamic control should not be disposed");
+
             await Verify(result.Html);
         }
 

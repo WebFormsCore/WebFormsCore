@@ -61,7 +61,7 @@ public partial class Control : IInternalControl
         OnWriteViewState(ref writer);
     }
 
-    internal void InvokeFrameworkInit(CancellationToken token)
+    internal virtual void InvokeFrameworkInit(CancellationToken token)
     {
         if (token.IsCancellationRequested) return;
 
@@ -81,7 +81,7 @@ public partial class Control : IInternalControl
         }
     }
 
-    internal void InvokeTrackViewState(CancellationToken token)
+    internal virtual void InvokeTrackViewState(CancellationToken token)
     {
         if (token.IsCancellationRequested) return;
 
@@ -93,7 +93,7 @@ public partial class Control : IInternalControl
         }
     }
 
-    internal async ValueTask InvokeInitAsync(CancellationToken token)
+    internal virtual async ValueTask InvokeInitAsync(CancellationToken token)
     {
         if (token.IsCancellationRequested) return;
         OnInit(EventArgs.Empty);
@@ -112,7 +112,7 @@ public partial class Control : IInternalControl
         }
     }
 
-    internal async ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument)
+    internal virtual async ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument)
     {
         if (token.IsCancellationRequested) return;
 
@@ -166,7 +166,7 @@ public partial class Control : IInternalControl
         }
     }
 
-    internal async ValueTask InvokeLoadAsync(CancellationToken token, HtmlForm? form)
+    internal virtual async ValueTask InvokeLoadAsync(CancellationToken token, HtmlForm? form)
     {
         if (token.IsCancellationRequested) return;
 
@@ -185,7 +185,7 @@ public partial class Control : IInternalControl
         }
     }
 
-    internal async ValueTask InvokePreRenderAsync(CancellationToken token, HtmlForm? form)
+    internal virtual async ValueTask InvokePreRenderAsync(CancellationToken token, HtmlForm? form)
     {
         if (token.IsCancellationRequested) return;
 

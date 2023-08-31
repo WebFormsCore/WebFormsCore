@@ -12,6 +12,8 @@ namespace WebFormsCore.UI;
 [ToolboxItem(false)]
 public sealed class LiteralControl : Control, ITextControl
 {
+    protected override bool GenerateAutomaticID => false;
+
     private string _text;
 
     public LiteralControl()

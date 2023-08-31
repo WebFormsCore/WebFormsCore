@@ -933,6 +933,27 @@
             }
         }
     }
+    function postBackElement(element, eventTarget, eventArgument) {
+        const form = getForm(element);
+        const streamPanel = getStreamPanel(element);
+        if (streamPanel) {
+            return sendToStream(streamPanel, eventTarget, eventArgument);
+        }
+        else {
+            return submitForm(form, eventTarget, eventArgument);
+        }
+    }
+    function sendToStream(streamPanel, eventTarget, eventArgument) {
+        const webSocket = streamPanel.webSocket;
+        if (!webSocket) {
+            throw new Error("No WebSocket connection");
+        }
+        const data = {
+            t: eventTarget,
+            a: eventArgument
+        };
+        webSocket.send(JSON.stringify(data));
+    }
     function addElement(element, formData) {
         if (element.type === "checkbox" || element.type === "radio") {
             if (element.checked) {
@@ -967,6 +988,9 @@
     function getForm(element) {
         return element.closest('[data-wfc-form]');
     }
+    function getStreamPanel(element) {
+        return element.closest('[data-wfc-stream]');
+    }
     function addInputs(formData, root, addFormElements) {
         // Add all the form elements that are not in a form
         const elements = [];
@@ -987,6 +1011,9 @@
                 continue;
             }
             if (!addFormElements && getForm(element)) {
+                continue;
+            }
+            if (getStreamPanel(element)) {
                 continue;
             }
             addElement(element, formData);
@@ -1034,69 +1061,70 @@
                 throw new Error(response.statusText);
             }
             const text = await response.text();
-            const newElements = [];
-            const options = {
-                onNodeAdded(node) {
-                    newElements.push(node);
-                    document.dispatchEvent(new CustomEvent("wfc:addNode", { detail: { node, form, eventTarget } }));
-                    if (node.nodeType === Node.ELEMENT_NODE) {
-                        document.dispatchEvent(new CustomEvent("wfc:addElement", { detail: { element: node, form, eventTarget } }));
-                    }
-                },
-                onBeforeElUpdated: function (fromEl, toEl) {
-                    if (!fromEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateNode", { cancelable: true, bubbles: true, detail: { node: fromEl, source: toEl, form, eventTarget } }))) {
-                        return false;
-                    }
-                    if (fromEl.nodeType === Node.ELEMENT_NODE && !fromEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateElement", { cancelable: true, bubbles: true, detail: { element: fromEl, source: toEl, form, eventTarget } }))) {
-                        return false;
-                    }
-                    if (fromEl.hasAttribute('data-wfc-ignore') || toEl.hasAttribute('data-wfc-ignore')) {
-                        return false;
-                    }
-                    if (fromEl.tagName === "INPUT" && fromEl.type !== "hidden") {
-                        morphAttrs(fromEl, toEl);
-                        syncBooleanAttrProp(fromEl, toEl, 'checked');
-                        syncBooleanAttrProp(fromEl, toEl, 'disabled');
-                        // Only update the value if the value attribute is present
-                        if (toEl.hasAttribute('value')) {
-                            fromEl.value = toEl.value;
-                        }
-                        return false;
-                    }
-                },
-                onElUpdated(el) {
-                    if (el.nodeType === Node.ELEMENT_NODE) {
-                        el.dispatchEvent(new CustomEvent("wfc:updateElement", { bubbles: true, detail: { element: el, form, eventTarget } }));
-                    }
-                },
-                onBeforeNodeDiscarded(node) {
-                    var _a, _b;
-                    if (node.tagName === "SCRIPT" || node.tagName === "STYLE" || node.tagName === "LINK" && node.hasAttribute('rel') && node.getAttribute('rel') === 'stylesheet') {
-                        return false;
-                    }
-                    if (node.tagName === 'FORM' && node.hasAttribute('data-wfc-form')) {
-                        return false;
-                    }
-                    if (node.tagName === 'DIV' && node.hasAttribute('data-wfc-owner') && ((_a = node.getAttribute('data-wfc-owner')) !== null && _a !== void 0 ? _a : "") !== ((_b = form === null || form === void 0 ? void 0 : form.id) !== null && _b !== void 0 ? _b : "")) {
-                        return false;
-                    }
-                    if (!node.dispatchEvent(new CustomEvent("wfc:discardNode", { bubbles: true, cancelable: true, detail: { node, form, eventTarget } }))) {
-                        return false;
-                    }
-                    if (node.nodeType === Node.ELEMENT_NODE && !node.dispatchEvent(new CustomEvent("wfc:discardElement", { bubbles: true, cancelable: true, detail: { element: node, form, eventTarget } }))) {
-                        return false;
-                    }
-                }
-            };
+            const options = getMorpdomSettings(form);
             const parser = new DOMParser();
             const htmlDoc = parser.parseFromString(text, 'text/html');
             morphdom(document.head, htmlDoc.querySelector('head'), options);
             morphdom(document.body, htmlDoc.querySelector('body'), options);
-            document.dispatchEvent(new CustomEvent("wfc:afterSubmit", { detail: { container, form, eventTarget, newElements } }));
+            document.dispatchEvent(new CustomEvent("wfc:afterSubmit", { detail: { container, form, eventTarget } }));
         }
         finally {
             release();
         }
+    }
+    function getMorpdomSettings(form) {
+        return {
+            onNodeAdded(node) {
+                document.dispatchEvent(new CustomEvent("wfc:addNode", { detail: { node, form } }));
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    document.dispatchEvent(new CustomEvent("wfc:addElement", { detail: { element: node, form } }));
+                }
+            },
+            onBeforeElUpdated: function (fromEl, toEl) {
+                if (!fromEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateNode", { cancelable: true, bubbles: true, detail: { node: fromEl, source: toEl, form } }))) {
+                    return false;
+                }
+                if (fromEl.nodeType === Node.ELEMENT_NODE && !fromEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateElement", { cancelable: true, bubbles: true, detail: { element: fromEl, source: toEl, form } }))) {
+                    return false;
+                }
+                if (fromEl.hasAttribute('data-wfc-ignore') || toEl.hasAttribute('data-wfc-ignore')) {
+                    return false;
+                }
+                if (fromEl.tagName === "INPUT" && fromEl.type !== "hidden") {
+                    morphAttrs(fromEl, toEl);
+                    syncBooleanAttrProp(fromEl, toEl, 'checked');
+                    syncBooleanAttrProp(fromEl, toEl, 'disabled');
+                    // Only update the value if the value attribute is present
+                    if (toEl.hasAttribute('value')) {
+                        fromEl.value = toEl.value;
+                    }
+                    return false;
+                }
+            },
+            onElUpdated(el) {
+                if (el.nodeType === Node.ELEMENT_NODE) {
+                    el.dispatchEvent(new CustomEvent("wfc:updateElement", { bubbles: true, detail: { element: el, form } }));
+                }
+            },
+            onBeforeNodeDiscarded(node) {
+                var _a, _b;
+                if (node.tagName === "SCRIPT" || node.tagName === "STYLE" || node.tagName === "LINK" && node.hasAttribute('rel') && node.getAttribute('rel') === 'stylesheet') {
+                    return false;
+                }
+                if (node.tagName === 'FORM' && node.hasAttribute('data-wfc-form')) {
+                    return false;
+                }
+                if (node.tagName === 'DIV' && node.hasAttribute('data-wfc-owner') && ((_a = node.getAttribute('data-wfc-owner')) !== null && _a !== void 0 ? _a : "") !== ((_b = form === null || form === void 0 ? void 0 : form.id) !== null && _b !== void 0 ? _b : "")) {
+                    return false;
+                }
+                if (!node.dispatchEvent(new CustomEvent("wfc:discardNode", { bubbles: true, cancelable: true, detail: { node, form } }))) {
+                    return false;
+                }
+                if (node.nodeType === Node.ELEMENT_NODE && !node.dispatchEvent(new CustomEvent("wfc:discardElement", { bubbles: true, cancelable: true, detail: { element: node, form } }))) {
+                    return false;
+                }
+            }
+        };
     }
     const originalSubmit = HTMLFormElement.prototype.submit;
     HTMLFormElement.prototype.submit = async function () {
@@ -1122,9 +1150,8 @@
         if (!eventTarget) {
             return;
         }
-        const form = getForm(e.target);
         e.preventDefault();
-        await submitForm(form, eventTarget);
+        postBackElement(e.target, eventTarget);
     });
     document.addEventListener('keypress', async function (e) {
         if (e.key !== 'Enter' && e.keyCode !== 13 && e.which !== 13) {
@@ -1137,10 +1164,9 @@
         if (type === "button" || type === "submit" || type === "reset") {
             return;
         }
-        const form = getForm(e.target);
         const eventTarget = e.target.getAttribute('name');
         e.preventDefault();
-        await submitForm(form, eventTarget, 'ENTER');
+        await postBackElement(e.target, eventTarget, 'ENTER');
     });
     const timeouts = {};
     document.addEventListener('input', function (e) {
@@ -1154,36 +1180,35 @@
         postBackChange(e.target);
     });
     function postBackChange(target, timeOut = 1000, eventArgument = 'CHANGE') {
-        var _a;
-        const form = getForm(target);
+        var _a, _b;
+        const container = (_a = getStreamPanel(target)) !== null && _a !== void 0 ? _a : getForm(target);
         const eventTarget = target.getAttribute('name');
-        const key = ((_a = form === null || form === void 0 ? void 0 : form.id) !== null && _a !== void 0 ? _a : '') + eventTarget + eventArgument;
+        const key = ((_b = container === null || container === void 0 ? void 0 : container.id) !== null && _b !== void 0 ? _b : '') + eventTarget + eventArgument;
         if (timeouts[key]) {
             clearTimeout(timeouts[key]);
         }
         timeouts[key] = setTimeout(async () => {
             delete timeouts[key];
-            await submitForm(form, eventTarget, eventArgument);
+            await postBackElement(target, eventTarget, eventArgument);
         }, timeOut);
     }
     function postBack(target, eventArgument) {
-        const form = getForm(target);
         const eventTarget = target.getAttribute('name');
-        return submitForm(form, eventTarget, eventArgument);
+        return postBackElement(target, eventTarget, eventArgument);
     }
     document.addEventListener('change', async function (e) {
-        var _a;
+        var _a, _b;
         if (e.target instanceof Element && e.target.hasAttribute('data-wfc-autopostback')) {
             const eventTarget = e.target.getAttribute('name');
-            const form = getForm(e.target);
-            const key = ((_a = form === null || form === void 0 ? void 0 : form.id) !== null && _a !== void 0 ? _a : '') + eventTarget;
+            const container = (_a = getStreamPanel(e.target)) !== null && _a !== void 0 ? _a : getForm(e.target);
+            const key = ((_b = container === null || container === void 0 ? void 0 : container.id) !== null && _b !== void 0 ? _b : '') + eventTarget;
             if (timeouts[key]) {
                 clearTimeout(timeouts[key]);
             }
-            setTimeout(() => submitForm(form, eventTarget, 'CHANGE'), 10);
+            setTimeout(() => postBackElement(e.target, eventTarget, 'CHANGE'), 10);
         }
     });
-    window.WebFormsCore = {
+    const WebFormsCore = {
         postBackChange,
         postBack,
         bind: function (selectors, options) {
@@ -1228,5 +1253,40 @@
             }
         }
     };
+    WebFormsCore.bind('[data-wfc-stream]', {
+        init: function (element) {
+            const id = element.id;
+            let search = location.search;
+            if (!search) {
+                search = "?";
+            }
+            else {
+                search += "&";
+            }
+            search += "__panel=" + id;
+            const webSocket = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + location.pathname + search);
+            element.webSocket = webSocket;
+            element.isUpdating = false;
+            webSocket.addEventListener('message', function (e) {
+                const parser = new DOMParser();
+                const htmlDoc = parser.parseFromString(`<!DOCTYPE html><html><body>${e.data}</body></html>`, 'text/html');
+                element.isUpdating = true;
+                morphdom(element, htmlDoc.getElementById(id), getMorpdomSettings());
+                element.isUpdating = false;
+            });
+        },
+        update: function (element, source) {
+            if (!element.isUpdating) {
+                return true;
+            }
+        },
+        destroy: function (element) {
+            const webSocket = element.webSocket;
+            if (webSocket) {
+                webSocket.close();
+            }
+        }
+    });
+    window.WebFormsCore = WebFormsCore;
 
 })();

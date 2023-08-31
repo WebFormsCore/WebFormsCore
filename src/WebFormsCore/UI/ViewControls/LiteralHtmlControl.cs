@@ -6,6 +6,8 @@ namespace WebFormsCore.UI.WebControls;
 
 public class LiteralHtmlControl : HtmlGenericControl
 {
+    protected override bool GenerateAutomaticID => false;
+
     public LiteralHtmlControl()
     {
     }

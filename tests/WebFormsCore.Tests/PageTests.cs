@@ -32,7 +32,8 @@ public partial class PageTest
 
         var coreResponse = Substitute.For<IHttpResponse>();
         var headers = new HeaderDictionary();
-        coreResponse.Headers.Returns(headers);
+        var responseHeaders = new ResponseHeaderDictionary(headers);
+        coreResponse.Headers.Returns(responseHeaders);
         coreResponse.Body.Returns(stream);
 
         var coreContext = Substitute.For<IHttpContext>();

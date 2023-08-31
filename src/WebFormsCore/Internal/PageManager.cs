@@ -1,20 +1,20 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HttpStack;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.UI;
+using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore;
 
 public class PageManager : IPageManager
 {
     private static readonly Encoding Utf8WithoutBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-
-
     private readonly IControlManager _controlManager;
 
     public PageManager(IControlManager controlManager)
@@ -37,7 +37,8 @@ public class PageManager : IPageManager
         Type pageType,
         CancellationToken token)
     {
-        var page = (Page) ActivatorUtilities.GetServiceOrCreateInstance(context.RequestServices, pageType);
+        var objectActivator = context.RequestServices.GetRequiredService<IWebObjectActivator>();
+        var page = (Page)objectActivator.CreateControl(pageType);
         await RenderPageAsync(context, page, token);
         return page;
     }
@@ -48,6 +49,28 @@ public class PageManager : IPageManager
         CancellationToken token)
     {
         page.Initialize(context);
+
+        await page.InitAsync(token);
+
+        if (context.Request.Query.TryGetValue("__panel", out var panel) && context.WebSockets.IsWebSocketRequest)
+        {
+            var streamControl = page.FindControl(panel);
+
+            if (streamControl is not StreamPanel streamPanel)
+            {
+                throw new InvalidOperationException($"Panel '{panel}' is not a StreamPanel.");
+            }
+
+            streamPanel.IsWebSocket = true;
+
+            streamPanel.InvokeFrameworkInit(token);
+            await streamPanel.InvokeInitAsync(token);
+            await page.ProcessRequestAsync(token);
+
+            context.WebSockets.AcceptWebSocketRequest(streamPanel.StartAsync);
+
+            return;
+        }
 
         await page.ProcessRequestAsync(token);
 

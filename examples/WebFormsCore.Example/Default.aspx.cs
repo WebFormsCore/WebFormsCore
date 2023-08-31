@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using WebFormsCore.Example.Controls;
@@ -29,9 +30,8 @@ public partial class Default : Page
         title.InnerText = (PostbackCount++).ToString();
     }
 
-    protected Task choices_OnValuesChanged(object? sender, EventArgs e)
+    protected void choices_OnValuesChanged(object? sender, EventArgs e)
     {
         choices.Values.Remove("1");
-        return Task.CompletedTask;
     }
 }

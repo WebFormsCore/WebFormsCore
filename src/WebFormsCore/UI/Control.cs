@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using HttpStack;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.UI.HtmlControls;
+using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI;
 
@@ -35,6 +36,7 @@ public partial class Control : System.Web.UI.Control
     private OccasionalFields? _occasionalFields;
     private Page? _page;
     private HtmlForm? _form;
+    private StreamPanel? _streamPanel;
     private IWebObjectActivator? _webObjectActivator;
     private RenderAsyncDelegate? _renderMethod;
     private bool _visible = true;
@@ -98,6 +100,29 @@ public partial class Control : System.Web.UI.Control
             }
 
             return _form;
+        }
+    }
+
+    [Bindable(false)]
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public virtual StreamPanel? StreamPanel
+    {
+        get
+        {
+            if (_streamPanel == null && _parent != null)
+            {
+                if (_parent is StreamPanel streamPanel)
+                {
+                    _streamPanel = streamPanel;
+                }
+                else
+                {
+                    _streamPanel = _parent.StreamPanel;
+                }
+            }
+
+            return _streamPanel;
         }
     }
 
@@ -291,6 +316,7 @@ public partial class Control : System.Web.UI.Control
         _occasionalFields = null;
         _page = null;
         _form = null;
+        _streamPanel = null;
         _webObjectActivator = null;
         _renderMethod = null;
         _visible = true;
@@ -394,6 +420,7 @@ public partial class Control : System.Web.UI.Control
         control._parent = this;
         control._page = _page ?? this as Page;
         control._form = _form;
+        control._streamPanel = _streamPanel;
 
         var namingContainer = this is INamingContainer ? this : NamingContainer;
 
@@ -448,6 +475,7 @@ public partial class Control : System.Web.UI.Control
         control._parent = null;
         control._page = null;
         control._form = null;
+        control._streamPanel = null;
         control._namingContainer = null;
     }
 
@@ -508,8 +536,15 @@ public partial class Control : System.Web.UI.Control
         return predictableClientIdPrefix;
     }
 
-    private string GenerateAutomaticId()
+    protected virtual bool GenerateAutomaticID => true;
+
+    private string? GenerateAutomaticId()
     {
+        if (!GenerateAutomaticID)
+        {
+            return null;
+        }
+
         if (_namingContainer == null)
         {
             return AutomaticIDs[0];
@@ -595,7 +630,10 @@ public partial class Control : System.Web.UI.Control
                 namedControls.Add(control._id, control);
             }
 
-            FillNamedControls(namedControls, control.Controls);
+            if (control is not INamingContainer)
+            {
+                FillNamedControls(namedControls, control.Controls);
+            }
         }
     }
 
@@ -678,6 +716,11 @@ public partial class Control : System.Web.UI.Control
     [EditorBrowsable(EditorBrowsableState.Never)]
     protected virtual void FrameworkInitialized()
     {
+    }
+
+    public virtual void StateHasChanged()
+    {
+        StreamPanel?.StateHasChanged();
     }
 
     public Control LoadControl(string path) => WebActivator.CreateControl(path);

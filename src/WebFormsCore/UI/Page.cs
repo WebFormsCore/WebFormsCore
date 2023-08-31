@@ -31,6 +31,8 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     public bool IsPostBack { get; set; }
 
+    public bool IsStreaming => StreamPanel is { IsWebSocket: true };
+
     protected override IServiceProvider ServiceProvider => Context.RequestServices;
 
     private ScopedControlContainer ScopedContainer => _scopedContainer ??= ServiceProvider.GetRequiredService<ScopedControlContainer>();
@@ -43,11 +45,10 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     internal List<IBodyControl> BodyControls { get; set; } = new();
 
-    internal async Task<HtmlForm?> ProcessRequestAsync(CancellationToken token)
+
+    internal async Task InitAsync(CancellationToken token)
     {
         IsPostBack = Context.Request.Method == "POST";
-
-        var viewStateManager = ServiceProvider.GetRequiredService<IViewStateManager>();
 
         InvokeFrameworkInit(token);
 
@@ -62,7 +63,11 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
         {
             await pageService.AfterInitializeAsync(this);
         }
+    }
 
+    internal async Task<HtmlForm?> ProcessRequestAsync(CancellationToken token)
+    {
+        var viewStateManager = ServiceProvider.GetRequiredService<IViewStateManager>();
         var form = await viewStateManager.LoadFromRequestAsync(Context, this);
 
         ActiveForm = form;
@@ -118,6 +123,11 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
                 await eventHandler.RaisePostDataChangedEventAsync(cancellationToken);
             }
         }
+    }
+
+    internal void ClearChangedPostDataConsumers()
+    {
+        _changedPostDataConsumers?.Clear();
     }
 
     protected internal virtual void Initialize(IHttpContext context)
