@@ -14,6 +14,8 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
     {
     }
 
+    protected override bool ProcessControl => Page._state <= ControlState.Initialized || !Page.IsPostBack || Page.ActiveForm == this;
+
     public event AsyncEventHandler? Submit;
 
     protected internal virtual async Task OnSubmitAsync(CancellationToken token)
@@ -54,6 +56,13 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
 
             await writer.WriteAsync(@"""/>");
         }
+    }
+
+    public override Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    {
+        if (!ProcessControl) return Task.CompletedTask;
+
+        return base.RenderAsync(writer, token);
     }
 
     protected override string GetUniqueIDPrefix() => "";

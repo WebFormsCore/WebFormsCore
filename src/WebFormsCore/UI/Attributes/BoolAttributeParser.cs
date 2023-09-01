@@ -6,8 +6,8 @@ public class BoolAttributeParser : IAttributeParser<bool>
     {
         return value switch
         {
-            "True" => true,
-            "False" => false,
+            "true" or "True" => true,
+            "false" or "False" => false,
             _ => bool.Parse(value)
         };
     }

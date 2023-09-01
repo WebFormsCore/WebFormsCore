@@ -12,6 +12,8 @@ public class ControlNode : ElementNode
         ControlType = controlType;
     }
 
+    public string? Id { get; set; }
+
     public List<PropertyNode> Properties { get; set; } = new();
 
     public List<EventNode> Events { get; set; } = new();

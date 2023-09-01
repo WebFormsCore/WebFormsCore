@@ -12,7 +12,10 @@
 
         {{- when "Control" }}
             var {{ child.VariableName }} = WebActivator.CreateControl<{{ child.DisplayControlType }}>();
-            {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject({{ child.VariableName }});
+            {{ if child.Id }}
+            {{ child.VariableName }}.ID = "{{ child.Id }}";
+            {{ end }}
+            {{- child.Parent?.VariableName ?? $1 }}.AddParsedSubObject({{ child.VariableName }});
 
             {{- for prop in child.Events }}
             {{- if IsReturnTypeSame }}

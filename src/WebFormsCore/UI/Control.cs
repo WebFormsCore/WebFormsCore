@@ -30,18 +30,19 @@ public partial class Control : System.Web.UI.Control
     private ControlCollection? _controls;
     private Control? _namingContainer;
     private string? _id;
+    private bool _hasGeneratedId;
+    private bool _generatedIdChanged;
     private string? _cachedUniqueID;
     private string? _cachedPredictableID;
     private Control? _parent;
     private OccasionalFields? _occasionalFields;
     private Page? _page;
     private HtmlForm? _form;
-    private StreamPanel? _streamPanel;
     private IWebObjectActivator? _webObjectActivator;
     private RenderAsyncDelegate? _renderMethod;
     private bool _visible = true;
     private bool _trackViewState;
-    private ControlState _state = ControlState.Constructed;
+    protected internal ControlState _state = ControlState.Constructed;
 
     public IWebObjectActivator WebActivator => _webObjectActivator ??= ServiceProvider.GetRequiredService<IWebObjectActivator>();
 
@@ -50,6 +51,10 @@ public partial class Control : System.Web.UI.Control
     public virtual bool EnableViewState { get; set; } = true;
 
     protected virtual bool EnableViewStateBag => EnableViewState;
+
+    protected bool HasGeneratedId => _hasGeneratedId;
+
+    protected virtual bool ProcessControl => true;
 
     /// <summary>Gets a reference to the <see cref="T:System.Web.UI.Page" /> instance that contains the server control.</summary>
     /// <returns>The <see cref="T:System.Web.UI.Page" /> instance that contains the server control.</returns>
@@ -103,29 +108,6 @@ public partial class Control : System.Web.UI.Control
         }
     }
 
-    [Bindable(false)]
-    [Browsable(false)]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public virtual StreamPanel? StreamPanel
-    {
-        get
-        {
-            if (_streamPanel == null && _parent != null)
-            {
-                if (_parent is StreamPanel streamPanel)
-                {
-                    _streamPanel = streamPanel;
-                }
-                else
-                {
-                    _streamPanel = _parent.StreamPanel;
-                }
-            }
-
-            return _streamPanel;
-        }
-    }
-
     /// <summary>Gets a reference to the server control's parent control in the page control hierarchy.</summary>
     /// <returns>A reference to the server control's parent control.</returns>
     [Bindable(false)]
@@ -145,8 +127,10 @@ public partial class Control : System.Web.UI.Control
             if (value == "") value = null;
 
             var id = _id;
+            var updateGeneratedIds = _hasGeneratedId;
+
             _id = value;
-            IsAutomaticID = false;
+            _hasGeneratedId = false;
 
             ClearCachedUniqueIDRecursive();
 
@@ -159,10 +143,13 @@ public partial class Control : System.Web.UI.Control
             {
                 ClearCachedClientID();
             }
+
+            if (updateGeneratedIds)
+            {
+                _namingContainer?.UpdateGeneratedIds();
+            }
         }
     }
-
-    public bool IsAutomaticID { get; private set; }
 
     public bool Visible
     {
@@ -190,11 +177,17 @@ public partial class Control : System.Web.UI.Control
             }
             
             var namingContainer = NamingContainer;
-            if (namingContainer == null) return _id;
+            if (namingContainer == null)
+            {
+                return _hasGeneratedId ? null : _id;
+            }
 
-            _id ??= GenerateAutomaticId();
+            if (_id is null && GenerateAutomaticID)
+            {
+                namingContainer.UpdateGeneratedIds();
+            }
 
-            if (Page == namingContainer)
+            if (Page == namingContainer || _id is null)
             {
                 _cachedUniqueID = _id;
             }
@@ -310,19 +303,18 @@ public partial class Control : System.Web.UI.Control
         _controls = null;
         _namingContainer = null;
         _id = null;
+        _hasGeneratedId = false;
         _cachedUniqueID = null;
         _cachedPredictableID = null;
         _parent = null;
         _occasionalFields = null;
         _page = null;
         _form = null;
-        _streamPanel = null;
         _webObjectActivator = null;
         _renderMethod = null;
         _visible = true;
         _trackViewState = false;
         _state = ControlState.Constructed;
-        IsAutomaticID = false;
     }
 
     protected virtual string GetUniqueIDPrefix()
@@ -341,6 +333,8 @@ public partial class Control : System.Web.UI.Control
     [Browsable(false)]
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public virtual ControlCollection Controls => _controls ??= CreateControlCollection();
+
+    internal bool HasControls => _controls is { Count: > 0 };
 
     /// <summary>Gets a dictionary of state information that allows you to save and restore the view state of a server control across multiple requests for the same page.</summary>
     /// <returns>An instance of the <see cref="T:WebFormsCore.UI.StateBag" /> class that contains the server control's view-state information.</returns>
@@ -414,13 +408,12 @@ public partial class Control : System.Web.UI.Control
         return new ControlCollection(this);
     }
 
-    internal void AddedControl(Control control, int index)
+    internal void AddedControl(Control control, bool isAddedLast)
     {
         control._parent?.Controls.Remove(control);
         control._parent = this;
         control._page = _page ?? this as Page;
         control._form = _form;
-        control._streamPanel = _streamPanel;
 
         var namingContainer = this is INamingContainer ? this : NamingContainer;
 
@@ -433,7 +426,20 @@ public partial class Control : System.Web.UI.Control
 
         if (control._id == null)
         {
-            control.GenerateAutomaticId();
+            if (control.GenerateAutomaticID)
+            {
+                if (isAddedLast && !control.HasControls)
+                {
+                    control._id = GetId(namingContainer.OccasionalFields.NextIndex);
+                    control._hasGeneratedId = true;
+                    namingContainer.DirtyNameTable();
+                    namingContainer.OccasionalFields.NextIndex++;
+                }
+                else
+                {
+                    namingContainer.UpdateGeneratedIds();
+                }
+            }
         }
         else if (control._id != null || control._controls != null)
         {
@@ -466,16 +472,15 @@ public partial class Control : System.Web.UI.Control
 
     internal void ClearNamingContainer()
     {
-        OccasionalFields.NamedControlsID = 0;
         DirtyNameTable();
     }
 
     protected internal virtual void RemovedControl(Control control)
     {
+        if (control._hasGeneratedId) control._namingContainer?.UpdateGeneratedIds();
         control._parent = null;
         control._page = null;
         control._form = null;
-        control._streamPanel = null;
         control._namingContainer = null;
     }
 
@@ -504,7 +509,7 @@ public partial class Control : System.Web.UI.Control
 
         if (namingContainer != null)
         {
-            _id ??= GenerateAutomaticId();
+            namingContainer.UpdateGeneratedIds();
 
             switch (namingContainer)
             {
@@ -538,23 +543,50 @@ public partial class Control : System.Web.UI.Control
 
     protected virtual bool GenerateAutomaticID => true;
 
-    private string? GenerateAutomaticId()
+    internal void UpdateGeneratedIds()
     {
-        if (!GenerateAutomaticID)
+        var index = 0;
+        UpdateGeneratedIds(ref index, Controls);
+        DirtyNameTable();
+        OccasionalFields.NextIndex = index;
+    }
+
+    private static void UpdateGeneratedIds(ref int index, ControlCollection collection)
+    {
+        foreach (var control in collection)
         {
-            return null;
+            if (!control.GenerateAutomaticID || (control._id is not null && !control._hasGeneratedId))
+            {
+                continue;
+            }
+
+            var newId = GetId(index);
+
+            control._generatedIdChanged = control._id != newId;
+            control._id = newId;
+            control._hasGeneratedId = true;
+
+            index++;
         }
 
-        if (_namingContainer == null)
+        foreach (var control in collection)
         {
-            return AutomaticIDs[0];
-        }
+            if (control is not INamingContainer)
+            {
+                UpdateGeneratedIds(ref index, control.Controls);
+            }
+            else if (control._generatedIdChanged)
+            {
+                control.UpdateGeneratedIds();
+            }
 
-        var index = _namingContainer.OccasionalFields.NamedControlsID++;
-        _id = index >= 128 ? "c" + index.ToString(NumberFormatInfo.InvariantInfo) : AutomaticIDs[index];
-        IsAutomaticID = true;
-        _namingContainer.DirtyNameTable();
-        return _id;
+            control._generatedIdChanged = false;
+        }
+    }
+
+    internal static string GetId(int index)
+    {
+        return index >= 128 ? "c" + index.ToString(NumberFormatInfo.InvariantInfo) : AutomaticIDs[index];
     }
 
     private void ClearCachedUniqueIDRecursive()
@@ -606,7 +638,7 @@ public partial class Control : System.Web.UI.Control
             return NamingContainer?.FindControl(id);
         }
 
-        if (Controls.Count == 0)
+        if (!HasControls)
         {
             return null;
         }
@@ -618,16 +650,54 @@ public partial class Control : System.Web.UI.Control
             OccasionalFields.NamedControls = namedControls;
         }
 
-        return namedControls.TryGetValue(id, out var control) ? control : null;
+        if (namedControls.TryGetValue(id, out var control))
+        {
+            return control;
+        }
+
+        return FindControlByUniqueId(id, Controls);
+    }
+
+    private static Control? FindControlByUniqueId(string id, ControlCollection controls)
+    {
+        foreach (var control in controls)
+        {
+            if (control.UniqueID == id)
+            {
+                return control;
+            }
+
+            if (control is INamingContainer)
+            {
+                var uniqueIdPrefix = control.GetUniqueIDPrefix();
+
+                if (!id.StartsWith(uniqueIdPrefix))
+                {
+                    continue;
+                }
+            }
+
+            if (control.HasControls)
+            {
+                var childControl = FindControlByUniqueId(id, control.Controls);
+
+                if (childControl is not null)
+                {
+                    return childControl;
+                }
+            }
+        }
+
+        return null;
     }
 
     private static void FillNamedControls(IDictionary<string, Control> namedControls, ControlCollection collection)
     {
         foreach (var control in collection)
         {
-            if (control._id != null)
+            if (control.ID != null)
             {
-                namedControls.Add(control._id, control);
+                namedControls.Add(control.ID, control);
             }
 
             if (control is not INamingContainer)
@@ -720,7 +790,7 @@ public partial class Control : System.Web.UI.Control
 
     public virtual void StateHasChanged()
     {
-        StreamPanel?.StateHasChanged();
+        Page.ActiveStreamPanel?.StateHasChanged();
     }
 
     public Control LoadControl(string path) => WebActivator.CreateControl(path);
@@ -862,7 +932,7 @@ public partial class Control : System.Web.UI.Control
 
 internal sealed class OccasionalFields
 {
-    public int NamedControlsID;
     public string? UniqueIDPrefix;
     public Dictionary<string, Control>? NamedControls;
+    public int NextIndex;
 }

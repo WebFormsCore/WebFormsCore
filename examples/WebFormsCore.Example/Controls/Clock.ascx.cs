@@ -13,7 +13,14 @@ public partial class Clock : Control, IDisposable
     {
         base.OnLoad(args);
 
-        _timer = new Timer(Update, this, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        if (Page.IsStreaming)
+        {
+            _timer = new Timer(Update, this, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        }
+        else
+        {
+            Update(this);
+        }
     }
 
     private static void Update(object? state)

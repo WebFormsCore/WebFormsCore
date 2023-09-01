@@ -26,15 +26,32 @@ public class StreamPanel : Control, INamingContainer
 {
     private WebSocket _webSocket = null!;
     private Task<WebSocketReceiveResult>? _receiveTask;
+    private bool _prerender;
 #if NET
     private TaskCompletionSource _stateHasChangedTcs = new();
 #else
     private TaskCompletionSource<bool> _stateHasChangedTcs = new();
 #endif
 
-    internal bool IsWebSocket { get; set; }
+    public bool IsConnected { get; internal set; }
 
-    public override bool EnableViewState => IsWebSocket;
+    public bool Prerender
+    {
+        get => _prerender;
+        set
+        {
+            if (_state >= ControlState.FrameworkInitialized)
+            {
+                throw new InvalidOperationException("Cannot change prerender after framework initialization.");
+            }
+
+            _prerender = value;
+        }
+    }
+
+    protected override bool ProcessControl => IsConnected || _prerender;
+
+    public override bool EnableViewState => false;
 
     public WebSocket WebSocket
     {
@@ -51,53 +68,13 @@ public class StreamPanel : Control, INamingContainer
 
     public override void StateHasChanged()
     {
+        if (!IsConnected) return;
+
 #if NET
         _stateHasChangedTcs.TrySetResult();
 #else
         _stateHasChangedTcs.TrySetResult(true);
 #endif
-    }
-
-    internal override void InvokeFrameworkInit(CancellationToken token)
-    {
-        if (!IsWebSocket) return;
-
-        base.InvokeFrameworkInit(token);
-    }
-
-    internal override void InvokeTrackViewState(CancellationToken token)
-    {
-        if (!IsWebSocket) return;
-
-        base.InvokeTrackViewState(token);
-    }
-
-    internal override ValueTask InvokeInitAsync(CancellationToken token)
-    {
-        if (!IsWebSocket) return default;
-
-        return base.InvokeInitAsync(token);
-    }
-
-    internal override ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument)
-    {
-        if (!IsWebSocket) return default;
-
-        return base.InvokePostbackAsync(token, form, target, argument);
-    }
-
-    internal override ValueTask InvokeLoadAsync(CancellationToken token, HtmlForm? form)
-    {
-        if (!IsWebSocket) return default;
-
-        return base.InvokeLoadAsync(token, form);
-    }
-
-    internal override ValueTask InvokePreRenderAsync(CancellationToken token, HtmlForm? form)
-    {
-        if (!IsWebSocket) return default;
-
-        return base.InvokePreRenderAsync(token, form);
     }
 
     internal async Task StartAsync(IHttpContext context, WebSocket websocket)
@@ -217,7 +194,7 @@ public class StreamPanel : Control, INamingContainer
         writer.AddAttribute("data-wfc-stream", null);
         await writer.RenderBeginTagAsync("div");
 
-        if (IsWebSocket)
+        if (ProcessControl)
         {
             await base.RenderAsync(writer, token);
         }

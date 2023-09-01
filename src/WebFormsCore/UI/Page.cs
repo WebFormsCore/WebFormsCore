@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.Events;
 using WebFormsCore.Security;
 using WebFormsCore.UI.HtmlControls;
+using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI;
 
@@ -27,11 +28,13 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     public ClientScriptManager ClientScript { get; }
 
+    public StreamPanel? ActiveStreamPanel { get; set; }
+
     protected override IHttpContext Context => _context ?? throw new InvalidOperationException("No HttpContext available.");
 
     public bool IsPostBack { get; set; }
 
-    public bool IsStreaming => StreamPanel is { IsWebSocket: true };
+    public bool IsStreaming => ActiveStreamPanel != null;
 
     protected override IServiceProvider ServiceProvider => Context.RequestServices;
 
@@ -44,7 +47,6 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
     internal HtmlForm? ActiveForm { get; set; }
 
     internal List<IBodyControl> BodyControls { get; set; } = new();
-
 
     internal async Task InitAsync(CancellationToken token)
     {
@@ -71,15 +73,6 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
         var form = await viewStateManager.LoadFromRequestAsync(Context, this);
 
         ActiveForm = form;
-
-        if (form != null)
-        {
-            Forms.RemoveAll(i => i != form && i.Parent.Controls.Remove(i));
-        }
-        else if (IsPostBack)
-        {
-            Forms.RemoveAll(i => i.Parent.Controls.Remove(i));
-        }
 
         await InvokeLoadAsync(token, form);
 

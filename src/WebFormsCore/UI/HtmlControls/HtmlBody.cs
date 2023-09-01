@@ -19,6 +19,8 @@ public class HtmlBody : HtmlContainerControl
         Script = reader.ReadToEnd();
     }
 
+    protected override bool GenerateAutomaticID => false;
+
     public HtmlBody()
         : base("body")
     {

@@ -7,6 +7,8 @@ namespace WebFormsCore.UI.HtmlControls;
 
 public class HtmlLink : HtmlContainerControl
 {
+    protected override bool GenerateAutomaticID => false;
+    
     public HtmlLink()
         : base("link")
     {

@@ -1,7 +1,8 @@
 <Project>
     <PropertyGroup>
         <WebFormsCoreUseNuget Condition="$(WebFormsCoreUseNuget) == ''">true</WebFormsCoreUseNuget>
-        <WebFormsCoreUseCompiler Condition="$(WebFormsCoreUseNuget) == ''">true</WebFormsCoreUseCompiler>
+        <WebFormsCoreUseCompiler Condition="$(WebFormsCoreUseCompiler) == '' and $(PublishAot) == 'true'">false</WebFormsCoreUseCompiler>
+        <WebFormsCoreUseCompiler Condition="$(WebFormsCoreUseCompiler) == ''">true</WebFormsCoreUseCompiler>
     </PropertyGroup>
 
     <ItemGroup Condition="$(ImplicitUsings) == 'enable'">
@@ -22,16 +23,6 @@
         <CompilerVisibleProperty Include="RootNamespace" />
     </ItemGroup>
 
-    <ItemGroup>
-        <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**">
-            <CopyToOutputDirectory Condition="$(PublishAot) != 'true'">PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**">
-            <CopyToOutputDirectory Condition="$(PublishAot) != 'true'">PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-    </ItemGroup>
-
     <ItemGroup Condition="Exists('web.config')">
         <None Include="web.config" />
         <AdditionalFiles Include="web.config" Exclude="bin\**;obj\**" />
@@ -47,6 +38,16 @@
     <PropertyGroup Condition="$(WebFormsCoreUseCompiler) == 'true'">
         <DefineConstants>$(DefineConstants);WFC_COMPILER</DefineConstants>
     </PropertyGroup>
+
+    <ItemGroup>
+        <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**">
+            <CopyToOutputDirectory Condition="$(WebFormsCoreUseCompiler) == 'true'">PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
+        <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**">
+            <CopyToOutputDirectory Condition="$(WebFormsCoreUseCompiler) == 'true'">PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+    </ItemGroup>
 
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true' and $(WebFormsCoreUseCompiler) == 'true'">
         <PackageReference Include="WebFormsCore.Compiler" Version="$version$" />

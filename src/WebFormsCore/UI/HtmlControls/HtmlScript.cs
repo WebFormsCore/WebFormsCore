@@ -7,6 +7,8 @@ namespace WebFormsCore.UI.HtmlControls;
 
 public class HtmlScript : HtmlContainerControl
 {
+    protected override bool GenerateAutomaticID => false;
+
     public HtmlScript()
         : base("script")
     {

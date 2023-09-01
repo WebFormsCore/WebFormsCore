@@ -459,6 +459,16 @@ public class Parser
                     }
                 }
 
+                if (key.Equals("ID", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (controlType?.GetMemberDeep(key) is { CanWrite: true })
+                    {
+                        controlNode.Id = value;
+                    }
+
+                    continue;
+                }
+
                 if (controlType?.GetMemberDeep(key) is { CanWrite: true } member)
                 {
                     var converterArgument = member.Symbol.GetAttributes()

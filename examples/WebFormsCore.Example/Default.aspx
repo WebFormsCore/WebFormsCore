@@ -49,9 +49,7 @@
                         <strong>Clock</strong>
                     </div>
                     <div class="card-body">
-                        <wfc:StreamPanel runat="server">
-                            <app:Clock runat="server" />
-                        </wfc:StreamPanel>
+                        <app:Clock runat="server" />
                     </div>
                 </div>
 

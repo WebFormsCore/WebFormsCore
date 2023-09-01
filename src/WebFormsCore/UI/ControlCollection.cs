@@ -24,9 +24,8 @@ public class ControlCollection : IReadOnlyCollection<Control>
 
     public virtual void AddWithoutPageEvents(Control child)
     {
-        var index = Count;
         _list.Add(child);
-        Owner.AddedControl(child, index);
+        Owner.AddedControl(child, true);
     }
 
     public virtual ValueTask AddAsync(Control child)
@@ -38,6 +37,7 @@ public class ControlCollection : IReadOnlyCollection<Control>
     public virtual void Swap(int oldIndex, int newIndex)
     {
         (_list[oldIndex], _list[newIndex]) = (_list[newIndex], _list[oldIndex]);
+        Owner.NamingContainer?.UpdateGeneratedIds();
     }
 
     public void Swap(Control control, int newIndex)

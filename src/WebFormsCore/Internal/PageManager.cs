@@ -61,7 +61,8 @@ public class PageManager : IPageManager
                 throw new InvalidOperationException($"Panel '{panel}' is not a StreamPanel.");
             }
 
-            streamPanel.IsWebSocket = true;
+            page.ActiveStreamPanel = streamPanel;
+            streamPanel.IsConnected = true;
 
             streamPanel.InvokeFrameworkInit(token);
             await streamPanel.InvokeInitAsync(token);

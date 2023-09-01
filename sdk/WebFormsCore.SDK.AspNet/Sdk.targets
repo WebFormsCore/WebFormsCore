@@ -6,11 +6,6 @@
     </PropertyGroup>
 
     <!-- NuGet references -->
-    <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true'">
-        <PackageReference Condition="$(UseOwin) != 'true'" Include="WebFormsCore.AspNet" Version="$version$" />
-        <PackageReference Condition="$(UseOwin) == 'true'" Include="WebFormsCore.Owin" Version="$version$" />
-    </ItemGroup>
-
     <ItemGroup>
         <PackageReference Include="HttpStack.AspNet" Version="$httpStackVersion$" />
     </ItemGroup>

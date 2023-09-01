@@ -21,6 +21,8 @@ public static class ControlExtensions
     {
         yield return control;
 
+        if (!control.HasControls) yield break;
+
         foreach (var child in control.Controls)
         {
             foreach (var descendant in EnumerateControls(child))
@@ -33,6 +35,8 @@ public static class ControlExtensions
     public  static IEnumerable<Control> EnumerateControls(this Control control, Func<Control, bool> filter)
     {
         yield return control;
+
+        if (!control.HasControls) yield break;
 
         foreach (var child in control.Controls)
         {
@@ -61,8 +65,9 @@ public partial class Control : IInternalControl
         OnWriteViewState(ref writer);
     }
 
-    internal virtual void InvokeFrameworkInit(CancellationToken token)
+    internal void InvokeFrameworkInit(CancellationToken token)
     {
+        if (!ProcessControl) return;
         if (token.IsCancellationRequested) return;
 
         if (this is IDisposable or IAsyncDisposable)
@@ -81,8 +86,9 @@ public partial class Control : IInternalControl
         }
     }
 
-    internal virtual void InvokeTrackViewState(CancellationToken token)
+    internal void InvokeTrackViewState(CancellationToken token)
     {
+        if (!ProcessControl) return;
         if (token.IsCancellationRequested) return;
 
         TrackViewState(new ViewStateProvider(ServiceProvider));
@@ -93,9 +99,11 @@ public partial class Control : IInternalControl
         }
     }
 
-    internal virtual async ValueTask InvokeInitAsync(CancellationToken token)
+    internal async ValueTask InvokeInitAsync(CancellationToken token)
     {
+        if (!ProcessControl) return;
         if (token.IsCancellationRequested) return;
+
         OnInit(EventArgs.Empty);
         await OnInitAsync(token);
 
@@ -112,8 +120,9 @@ public partial class Control : IInternalControl
         }
     }
 
-    internal virtual async ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument)
+    internal async ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument)
     {
+        if (!ProcessControl) return;
         if (token.IsCancellationRequested) return;
 
         if (UniqueID is {} uniqueId)
@@ -166,8 +175,9 @@ public partial class Control : IInternalControl
         }
     }
 
-    internal virtual async ValueTask InvokeLoadAsync(CancellationToken token, HtmlForm? form)
+    internal async ValueTask InvokeLoadAsync(CancellationToken token, HtmlForm? form)
     {
+        if (!ProcessControl) return;
         if (token.IsCancellationRequested) return;
 
         OnLoad(EventArgs.Empty);
@@ -185,8 +195,9 @@ public partial class Control : IInternalControl
         }
     }
 
-    internal virtual async ValueTask InvokePreRenderAsync(CancellationToken token, HtmlForm? form)
+    internal async ValueTask InvokePreRenderAsync(CancellationToken token, HtmlForm? form)
     {
+        if (!ProcessControl) return;
         if (token.IsCancellationRequested) return;
 
         OnPreRender(EventArgs.Empty);

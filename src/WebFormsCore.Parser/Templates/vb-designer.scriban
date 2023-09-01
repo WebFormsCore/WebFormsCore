@@ -7,7 +7,10 @@
 
         {{- when "Control" }}
             Dim {{ child.VariableName }} = WebActivator.CreateControl(Of {{ child.DisplayControlType }})()
-            {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject({{ child.VariableName }})
+            {{- if child.Id }}
+            {{ child.VariableName }}.ID = "{{ child.Id }}"
+            {{ end }}
+            {{- child.Parent?.VariableName ?? $1 }}.AddParsedSubObject({{ child.VariableName }})
 
             {{- for prop in child.Events }}
             {{- if IsReturnTypeSame }}

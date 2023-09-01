@@ -1,15 +1,6 @@
 <Project>
     <Import Project="Core.targets" />
 
-    <PropertyGroup>
-        <UseASPNetCore Condition="$(UseASPNetCore) == ''">true</UseASPNetCore>
-    </PropertyGroup>
-
-    <!-- NuGet references -->
-    <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true'">
-        <PackageReference Condition="$(UseASPNetCore) == 'true'" Include="WebFormsCore.AspNetCore" Version="$version$" />
-    </ItemGroup>
-
     <ItemGroup>
         <PackageReference Include="HttpStack.AspNetCore" Version="$httpStackVersion$" />
     </ItemGroup>

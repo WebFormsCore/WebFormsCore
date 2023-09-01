@@ -6,6 +6,8 @@ namespace WebFormsCore.UI.HtmlControls;
 
 public class HtmlHead : HtmlContainerControl
 {
+    protected override bool GenerateAutomaticID => false;
+
     public HtmlHead()
         : base("head")
     {

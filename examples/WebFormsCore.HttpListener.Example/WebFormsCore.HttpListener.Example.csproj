@@ -15,8 +15,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="HttpStack.Builder" Version="0.0.1-alpha.2" />
-      <PackageReference Include="HttpStack.HttpListener" Version="0.0.1-alpha.2" />
+      <PackageReference Include="HttpStack.Builder" Version="$(HttpStackVersion)" />
+      <PackageReference Include="HttpStack.HttpListener" Version="$(HttpStackVersion)" />
     </ItemGroup>
     
     <Import Project="..\..\sdk\WebFormsCore.SDK\Sdk\Sdk.targets" />
