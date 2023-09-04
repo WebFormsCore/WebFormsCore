@@ -131,7 +131,9 @@ public static class ContextExtensions
             {
                 if (property.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                 {
-                    return new MemberResult(property.Name, property.Type, property.SetMethod != null, property);
+                    var canWrite = property.SetMethod is { DeclaredAccessibility: Accessibility.Protected or Accessibility.Public };
+
+                    return new MemberResult(property.Name, property.Type, canWrite, property);
                 }
             }
             else if (symbol is IFieldSymbol field)

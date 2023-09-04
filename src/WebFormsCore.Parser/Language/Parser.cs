@@ -417,19 +417,22 @@ public class Parser
             {
                 var member = _type?.GetMemberDeep(id.Value);
 
-                controlNode.FieldName = member?.Name;
+                if (member is null or { CanWrite: true })
+                {
+                    controlNode.FieldName = member?.Name;
 
-                if (_container.Template == null)
-                {
-                    if (controlNode.FieldName == null && _addFields)
+                    if (_container.Template == null)
                     {
-                        Root.Ids.Add(new ControlId(id, controlType, member));
-                        controlNode.FieldName = id;
+                        if (member is null && _addFields)
+                        {
+                            Root.Ids.Add(new ControlId(id, controlType, member));
+                            controlNode.FieldName = id;
+                        }
                     }
-                }
-                else
-                {
-                    _container.Template.Ids.Add(new ControlId(id, controlType, member));
+                    else
+                    {
+                        _container.Template.Ids.Add(new ControlId(id, controlType, member));
+                    }
                 }
             }
 
