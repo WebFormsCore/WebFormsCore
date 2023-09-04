@@ -1,6 +1,5 @@
 {{ func write_children }}
         {{- for child in $0 }}
-            #ExternalSource("{{ child.Range.File }}", {{ child.Range.Start.Line + 1 }})
         {{- case child.Type }}
         {{- when "Text" }}
             {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject(WebActivator.CreateLiteral({{ child.Text.VbCodeString }}))
@@ -9,8 +8,8 @@
             Dim {{ child.VariableName }} = WebActivator.CreateControl(Of {{ child.DisplayControlType }})()
             {{- if child.Id }}
             {{ child.VariableName }}.ID = "{{ child.Id }}"
-            {{ end }}
-            {{- child.Parent?.VariableName ?? $1 }}.AddParsedSubObject({{ child.VariableName }})
+            {{- end }}
+            {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject({{ child.VariableName }})
 
             {{- for prop in child.Events }}
             {{- if IsReturnTypeSame }}
@@ -59,7 +58,6 @@
         {{- if $2 && child.FieldName }}
             {{ $1 }}.{{ child.FieldName }} = {{ child.VariableName }}
         {{- end }}
-            #End ExternalSource
         {{- end }}
 {{-end}}
 
@@ -69,7 +67,6 @@
         Private Async Function {{ render.RenderName }}(writer As WebFormsCore.UI.HtmlTextWriter, controls As WebFormsCore.UI.ControlCollection, token As System.Threading.CancellationToken) As System.Threading.Tasks.Task
             {{- i = 0 }}
             {{- for child in render.Children }}
-            #ExternalSource("{{ child.Range.File }}", {{ child.Range.Start.Line + 1 }})
             {{- case child.Type }}
             {{- when "Statement" }}
             {{ child.Text }}
@@ -82,7 +79,6 @@
             Await controls({{ i }}).RenderAsync(writer, token) ' Element: {{ child.Name }}
             {{- i = i + 1 }}
             {{- end }}
-            #End ExternalSource
             {{- end }}
         End Function
         {{- end }}

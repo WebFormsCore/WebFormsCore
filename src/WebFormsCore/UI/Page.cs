@@ -22,6 +22,10 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
         ClientScript = new ClientScriptManager(this);
     }
 
+    public HtmlHead? Head { get; internal set; }
+
+    public HtmlBody? Body { get; internal set; }
+
     public bool EnablePageViewState { get; set; } = true;
 
     public Csp Csp { get; set; } = new();

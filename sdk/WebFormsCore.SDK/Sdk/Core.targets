@@ -42,10 +42,6 @@
     </ItemGroup>
 
     <!-- Control Compiler -->
-    <PropertyGroup Condition="$(WebFormsCoreUseCompiler) == 'true'">
-        <DefineConstants>$(DefineConstants);WFC_COMPILER</DefineConstants>
-    </PropertyGroup>
-
     <ItemGroup>
         <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**">
             <CopyToOutputDirectory Condition="$(WebFormsCoreUseCompiler) == 'true'">PreserveNewest</CopyToOutputDirectory>

@@ -1,6 +1,7 @@
 <%@ Page language="C#" Inherits="WebFormsCore.Example.Default" Async="true" %>
 <%@ Import Namespace="HttpStack" %>
 <%@ Register TagPrefix="app" Namespace="WebFormsCore.Example.Controls" %>
+<%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI" Assembly="WebFormsCore.Extensions.Grid" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -13,6 +14,14 @@
 
 <div class="container">
     <wfc:Choices runat="server" ID="choices" AutoPostBack="True" OnValuesChanged="choices_OnValuesChanged" Multiple="True" />
+
+    <wfc:Grid runat="server" ID="grid" class="table" PageSize="1">
+        <Columns>
+            <wfc:GridBoundColumn runat="server" HeaderText="ID" DataField="Id" />
+            <wfc:GridBoundColumn runat="server" HeaderText="Naam" DataField="Name" />
+            <wfc:GridBoundColumn runat="server" HeaderText="Is nieuw" DataField="IsNew" />
+        </Columns>
+    </wfc:Grid>
 
     <div class="mt-4">
         <div class="row">

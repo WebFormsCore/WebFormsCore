@@ -20,15 +20,15 @@ public interface IWebObjectActivator
 #if NET
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
 #endif
-        T>() where T : Control;
+        T>();
 
-    Control CreateControl(
+    object CreateControl(
 #if NET
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
 #endif
         Type type);
 
-    Control CreateControl(string fullPath);
+    object CreateControl(string fullPath);
 
     LiteralControl CreateLiteral(string text);
 

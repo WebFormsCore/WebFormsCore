@@ -171,10 +171,28 @@ public class HtmlTextWriter : TextWriter
 
     public ValueTask RenderBeginTagAsync(HtmlTextWriterTag tagKey) => RenderBeginTagAsync(tagKey.ToName());
 
+    public ValueTask RenderSelfClosingTagAsync(HtmlTextWriterTag tagKey) => RenderSelfClosingTagAsync(tagKey.ToName());
+
     public async ValueTask RenderBeginTagAsync(string name)
     {
         await WriteBeginTagAsync(name);
+        await RenderAttributesAsync();
 
+        _openTags.Push(name);
+        await WriteAsync(TagRightChar);
+        if (AutoFlush) await FlushAsync();
+    }
+
+    public async ValueTask RenderSelfClosingTagAsync(string name)
+    {
+        await WriteBeginTagAsync(name);
+        await RenderAttributesAsync();
+        await WriteAsync(SelfClosingTagEnd);
+        if (AutoFlush) await FlushAsync();
+    }
+
+    private async Task RenderAttributesAsync()
+    {
         if (_attributes.Count > 0)
         {
             foreach (var attribute in _attributes)
@@ -199,10 +217,6 @@ public class HtmlTextWriter : TextWriter
             await WriteAsync(DoubleQuoteChar);
             _styleAttributes.Clear();
         }
-
-        _openTags.Push(name);
-        await WriteAsync(TagRightChar);
-        if (AutoFlush) await FlushAsync();
     }
 
     public void RenderEndTag()

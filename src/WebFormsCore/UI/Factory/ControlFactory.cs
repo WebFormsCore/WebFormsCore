@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 namespace WebFormsCore.UI;
 
 internal sealed class ControlFactory<T> : IControlFactory<T>
-    where T : Control
 {
     private readonly IControlInterceptor[] _interceptors;
     private readonly IControlManager _manager;
@@ -56,8 +55,8 @@ internal sealed class ControlFactory<T> : IControlFactory<T>
         );
     }
 
-    Control IControlFactory.CreateControl(IServiceProvider provider)
+    object IControlFactory.CreateControl(IServiceProvider provider)
     {
-        return CreateControl(provider);
+        return CreateControl(provider)!;
     }
 }

@@ -1,6 +1,21 @@
-﻿using WebFormsCore.Models;
+﻿using Microsoft.CodeAnalysis;
+using WebFormsCore.Models;
 
 namespace WebFormsCore.Nodes;
+
+public class CollectionNode : ElementNode, ITypedNode
+{
+    public CollectionNode()
+        : base(NodeType.Collection)
+    {
+    }
+
+    public Token Property { get; set; }
+    public INamedTypeSymbol PropertyType { get; set; } = default!;
+    public List<TemplateNode> Templates { get; set; } = new();
+
+    INamedTypeSymbol ITypedNode.Type => PropertyType;
+}
 
 public class TemplateNode : ElementNode
 {

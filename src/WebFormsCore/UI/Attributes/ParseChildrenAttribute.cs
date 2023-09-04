@@ -1,10 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
-#if NET
-// ReSharper disable once CheckNamespace
-namespace System.Web.UI;
+namespace WebFormsCore.UI.Attributes;
 
-/// <summary>Defines a metadata attribute that you can use when developing ASP.NET server controls. Use the <see cref="T:System.Web.UI.ParseChildrenAttribute" /> class to indicate how the page parser should treat content nested inside a server control tag declared on a page. This class cannot be inherited.</summary>
+/// <summary>Defines a metadata attribute that you can use when developing ASP.NET server controls. Use the <see cref="T:WebFormsCore.UI.Attributes.ParseChildrenAttribute" /> class to indicate how the page parser should treat content nested inside a server control tag declared on a page. This class cannot be inherited.</summary>
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class ParseChildrenAttribute : Attribute
 {
@@ -14,7 +13,7 @@ public sealed class ParseChildrenAttribute : Attribute
     /// <summary>Indicates that the nested content that is contained within a server control is parsed as properties of the control. </summary>
     public static readonly ParseChildrenAttribute ParseAsProperties = new ParseChildrenAttribute(true, false);
 
-    /// <summary>Defines the default value for the <see cref="T:System.Web.UI.ParseChildrenAttribute" /> class. This field is read-only.</summary>
+    /// <summary>Defines the default value for the <see cref="T:WebFormsCore.UI.Attributes.ParseChildrenAttribute" /> class. This field is read-only.</summary>
     public static readonly ParseChildrenAttribute Default = ParseAsChildren;
 
     private bool _childrenAsProps;
@@ -22,20 +21,20 @@ public sealed class ParseChildrenAttribute : Attribute
     private readonly Type? _childControlType;
     private readonly bool _allowChanges = true;
 
-    /// <summary>Initializes a new instance of the <see cref="T:System.Web.UI.ParseChildrenAttribute" /> class.</summary>
+    /// <summary>Initializes a new instance of the <see cref="T:WebFormsCore.UI.Attributes.ParseChildrenAttribute" /> class.</summary>
     public ParseChildrenAttribute()
         : this(false, null)
     {
     }
 
-    /// <summary>Initializes a new instance of the <see cref="T:System.Web.UI.ParseChildrenAttribute" /> class using the <see cref="P:System.Web.UI.ParseChildrenAttribute.ChildrenAsProperties" /> property to determine if the elements that are contained within a server control are parsed as properties of the server control.</summary>
+    /// <summary>Initializes a new instance of the <see cref="T:WebFormsCore.UI.Attributes.ParseChildrenAttribute" /> class using the <see cref="P:WebFormsCore.UI.Attributes.ParseChildrenAttribute.ChildrenAsProperties" /> property to determine if the elements that are contained within a server control are parsed as properties of the server control.</summary>
     /// <param name="childrenAsProperties">true to parse the elements as properties of the server control; otherwise, false. </param>
     public ParseChildrenAttribute(bool childrenAsProperties)
         : this(childrenAsProperties, null)
     {
     }
 
-    /// <summary>Initializes a new instance of the <see cref="T:System.Web.UI.ParseChildrenAttribute" /> class using the <see cref="P:System.Web.UI.ParseChildrenAttribute.ChildControlType" /> property to determine which elements that are contained within a server control are parsed as controls.</summary>
+    /// <summary>Initializes a new instance of the <see cref="T:WebFormsCore.UI.Attributes.ParseChildrenAttribute" /> class using the <see cref="P:WebFormsCore.UI.Attributes.ParseChildrenAttribute.ChildControlType" /> property to determine which elements that are contained within a server control are parsed as controls.</summary>
     /// <param name="childControlType">The control type to parse as a property. </param>
     /// <exception cref="T:System.ArgumentNullException">
     /// <paramref name="childControlType" /> is null. </exception>
@@ -51,7 +50,7 @@ public sealed class ParseChildrenAttribute : Attribute
         _allowChanges = allowChanges;
     }
 
-    /// <summary>Initializes a new instance of the <see cref="T:System.Web.UI.ParseChildrenAttribute" /> class using the <paramref name="childrenAsProperties" /> and <paramref name="defaultProperty" /> parameters.</summary>
+    /// <summary>Initializes a new instance of the <see cref="T:WebFormsCore.UI.Attributes.ParseChildrenAttribute" /> class using the <paramref name="childrenAsProperties" /> and <paramref name="defaultProperty" /> parameters.</summary>
     /// <param name="childrenAsProperties">true to parse the elements as properties of the server control; otherwise, false. </param>
     /// <param name="defaultProperty">A string that defines a collection property of the server control into which nested content is parsed by default. </param>
     public ParseChildrenAttribute(bool childrenAsProperties, string? defaultProperty)
@@ -64,7 +63,7 @@ public sealed class ParseChildrenAttribute : Attribute
 
     /// <summary>Gets a value indicating the allowed type of a control. </summary>
     /// <returns>The control type. The default is <see cref="T:System.Web.UI.Control" />. </returns>
-    public Type ChildControlType => _childControlType ?? typeof(Control);
+    public Type ChildControlType => _childControlType ?? typeof(System.Web.UI.Control);
 
     /// <summary>Gets or sets a value indicating whether to parse the elements that are contained within a server control as properties.</summary>
     /// <returns>true to parse the elements as properties; otherwise, false. The default is true.</returns>
@@ -94,8 +93,8 @@ public sealed class ParseChildrenAttribute : Attribute
         }
     }
 
-    /// <summary>Serves as a hash function for the <see cref="T:System.Web.UI.ParseChildrenAttribute" /> object.</summary>
-    /// <returns>A hash code for the current <see cref="T:System.Web.UI.ParseChildrenAttribute" /> object. </returns>
+    /// <summary>Serves as a hash function for the <see cref="T:WebFormsCore.UI.Attributes.ParseChildrenAttribute" /> object.</summary>
+    /// <returns>A hash code for the current <see cref="T:WebFormsCore.UI.Attributes.ParseChildrenAttribute" /> object. </returns>
     [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
     public override int GetHashCode() => !_childrenAsProps
         ? HashCode.Combine(_childrenAsProps.GetHashCode(), _childControlType?.GetHashCode() ?? 0)
@@ -117,8 +116,7 @@ public sealed class ParseChildrenAttribute : Attribute
             : childrenAttribute.ChildrenAsProperties && DefaultProperty.Equals(childrenAttribute.DefaultProperty);
     }
 
-    /// <summary>Returns a value indicating whether the value of the current instance of the <see cref="T:System.Web.UI.ParseChildrenAttribute" /> class is the default value of the derived class.</summary>
-    /// <returns>true if the current <see cref="T:System.Web.UI.ParseChildrenAttribute" /> value is the default instance; otherwise, false.</returns>
+    /// <summary>Returns a value indicating whether the value of the current instance of the <see cref="T:WebFormsCore.UI.Attributes.ParseChildrenAttribute" /> class is the default value of the derived class.</summary>
+    /// <returns>true if the current <see cref="T:WebFormsCore.UI.Attributes.ParseChildrenAttribute" /> value is the default instance; otherwise, false.</returns>
     public override bool IsDefaultAttribute() => Equals(Default);
 }
-#endif

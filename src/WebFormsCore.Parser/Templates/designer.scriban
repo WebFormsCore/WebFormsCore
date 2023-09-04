@@ -7,15 +7,20 @@
         {{- for child in $0 }}
         {{ line child }}
         {{- case child.Type }}
+        {{- when "Collection" }}
+            var {{ child.VariableName }} = {{ child.Parent?.VariableName ?? $1 }}.{{ child.Property }};
+
         {{- when "Text" }}
-            {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject(WebActivator.CreateLiteral({{ child.Text.CodeString }}));
+            {{ if child.Parent?.Type != "Collection" -}}
+                {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject(WebActivator.CreateLiteral({{ child.Text.CodeString }}));
+            {{- end }}
 
         {{- when "Control" }}
             var {{ child.VariableName }} = WebActivator.CreateControl<{{ child.DisplayControlType }}>();
-            {{ if child.Id }}
+            {{- if child.Id }}
             {{ child.VariableName }}.ID = "{{ child.Id }}";
-            {{ end }}
-            {{- child.Parent?.VariableName ?? $1 }}.AddParsedSubObject({{ child.VariableName }});
+            {{- end }}
+            {{ child.Parent?.VariableName ?? $1 }}.{{ child.Parent?.Type == "Collection" ? "Add" : "AddParsedSubObject" }}({{ child.VariableName }});
 
             {{- for prop in child.Events }}
             {{- if IsReturnTypeSame }}

@@ -74,7 +74,7 @@ public partial class WebControl : Control, IAttributeAccessor
             writer.AddAttribute(HtmlTextWriterAttribute.Title, ToolTip);
         }
 
-        _attributes?.AddAttributes(writer);
+        _attributes.AddAttributes(writer);
 
         return Task.CompletedTask;
     }
@@ -106,6 +106,11 @@ public partial class WebControl : Control, IAttributeAccessor
 
     public override async Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
+        if (!Visible)
+        {
+            return;
+        }
+
         await RenderBeginTag(writer, token);
         await RenderContentsAsync(writer, token);
         await RenderEndTagAsync(writer, token);

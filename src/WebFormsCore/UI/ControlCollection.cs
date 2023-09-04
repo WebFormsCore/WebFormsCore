@@ -62,7 +62,10 @@ public class ControlCollection : IReadOnlyCollection<Control>
 
     public virtual void Clear()
     {
-        _list.Clear();
+        while (_list.Count > 0)
+        {
+            RemoveAt(_list.Count - 1);
+        }
 
         if (Owner is INamingContainer)
         {

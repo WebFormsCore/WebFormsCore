@@ -4,7 +4,14 @@ using WebFormsCore.Models;
 
 namespace WebFormsCore.Nodes;
 
-public class ControlNode : ElementNode
+public interface ITypedNode
+{
+    INamedTypeSymbol Type { get; }
+
+    List<TemplateNode> Templates { get; }
+}
+
+public class ControlNode : ElementNode, ITypedNode
 {
     public ControlNode(INamedTypeSymbol controlType)
         : base(NodeType.Control)
@@ -25,4 +32,6 @@ public class ControlNode : ElementNode
     public string? FieldName { get; set; }
 
     public string DisplayControlType => ControlType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+    INamedTypeSymbol ITypedNode.Type => ControlType;
 }

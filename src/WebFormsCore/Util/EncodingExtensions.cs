@@ -23,6 +23,15 @@ public static class EncodingExtensions
         }
     }
 
+    public static unsafe int GetBytes(this Encoding encoding, ReadOnlySpan<char> s, Span<byte> bytes)
+    {
+        fixed (char* chars = s)
+        fixed (byte* bytesPtr = bytes)
+        {
+            return encoding.GetBytes(chars, s.Length, bytesPtr, bytes.Length);
+        }
+    }
+
     public static unsafe int GetChars(this Encoding encoding, ReadOnlySpan<byte> bytes, Span<char> chars)
     {
         fixed (byte* bytesPtr = bytes)

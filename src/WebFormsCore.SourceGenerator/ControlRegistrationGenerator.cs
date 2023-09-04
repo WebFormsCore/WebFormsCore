@@ -49,6 +49,12 @@ namespace WebFormsCore.SourceGenerator
                 if (isControl)
                 {
                     var type = model.GetDeclaredSymbol(typeDeclaration, context.CancellationToken);
+
+                    if (type == null || type.IsAbstract || type is INamedTypeSymbol { IsGenericType: true })
+                    {
+                        continue;
+                    }
+
                     var name = typeDeclaration.Identifier.Text;
                     var ns = type!.ContainingNamespace.ToString();
                     var fullName = $"{ns}.{name}";

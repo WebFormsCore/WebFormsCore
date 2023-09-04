@@ -40,7 +40,7 @@ internal sealed class PooledControlFactory<T> : IControlFactory<T>, IDisposable
         }
     }
 
-    Control IControlFactory.CreateControl(IServiceProvider provider)
+    object IControlFactory.CreateControl(IServiceProvider provider)
     {
         return CreateControl(provider);
     }

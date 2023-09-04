@@ -10,5 +10,6 @@ public enum NodeType
     Directive,
     Text,
     Event,
-    Property
+    Property,
+    Collection
 }

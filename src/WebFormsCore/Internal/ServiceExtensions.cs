@@ -43,7 +43,9 @@ public static class ServiceExtensions
         services.AddViewStateSerializer<ViewStateObjectSerializer>();
         services.AddViewStateSerializer<EnumViewStateSerializer>();
         services.AddViewStateSerializer<NullableViewStateSerializer>();
+        services.AddViewStateSerializer<Type, TypeViewStateSerializer>();
         services.AddViewStateSerializer<string, StringViewStateSerializer>();
+        services.AddViewStateSpanSerializer<char, StringViewStateSerializer>();
         services.AddMarshalViewStateSerializer<int>();
         services.AddMarshalViewStateSerializer<uint>();
         services.AddMarshalViewStateSerializer<short>();
@@ -60,6 +62,7 @@ public static class ServiceExtensions
 
         services.TryAddSingleton<IAttributeParser<string>, StringAttributeParser>();
         services.TryAddSingleton<IAttributeParser<int>, Int32AttributeParser>();
+        services.TryAddSingleton<IAttributeParser<int?>, NullableAttributeParser<int>>();
         services.TryAddSingleton<IAttributeParser<bool>, BoolAttributeParser>();
         services.TryAddSingleton<IAttributeParser<Unit>, UnitAttributeParser>();
         services.TryAddSingleton<IAttributeParser<string[]>, ArrayAttributeParser<string>>();
@@ -101,6 +104,15 @@ public static class ServiceExtensions
         return services;
     }
 
+    public static IServiceCollection AddViewStateSpanSerializer<T, TSerializer>(this IServiceCollection services)
+        where TSerializer : class, IViewStateSpanSerializer<T>
+        where T : notnull
+    {
+        services.TryAddSingleton<TSerializer>();
+        services.AddSingleton<IViewStateSpanSerializer<T>>(p => p.GetRequiredService<TSerializer>());
+        return services;
+    }
+
     public static IServiceCollection AddViewStateSerializer<T,
 #if NET
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
@@ -123,7 +135,7 @@ public static class ServiceExtensions
     {
         var id = checked((byte)(DefaultViewStateSerializer.Offset + services.Count(i => i.ServiceType == typeof(ViewStateSerializerRegistration))));
 
-        services.AddSingleton<TSerializer>();
+        services.TryAddSingleton<TSerializer>();
         services.AddSingleton<IViewStateSerializer>(p => p.GetRequiredService<TSerializer>());
         services.AddSingleton(new ViewStateSerializerRegistration(id, typeof(TSerializer)));
 

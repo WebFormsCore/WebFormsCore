@@ -27,7 +27,22 @@ public partial class Default : Page
 
     protected override void OnLoad(EventArgs args)
     {
+    }
+
+    protected override async Task OnLoadAsync(CancellationToken token)
+    {
         title.InnerText = (PostbackCount++).ToString();
+
+        if (!IsPostBack)
+        {
+            grid.DataSource = new[]
+            {
+                new { Id = 1, Name = "Foo", IsNew = true },
+                new { Id = 2, Name = "Bar", IsNew = false },
+            };
+
+            await grid.DataBindAsync();
+        }
     }
 
     protected void choices_OnValuesChanged(object? sender, EventArgs e)

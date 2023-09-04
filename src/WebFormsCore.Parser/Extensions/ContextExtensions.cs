@@ -67,6 +67,11 @@ public static class ContextExtensions
         return type.Name == "ITemplate";
     }
 
+    public static bool IsCollection(this ITypeSymbol type)
+    {
+        return type.IsAssignableTo("ICollection");
+    }
+
     public static bool IsAssignableTo(this ITypeSymbol? type, string name)
     {
         if (type == null)
@@ -84,6 +89,38 @@ public static class ContextExtensions
         }
 
         return type.AllInterfaces.Any(i => i.Name == name);
+    }
+
+    public static bool ParseChildren(this ITypeSymbol type)
+    {
+        foreach (var attribute in type.GetAttributes())
+        {
+            if (attribute.AttributeClass?.Name != "ParseChildrenAttribute")
+            {
+                continue;
+            }
+
+            var childrenAsProperties = attribute.NamedArguments.FirstOrDefault(i => i.Key == "ChildrenAsProperties").Value.Value;
+
+            if (childrenAsProperties is bool value)
+            {
+                return value;
+            }
+
+            var firstArgument = attribute.ConstructorArguments.FirstOrDefault();
+
+            if (firstArgument.Value is bool boolValue)
+            {
+                return boolValue;
+            }
+        }
+
+        if (type.BaseType != null)
+        {
+            return ParseChildren(type.BaseType);
+        }
+
+        return false;
     }
 
     public static MemberResult? GetMemberDeep(this ITypeSymbol type, string name)

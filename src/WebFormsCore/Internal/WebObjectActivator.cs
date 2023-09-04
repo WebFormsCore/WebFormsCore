@@ -35,20 +35,19 @@ internal sealed class WebObjectActivator : IWebObjectActivator
     }
 
     public T CreateControl<T>()
-        where T : Control
     {
         var factory = _serviceProvider.GetRequiredService<IControlFactory<T>>();
         return factory.CreateControl(_serviceProvider);
     }
 
-    public Control CreateControl(Type type)
+    public object CreateControl(Type type)
     {
         var factoryType = typeof(IControlFactory<>).MakeGenericType(type);
         var factory = (IControlFactory) _serviceProvider.GetRequiredService(factoryType);
-        return factory.CreateControl(_serviceProvider);
+        return factory.CreateControl(_serviceProvider)!;
     }
 
-    public Control CreateControl(string fullPath)
+    public object CreateControl(string fullPath)
     {
         if (_controlManager.TryGetPath(fullPath, out var path))
         {

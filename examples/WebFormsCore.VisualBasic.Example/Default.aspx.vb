@@ -1,5 +1,4 @@
-﻿
-Imports WebFormsCore.UI
+﻿Imports WebFormsCore.UI
 Imports WebFormsCore.UI.WebControls
 
 Public Partial Class DefaultPage

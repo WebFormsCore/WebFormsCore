@@ -21,7 +21,7 @@ public abstract class EnumerableViewStateSerializer<T> : IViewStateSerializer
         if (value is null)
         {
             count = ushort.MaxValue;
-            MemoryMarshal.Write(writer.GetSpan(countSpan), ref count);
+            MemoryMarshal.Write(writer.GetUnsafeSpan(countSpan), ref count);
             return;
         }
 
@@ -38,7 +38,7 @@ public abstract class EnumerableViewStateSerializer<T> : IViewStateSerializer
             count++;
         }
 
-        MemoryMarshal.Write(writer.GetSpan(countSpan), ref count);
+        MemoryMarshal.Write(writer.GetUnsafeSpan(countSpan), ref count);
     }
 
     public object? Read(Type type, ref ViewStateReader reader, object? defaultValue)

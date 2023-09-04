@@ -88,6 +88,38 @@ public ref struct ViewStateWriter
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteSpan<T>(scoped Span<T> value)
+    {
+        WriteSpan((ReadOnlySpan<T>)value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteSpan<T>(scoped ReadOnlySpan<T> value)
+    {
+        var serializer = _provider.GetService<IViewStateSpanSerializer<T>>();
+
+        if (serializer == null)
+        {
+            throw new InvalidOperationException($"No serializer found for type {typeof(T).FullName}");
+        }
+
+        serializer.Write(ref this, value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReadSpan<T>(scoped ReadOnlySpan<T> value)
+    {
+        var serializer = _provider.GetService<IViewStateSpanSerializer<T>>();
+
+        if (serializer == null)
+        {
+            throw new InvalidOperationException($"No serializer found for type {typeof(T).FullName}");
+        }
+
+        serializer.Write(ref this, value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteByte(byte value)
     {
         if (_span.Length < 1) Grow();
@@ -97,7 +129,7 @@ public ref struct ViewStateWriter
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Span<byte> GetSpan(int length)
+    public Span<byte> GetUnsafeSpan(int length)
     {
         while (_span.Length < length)
         {
@@ -108,7 +140,7 @@ public ref struct ViewStateWriter
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Span<byte> GetSpan(ViewStateWriterReservation reservation)
+    public Span<byte> GetUnsafeSpan(ViewStateWriterReservation reservation)
     {
         return _owner.Memory.Span.Slice(reservation.Offset, reservation.Length);
     }

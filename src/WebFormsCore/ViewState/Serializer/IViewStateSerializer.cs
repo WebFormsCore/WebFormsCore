@@ -30,6 +30,13 @@ public interface IViewStateSerializer<T> : IViewStateSerializer
     void TrackViewState(Type type, T? value, ViewStateProvider provider);
 }
 
+public interface IViewStateSpanSerializer<T>
+{
+    void Write(ref ViewStateWriter writer, scoped ReadOnlySpan<T> value);
+
+    int Read(ref ViewStateReader reader, scoped Span<T> value);
+}
+
 public abstract class ViewStateSerializer<T> : IViewStateSerializer<T>
     where T : notnull
 {

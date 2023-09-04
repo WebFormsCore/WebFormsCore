@@ -327,21 +327,34 @@ public class Parser
         ElementNode node;
 
         if (!ns.HasValue &&
-            _container.Current is ControlNode parentControl &&
-            parentControl.ControlType.GetMemberDeep(name.Text) is {} elementMember
-            && elementMember.Type.IsTemplate())
+            _container.Current is ITypedNode parentControl &&
+            parentControl.Type.ParseChildren() &&
+            parentControl.Type.GetMemberDeep(name.Text) is {} elementMember)
         {
-            var templateNode = new TemplateNode
+            if (elementMember.Type.IsTemplate())
             {
-                Property = name,
-                ClassName = $"Template_{_type?.Name}_{_container.Current.VariableName}_{name}",
-                ControlsType = attributes.TryGetValue("ControlsType", out var controlsType) ? controlsType.Value : null,
-            };
+                var templateNode = new TemplateNode
+                {
+                    Property = name,
+                    ClassName = $"Template_{_type?.Name}_{_container.Current.VariableName}_{name}",
+                    ControlsType = attributes.TryGetValue("ControlsType", out var controlsType)
+                        ? controlsType.Value
+                        : null,
+                };
 
-            parentControl.Templates.Add(templateNode);
-            Root.Templates.Add(templateNode);
+                parentControl.Templates.Add(templateNode);
+                Root.Templates.Add(templateNode);
 
-            node = templateNode;
+                node = templateNode;
+            }
+            else
+            {
+                node = new CollectionNode
+                {
+                    Property = name,
+                    PropertyType = (INamedTypeSymbol) elementMember.Type
+                };
+            }
         }
         else if (runAt == RunAt.Server && !ns.HasValue && name.Text.Value.Equals("script", StringComparison.OrdinalIgnoreCase))
         {

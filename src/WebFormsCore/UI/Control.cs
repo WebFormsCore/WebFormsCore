@@ -151,7 +151,7 @@ public partial class Control : System.Web.UI.Control
         }
     }
 
-    public bool Visible
+    public virtual bool Visible
     {
         get => _visible && (_parent == null || _parent.Visible);
         set => _visible = value;
@@ -334,7 +334,11 @@ public partial class Control : System.Web.UI.Control
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public virtual ControlCollection Controls => _controls ??= CreateControlCollection();
 
-    internal bool HasControls => _controls is { Count: > 0 };
+    public virtual bool HasControls() => _controls is { Count: > 0 };
+
+    public virtual bool HasRenderingData() => HasControls() || HasRenderDelegate();
+
+    public bool HasRenderDelegate() => _renderMethod is not null;
 
     /// <summary>Gets a dictionary of state information that allows you to save and restore the view state of a server control across multiple requests for the same page.</summary>
     /// <returns>An instance of the <see cref="T:WebFormsCore.UI.StateBag" /> class that contains the server control's view-state information.</returns>
@@ -410,6 +414,11 @@ public partial class Control : System.Web.UI.Control
 
     internal void AddedControl(Control control, bool isAddedLast)
     {
+        if (control._parent == this)
+        {
+            return;
+        }
+
         control._parent?.Controls.Remove(control);
         control._parent = this;
         control._page = _page ?? this as Page;
@@ -428,7 +437,7 @@ public partial class Control : System.Web.UI.Control
         {
             if (control.GenerateAutomaticID)
             {
-                if (isAddedLast && !control.HasControls)
+                if (isAddedLast && !control.HasControls())
                 {
                     control._id = GetId(namingContainer.OccasionalFields.NextIndex);
                     control._hasGeneratedId = true;
@@ -477,11 +486,23 @@ public partial class Control : System.Web.UI.Control
 
     protected internal virtual void RemovedControl(Control control)
     {
-        if (control._hasGeneratedId) control._namingContainer?.UpdateGeneratedIds();
+        control.BeforeRemoved();
+
+        if (control._hasGeneratedId)
+        {
+            control._id = null;
+            control._hasGeneratedId = false;
+            control._namingContainer?.UpdateGeneratedIds();
+        }
+
         control._parent = null;
         control._page = null;
         control._form = null;
         control._namingContainer = null;
+    }
+
+    protected void BeforeRemoved()
+    {
     }
 
     private void UpdateNamingContainer(Control namingContainer)
@@ -638,7 +659,7 @@ public partial class Control : System.Web.UI.Control
             return NamingContainer?.FindControl(id);
         }
 
-        if (!HasControls)
+        if (!HasControls())
         {
             return null;
         }
@@ -677,7 +698,7 @@ public partial class Control : System.Web.UI.Control
                 }
             }
 
-            if (control.HasControls)
+            if (control.HasControls())
             {
                 var childControl = FindControlByUniqueId(id, control.Controls);
 
@@ -793,7 +814,7 @@ public partial class Control : System.Web.UI.Control
         Page.ActiveStreamPanel?.StateHasChanged();
     }
 
-    public Control LoadControl(string path) => WebActivator.CreateControl(path);
+    public Control LoadControl(string path) => (Control) WebActivator.CreateControl(path);
 
     public Control LoadControl<T>() where T : Control => WebActivator.CreateControl<T>();
 

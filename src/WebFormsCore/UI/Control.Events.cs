@@ -21,7 +21,7 @@ public static class ControlExtensions
     {
         yield return control;
 
-        if (!control.HasControls) yield break;
+        if (!control.HasControls()) yield break;
 
         foreach (var child in control.Controls)
         {
@@ -36,7 +36,7 @@ public static class ControlExtensions
     {
         yield return control;
 
-        if (!control.HasControls) yield break;
+        if (!control.HasControls()) yield break;
 
         foreach (var child in control.Controls)
         {
