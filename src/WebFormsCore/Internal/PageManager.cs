@@ -78,7 +78,7 @@ public class PageManager : IPageManager
 
         await using var writer = new HtmlTextWriter(textWriter, stream);
 
-        context.Response.ContentType = "text/html";
+        context.Response.ContentType = "text/html; charset=utf-8";
 
         if (context.Request.Query.ContainsKey("__external"))
         {

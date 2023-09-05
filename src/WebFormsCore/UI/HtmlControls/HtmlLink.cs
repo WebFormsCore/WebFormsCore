@@ -22,7 +22,7 @@ public class HtmlLink : HtmlContainerControl
         {
             if (Uri.TryCreate(Attributes["href"], UriKind.Absolute, out var href))
             {
-                Page.Csp.StyleSrc.SourceList.Add($"{href.Scheme}://{href.Host}");
+                Page.Csp.StyleSrc.Add($"{href.Scheme}://{href.Host}");
             }
             else
             {

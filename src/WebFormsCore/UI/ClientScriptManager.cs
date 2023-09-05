@@ -89,7 +89,7 @@ public sealed class ClientScriptManager
 
         string? nonce = null;
 
-        if (_page.Csp.Enabled)
+        if (_page.Csp.Enabled && registerType is not RegisterType.Raw)
         {
             var cspTarget = registerType is RegisterType.ExternalScript or RegisterType.InlineScript
                 ? _page.Csp.ScriptSrc
@@ -99,14 +99,14 @@ public sealed class ClientScriptManager
             {
                 if (Uri.TryCreate(content, UriKind.Absolute, out var href))
                 {
-                    cspTarget.SourceList.Add($"{href.Scheme}://{href.Host}");
+                    cspTarget.Add($"{href.Scheme}://{href.Host}");
                 }
             }
-            else if (cspTarget.Mode is CspMode.Nonce && registerType is not RegisterType.Raw)
+            else if (cspTarget.Mode is CspMode.Nonce)
             {
                 nonce = cspTarget.GenerateNonce();
             }
-            else if (cspTarget.Mode is CspMode.Sha256 && registerType is not RegisterType.Raw)
+            else if (cspTarget.Mode is CspMode.Sha256)
             {
                 if (content.IndexOf('\r') != -1)
                 {

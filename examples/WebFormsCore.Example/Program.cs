@@ -10,6 +10,10 @@ using WebFormsCore.UI;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddWebForms();
 builder.Services.AddSingleton<IGridCellRenderer, CheckBoxCellRenderer>();
+builder.Services.Configure<WebFormsCoreOptions>(options =>
+{
+    options.HiddenClass = "d-none";
+});
 
 var app = builder.Build();
 

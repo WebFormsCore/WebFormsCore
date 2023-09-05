@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Buffers.Text;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Cryptography;
@@ -14,24 +15,31 @@ public enum CspMode
     Sha256
 }
 
-public class CspDirective
+public class CspDirective : ICollection<string>
 {
-    public CspDirective(string name, string? defaultValue = null)
+    private readonly Csp _csp;
+    private readonly HashSet<string> _sourceList;
+    private CspMode? _mode;
+
+    public CspDirective(Csp csp, string name, string? defaultValue = null)
     {
+        _csp = csp;
         Name = name;
-        SourceList = new HashSet<string>();
+        _sourceList = new HashSet<string>();
 
         if (defaultValue != null)
         {
-            SourceList.Add(defaultValue);
+            _sourceList.Add(defaultValue);
         }
     }
 
-    public CspMode Mode { get; set; } = CspMode.Nonce;
+    public CspMode Mode
+    {
+        get => _mode ?? _csp.DefaultMode;
+        set => _mode = value;
+    }
 
     public string Name { get; }
-
-    public HashSet<string> SourceList { get; set; }
 
     public string GenerateNonce()
     {
@@ -45,19 +53,19 @@ public class CspDirective
 #endif
         var result = Convert.ToBase64String(nonceBytes, 0, length);
         ArrayPool<byte>.Shared.Return(nonceBytes);
-        SourceList.Add($"'nonce-{result}'");
+        _sourceList.Add($"'nonce-{result}'");
         return result;
     }
 
     public void AddInlineHash(string code)
     {
-        SourceList.Add(GetHash(code));
+        _sourceList.Add(GetHash(code));
     }
 
     public void AddUnsafeInlineHash(string code)
     {
-        SourceList.Add("'unsafe-hashes'");
-        SourceList.Add(GetHash(code));
+        _sourceList.Add("'unsafe-hashes'");
+        _sourceList.Add(GetHash(code));
     }
 
     public static string GetHash(string code)
@@ -104,7 +112,7 @@ public class CspDirective
 
     public void Write(StringBuilder builder)
     {
-        if (SourceList.Count == 0)
+        if (_sourceList.Count == 0)
         {
             return;
         }
@@ -116,10 +124,45 @@ public class CspDirective
 
         builder.Append(Name);
 
-        foreach (var item in SourceList)
+        foreach (var item in _sourceList)
         {
             builder.Append(' ');
             builder.Append(item);
         }
     }
+
+    public HashSet<string>.Enumerator GetEnumerator() => _sourceList.GetEnumerator();
+
+    IEnumerator<string> IEnumerable<string>.GetEnumerator() => GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)_sourceList).GetEnumerator();
+
+    public void Add(string item)
+    {
+        _sourceList.Add(item);
+    }
+
+    public void Clear()
+    {
+        _sourceList.Clear();
+    }
+
+    public bool Contains(string item)
+    {
+        return _sourceList.Contains(item);
+    }
+
+    public void CopyTo(string[] array, int arrayIndex)
+    {
+        _sourceList.CopyTo(array, arrayIndex);
+    }
+
+    public bool Remove(string item)
+    {
+        return _sourceList.Remove(item);
+    }
+
+    public int Count => _sourceList.Count;
+
+    public bool IsReadOnly => false;
 }

@@ -23,7 +23,7 @@ public class HtmlScript : HtmlContainerControl
         {
             if (Uri.TryCreate(Attributes["src"], UriKind.Absolute, out var href))
             {
-                Page.Csp.ScriptSrc.SourceList.Add($"{href.Scheme}://{href.Host}");
+                Page.Csp.ScriptSrc.Add($"{href.Scheme}://{href.Host}");
             }
             else if (Page.Csp.ScriptSrc.Mode == CspMode.Sha256)
             {

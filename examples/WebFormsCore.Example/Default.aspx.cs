@@ -19,7 +19,6 @@ public partial class Default : Page
     protected override async Task OnInitAsync(CancellationToken token)
     {
         Csp.Enabled = true;
-        Csp.ScriptSrc.Mode = CspMode.Sha256;
         // EnablePageViewState = false;
 
         await phTodoContainer.Controls.AddAsync(

@@ -26,49 +26,56 @@ public class Csp
     private CspDirective? _prefetchSrc;
     private CspDirective? _navigateTo;
 
+    public Csp()
+    {
+        DefaultSrc = new CspDirective(this, "default-src", "'self'");
+    }
+
     public bool Enabled { get; set; }
 
-    public CspDirective DefaultSrc { get; } = new("default-src", "'self'");
+    public CspMode DefaultMode { get; set; } = CspMode.Nonce;
 
-    public CspDirective ScriptSrc => _scriptSrc ??= new CspDirective("script-src");
+    public CspDirective DefaultSrc { get; }
 
-    public CspDirective StyleSrc => _styleSrc ??= new CspDirective("style-src");
+    public CspDirective ScriptSrc => _scriptSrc ??= new CspDirective(this, "script-src");
 
-    public CspDirective ImgSrc => _imgSrc ??= new CspDirective("img-src");
+    public CspDirective StyleSrc => _styleSrc ??= new CspDirective(this, "style-src");
 
-    public CspDirective ConnectSrc => _connectSrc ??= new CspDirective("connect-src");
+    public CspDirective ImgSrc => _imgSrc ??= new CspDirective(this, "img-src");
 
-    public CspDirective FontSrc => _fontSrc ??= new CspDirective("font-src");
+    public CspDirective ConnectSrc => _connectSrc ??= new CspDirective(this, "connect-src");
 
-    public CspDirective ObjectSrc => _objectSrc ??= new CspDirective("object-src");
+    public CspDirective FontSrc => _fontSrc ??= new CspDirective(this, "font-src");
 
-    public CspDirective MediaSrc => _mediaSrc ??= new CspDirective("media-src");
+    public CspDirective ObjectSrc => _objectSrc ??= new CspDirective(this, "object-src");
 
-    public CspDirective FrameSrc => _frameSrc ??= new CspDirective("frame-src");
+    public CspDirective MediaSrc => _mediaSrc ??= new CspDirective(this, "media-src");
 
-    public CspDirective Sandbox => _sandbox ??= new CspDirective("sandbox");
+    public CspDirective FrameSrc => _frameSrc ??= new CspDirective(this, "frame-src");
 
-    public CspDirective ReportUri => _reportUri ??= new CspDirective("report-uri");
+    public CspDirective Sandbox => _sandbox ??= new CspDirective(this, "sandbox");
 
-    public CspDirective ChildSrc => _childSrc ??= new CspDirective("child-src");
+    public CspDirective ReportUri => _reportUri ??= new CspDirective(this, "report-uri");
 
-    public CspDirective FormAction => _formAction ??= new CspDirective("form-action");
+    public CspDirective ChildSrc => _childSrc ??= new CspDirective(this, "child-src");
 
-    public CspDirective FrameAncestors => _frameAncestors ??= new CspDirective("frame-ancestors");
+    public CspDirective FormAction => _formAction ??= new CspDirective(this, "form-action");
 
-    public CspDirective PluginTypes => _pluginTypes ??= new CspDirective("plugin-types");
+    public CspDirective FrameAncestors => _frameAncestors ??= new CspDirective(this, "frame-ancestors");
 
-    public CspDirective BaseUri => _baseUri ??= new CspDirective("base-uri");
+    public CspDirective PluginTypes => _pluginTypes ??= new CspDirective(this, "plugin-types");
 
-    public CspDirective ReportTo => _reportTo ??= new CspDirective("report-to");
+    public CspDirective BaseUri => _baseUri ??= new CspDirective(this, "base-uri");
 
-    public CspDirective WorkerSrc => _workerSrc ??= new CspDirective("worker-src");
+    public CspDirective ReportTo => _reportTo ??= new CspDirective(this, "report-to");
 
-    public CspDirective ManifestSrc => _manifestSrc ??= new CspDirective("manifest-src");
+    public CspDirective WorkerSrc => _workerSrc ??= new CspDirective(this, "worker-src");
 
-    public CspDirective PrefetchSrc => _prefetchSrc ??= new CspDirective("prefetch-src");
+    public CspDirective ManifestSrc => _manifestSrc ??= new CspDirective(this, "manifest-src");
 
-    public CspDirective NavigateTo => _navigateTo ??= new CspDirective("navigate-to");
+    public CspDirective PrefetchSrc => _prefetchSrc ??= new CspDirective(this, "prefetch-src");
+
+    public CspDirective NavigateTo => _navigateTo ??= new CspDirective(this, "navigate-to");
 
     public void Write(StringBuilder builder)
     {
