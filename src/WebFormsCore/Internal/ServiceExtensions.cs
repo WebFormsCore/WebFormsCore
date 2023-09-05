@@ -104,7 +104,7 @@ public static class ServiceExtensions
         return services;
     }
 
-    public static IServiceCollection AddViewStateSpanSerializer<T, TSerializer>(this IServiceCollection services)
+    public static IServiceCollection AddViewStateSpanSerializer<T, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TSerializer>(this IServiceCollection services)
         where TSerializer : class, IViewStateSpanSerializer<T>
         where T : notnull
     {
@@ -114,9 +114,7 @@ public static class ServiceExtensions
     }
 
     public static IServiceCollection AddViewStateSerializer<T,
-#if NET
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-#endif
         TSerializer>(this IServiceCollection services)
         where TSerializer : class, IViewStateSerializer<T>
         where T : notnull
@@ -127,9 +125,7 @@ public static class ServiceExtensions
     }
 
     public static IServiceCollection AddViewStateSerializer<
-#if NET
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-#endif
         TSerializer>(this IServiceCollection services)
         where TSerializer : class, IViewStateSerializer
     {

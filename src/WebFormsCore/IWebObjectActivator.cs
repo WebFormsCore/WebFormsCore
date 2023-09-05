@@ -17,15 +17,11 @@ public interface IWebObjectActivator
     T ParseAttribute<T, TConverter>(string attributeValue) where TConverter : TypeConverter;
 
     T CreateControl<
-#if NET
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-#endif
         T>();
 
     object CreateControl(
-#if NET
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-#endif
         Type type);
 
     object CreateControl(string fullPath);

@@ -6,9 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace WebFormsCore.Serializer;
 
-#if NET
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-#endif
 public class MarshalViewStateSerializer<T> : ViewStateSerializer<T>
     where T : struct
 {

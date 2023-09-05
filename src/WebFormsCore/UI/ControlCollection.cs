@@ -25,7 +25,7 @@ public class ControlCollection : IReadOnlyCollection<Control>
     public virtual void AddWithoutPageEvents(Control child)
     {
         _list.Add(child);
-        Owner.AddedControl(child, true);
+        Owner.AddedControlInternal(child, true);
     }
 
     public virtual ValueTask AddAsync(Control child)
@@ -136,7 +136,7 @@ public class ControlCollection : IReadOnlyCollection<Control>
     {
         var child = _list[index];
         _list.RemoveAt(index);
-        Owner.RemovedControl(child);
+        Owner.RemovedControlInternal(child);
     }
 
     public virtual bool Remove(Control child)
@@ -146,7 +146,7 @@ public class ControlCollection : IReadOnlyCollection<Control>
             return false;
         }
 
-        Owner.RemovedControl(child);
+        Owner.RemovedControlInternal(child);
         return true;
     }
 }

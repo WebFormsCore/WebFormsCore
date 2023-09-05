@@ -35,18 +35,22 @@ public partial class Default : Page
 
         if (!IsPostBack)
         {
-            grid.DataSource = new[]
+            await grid.LoadDataSourceAsync(new[]
             {
                 new { Id = 1, Name = "Foo", IsNew = true },
                 new { Id = 2, Name = "Bar", IsNew = false },
-            };
-
-            await grid.DataBindAsync();
+            });
         }
     }
 
     protected void choices_OnValuesChanged(object? sender, EventArgs e)
     {
         choices.Values.Remove("1");
+    }
+
+    protected Task cb_OnCheckedChanged(object? sender, EventArgs e)
+    {
+        litCb.Text = cb.Checked.ToString(CultureInfo.InvariantCulture);
+        return Task.CompletedTask;
     }
 }

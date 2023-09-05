@@ -116,6 +116,13 @@ public class HtmlTextWriter : TextWriter
         _attributes.Add(new KeyValuePair<string, string?>(name, value));
     }
 
+    public void RemoveAttributes(HtmlTextWriterAttribute key) => RemoveAttributes(key.ToName());
+
+    public void RemoveAttributes(string name)
+    {
+        _attributes.RemoveAll(x => x.Key == name);
+    }
+
     public void AddStyleAttribute(HtmlTextWriterStyle key, string? value) => AddStyleAttribute(key, value, true);
 
     public void AddStyleAttribute(HtmlTextWriterStyle key, string? value, bool encode) =>

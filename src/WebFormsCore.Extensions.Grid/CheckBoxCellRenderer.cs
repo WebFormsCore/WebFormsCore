@@ -15,7 +15,8 @@ public class CheckBoxCellRenderer : IGridCellRenderer
     {
         await cell.Controls.AddAsync(new CheckBox
         {
-            ID = "cb"
+            ID = "cb",
+            Enabled = false
         });
     }
 

@@ -43,7 +43,26 @@ public partial class WebControl : Control, IAttributeAccessor
 
     [ViewState] public short TabIndex { get; set; }
 
-    protected bool IsEnabled => true; // TODO: Implement this property
+    protected bool IsEnabled
+    {
+        get
+        {
+            if (!Visible)
+            {
+                return false;
+            }
+
+            for (Control? control = this; control != null; control = control.ParentInternal)
+            {
+                if (control is WebControl { Enabled: false })
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
 
     /// <summary>Gets a collection of all attribute name and value pairs expressed on a server control tag within the ASP.NET page.</summary>
     /// <returns>A <see cref="T:WebFormsCore.UI.AttributeCollection" /> object that contains all attribute name and value pairs expressed on a server control tag within the Web page.</returns>

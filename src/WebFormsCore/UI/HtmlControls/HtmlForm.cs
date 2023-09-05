@@ -18,20 +18,36 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
 
     public event AsyncEventHandler? Submit;
 
+    private bool IsDiv => Page.IsExternal;
+
+    public override string TagName => IsDiv ? "div" : "form";
+
     protected internal virtual async Task OnSubmitAsync(CancellationToken token)
     {
         await Submit.InvokeAsync(this, EventArgs.Empty);
     }
 
-    protected override void OnInit(EventArgs args)
+    protected override void AfterAddedToParent()
     {
+        base.AfterAddedToParent();
         Page.Forms.Add(this);
+    }
+
+    protected override void BeforeRemovedFromParent()
+    {
+        base.BeforeRemovedFromParent();
+        Page.Forms.Remove(this);
     }
 
     protected override async Task RenderAttributesAsync(HtmlTextWriter writer)
     {
         await base.RenderAttributesAsync(writer);
-        await writer.WriteAttributeAsync("method", "post");
+
+        if (!IsDiv)
+        {
+            await writer.WriteAttributeAsync("method", "post");
+        }
+
         await writer.WriteAttributeAsync("id", ClientID);
         await writer.WriteAttributeAsync("data-wfc-form", null);
     }

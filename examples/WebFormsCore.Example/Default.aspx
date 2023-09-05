@@ -15,6 +15,9 @@
 <div class="container">
     <wfc:Choices runat="server" ID="choices" AutoPostBack="True" OnValuesChanged="choices_OnValuesChanged" Multiple="True" />
 
+    <wfc:CheckBox runat="server" ID="cb" OnCheckedChanged="cb_OnCheckedChanged" AutoPostBack="True" />
+    <wfc:Literal runat="server" ID="litCb" />
+
     <wfc:Grid runat="server" ID="grid" class="table" PageSize="1">
         <Columns>
             <wfc:GridBoundColumn runat="server" HeaderText="ID" DataField="Id" />

@@ -18,9 +18,7 @@ public class RootNamespaceAttribute : Attribute
 public class AssemblyViewAttribute : Attribute
 {
     public AssemblyViewAttribute(string path,
-#if NET
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-#endif
         Type type)
     {
         Path = path;
@@ -37,9 +35,7 @@ public class AssemblyViewAttribute : Attribute
 public class AssemblyControlAttribute : Attribute
 {
     public AssemblyControlAttribute(
-#if NET
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-#endif
         Type type)
     {
         Type = type;

@@ -20,8 +20,6 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
     [ViewState] public bool AutoPostBack { get; set; }
 
-    [ViewState] public bool ReadOnly { get; set; }
-
     [ViewState] public TextBoxMode TextMode { get; set; }
 
     [ViewState] public int MaxLength { get; set; }
@@ -50,9 +48,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
     private bool IsMultiLine => TextMode == TextBoxMode.MultiLine;
 
-    private bool IsReadOnly => !IsEnabled || !Visible || ReadOnly;
-
-    protected virtual bool SaveTextViewState => TextMode != TextBoxMode.Password && (TextChanged != null || IsReadOnly || GetType() != typeof (TextBox));
+    protected virtual bool SaveTextViewState => TextMode != TextBoxMode.Password && (TextChanged != null || !IsEnabled || GetType() != typeof (TextBox));
 
     private bool WriteValue => !Page.IsPostBack || _changedText;
 
@@ -97,7 +93,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
                 break;
         }
 
-        if (TextChanged != null) writer.AddAttribute("data-wfc-autopostback", null);
+        if (AutoPostBack) writer.AddAttribute("data-wfc-autopostback", null);
     }
 
     protected override async Task RenderContentsAsync(HtmlTextWriter writer, CancellationToken token)
@@ -175,7 +171,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
     protected virtual ValueTask<bool> LoadPostDataAsync(string postDataKey, IFormCollection postCollection, CancellationToken cancellationToken)
     {
-        if (IsReadOnly || !postCollection.TryGetValue(postDataKey, out var value))
+        if (!IsEnabled || !postCollection.TryGetValue(postDataKey, out var value))
         {
             return new ValueTask<bool>(false);
         }

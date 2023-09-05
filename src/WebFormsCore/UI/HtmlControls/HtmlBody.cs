@@ -26,6 +26,18 @@ public class HtmlBody : HtmlContainerControl
     {
     }
 
+    protected override void AfterAddedToParent()
+    {
+        base.AfterAddedToParent();
+        Page.Body = this;
+    }
+
+    protected override void BeforeRemovedFromParent()
+    {
+        base.BeforeRemovedFromParent();
+        Page.Body = null;
+    }
+
     protected override void OnInit(EventArgs args)
     {
         // TODO: Move this to a better place.

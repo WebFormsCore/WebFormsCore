@@ -12,9 +12,12 @@ public partial class Grid : WebControl, IPostBackLoadHandler
 {
     private readonly List<GridItem> _items = new();
 
+    [ViewState] private int _pageIndex;
     [ViewState] private int _itemCount;
-    [ViewState] private int _dataCount;
+    [ViewState] private int? _dataCount;
     [ViewState] private Type? _itemType;
+
+    protected object? DataSourceField;
 
     public Grid()
         : base(HtmlTextWriterTag.Table)
@@ -23,7 +26,16 @@ public partial class Grid : WebControl, IPostBackLoadHandler
 
     public virtual Type? ItemType => _itemType;
 
-    public object? DataSource { get; set; }
+    public object? DataSource
+    {
+        get => DataSourceField;
+        [RequiresDynamicCode("The type of the data source is not known at compile time. Use LoadDataSourceAsync<T>(source) instead.")]
+        set => DataSourceField = value;
+    }
+
+    public int? PageCount => PageSize.HasValue && _dataCount.HasValue ? (int)Math.Ceiling((double)_dataCount / PageSize.Value) : null;
+
+    public int? DataCount => _dataCount;
 
     public List<GridColumn> Columns { get; } = new();
 
@@ -33,7 +45,30 @@ public partial class Grid : WebControl, IPostBackLoadHandler
 
     [ViewState] public virtual int? PageSize { get; set; }
 
-    [ViewState] public virtual int PageIndex { get; set; }
+    public virtual int PageIndex
+    {
+        get => _pageIndex;
+        set
+        {
+            _pageIndex = value;
+            UpdatePaging();
+        }
+    }
+
+    private void UpdatePaging()
+    {
+        if (_pageIndex < 0)
+        {
+            _pageIndex = 0;
+        }
+
+        var count = PageCount;
+
+        if (_pageIndex >= count)
+        {
+            _pageIndex = count.Value - 1;
+        }
+    }
 
     public async Task AfterPostBackLoadAsync()
     {
@@ -44,7 +79,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler
             return;
         }
 
-        await Clear();
+        await ClearAsync();
 
         _itemCount = count;
 
@@ -54,7 +89,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler
         }
     }
 
-    private async ValueTask Clear()
+    private async ValueTask ClearAsync()
     {
         _itemCount = 0;
         _items.Clear();
@@ -66,20 +101,53 @@ public partial class Grid : WebControl, IPostBackLoadHandler
         }
     }
 
-    public async Task DataBindAsync()
+    public async Task LoadDataSourceAsync<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
+        T>(IQueryable<T> source)
     {
-        await Clear();
-        await LoadDataSource();
+        await LoadDataSourceEnumerableInner<T>(source);
     }
 
-    protected virtual async Task LoadDataSource()
+    public async Task LoadDataSourceAsync<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
+        T>(IEnumerable<T> source)
     {
-        if (DataSource is null)
+        await LoadDataSourceEnumerableInner<T>(source);
+    }
+
+    public async Task LoadDataSourceAsync<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
+        T>(IAsyncEnumerable<T> source)
+    {
+        await LoadDataSourceEnumerableInner<T>(source);
+    }
+
+    private Task LoadDataSourceEnumerableInner<T>(object source)
+    {
+        return source switch
         {
+            IQueryable<T> queryable => LoadDataSourceQueryable(queryable),
+            IAsyncEnumerable<T> asyncEnumerable => LoadDataSourceAsyncEnumerable(asyncEnumerable),
+            IEnumerable<T> enumerable => LoadDataSourceEnumerable(enumerable),
+            _ => throw new InvalidOperationException($"The type {source.GetType().FullName} does not implement IQueryable<T>, IAsyncEnumerable<T> or IEnumerable<T>.")
+        };
+    }
+
+    [RequiresDynamicCode("The type of the data source is not known at compile time. Use LoadDataSourceAsync<T>(source) instead.")]
+    public async Task DataBindAsync()
+    {
+        await LoadDataSourceAsync();
+    }
+
+    protected virtual async Task LoadDataSourceAsync()
+    {
+        if (DataSourceField is null)
+        {
+            await ClearAsync();
             return;
         }
 
-        var type = DataSource.GetType();
+        var type = DataSourceField.GetType();
 
         var (@interface, method, _) = type.GetInterfaces()
             .Where(i => i.IsGenericType)
@@ -118,13 +186,14 @@ public partial class Grid : WebControl, IPostBackLoadHandler
 
         if (method is null)
         {
-            throw new InvalidOperationException($"The type {type.FullName} does not implement IQueryable<T>, IAsyncEnumerable<T> or IEnumerable<T>.");
+            throw new InvalidOperationException(
+                $"The type {type.FullName} does not implement IQueryable<T>, IAsyncEnumerable<T> or IEnumerable<T>.");
         }
 
         var elementType = @interface.GetGenericArguments()[0];
-        var genericMethod = method!.MakeGenericMethod(elementType);
+        var genericMethod = method.MakeGenericMethod(elementType);
 
-        await (Task) genericMethod.Invoke(this, new[] {DataSource})!;
+        await (Task)genericMethod.Invoke(this, new[] { DataSourceField })!;
     }
 
     protected async Task LoadDataSourceQueryable<T>(IQueryable<T> dataSource)
@@ -140,6 +209,8 @@ public partial class Grid : WebControl, IPostBackLoadHandler
             _dataCount = dataSource.Count();
         }
 
+        UpdatePaging();
+
         if (PageSize.HasValue)
         {
             if (PageIndex > 0)
@@ -150,7 +221,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler
             dataSource = dataSource.Take(PageSize.Value);
         }
 
-        await Clear();
+        await ClearAsync();
 
         if (dataSource is IAsyncEnumerable<T> asyncEnumerable)
         {
@@ -173,6 +244,8 @@ public partial class Grid : WebControl, IPostBackLoadHandler
         _itemType = typeof(T);
         _dataCount = dataSource.Count();
 
+        UpdatePaging();
+
         if (PageSize.HasValue)
         {
             if (PageIndex > 0)
@@ -183,7 +256,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler
             dataSource = dataSource.Take(PageSize.Value);
         }
 
-        await Clear();
+        await ClearAsync();
 
         foreach (var dataItem in dataSource)
         {
@@ -196,6 +269,8 @@ public partial class Grid : WebControl, IPostBackLoadHandler
         _itemType = typeof(T);
         _dataCount = await dataSource.CountAsync();
 
+        UpdatePaging();
+
         if (PageSize.HasValue)
         {
             if (PageIndex > 0)
@@ -206,7 +281,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler
             dataSource = dataSource.Take(PageSize.Value);
         }
 
-        await Clear();
+        await ClearAsync();
 
         await foreach (var dataItem in dataSource)
         {
@@ -296,21 +371,19 @@ public partial class Grid : WebControl, IPostBackLoadHandler
 
 [ParseChildren(true)]
 public partial class Grid<
-    #if NET
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)]
-    #endif
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
     T> : Grid
 {
     public override Type ItemType => base.ItemType ?? typeof(T);
 
-    protected override Task LoadDataSource()
+    protected override Task LoadDataSourceAsync()
     {
-        return DataSource switch
+        return DataSourceField switch
         {
             IQueryable<T> queryable => LoadDataSourceQueryable(queryable),
             IAsyncEnumerable<T> asyncEnumerable => LoadDataSourceAsyncEnumerable(asyncEnumerable),
             IEnumerable<T> enumerable => LoadDataSourceEnumerable(enumerable),
-            _ => base.LoadDataSource()
+            _ => base.LoadDataSourceAsync()
         };
     }
 }

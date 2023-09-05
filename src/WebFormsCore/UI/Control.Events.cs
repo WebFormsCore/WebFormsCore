@@ -129,19 +129,18 @@ public partial class Control : IInternalControl
         {
             var didLoad = false;
 
-            if (this is IPostBackDataHandler dataHandler)
-            {
-                didLoad = dataHandler.LoadPostData(uniqueId, Page.Request.Form);
-            }
-
             if (this is IPostBackAsyncDataHandler asyncDataHandler)
             {
                 didLoad = await asyncDataHandler.LoadPostDataAsync(uniqueId, Page.Request.Form, token);
             }
+            else if (this is IPostBackDataHandler dataHandler)
+            {
+                didLoad = dataHandler.LoadPostData(uniqueId, Page.Request.Form);
+            }
 
             if (didLoad)
             {
-                var handlers = Page._changedPostDataConsumers ??= new List<object>();
+                var handlers = Page.ChangedPostDataConsumers ??= new List<object>();
 
                 handlers.Add(this);
             }
@@ -149,14 +148,13 @@ public partial class Control : IInternalControl
 
         if (target == UniqueID)
         {
-            if (this is IPostBackEventHandler eventHandler)
-            {
-                eventHandler.RaisePostBackEvent(argument);
-            }
-
             if (this is IPostBackAsyncEventHandler asyncEventHandler)
             {
                 await asyncEventHandler.RaisePostBackEventAsync(argument);
+            }
+            else if (this is IPostBackEventHandler eventHandler)
+            {
+                eventHandler.RaisePostBackEvent(argument);
             }
         }
 

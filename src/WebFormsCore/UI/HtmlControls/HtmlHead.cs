@@ -13,10 +13,16 @@ public class HtmlHead : HtmlContainerControl
     {
     }
 
-    protected override void FrameworkInitialize()
+    protected override void AfterAddedToParent()
     {
-        base.FrameworkInitialize();
-        Page.Head = this;
+        base.AfterAddedToParent();
+        Page.Header = this;
+    }
+
+    protected override void BeforeRemovedFromParent()
+    {
+        base.BeforeRemovedFromParent();
+        Page.Header = null;
     }
 
     protected override async Task RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)

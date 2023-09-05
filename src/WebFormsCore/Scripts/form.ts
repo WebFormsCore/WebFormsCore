@@ -55,7 +55,7 @@ function postBackElement(element: Element, eventTarget?: string, eventArgument?:
     if (streamPanel) {
         return sendToStream(streamPanel, eventTarget, eventArgument);
     } else {
-        return submitForm(form, eventTarget, eventArgument);
+        return submitForm(element, form, eventTarget, eventArgument);
     }
 }
 
@@ -154,11 +154,12 @@ function addInputs(formData: FormData, root: HTMLElement, addFormElements: boole
     }
 }
 
-async function submitForm(form?: HTMLElement, eventTarget?: string, eventArgument?: string) {
+async function submitForm(element: Element, form?: HTMLElement, eventTarget?: string, eventArgument?: string) {
+    const baseElement = element.closest('[data-wfc-base]') as HTMLElement;
     const release = await postbackMutex.acquire();
 
     try {
-        const url = location.pathname + location.search;
+        const url = baseElement?.getAttribute('data-wfc-base') ?? location.toString();
 
         let formData: FormData
 
@@ -211,8 +212,12 @@ async function submitForm(form?: HTMLElement, eventTarget?: string, eventArgumen
         const parser = new DOMParser();
         const htmlDoc = parser.parseFromString(text, 'text/html');
 
-        morphdom(document.head, htmlDoc.querySelector('head'), options);
-        morphdom(document.body, htmlDoc.querySelector('body'), options);
+        if (baseElement) {
+            morphdom(baseElement, htmlDoc.querySelector('[data-wfc-base]'), options);
+        } else {
+            morphdom(document.head, htmlDoc.querySelector('head'), options);
+            morphdom(document.body, htmlDoc.querySelector('body'), options);
+        }
 
         document.dispatchEvent(new CustomEvent("wfc:afterSubmit", {detail: {container, form, eventTarget}}));
     } finally {
@@ -265,7 +270,7 @@ function getMorpdomSettings(form?: HTMLElement) {
                 return false;
             }
 
-            if (node.tagName === 'FORM' && node.hasAttribute('data-wfc-form')) {
+            if (node instanceof Element && node.hasAttribute('data-wfc-form')) {
                 return false;
             }
 
@@ -288,7 +293,7 @@ const originalSubmit = HTMLFormElement.prototype.submit;
 
 HTMLFormElement.prototype.submit = async function() {
     if (this.hasAttribute('data-wfc-form')) {
-        await submitForm(this);
+        await submitForm(this, this);
     } else {
         originalSubmit.call(this);
     }
@@ -297,7 +302,7 @@ HTMLFormElement.prototype.submit = async function() {
 document.addEventListener('submit', async function(e){
     if (e.target instanceof Element && e.target.hasAttribute('data-wfc-form')) {
         e.preventDefault();
-        await submitForm(e.target as HTMLFormElement);
+        await submitForm(e.target, e.target as HTMLFormElement);
     }
 });
 
@@ -447,7 +452,10 @@ const WebFormsCore = {
 WebFormsCore.bind('[data-wfc-stream]', {
     init: function(element) {
         const id = element.id;
-        let search = location.search;
+        const baseElement = element.closest('[data-wfc-base]') as HTMLElement;
+
+        const url = baseElement ? new URL(baseElement.getAttribute('data-wfc-base')) : location;
+        let search = url.search;
 
         if (!search) {
             search = "?";
@@ -458,7 +466,7 @@ WebFormsCore.bind('[data-wfc-stream]', {
         search += "__panel=" + id;
 
         const webSocket = new WebSocket(
-            (location.protocol === "https:" ? "wss://" : "ws://") + location.host + location.pathname + search
+            (url.protocol === "https:" ? "wss://" : "ws://") + url.host + url.pathname + search
         );
 
         element.webSocket = webSocket;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ public interface IPageManager
         string path,
         CancellationToken token);
 
+    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
     Task<Page> RenderPageAsync(
         IHttpContext context,
         Type pageType,

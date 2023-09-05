@@ -940,7 +940,7 @@
             return sendToStream(streamPanel, eventTarget, eventArgument);
         }
         else {
-            return submitForm(form, eventTarget, eventArgument);
+            return submitForm(element, form, eventTarget, eventArgument);
         }
     }
     function sendToStream(streamPanel, eventTarget, eventArgument) {
@@ -1019,10 +1019,12 @@
             addElement(element, formData);
         }
     }
-    async function submitForm(form, eventTarget, eventArgument) {
+    async function submitForm(element, form, eventTarget, eventArgument) {
+        var _a;
+        const baseElement = element.closest('[data-wfc-base]');
         const release = await postbackMutex.acquire();
         try {
-            const url = location.pathname + location.search;
+            const url = (_a = baseElement === null || baseElement === void 0 ? void 0 : baseElement.getAttribute('data-wfc-base')) !== null && _a !== void 0 ? _a : location.toString();
             let formData;
             if (form) {
                 if (form.tagName === "FORM") {
@@ -1064,8 +1066,13 @@
             const options = getMorpdomSettings(form);
             const parser = new DOMParser();
             const htmlDoc = parser.parseFromString(text, 'text/html');
-            morphdom(document.head, htmlDoc.querySelector('head'), options);
-            morphdom(document.body, htmlDoc.querySelector('body'), options);
+            if (baseElement) {
+                morphdom(baseElement, htmlDoc.querySelector('[data-wfc-base]'), options);
+            }
+            else {
+                morphdom(document.head, htmlDoc.querySelector('head'), options);
+                morphdom(document.body, htmlDoc.querySelector('body'), options);
+            }
             document.dispatchEvent(new CustomEvent("wfc:afterSubmit", { detail: { container, form, eventTarget } }));
         }
         finally {
@@ -1111,7 +1118,7 @@
                 if (node.tagName === "SCRIPT" || node.tagName === "STYLE" || node.tagName === "LINK" && node.hasAttribute('rel') && node.getAttribute('rel') === 'stylesheet') {
                     return false;
                 }
-                if (node.tagName === 'FORM' && node.hasAttribute('data-wfc-form')) {
+                if (node instanceof Element && node.hasAttribute('data-wfc-form')) {
                     return false;
                 }
                 if (node.tagName === 'DIV' && node.hasAttribute('data-wfc-owner') && ((_a = node.getAttribute('data-wfc-owner')) !== null && _a !== void 0 ? _a : "") !== ((_b = form === null || form === void 0 ? void 0 : form.id) !== null && _b !== void 0 ? _b : "")) {
@@ -1129,7 +1136,7 @@
     const originalSubmit = HTMLFormElement.prototype.submit;
     HTMLFormElement.prototype.submit = async function () {
         if (this.hasAttribute('data-wfc-form')) {
-            await submitForm(this);
+            await submitForm(this, this);
         }
         else {
             originalSubmit.call(this);
@@ -1138,7 +1145,7 @@
     document.addEventListener('submit', async function (e) {
         if (e.target instanceof Element && e.target.hasAttribute('data-wfc-form')) {
             e.preventDefault();
-            await submitForm(e.target);
+            await submitForm(e.target, e.target);
         }
     });
     document.addEventListener('click', async function (e) {
@@ -1256,7 +1263,9 @@
     WebFormsCore.bind('[data-wfc-stream]', {
         init: function (element) {
             const id = element.id;
-            let search = location.search;
+            const baseElement = element.closest('[data-wfc-base]');
+            const url = baseElement ? new URL(baseElement.getAttribute('data-wfc-base')) : location;
+            let search = url.search;
             if (!search) {
                 search = "?";
             }
@@ -1264,7 +1273,7 @@
                 search += "&";
             }
             search += "__panel=" + id;
-            const webSocket = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + location.pathname + search);
+            const webSocket = new WebSocket((url.protocol === "https:" ? "wss://" : "ws://") + url.host + url.pathname + search);
             element.webSocket = webSocket;
             element.isUpdating = false;
             webSocket.addEventListener('message', function (e) {

@@ -115,6 +115,8 @@ public partial class Control : System.Web.UI.Control
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public Control Parent => _parent ?? throw new InvalidOperationException("Control is not added to a parent.");
 
+    internal Control? ParentInternal => _parent;
+
     /// <summary>Gets or sets the programmatic identifier assigned to the server control.</summary>
     /// <returns>The programmatic identifier assigned to the control.</returns>
     [ParenthesizePropertyName(true)]
@@ -405,6 +407,11 @@ public partial class Control : System.Web.UI.Control
         }
     }
 
+    internal Task RenderChildrenInternalAsync(HtmlTextWriter writer, CancellationToken token)
+    {
+        return RenderChildrenAsync(writer, token);
+    }
+
     /// <summary>Creates a new <see cref="T:WebFormsCore.UI.ControlCollection" /> object to hold the child controls (both literal and server) of the server control.</summary>
     /// <returns>A <see cref="T:WebFormsCore.UI.ControlCollection" /> object to contain the current server control's child server controls.</returns>
     protected virtual ControlCollection CreateControlCollection()
@@ -412,7 +419,7 @@ public partial class Control : System.Web.UI.Control
         return new ControlCollection(this);
     }
 
-    internal void AddedControl(Control control, bool isAddedLast)
+    internal void AddedControlInternal(Control control, bool isAddedLast)
     {
         if (control._parent == this)
         {
@@ -428,6 +435,8 @@ public partial class Control : System.Web.UI.Control
 
         if (namingContainer is null)
         {
+            control.AfterAddedToParent();
+            AfterChildControlAdded(control);
             return;
         }
 
@@ -454,6 +463,9 @@ public partial class Control : System.Web.UI.Control
         {
             namingContainer.DirtyNameTable();
         }
+
+        control.AfterAddedToParent();
+        AfterChildControlAdded(control);
 
         if (_state >= ControlState.FrameworkInitialized)
         {
@@ -484,9 +496,10 @@ public partial class Control : System.Web.UI.Control
         DirtyNameTable();
     }
 
-    protected internal virtual void RemovedControl(Control control)
+    protected internal virtual void RemovedControlInternal(Control control)
     {
-        control.BeforeRemoved();
+        control.BeforeRemovedFromParent();
+        BeforeChildControlRemoved(control);
 
         if (control._hasGeneratedId)
         {
@@ -501,7 +514,19 @@ public partial class Control : System.Web.UI.Control
         control._namingContainer = null;
     }
 
-    protected void BeforeRemoved()
+    protected virtual void BeforeRemovedFromParent()
+    {
+    }
+
+    protected virtual void AfterAddedToParent()
+    {
+    }
+
+    protected virtual void BeforeChildControlRemoved(Control control)
+    {
+    }
+
+    protected virtual void AfterChildControlAdded(Control control)
     {
     }
 

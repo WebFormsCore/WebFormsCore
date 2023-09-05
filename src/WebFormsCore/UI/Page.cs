@@ -6,23 +6,26 @@ using HttpStack;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.Events;
 using WebFormsCore.Security;
+using WebFormsCore.UI.Attributes;
 using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI;
 
+[ParseChildren(false)]
 public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Page, IInternalPage
 {
     private IHttpContext? _context;
     private ScopedControlContainer? _scopedContainer;
-    public List<object>? _changedPostDataConsumers;
+
+    internal List<object>? ChangedPostDataConsumers;
 
     public Page()
     {
         ClientScript = new ClientScriptManager(this);
     }
 
-    public HtmlHead? Head { get; internal set; }
+    public HtmlHead? Header { get; internal set; }
 
     public HtmlBody? Body { get; internal set; }
 
@@ -36,7 +39,9 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     protected override IHttpContext Context => _context ?? throw new InvalidOperationException("No HttpContext available.");
 
-    public bool IsPostBack { get; set; }
+    public bool IsPostBack { get; internal set; }
+
+    public bool IsExternal { get; internal set; }
 
     public bool IsStreaming => ActiveStreamPanel != null;
 
@@ -54,7 +59,7 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     internal async Task InitAsync(CancellationToken token)
     {
-        IsPostBack = Context.Request.Method == "POST";
+        IsPostBack = string.Equals(Context.Request.Method, "POST", StringComparison.OrdinalIgnoreCase);
 
         InvokeFrameworkInit(token);
 
@@ -106,25 +111,24 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     public async ValueTask RaiseChangedEventsAsync(CancellationToken cancellationToken)
     {
-        if (_changedPostDataConsumers is not {} consumers) return;
+        if (ChangedPostDataConsumers is not {} consumers) return;
 
         foreach (var consumer in consumers)
         {
-            if (consumer is IPostBackDataHandler handler)
-            {
-                handler.RaisePostDataChangedEvent();
-            }
-
             if (consumer is IPostBackAsyncDataHandler eventHandler)
             {
                 await eventHandler.RaisePostDataChangedEventAsync(cancellationToken);
+            }
+            else if (consumer is IPostBackDataHandler handler)
+            {
+                handler.RaisePostDataChangedEvent();
             }
         }
     }
 
     internal void ClearChangedPostDataConsumers()
     {
-        _changedPostDataConsumers?.Clear();
+        ChangedPostDataConsumers?.Clear();
     }
 
     protected internal virtual void Initialize(IHttpContext context)
