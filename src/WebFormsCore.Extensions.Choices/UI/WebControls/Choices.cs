@@ -129,6 +129,7 @@ public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyn
         if (Page.Csp.Enabled)
         {
             Page.Csp.StyleSrc.AddUnsafeInlineHash("display:none;");
+            Page.Csp.ImgSrc.SourceList.Add("data:");
         }
 
         if (_values != null)
