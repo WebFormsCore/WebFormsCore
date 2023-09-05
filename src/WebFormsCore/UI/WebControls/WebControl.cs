@@ -130,9 +130,21 @@ public partial class WebControl : Control, IAttributeAccessor
             return;
         }
 
-        await RenderBeginTag(writer, token);
-        await RenderContentsAsync(writer, token);
-        await RenderEndTagAsync(writer, token);
+        var isVoidTag = TagName is "area" or "base" or "br" or "col" or "command" or "embed"
+            or "hr" or "img" or "input" or "keygen" or "link" or "meta"
+            or "param" or "source" or "track" or "wbr";
+
+        if (isVoidTag)
+        {
+            await AddAttributesToRender(writer, token);
+            await writer.RenderSelfClosingTagAsync(TagName);
+        }
+        else
+        {
+            await RenderBeginTag(writer, token);
+            await RenderContentsAsync(writer, token);
+            await RenderEndTagAsync(writer, token);
+        }
     }
 
     protected virtual string? GetAttribute(string name) => _attributes?[name];

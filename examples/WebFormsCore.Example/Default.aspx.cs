@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using WebFormsCore.Example.Controls;
+using WebFormsCore.Security;
 using WebFormsCore.UI;
 using WebFormsCore.UI.WebControls;
 
@@ -17,7 +18,8 @@ public partial class Default : Page
 
     protected override async Task OnInitAsync(CancellationToken token)
     {
-        // Csp.Enabled = true;
+        Csp.Enabled = true;
+        Csp.ScriptSrc.Mode = CspMode.Sha256;
         // EnablePageViewState = false;
 
         await phTodoContainer.Controls.AddAsync(

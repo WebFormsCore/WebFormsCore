@@ -19,6 +19,7 @@ public class StringViewStateSerializer : ViewStateSerializer<string>, IViewState
         }
 
         var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
+        if (maxByteCount > 4096) maxByteCount = Encoding.UTF8.GetByteCount(value);
         var span = writer.GetUnsafeSpan(maxByteCount);
         var byteCount = Encoding.UTF8.GetBytes(value, span);
 
@@ -32,6 +33,7 @@ public class StringViewStateSerializer : ViewStateSerializer<string>, IViewState
     {
         var sizeSpan = writer.Reserve(sizeof(ushort));
         var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
+        if (maxByteCount > 4096) maxByteCount = Encoding.UTF8.GetByteCount(value);
         var span = writer.GetUnsafeSpan(maxByteCount);
         var byteCount = Encoding.UTF8.GetBytes(value, span);
         var size = (ushort)byteCount;

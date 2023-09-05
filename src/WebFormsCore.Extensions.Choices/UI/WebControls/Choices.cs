@@ -126,6 +126,11 @@ public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyn
 
     protected override void OnPreRender(EventArgs args)
     {
+        if (Page.Csp.Enabled)
+        {
+            Page.Csp.StyleSrc.AddUnsafeInlineHash("display:none;");
+        }
+
         if (_values != null)
         {
             _json = JsonSerializer.Serialize(_values, JsonContext.Default.ICollectionString);
@@ -190,15 +195,14 @@ public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyn
                         await writer.RenderEndTagAsync();
                     }
                 }
+                await writer.RenderEndTagAsync();
             }
             else
             {
                 writer.AddAttribute(HtmlTextWriterAttribute.Style, "display:none;");
                 writer.AddAttribute(HtmlTextWriterAttribute.Type, "text");
-                await writer.RenderBeginTagAsync(HtmlTextWriterTag.Input);
+                await writer.RenderSelfClosingTagAsync(HtmlTextWriterTag.Input);
             }
-
-            await writer.RenderEndTagAsync();
         }
         await writer.RenderEndTagAsync();
     }

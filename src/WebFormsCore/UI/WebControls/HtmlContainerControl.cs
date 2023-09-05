@@ -80,9 +80,24 @@ namespace WebFormsCore.UI.WebControls
         /// <param name="token"></param>
         public override async Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
         {
-            await RenderBeginTagAsync(writer, token);
-            await RenderChildrenAsync(writer, token);
-            await RenderEndTagAsync(writer, token);
+            if (token.IsCancellationRequested) return;
+
+            var isVoidTag = TagName is "area" or "base" or "br" or "col" or "command" or "embed"
+                or "hr" or "img" or "input" or "keygen" or "link" or "meta"
+                or "param" or "source" or "track" or "wbr";
+
+            if (isVoidTag)
+            {
+                await writer.WriteBeginTagAsync(TagName);
+                await RenderAttributesAsync(writer);
+                await writer.WriteAsync(" />");
+            }
+            else
+            {
+                await RenderBeginTagAsync(writer, token);
+                await RenderChildrenAsync(writer, token);
+                await RenderEndTagAsync(writer, token);
+            }
         }
 
         /// <summary>Renders the closing tag for the <see cref="T:WebFormsCore.UI.WebControls.HtmlContainerControl" /> control to the specified <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object.</summary>

@@ -32,6 +32,14 @@ public static class EncodingExtensions
         }
     }
 
+    public static unsafe int GetByteCount(this Encoding encoding, ReadOnlySpan<char> s)
+    {
+        fixed (char* chars = s)
+        {
+            return encoding.GetByteCount(chars, s.Length);
+        }
+    }
+
     public static unsafe int GetChars(this Encoding encoding, ReadOnlySpan<byte> bytes, Span<char> chars)
     {
         fixed (byte* bytesPtr = bytes)

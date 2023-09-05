@@ -12,7 +12,7 @@ internal static class StreamExtensions
 {
     public static unsafe int Read(this Stream sourceStream, Span<byte> span)
     {
-        fixed (byte* pSource = &span[0])
+        fixed (byte* pSource = span)
         {
             using var stream = new UnmanagedMemoryStream(pSource, span.Length, span.Length, FileAccess.Write);
             sourceStream.CopyTo(stream);
@@ -22,7 +22,7 @@ internal static class StreamExtensions
 
     public static unsafe void Write(this Stream destinationStream, ReadOnlySpan<byte> span)
     {
-        fixed (byte* pDestination = &span[0])
+        fixed (byte* pDestination = span)
         {
             using var stream = new UnmanagedMemoryStream(pDestination, span.Length);
             stream.CopyTo(destinationStream);
