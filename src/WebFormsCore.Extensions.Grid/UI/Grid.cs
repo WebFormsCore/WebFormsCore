@@ -19,6 +19,8 @@ public partial class Grid : WebControl, IPostBackLoadHandler
 
     protected object? DataSourceField;
 
+    public ITemplate? EditItemTemplate { get; set; }
+
     public Grid()
         : base(HtmlTextWriterTag.Table)
     {
@@ -105,24 +107,24 @@ public partial class Grid : WebControl, IPostBackLoadHandler
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
         T>(IQueryable<T> source)
     {
-        await LoadDataSourceEnumerableInner<T>(source);
+        await LoadDataSourceInnerAsync<T>(source);
     }
 
     public async Task LoadDataSourceAsync<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
         T>(IEnumerable<T> source)
     {
-        await LoadDataSourceEnumerableInner<T>(source);
+        await LoadDataSourceInnerAsync<T>(source);
     }
 
     public async Task LoadDataSourceAsync<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
         T>(IAsyncEnumerable<T> source)
     {
-        await LoadDataSourceEnumerableInner<T>(source);
+        await LoadDataSourceInnerAsync<T>(source);
     }
 
-    private Task LoadDataSourceEnumerableInner<T>(object source)
+    private Task LoadDataSourceInnerAsync<T>(object source)
     {
         return source switch
         {
@@ -148,50 +150,26 @@ public partial class Grid : WebControl, IPostBackLoadHandler
         }
 
         var type = DataSourceField.GetType();
-
-        var (@interface, method, _) = type.GetInterfaces()
+        var elementType = type.GetInterfaces()
             .Where(i => i.IsGenericType)
-            .Select(i =>
+            .FirstOrDefault(i =>
             {
-                MethodInfo? method;
-                int order;
                 var genericType = i.GetGenericTypeDefinition();
 
-                if (genericType == typeof(IQueryable<>))
-                {
-                    method = typeof(Grid).GetMethod(nameof(LoadDataSourceQueryable), BindingFlags.NonPublic | BindingFlags.Instance);
-                    order = 0;
-                }
-                else if (genericType == typeof(IAsyncEnumerable<>))
-                {
-                    method = typeof(Grid).GetMethod(nameof(LoadDataSourceAsyncEnumerable), BindingFlags.NonPublic | BindingFlags.Instance);
-                    order = 1;
-                }
-                else if (genericType == typeof(IEnumerable<>))
-                {
-                    method = typeof(Grid).GetMethod(nameof(LoadDataSourceEnumerable), BindingFlags.NonPublic | BindingFlags.Instance);
-                    order = 2;
-                }
-                else
-                {
-                    method = null;
-                    order = -1;
-                }
+                return genericType == typeof(IQueryable<>) ||
+                       genericType == typeof(IAsyncEnumerable<>) ||
+                       genericType == typeof(IEnumerable<>);
+            })?.GetGenericArguments()[0];
 
-                return (Interface: i, Method: method, Order: order);
-            })
-            .Where(i => i.Method != null)
-            .OrderBy(i => i.Order)
-            .FirstOrDefault();
-
-        if (method is null)
+        if (elementType is null)
         {
             throw new InvalidOperationException(
                 $"The type {type.FullName} does not implement IQueryable<T>, IAsyncEnumerable<T> or IEnumerable<T>.");
         }
 
-        var elementType = @interface.GetGenericArguments()[0];
-        var genericMethod = method.MakeGenericMethod(elementType);
+        var genericMethod = typeof(Grid)
+            .GetMethod(nameof(LoadDataSourceInnerAsync), BindingFlags.Instance | BindingFlags.NonPublic)!
+            .MakeGenericMethod(elementType);
 
         await (Task)genericMethod.Invoke(this, new[] { DataSourceField })!;
     }
@@ -314,9 +292,11 @@ public partial class Grid : WebControl, IPostBackLoadHandler
         _items.Add(item);
         await Controls.AddAsync(item);
 
-        foreach (var column in Columns)
+        for (var i = 0; i < Columns.Count; i++)
         {
+            var column = Columns[i];
             var cell = column.CreateCell(Page, item);
+            cell.ColumnIndex = i;
             cell.Column = column;
             cell.Grid = this;
 

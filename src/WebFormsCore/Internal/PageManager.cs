@@ -65,6 +65,12 @@ public class PageManager : IPageManager
 
         var response = context.Response;
 
+        if (response.HasStarted)
+        {
+            await response.Body.FlushAsync(token);
+            return;
+        }
+
         var stream = context.Response.Body;
 #if NET
         // await using

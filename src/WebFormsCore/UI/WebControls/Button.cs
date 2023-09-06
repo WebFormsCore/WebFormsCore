@@ -31,7 +31,9 @@ public partial class Button : WebControl, IPostBackAsyncEventHandler
 
                 if (value != null)
                 {
-                    Controls.AddWithoutPageEvents(WebActivator.CreateLiteral(value));
+                    Controls.AddWithoutPageEvents(
+                        IsInPage ? WebActivator.CreateLiteral(value) : new LiteralControl { Text = value }
+                    );
                 }
             }
         }

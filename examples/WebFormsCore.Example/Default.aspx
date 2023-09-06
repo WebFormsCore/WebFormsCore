@@ -18,12 +18,18 @@
     <wfc:CheckBox runat="server" ID="cb" OnCheckedChanged="cb_OnCheckedChanged" AutoPostBack="True" />
     <wfc:Literal runat="server" ID="litCb" />
 
-    <wfc:Grid runat="server" ID="grid" class="table" PageSize="1">
+    <wfc:Button runat="server" Text="Download file" OnClick="btnDownload_OnClick" />
+
+    <wfc:Grid runat="server" ID="grid" class="table">
         <Columns>
             <wfc:GridBoundColumn runat="server" HeaderText="ID" DataField="Id" />
             <wfc:GridBoundColumn runat="server" HeaderText="Naam" DataField="Name" />
             <wfc:GridBoundColumn runat="server" HeaderText="Is nieuw" DataField="IsNew" />
+            <wfc:GridEditColumn runat="server" HeaderText="Edit" />
         </Columns>
+        <EditItemTemplate>
+            Hello world!
+        </EditItemTemplate>
     </wfc:Grid>
 
     <div class="mt-4">

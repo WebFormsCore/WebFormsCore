@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using HttpStack;
 using WebFormsCore.Example.Controls;
 using WebFormsCore.Security;
 using WebFormsCore.UI;
@@ -53,5 +54,12 @@ public partial class Default : Page
     {
         litCb.Text = cb.Checked.ToString(CultureInfo.InvariantCulture);
         return Task.CompletedTask;
+    }
+
+    protected async Task btnDownload_OnClick(object? sender, EventArgs e)
+    {
+        Response.ContentType = "application/octet-stream";
+        Response.Headers["Content-Disposition"] = "attachment; filename=\"foo.txt\"";
+        await Response.WriteAsync("Hello World");
     }
 }

@@ -17,6 +17,24 @@ public static class ControlExtensions
         return container;
     }
 
+    public static T? FindParent<T>(this Control control)
+        where T : Control
+    {
+        var parent = control.ParentInternal;
+
+        while (parent != null)
+        {
+            if (parent is T t)
+            {
+                return t;
+            }
+
+            parent = parent.ParentInternal;
+        }
+
+        return null;
+    }
+
     public static IEnumerable<Control> EnumerateControls(this Control control)
     {
         yield return control;

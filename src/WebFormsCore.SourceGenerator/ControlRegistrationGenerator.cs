@@ -50,7 +50,7 @@ namespace WebFormsCore.SourceGenerator
                 {
                     var type = model.GetDeclaredSymbol(typeDeclaration, context.CancellationToken);
 
-                    if (type == null || type.IsAbstract || type is INamedTypeSymbol { IsGenericType: true })
+                    if (type == null || type.IsAbstract || type is INamedTypeSymbol { IsGenericType: true } or { DeclaredAccessibility: Accessibility.Private})
                     {
                         continue;
                     }

@@ -206,17 +206,42 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
             throw new Error(response.statusText);
         }
 
-        const text = await response.text();
-        const options = getMorpdomSettings(form);
+        const contentDisposition = response.headers.get('content-disposition');
 
-        const parser = new DOMParser();
-        const htmlDoc = parser.parseFromString(text, 'text/html');
+        if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
+            const fileNameMatch = contentDisposition.match(/filename=(?:"([^"]+)"|([^;]+))/);
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.style.display = 'none';
 
-        if (baseElement) {
-            morphdom(baseElement, htmlDoc.querySelector('[data-wfc-base]'), options);
+            if (fileNameMatch) {
+                a.download = fileNameMatch[1] ?? fileNameMatch[2];
+            } else {
+                a.download = "download";
+            }
+
+            document.body.appendChild(a);
+            a.click();
+
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 0);
         } else {
-            morphdom(document.head, htmlDoc.querySelector('head'), options);
-            morphdom(document.body, htmlDoc.querySelector('body'), options);
+            const text = await response.text();
+            const options = getMorpdomSettings(form);
+
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(text, 'text/html');
+
+            if (baseElement) {
+                morphdom(baseElement, htmlDoc.querySelector('[data-wfc-base]'), options);
+            } else {
+                morphdom(document.head, htmlDoc.querySelector('head'), options);
+                morphdom(document.body, htmlDoc.querySelector('body'), options);
+            }
         }
 
         document.dispatchEvent(new CustomEvent("wfc:afterSubmit", {detail: {container, form, eventTarget}}));

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HttpStack;
@@ -52,7 +53,7 @@ public partial class Control : System.Web.UI.Control
 
     protected virtual bool EnableViewStateBag => EnableViewState;
 
-    protected bool HasGeneratedId => _hasGeneratedId;
+    protected bool HasUserId => _id is not null && !_hasGeneratedId;
 
     protected virtual bool ProcessControl => true;
 
@@ -601,7 +602,7 @@ public partial class Control : System.Web.UI.Control
     {
         foreach (var control in collection)
         {
-            if (!control.GenerateAutomaticID || (control._id is not null && !control._hasGeneratedId))
+            if (!control.GenerateAutomaticID)
             {
                 continue;
             }

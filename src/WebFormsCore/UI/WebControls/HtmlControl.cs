@@ -72,7 +72,7 @@ namespace WebFormsCore.UI.WebControls
         /// <param name="writer">The <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> that receives the rendered content.</param>
         protected virtual async Task RenderAttributesAsync(HtmlTextWriter writer)
         {
-            if (ClientID != null)
+            if (HasUserId)
             {
                 await writer.WriteAttributeAsync("id", ClientID);
             }
