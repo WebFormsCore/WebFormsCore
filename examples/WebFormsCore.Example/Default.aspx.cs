@@ -25,38 +25,31 @@ public partial class Default : Page
         await phTodoContainer.Controls.AddAsync(
             LoadControl("Controls/TodoList.ascx")
         );
+
+        await grid.LoadDataSourceAsync(new[]
+        {
+            new { Id = 1, Name = "Foo", IsNew = true },
+            new { Id = 2, Name = "Bar", IsNew = false },
+        });
     }
 
     protected override void OnLoad(EventArgs args)
     {
-    }
-
-    protected override async Task OnLoadAsync(CancellationToken token)
-    {
         title.InnerText = (PostbackCount++).ToString();
-
-        if (!IsPostBack)
-        {
-            await grid.LoadDataSourceAsync(new[]
-            {
-                new { Id = 1, Name = "Foo", IsNew = true },
-                new { Id = 2, Name = "Bar", IsNew = false },
-            });
-        }
     }
 
-    protected void choices_OnValuesChanged(object? sender, EventArgs e)
+    protected void choices_OnValuesChanged(Choices sender, EventArgs e)
     {
         choices.Values.Remove("1");
     }
 
-    protected Task cb_OnCheckedChanged(object? sender, EventArgs e)
+    protected Task cb_OnCheckedChanged(CheckBox sender, EventArgs e)
     {
         litCb.Text = cb.Checked.ToString(CultureInfo.InvariantCulture);
         return Task.CompletedTask;
     }
 
-    protected async Task btnDownload_OnClick(object? sender, EventArgs e)
+    protected async Task btnDownload_OnClick(object sender, EventArgs e)
     {
         Response.ContentType = "application/octet-stream";
         Response.Headers["Content-Disposition"] = "attachment; filename=\"foo.txt\"";

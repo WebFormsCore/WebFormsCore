@@ -10,9 +10,12 @@ public class CollectionNode : ElementNode, ITypedNode
     {
     }
 
-    public Token Property { get; set; }
+    public string Property { get; set; } = null!;
     public INamedTypeSymbol PropertyType { get; set; } = default!;
     public List<TemplateNode> Templates { get; set; } = new();
+    public List<PropertyNode> Properties { get; set; } = new();
+
+    public List<EventNode> Events { get; set; } = new();
 
     INamedTypeSymbol ITypedNode.Type => PropertyType;
 }

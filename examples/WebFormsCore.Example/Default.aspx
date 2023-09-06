@@ -20,12 +20,12 @@
 
     <wfc:Button runat="server" Text="Download file" OnClick="btnDownload_OnClick" />
 
-    <wfc:Grid runat="server" ID="grid" class="table">
+    <wfc:Grid runat="server" ID="grid" class="table" EditRowAttributes-CssClass="table-active">
         <Columns>
-            <wfc:GridBoundColumn runat="server" HeaderText="ID" DataField="Id" />
+            <wfc:GridBoundColumn runat="server" HeaderText="ID" DataField="Id" CellAttributes-CssClass="test" />
             <wfc:GridBoundColumn runat="server" HeaderText="Naam" DataField="Name" />
             <wfc:GridBoundColumn runat="server" HeaderText="Is nieuw" DataField="IsNew" />
-            <wfc:GridEditColumn runat="server" HeaderText="Edit" />
+            <wfc:GridEditColumn runat="server" HeaderText="Edit" width="40px" ButtonAttributes-CssClass="btn btn-sm btn-outline-primary" />
         </Columns>
         <EditItemTemplate>
             Hello world!
@@ -77,7 +77,7 @@
                             <strong>Todo list</strong>
                         </div>
                         <div class="card-body">
-                            <wfc:PlaceHolder runat="server" ID="phTodoContainer"/>
+                            <wfc:PlaceHolder runat="server" ID="phTodoContainer" />
                         </div>
                     </div>
                 </form>

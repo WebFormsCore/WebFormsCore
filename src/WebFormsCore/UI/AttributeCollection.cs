@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI;
 
-public sealed class AttributeCollection : IDictionary<string, string?>, IViewStateObject
+public sealed class AttributeCollection : IDictionary<string, string?>, IViewStateObject, IAttributeAccessor
 {
     private static readonly Dictionary<byte, string> IdToKey;
     private static readonly Dictionary<string, byte> KeyToId;
@@ -149,6 +149,12 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
     private CssStyleCollection? _styleColl;
     private readonly HashSet<string> _trackedKeys = new(StringComparer.OrdinalIgnoreCase);
 
+    public string? CssClass
+    {
+        get => this["class"];
+        set => this["class"] = value;
+    }
+
     public bool TryGetValue(string key, out string? value)
     {
         return _bag.TryGetValue(key, out value);
@@ -283,6 +289,14 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
 
     #endregion
 
+    public void CopyTo(IAttributeAccessor destination)
+    {
+        foreach (var kv in _bag)
+        {
+            destination.SetAttribute(kv.Key, kv.Value);
+        }
+    }
+
     bool IViewStateObject.WriteToViewState => _trackedKeys.Count > 0;
 
     void IViewStateObject.TrackViewState(ViewStateProvider provider)
@@ -336,5 +350,15 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
             _bag[key] = value;
             _trackedKeys.Add(key);
         }
+    }
+
+    public string? GetAttribute(string key)
+    {
+        return this[key];
+    }
+
+    public void SetAttribute(string key, string? value)
+    {
+        this[key] = value;
     }
 }

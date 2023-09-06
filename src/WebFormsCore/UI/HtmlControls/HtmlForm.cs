@@ -16,7 +16,9 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
 
     protected override bool ProcessControl => Page._state <= ControlState.Initialized || !Page.IsPostBack || Page.ActiveForm == this;
 
-    public event AsyncEventHandler? Submit;
+    public event AsyncEventHandler<HtmlForm, EventArgs>? Submit;
+
+    public override bool EnableViewState { get; set; } = true;
 
     private bool IsDiv => Page.IsExternal;
 

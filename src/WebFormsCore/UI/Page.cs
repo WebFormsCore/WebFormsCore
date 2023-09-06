@@ -31,6 +31,8 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     public bool EnablePageViewState { get; set; } = true;
 
+    public override bool EnableViewState { get; set; } = true;
+
     public Csp Csp { get; set; } = new();
 
     public ClientScriptManager ClientScript { get; }

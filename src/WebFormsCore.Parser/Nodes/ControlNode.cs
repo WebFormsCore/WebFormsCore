@@ -9,6 +9,14 @@ public interface ITypedNode
     INamedTypeSymbol Type { get; }
 
     List<TemplateNode> Templates { get; }
+
+    List<Node> Children { get; }
+
+    List<PropertyNode> Properties { get; }
+
+    List<EventNode> Events { get; }
+
+    Dictionary<TokenString, TokenString> Attributes { get; }
 }
 
 public class ControlNode : ElementNode, ITypedNode

@@ -11,6 +11,7 @@ internal sealed class ControlFactory<T> : IControlFactory<T>
     private readonly IControlInterceptor[] _interceptors;
     private readonly IControlManager _manager;
     private readonly string[] _viewPaths;
+    private bool _noConstructor;
 
     public ControlFactory(IControlManager manager, IEnumerable<IControlInterceptor> interceptors)
     {
@@ -21,6 +22,8 @@ internal sealed class ControlFactory<T> : IControlFactory<T>
             : typeof(T).GetCustomAttributes<ViewPathAttribute>()
                 .Select(i => i.Path)
                 .ToArray();
+        _noConstructor = _viewPaths.Length == 0 &&
+                         typeof(T).GetConstructors(BindingFlags.Public | BindingFlags.Instance).All(i => i.GetParameters().Length == 0);
     }
 
     public T CreateControl(IServiceProvider provider)

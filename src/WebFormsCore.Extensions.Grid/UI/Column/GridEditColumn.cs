@@ -4,21 +4,37 @@ namespace WebFormsCore.UI;
 
 public class GridEditColumn : GridColumn
 {
+    public ITemplate? ButtonTemplate { get; set; }
+
+    public string ButtonText { get; set; } = "Edit";
+
+    public AttributeCollection ButtonAttributes { get; set; } = new();
+
     public override GridCell CreateCell(Page page, GridItem item)
     {
         var cell = base.CreateCell(page, item);
 
         var button = new Button();
 
+        ButtonAttributes.CopyTo(button);
+
         cell.Controls.AddWithoutPageEvents(button);
 
-        button.Text = "Edit";
+        if (ButtonTemplate != null)
+        {
+            ButtonTemplate.InstantiateIn(button);
+        }
+        else
+        {
+            button.Text = ButtonText;
+        }
 
         button.Click += static (sender, args) =>
         {
-            var button = (Button)sender!;
-            var item = button.FindParent<GridItem>();
-            return item?.ToggleEditAsync() ?? Task.CompletedTask;
+            var item = sender.FindParent<GridItem>()!;
+
+            item.EditMode = !item.EditMode;
+            return Task.CompletedTask;
         };
 
         return cell;

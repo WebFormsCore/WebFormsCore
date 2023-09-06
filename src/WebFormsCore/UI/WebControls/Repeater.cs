@@ -28,9 +28,9 @@ public enum ListItemType
 [ParseChildren(true)]
 public class Repeater : RepeaterBase<RepeaterItem>
 {
-    public event AsyncEventHandler<RepeaterItemEventArgs>? ItemCreated;
+    public event AsyncEventHandler<Repeater, RepeaterItemEventArgs>? ItemCreated;
 
-    public event AsyncEventHandler<RepeaterItemEventArgs>? ItemDataBound;
+    public event AsyncEventHandler<Repeater, RepeaterItemEventArgs>? ItemDataBound;
 
     protected override ValueTask<RepeaterItem> CreateItemAsync(int itemIndex, ListItemType itemType)
     {
@@ -55,9 +55,9 @@ public class Repeater : RepeaterBase<RepeaterItem>
 
 public class Repeater<T> : Repeater
 {
-    public new event AsyncEventHandler<RepeaterItemEventArgs<T>>? ItemCreated;
+    public new event AsyncEventHandler<Repeater<T>, RepeaterItemEventArgs<T>>? ItemCreated;
 
-    public new event AsyncEventHandler<RepeaterItemEventArgs<T>>? ItemDataBound;
+    public new event AsyncEventHandler<Repeater<T>, RepeaterItemEventArgs<T>>? ItemDataBound;
 
     public override string? ItemType
     {

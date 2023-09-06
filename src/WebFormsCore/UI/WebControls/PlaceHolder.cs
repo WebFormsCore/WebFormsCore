@@ -1,6 +1,5 @@
-﻿namespace WebFormsCore.UI.WebControls
+﻿namespace WebFormsCore.UI.WebControls;
+
+public class PlaceHolder : Control
 {
-    public class PlaceHolder : Control
-    {
-    }
 }

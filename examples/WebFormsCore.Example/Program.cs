@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore;
 using WebFormsCore.Example;
+using WebFormsCore.Options;
 using WebFormsCore.UI;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,12 @@ builder.Services.Configure<WebFormsCoreOptions>(options =>
 {
     options.HiddenClass = "d-none";
 });
+
+builder.Services.Configure<ViewStateOptions>(options =>
+{
+    options.EncryptionKey = "35d16461-074a-42df-9114-ca40eb11b070";
+});
+
 
 var app = builder.Build();
 

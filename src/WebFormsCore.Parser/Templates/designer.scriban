@@ -3,12 +3,47 @@
 #line {{ $0.Range.Start.Line + 1 }} "{{ $0.Range.File }}"
 {{- end }}
 
+{{- func write_attributes }}
+            {{- for prop in $0.Properties }}
+            {{ $0.VariableName }}.{{ prop.Member.Name }}{{ " = " }}
+            {{- if prop.DisplayType == "string" -}}
+                {{ prop.Value.CodeString }};
+            {{- else if prop.Value.Converter -}}
+                WebActivator.ParseAttribute<{{ prop.DisplayType }}, {{ prop.DisplayConverter }}>({{ prop.Value.CodeString }});
+            {{- else -}}
+                WebActivator.ParseAttribute<{{ prop.DisplayType }}>({{ prop.Value.CodeString }});
+            {{- end }}
+            {{- end }}
+
+            {{- for prop in $0.Attributes }}
+            ((WebFormsCore.UI.IAttributeAccessor){{ $0.VariableName }}).SetAttribute({{ prop.Key.CodeString }}, {{ prop.Value.CodeString }});
+            {{- end }}
+
+            {{- for prop in $0.Templates }}
+            {{ $0.VariableName }}.{{ prop.Property }} = new {{ prop.ClassName }}(WebActivator, this);
+            {{- end }}
+
+            {{- for prop in $0.Events }}
+            {{- if IsReturnTypeSame }}
+            {{ $0.VariableName }}.{{ prop.EventName }} += {{ $3 }}{{ prop.MethodName }};
+            {{- else }}
+            {{ $0.VariableName }}.{{ prop.EventName }} += ({{ prop.Arguments }}) =>
+            {
+                {{ if !prop.IsVoid }}var result = {{ end -}}
+                {{ $1 }}{{- prop.MethodName }}({{ prop.Arguments }});
+                return {{ prop.ReturnValue }};
+            };
+            {{- end }}
+            {{- end }}
+{{- end }}
+
 {{- func write_children }}
         {{- for child in $0 }}
         {{ line child }}
         {{- case child.Type }}
         {{- when "Collection" }}
             var {{ child.VariableName }} = {{ child.Parent?.VariableName ?? $1 }}.{{ child.Property }};
+            {{ write_attributes child $3 }}
 
         {{- when "Text" }}
             {{ if child.Parent?.Type != "Collection" -}}
@@ -22,35 +57,7 @@
             {{- end }}
             {{ child.Parent?.VariableName ?? $1 }}.{{ child.Parent?.Type == "Collection" ? "Add" : "AddParsedSubObject" }}({{ child.VariableName }});
 
-            {{- for prop in child.Events }}
-            {{- if IsReturnTypeSame }}
-            {{ child.VariableName }}.{{ prop.EventName }} += {{ $3 }}{{ prop.MethodName }};
-            {{- else }}
-            {{ child.VariableName }}.{{ prop.EventName }} += ({{ prop.Arguments }}) =>
-            {
-                {{ if !prop.IsVoid }}var result = {{ end -}}
-                {{ $3 }}{{- prop.MethodName }}({{ prop.Arguments }});
-                return {{ prop.ReturnValue }};
-            };
-            {{- end }}
-            {{- end }}
-
-            {{- for prop in child.Properties }}
-            {{ child.VariableName }}.{{ prop.Member.Name }} = WebActivator.
-            {{- if prop.Value.Converter -}}
-            ParseAttribute<{{ prop.DisplayType }}, {{ prop.DisplayConverter }}>({{ prop.Value.CodeString }});
-            {{- else -}}
-            ParseAttribute<{{ prop.DisplayType }}>({{ prop.Value.CodeString }});
-            {{- end }}
-            {{- end }}
-
-            {{- for prop in child.Attributes }}
-            ((WebFormsCore.UI.IAttributeAccessor){{ child.VariableName }}).SetAttribute({{ prop.Key.CodeString }}, {{ prop.Value.CodeString }});
-            {{- end }}
-
-            {{- for prop in child.Templates }}
-            {{ child.VariableName }}.{{ prop.Property }} = new {{ prop.ClassName }}(WebActivator, this);
-            {{- end }}
+            {{ write_attributes child $3 }}
 
         {{- when "Element" }}
             var {{ child.VariableName }} = WebActivator.CreateElement({{ child.Name.CodeString }});
@@ -104,7 +111,7 @@
 [assembly:WebFormsCore.RootNamespaceAttribute("{{ RootNamespace }}")]
 {{- end }}
 {{- for type in Types }}
-[assembly:WebFormsCore.AssemblyViewAttribute(@"{{ type.Path }}", typeof({{ type.Namespace ? (type.Namespace + ".") : "" }}CompiledViews.{{ type.ClassName }}))]
+[assembly:WebFormsCore.AssemblyViewAttribute(@"{{ type.Path }}", typeof({{ type.Namespace ? (type.Namespace + ".") : ""  }}CompiledViews.{{ type.ClassName }}))]
 {{- end }}
 
 {{ for type in Types }}

@@ -104,12 +104,12 @@ namespace WebFormsCore.UI.WebControls
         /// <summary>For a description of this member, see <see cref="M:WebFormsCore.UI.IAttributeAccessor.SetAttribute(System.String,System.String)" />. </summary>
         /// <param name="name">The name of the attribute to set.</param>
         /// <param name="value">The value to set the attribute to.</param>
-        void IAttributeAccessor.SetAttribute(string name, string value) => SetAttribute(name, value);
+        void IAttributeAccessor.SetAttribute(string name, string? value) => SetAttribute(name, value);
 
         /// <summary>Sets the value of the named attribute on the <see cref="T:WebFormsCore.UI.WebControls.HtmlControl" /> control.</summary>
         /// <param name="name">The name of the attribute to set.</param>
         /// <param name="value">The value to set the attribute to.</param>
-        protected virtual void SetAttribute(string name, string value) => Attributes[name] = value;
+        protected virtual void SetAttribute(string name, string? value) => Attributes[name] = value;
 
         public override void ClearControl()
         {

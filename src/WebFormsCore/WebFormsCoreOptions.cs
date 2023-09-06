@@ -17,4 +17,9 @@ public class WebFormsCoreOptions
     /// When no class is specified, the will be hidden using the style attribute which is not recommended.
     /// </summary>
     public string? HiddenClass { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether security headers are enabled.
+    /// </summary>
+    public bool EnableSecurityHeaders { get; set; } = true;
 }

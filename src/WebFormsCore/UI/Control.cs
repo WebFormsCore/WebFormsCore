@@ -44,12 +44,32 @@ public partial class Control : System.Web.UI.Control
     private bool _visible = true;
     private bool _trackViewState;
     protected internal ControlState _state = ControlState.Constructed;
+    private bool? _enableViewState;
 
     public IWebObjectActivator WebActivator => _webObjectActivator ??= ServiceProvider.GetRequiredService<IWebObjectActivator>();
 
     protected virtual IServiceProvider ServiceProvider => Page.ServiceProvider;
 
-    public virtual bool EnableViewState { get; set; } = true;
+    public virtual bool EnableViewState
+    {
+        get
+        {
+            var current = this;
+
+            while (current != null)
+            {
+                if (current._enableViewState.HasValue)
+                {
+                    return current._enableViewState.Value;
+                }
+
+                current = current._parent;
+            }
+
+            return true;
+        }
+        set => _enableViewState = value;
+    }
 
     protected virtual bool EnableViewStateBag => EnableViewState;
 
@@ -317,6 +337,7 @@ public partial class Control : System.Web.UI.Control
         _renderMethod = null;
         _visible = true;
         _trackViewState = false;
+        _enableViewState = null;
         _state = ControlState.Constructed;
     }
 
@@ -602,7 +623,7 @@ public partial class Control : System.Web.UI.Control
     {
         foreach (var control in collection)
         {
-            if (!control.GenerateAutomaticID)
+            if (!control.GenerateAutomaticID || (control._id is not null && !control._hasGeneratedId))
             {
                 continue;
             }

@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore;
 
-public delegate Task AsyncEventHandler(object? sender, EventArgs e);
-
-public delegate Task AsyncEventHandler<in T>(object? sender, T e);
+public delegate Task AsyncEventHandler<in TSender, in TArgs>(TSender sender, TArgs e);
 
 [SuppressMessage("ReSharper", "ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract")]
 public static class AsyncEventHandlerHelper
@@ -42,12 +40,6 @@ public static class AsyncEventHandlerHelper
         }
     }
 
-    private static (int, object) GetInvocationListAllocating(MulticastDelegate d)
-    {
-        var result = d.GetInvocationList();
-        return (result.Length, result);
-    }
-
 #else
 
     private static readonly Func<MulticastDelegate, (int, object)> GetInvocationList = CreateGetInvocationList();
@@ -59,11 +51,7 @@ public static class AsyncEventHandlerHelper
 
         if (list == null || count == null)
         {
-            return d =>
-            {
-                var result = d.GetInvocationList();
-                return (result.Length, result);
-            };
+            return GetInvocationListAllocating;
         }
 
         var parameter = Expression.Parameter(typeof(MulticastDelegate), "d");
@@ -76,28 +64,14 @@ public static class AsyncEventHandlerHelper
 
 #endif
 
-    public static async ValueTask InvokeAsync(this AsyncEventHandler? handler, object? sender, EventArgs e)
+    private static (int, object) GetInvocationListAllocating(MulticastDelegate d)
     {
-        if (handler == null) return;
-
-        var (length, result) = GetInvocationList(handler);
-
-        if (result is not object[] objects)
-        {
-            var task = handler(sender, e);
-            if (task != null) await task;
-            return;
-        }
-
-        for (var index = 0; index < length; index++)
-        {
-            var @delegate = objects[index];
-            var task = Unsafe.As<AsyncEventHandler>(@delegate)(sender, e);
-            if (task != null) await task;
-        }
+        var result = d.GetInvocationList();
+        return (result.Length, result);
     }
 
-    public static async ValueTask InvokeAsync<T>(this AsyncEventHandler<T>? handler, object? sender, T e)
+    public static async ValueTask InvokeAsync<TSender, TArgs>(this AsyncEventHandler<TSender, TArgs>? handler, TSender sender, TArgs e)
+        where TSender : class
     {
         if (handler == null) return;
 
@@ -113,7 +87,7 @@ public static class AsyncEventHandlerHelper
         for (var index = 0; index < length; index++)
         {
             var @delegate = objects[index];
-            var task = Unsafe.As<AsyncEventHandler<T>>(@delegate)(sender, e);
+            var task = Unsafe.As<AsyncEventHandler<TSender, TArgs>>(@delegate)(sender, e);
             if (task != null) await task;
         }
     }

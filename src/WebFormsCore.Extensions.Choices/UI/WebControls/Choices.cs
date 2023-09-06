@@ -21,7 +21,7 @@ public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyn
 
     protected virtual bool SaveTextViewState => (ValuesChanged != null || IsReadOnly);
 
-    public event AsyncEventHandler? ValuesChanged;
+    public event AsyncEventHandler<Choices, EventArgs>? ValuesChanged;
 
     private readonly ILogger<Choices>? _logger;
     private ICollection<string>? _values;

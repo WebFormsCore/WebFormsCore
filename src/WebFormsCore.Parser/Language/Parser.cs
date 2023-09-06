@@ -349,11 +349,15 @@ public class Parser
             }
             else
             {
-                node = new CollectionNode
+                var collectionNode = new CollectionNode
                 {
-                    Property = name,
-                    PropertyType = (INamedTypeSymbol) elementMember.Type
+                    Property = name.Text,
+                    PropertyType = (INamedTypeSymbol)elementMember.Type
                 };
+
+                AddAttributes(attributes, collectionNode);
+
+                node = collectionNode;
             }
         }
         else if (runAt == RunAt.Server && !ns.HasValue && name.Text.Value.Equals("script", StringComparison.OrdinalIgnoreCase))
@@ -446,70 +450,7 @@ public class Parser
                 }
             }
 
-            var implementsAttributeAccessor = controlType.AllInterfaces.Any(x => x.Name == "IAttributeAccessor" && x.ContainingNamespace.ToString() == "WebFormsCore.UI");
-
-            foreach (var attribute in attributes)
-            {
-                var key = attribute.Key.Value;
-
-                if (key.Equals("runat", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                var value = attribute.Value.Value;
-                var range = attribute.Key.Range.WithEnd(attribute.Value.Range.End);
-
-                if (key.StartsWith("On", StringComparison.OrdinalIgnoreCase))
-                {
-                    var eventSymbol = controlType?.GetDeep<IEventSymbol>(key.Substring(2));
-                    var method = _type?.GetDeep<IMethodSymbol>(value);
-
-                    if (eventSymbol != null && method != null)
-                    {
-                        controlNode.Events.Add(new EventNode(eventSymbol, method)
-                        {
-                            Range = range
-                        });
-                        continue;
-                    }
-                }
-
-                if (key.Equals("ID", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (controlType?.GetMemberDeep(key) is { CanWrite: true })
-                    {
-                        controlNode.Id = value;
-                    }
-
-                    continue;
-                }
-
-                if (controlType?.GetMemberDeep(key) is { CanWrite: true } member)
-                {
-                    var converterArgument = member.Symbol.GetAttributes()
-                        .FirstOrDefault(i => i.AttributeClass.IsAssignableTo("TypeConverterAttribute"))
-                        ?.ConstructorArguments[0];
-
-                    var converter = converterArgument?.Value switch
-                    {
-                        INamedTypeSymbol t => t,
-                        string s => _compilation.GetType(s),
-                        _ => null
-                    };
-
-                    controlNode.Properties.Add(new PropertyNode(member, attribute.Value, converter)
-                    {
-                        Range = range
-                    });
-                    continue;
-                }
-
-                if (implementsAttributeAccessor)
-                {
-                    controlNode.Attributes.Add(attribute.Key, attribute.Value);
-                }
-            }
+            AddAttributes(attributes, controlNode);
 
             node = controlNode;
         }
@@ -536,6 +477,146 @@ public class Parser
         {
             _container.Pop();
         }
+    }
+
+    private void AddAttributes(Dictionary<TokenString, TokenString> attributes, ITypedNode node)
+    {
+        var controlType = node.Type;
+
+        foreach (var attribute in attributes)
+        {
+            var key = attribute.Key.Value;
+
+            if (key.Equals("runat", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var value = attribute.Value.Value;
+
+            if (key.Contains('-'))
+            {
+                SetAttributeDeep(attribute.Key.Range, node, attribute.Key, value);
+                continue;
+            }
+
+            if (key.StartsWith("On", StringComparison.OrdinalIgnoreCase))
+            {
+                var eventSymbol = controlType?.GetDeep<IEventSymbol>(key.Substring(2));
+                var method = _type?.GetDeep<IMethodSymbol>(value);
+
+                if (eventSymbol != null && method != null)
+                {
+                    node.Events.Add(new EventNode(eventSymbol, method)
+                    {
+                        Range = attribute.Value.Range
+                    });
+                    continue;
+                }
+            }
+
+            if (key.Equals("ID", StringComparison.OrdinalIgnoreCase) && node is ControlNode controlNode)
+            {
+                if (controlType?.GetMemberDeep(key) is { CanWrite: true })
+                {
+                    controlNode.Id = value;
+                }
+
+                continue;
+            }
+
+            SetAttribute(node, key, value);
+        }
+    }
+
+    private void SetAttributeDeep(TokenRange range, ITypedNode parentNode, TokenString key, TokenString value)
+    {
+        var index = key.Value.IndexOf('-');
+        var span = key.Value.AsSpan();
+        var keyRange = key.Range;
+
+        var currentNode = parentNode;
+
+        while (index != -1)
+        {
+            var current = span.Slice(0, index).ToString();
+            var property = currentNode.Type.GetMemberDeep(current);
+
+            if (property is null)
+            {
+                break;
+            }
+
+            var next = currentNode.Children
+                .OfType<CollectionNode>()
+                .FirstOrDefault(i => i.Property == property.Name);
+
+            if (next == null)
+            {
+                next = new CollectionNode
+                {
+                    Parent = currentNode as ElementNode,
+                    Range = range,
+                    Property = property.Name,
+                    PropertyType = (INamedTypeSymbol)property.Type,
+                    VariableName = $"ctrl{_container.ControlId++}"
+                };
+
+                parentNode.Children.Add(next);
+            }
+
+            currentNode = next;
+            span = span.Slice(index + 1);
+            keyRange = keyRange.Slice(index + 1);
+            index = span.IndexOf('-');
+        }
+
+        var last = span.ToString();
+
+        SetAttribute(currentNode, last, value);
+    }
+
+    private void SetAttribute(
+        ITypedNode controlNode,
+        string key,
+        TokenString value)
+    {
+        var controlType = controlNode.Type;
+
+        if (controlType.GetMemberDeep(key) is { CanWrite: true } member)
+        {
+            var converterArgument = member.Symbol.GetAttributes()
+                .FirstOrDefault(i => i.AttributeClass.IsAssignableTo("TypeConverterAttribute"))
+                ?.ConstructorArguments[0];
+
+            var converter = converterArgument?.Value switch
+            {
+                INamedTypeSymbol t => t,
+                string s => _compilation.GetType(s),
+                _ => null
+            };
+
+            controlNode.Properties.Add(new PropertyNode(member, value.Value, converter)
+            {
+                Range = value.Range
+            });
+            return;
+        }
+
+        var implementsAttributeAccessor = controlType.AllInterfaces.Any(x => x.Name == "IAttributeAccessor" && x.ContainingNamespace.ToString() == "WebFormsCore.UI");
+
+        if (implementsAttributeAccessor)
+        {
+            controlNode.Attributes.Add(key, value.Value);
+            return;
+        }
+
+        Diagnostics.Add(
+            Diagnostic.Create(
+                new DiagnosticDescriptor("ASP0001", "Could not find property", "Could not find property '{0}' on type '{1}'", "ASP", DiagnosticSeverity.Warning, true),
+                value.Range,
+                key,
+                controlType.ToDisplayString()));
     }
 
     private static RunAt FindRunAt(ref Lexer lexer)
@@ -658,9 +739,12 @@ public class Parser
             pop.Namespace.HasValue != endNamespace.HasValue ||
             pop.Namespace.HasValue && !pop.Namespace.Value.Value.Equals(endNamespace?.Value, StringComparison.OrdinalIgnoreCase))
         {
+            var popNamespace = pop.Namespace.HasValue ? pop.Namespace.Value.Value + ":" : null;
+            var nameNamespace = endNamespace.HasValue ? endNamespace.Value.Value + ":" : null;
+
             Diagnostics.Add(
                 Diagnostic.Create(
-                    new DiagnosticDescriptor("ASP0002", "Mismatched closing tag", "Mismatched closing tag", "ASP", DiagnosticSeverity.Error, true),
+                    new DiagnosticDescriptor("ASP0002", "Mismatched closing tag", $"Expected closing tag '{popNamespace}{pop.Name}' but found '{nameNamespace}{name.Text}'", "ASP", DiagnosticSeverity.Warning, true),
                     new TokenRange(lexer.File, startPosition, endPosition)));
 
             return;
@@ -718,7 +802,7 @@ public class Parser
                     "Could not find type",
                     "Could not find type '{0}' in namespace '{1}'",
                     "WebForms",
-                    DiagnosticSeverity.Error,
+                    DiagnosticSeverity.Warning,
                     true),
                 name.Range,
                 name.Value,

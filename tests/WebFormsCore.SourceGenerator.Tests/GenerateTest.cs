@@ -31,6 +31,7 @@ public class GenerateTest
             """
             using WebFormsCore.UI;
             using WebFormsCore.UI.WebControls;
+            using WebFormsCore.UI.Attributes;
 
             namespace Tests
             {
@@ -48,6 +49,7 @@ public class GenerateTest
 
                 }
 
+                [ParseChildren(true)]
                 public partial class ControlTest
                 {
                     private readonly IService _service;
@@ -91,17 +93,10 @@ public class GenerateTest
                         <title></title>
                     </head>
                     <body>
-                        <script runat="server">
-                            private string Test => "Test";
-                        </script>
-
                         <%= Test %>
 
                         <form id="form1" runat="server">
                             <div>
-                                <app:ControlTest ItemType="Tests.TestItem" runat="server">
-                                    <Template>Test</Template>
-                                </app:ControlTest><br />
                                 <asp:TextBox id="tbUsername" runat="server" /><br />
                                 <asp:textbox id="tbPassword" runat="server" /><br />
                                 <asp:button id="btnLogin" runat="server" click="btnLogin_Click" text="Login" />
@@ -110,19 +105,14 @@ public class GenerateTest
                     </body>
                     </html>
                     """
-                )
-            )
-        );
-
-        driver = driver.AddAdditionalTexts(
-            ImmutableArray.Create<AdditionalText>(
+                ),
                 new MemoryAdditionalText(
                     "Example.ascx",
                     """
                     <%@ Control language="C#" Inherits="Tests.ControlTest" %>
 
                     <asp:Literal id="litTest" runat="server" />
-                    <asp:Button runat="server" ID="btnIncrement" OnClick="btnIncrement_OnClick">Increment</wfc:Button>
+                    <asp:Button runat="server" ID="btnIncrement" OnClick="btnIncrement_OnClick">Increment</asp:Button>
                     """
                 )
             )

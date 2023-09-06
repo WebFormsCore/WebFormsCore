@@ -18,7 +18,7 @@ public partial class CheckBox : WebControl, IPostBackAsyncDataHandler
 
     [ViewState] public bool Checked { get; set; }
 
-    public event AsyncEventHandler? CheckedChanged;
+    public event AsyncEventHandler<CheckBox, EventArgs>? CheckedChanged;
 
     protected override async Task AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
@@ -63,6 +63,15 @@ public partial class CheckBox : WebControl, IPostBackAsyncDataHandler
         }
 
         return default;
+    }
+
+    public override void ClearControl()
+    {
+        base.ClearControl();
+
+        AutoPostBack = false;
+        Checked = false;
+        CheckedChanged = null;
     }
 
     ValueTask<bool> IPostBackAsyncDataHandler.LoadPostDataAsync(string postDataKey, IFormCollection postCollection, CancellationToken cancellationToken)

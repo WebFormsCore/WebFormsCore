@@ -8,7 +8,6 @@ namespace WebFormsCore.UI.WebControls;
 public partial class WebControl : Control, IAttributeAccessor
 {
     [ViewState] private AttributeCollection _attributes = new();
-    private string? _tagName;
 
     /// <summary>Initializes a new instance of the <see cref="T:System.Web.UI.WebControls.WebControl" /> class that represents a <see langword="Span" /> HTML tag.</summary>
     protected WebControl()
@@ -20,22 +19,17 @@ public partial class WebControl : Control, IAttributeAccessor
     /// <param name="tag">One of the <see cref="T:System.Web.UI.HtmlTextWriterTag" /> values. </param>
     public WebControl(HtmlTextWriterTag tag) => TagKey = tag;
 
+    public string? CssClass
+    {
+        get => Attributes.CssClass;
+        set => Attributes.CssClass = value;
+    }
+
     protected virtual HtmlTextWriterTag TagKey { get; }
 
     public virtual bool SupportsDisabledAttribute => true;
 
-    protected virtual string TagName
-    {
-        get
-        {
-            if (_tagName == null && TagKey != HtmlTextWriterTag.Unknown)
-            {
-                _tagName = Enum.Format(typeof (HtmlTextWriterTag), TagKey, "G").ToLower(CultureInfo.InvariantCulture);
-            }
-
-            return _tagName ?? "span";
-        }
-    }
+    protected virtual string TagName => TagKey == HtmlTextWriterTag.Unknown ? "span" : TagKey.ToName();
 
     [ViewState] public bool Enabled { get; set; } = true;
 
@@ -134,7 +128,7 @@ public partial class WebControl : Control, IAttributeAccessor
             or "hr" or "img" or "input" or "keygen" or "link" or "meta"
             or "param" or "source" or "track" or "wbr";
 
-        if (isVoidTag)
+        if (isVoidTag && !HasControls())
         {
             await AddAttributesToRender(writer, token);
             await writer.RenderSelfClosingTagAsync(TagName);
@@ -147,6 +141,16 @@ public partial class WebControl : Control, IAttributeAccessor
         }
     }
 
+    public override void ClearControl()
+    {
+        base.ClearControl();
+
+        _attributes.Clear();
+        Enabled = true;
+        ToolTip = null;
+        TabIndex = 0;
+    }
+
     protected virtual string? GetAttribute(string name) => _attributes?[name];
 
     protected virtual void SetAttribute(string name, string? value) => Attributes[name] = value;
@@ -155,5 +159,5 @@ public partial class WebControl : Control, IAttributeAccessor
     string? IAttributeAccessor.GetAttribute(string name) => GetAttribute(name);
 
     /// <inheritdoc />
-    void IAttributeAccessor.SetAttribute(string name, string value) => SetAttribute(name, value);
+    void IAttributeAccessor.SetAttribute(string name, string? value) => SetAttribute(name, value);
 }

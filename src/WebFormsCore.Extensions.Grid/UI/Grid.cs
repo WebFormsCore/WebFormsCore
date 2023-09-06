@@ -16,8 +16,14 @@ public partial class Grid : WebControl, IPostBackLoadHandler
     [ViewState] private int _itemCount;
     [ViewState] private int? _dataCount;
     [ViewState] private Type? _itemType;
+    [ViewState] public AttributeCollection RowAttributes { get; set; } = new();
+    [ViewState] public AttributeCollection EditRowAttributes { get; set; } = new();
 
     protected object? DataSourceField;
+
+    public event AsyncEventHandler<Grid, GridItemEventArgs>? ItemCreated;
+
+    public event AsyncEventHandler<Grid, GridItemEventArgs>? ItemDataBound;
 
     public ITemplate? EditItemTemplate { get; set; }
 
@@ -274,6 +280,9 @@ public partial class Grid : WebControl, IPostBackLoadHandler
 
         item.DataItem = dataItem;
 
+        // Force tracking since the data item is not available on postback
+        item.InvokeTrackViewState();
+
         for (var i = 0; i < Columns.Count; i++)
         {
             var cell = item.Cells[i];
@@ -283,6 +292,11 @@ public partial class Grid : WebControl, IPostBackLoadHandler
         }
 
         await item.DataBindAsync();
+
+        if (ItemDataBound != null)
+        {
+            await ItemDataBound.InvokeAsync(this, new GridItemEventArgs(item));
+        }
     }
 
     private async ValueTask<GridItem> CreateItemAsync(int itemIndex)
@@ -302,6 +316,13 @@ public partial class Grid : WebControl, IPostBackLoadHandler
 
             await item.AddCell(cell);
             await column.InvokeItemCreated(cell, item);
+        }
+
+        await item.LoadEditItemTemplateAsync();
+
+        if (ItemCreated != null)
+        {
+            await ItemCreated.InvokeAsync(this, new GridItemEventArgs(item));
         }
 
         return item;

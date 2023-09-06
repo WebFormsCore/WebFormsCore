@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Concurrent;
 
 namespace WebFormsCore.Serializer;
 
 public class TypeViewStateSerializer : ViewStateSerializer<Type>
 {
+    private ConcurrentDictionary<string, Type> _cachedTypes = new();
+
     public override void Write(Type type, ref ViewStateWriter writer, Type? value, Type? defaultValue)
     {
         if (value is null)
@@ -31,6 +34,8 @@ public class TypeViewStateSerializer : ViewStateSerializer<Type>
         assemblyName.AsSpan().CopyTo(span.Slice(name.Length + 2));
 
         writer.WriteSpan(span);
+
+        _cachedTypes.TryAdd(span.ToString(), value);
     }
 
     public override Type? Read(Type type, ref ViewStateReader reader, Type? defaultValue)
@@ -40,6 +45,11 @@ public class TypeViewStateSerializer : ViewStateSerializer<Type>
         if (value is null)
         {
             return defaultValue;
+        }
+
+        if (_cachedTypes.TryGetValue(value, out var typeValue))
+        {
+            return typeValue;
         }
 
         return Type.GetType(value);

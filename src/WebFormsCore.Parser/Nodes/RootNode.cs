@@ -162,7 +162,8 @@ public class RootNode : ContainerNode
         string? text,
         string? rootNamespace = null,
         IEnumerable<KeyValuePair<string, string>>? namespaces = null,
-        bool addFields = true)
+        bool addFields = true,
+        SourceProductionContext? context = null)
     {
         if (text == null) return null;
 
@@ -178,6 +179,14 @@ public class RootNode : ContainerNode
         }
 
         parser.Parse(ref lexer);
+
+        if (context != null)
+        {
+            foreach (var diagnostic in parser.Diagnostics)
+            {
+                context.Value.ReportDiagnostic(diagnostic);
+            }
+        }
 
         parser.Root.Path = path;
         parser.Root.ClassName = Regex.Replace(path, "[^a-zA-Z0-9_]+", "_");

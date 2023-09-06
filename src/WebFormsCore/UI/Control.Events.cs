@@ -50,7 +50,7 @@ public static class ControlExtensions
         }
     }
 
-    public  static IEnumerable<Control> EnumerateControls(this Control control, Func<Control, bool> filter)
+    public static IEnumerable<Control> EnumerateControls(this Control control, Func<Control, bool> filter)
     {
         yield return control;
 
@@ -104,12 +104,16 @@ public partial class Control : IInternalControl
         }
     }
 
-    internal void InvokeTrackViewState(CancellationToken token)
+    public void InvokeTrackViewState(CancellationToken token = default)
     {
         if (!ProcessControl) return;
         if (token.IsCancellationRequested) return;
 
-        TrackViewState(new ViewStateProvider(ServiceProvider));
+        if (!_trackViewState)
+        {
+            TrackViewState(new ViewStateProvider(ServiceProvider));
+            _trackViewState = true;
+        }
 
         foreach (var control in Controls)
         {

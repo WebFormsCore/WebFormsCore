@@ -13,11 +13,10 @@ public class CheckBoxCellRenderer : IGridCellRenderer
 
     public async ValueTask CellCreated(PropertyInfo property, TableCell cell, GridItem item)
     {
-        await cell.Controls.AddAsync(new CheckBox
-        {
-            ID = "cb",
-            Enabled = false
-        });
+        var checkBox = cell.Page.WebActivator.CreateControl<CheckBox>();
+        checkBox.ID = "cb";
+        checkBox.Enabled = false;
+        await cell.Controls.AddAsync(checkBox);
     }
 
     public ValueTask CellDataBinding(PropertyInfo property, TableCell cell, GridItem item, object? value)

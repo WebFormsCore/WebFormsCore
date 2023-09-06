@@ -31,4 +31,33 @@ public readonly record struct TokenRange(string File, TokenPosition Start, Token
     public static implicit operator LinePositionSpan(TokenRange range) => new(range.Start, range.End);
 
     public static implicit operator Location(TokenRange range) => Location.Create(range.File, range, range);
+
+    public TokenRange Slice(int offset)
+    {
+        return this with
+        {
+            Start = Start with
+            {
+                Column = Start.Column + offset,
+                Offset = Start.Offset + offset
+            }
+        };
+    }
+
+    public TokenRange Slice(int offset, int length)
+    {
+        return this with
+        {
+            Start = Start with
+            {
+                Column = Start.Column + offset,
+                Offset = Start.Offset + offset
+            },
+            End = Start with
+            {
+                Column = Start.Column + offset + length,
+                Offset = Start.Offset + offset + length
+            }
+        };
+    }
 }

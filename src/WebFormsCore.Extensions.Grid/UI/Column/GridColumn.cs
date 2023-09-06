@@ -3,6 +3,19 @@ using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI;
 
+public class CellEventArgs : EventArgs
+{
+    public CellEventArgs(GridCell cell, GridItem item)
+    {
+        Cell = cell;
+        Item = item;
+    }
+
+    public GridCell Cell { get; }
+
+    public GridItem Item { get; }
+}
+
 [ParseChildren(true)]
 public abstract partial class GridColumn : WebControl
 {
@@ -10,6 +23,11 @@ public abstract partial class GridColumn : WebControl
 
     [ViewState] private string? _uniqueName;
     [ViewState] public string? HeaderText { get; set; }
+    [ViewState] public AttributeCollection CellAttributes { get; set; } = new();
+
+    public event AsyncEventHandler<GridColumn, CellEventArgs>? CellCreated;
+
+    public event AsyncEventHandler<GridColumn, CellEventArgs>? CellDataBound;
 
     public GridColumn()
         : base(HtmlTextWriterTag.Th)
@@ -27,6 +45,7 @@ public abstract partial class GridColumn : WebControl
     protected override void OnInit(EventArgs args)
     {
         base.OnInit(args);
+        Controls.Clear();
         HeaderTemplate?.InstantiateIn(this);
     }
 
@@ -42,14 +61,20 @@ public abstract partial class GridColumn : WebControl
         return page.WebActivator.CreateControl<GridCell>();
     }
 
-    public virtual ValueTask InvokeDataBinding(GridCell cell, GridItem item)
+    public virtual async ValueTask InvokeDataBinding(GridCell cell, GridItem item)
     {
-        return default;
+        if (CellDataBound != null)
+        {
+            await CellDataBound.InvokeAsync(this, new CellEventArgs(cell, item));
+        }
     }
 
-    public virtual ValueTask InvokeItemCreated(GridCell cell, GridItem item)
+    public virtual async ValueTask InvokeItemCreated(GridCell cell, GridItem item)
     {
-        return default;
+        if (CellCreated != null)
+        {
+            await CellCreated.InvokeAsync(this, new CellEventArgs(cell, item));
+        }
     }
 
     protected virtual string? GetDefaultUniqueName()

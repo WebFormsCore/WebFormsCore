@@ -38,23 +38,13 @@ public class TableRow : WebControl
     protected override bool GenerateAutomaticID => false;
 }
 
-public class GridCell : TableCell, INamingContainer
+public class GridCell : TableCell
 {
-    public override string UniqueID => $"{Parent.UniqueID}{IdSeparator}td{ColumnIndex}";
-
-    public override string ClientID => $"{Parent.ClientID}_td{ColumnIndex}";
-
     public int ColumnIndex { get; set; }
 
     public Grid Grid { get; set; } = null!;
 
     public GridColumn Column { get; set; } = null!;
-
-    public override bool Visible
-    {
-        get => Column.Visible;
-        set => throw new NotSupportedException();
-    }
 
     public IGridCellRenderer? Renderer { get; set; }
 
@@ -68,29 +58,38 @@ public class GridCell : TableCell, INamingContainer
         Column = null!;
     }
 
-    public override async Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    protected override Task AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
-        await RenderBeginTag(writer, token);
+        Column.CellAttributes.AddAttributes(writer);
+        return base.AddAttributesToRender(writer, token);
+    }
 
-        if (Visible)
-        {
-            await RenderContentsAsync(writer, token);
-        }
+    public override Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    {
+        if (!Column.Visible) return Task.CompletedTask;
 
-        await RenderEndTagAsync(writer, token);
+        return base.RenderAsync(writer, token);
     }
 }
 
-public partial class GridItem : TableRow, IDataItemContainer, IPostBackLoadHandler
+public partial class GridItem : TableRow, IDataItemContainer
 {
-    [ViewState] private bool _showEdit;
     internal readonly List<GridCell> Cells = new();
-    private EditContainer? _editItemTemplateContainer;
     private object? _dataItem;
+
+    protected override bool GenerateAutomaticID => false;
 
     public override string UniqueID => $"{Parent.UniqueID}{IdSeparator}tr{ItemIndex}";
 
     public override string ClientID => $"{Parent.ClientID}_tr{ItemIndex}";
+
+    public override bool EnableViewState
+    {
+        get => base.EnableViewState;
+        set => base.EnableViewState = value;
+    }
+
+    public GridItemEditContainer? EditItemTemplateContainer { get; private set; }
 
     public GridItem(int itemIndex, Grid grid)
     {
@@ -99,6 +98,18 @@ public partial class GridItem : TableRow, IDataItemContainer, IPostBackLoadHandl
     }
 
     [ViewState] public bool Selected { get; set; }
+
+    public bool EditMode
+    {
+        get => EditItemTemplateContainer?.Visible ?? false;
+        set
+        {
+            if (EditItemTemplateContainer != null)
+            {
+                EditItemTemplateContainer.Visible = value;
+            }
+        }
+    }
 
     public Grid Grid { get; }
 
@@ -138,6 +149,12 @@ public partial class GridItem : TableRow, IDataItemContainer, IPostBackLoadHandl
         return Task.CompletedTask;
     }
 
+    protected override Task AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
+    {
+        Grid.RowAttributes.AddAttributes(writer);
+        return base.AddAttributesToRender(writer, token);
+    }
+
     int IDataItemContainer.DataItemIndex => ItemIndex;
 
     int IDataItemContainer.DisplayIndex => ItemIndex;
@@ -148,77 +165,52 @@ public partial class GridItem : TableRow, IDataItemContainer, IPostBackLoadHandl
         return Controls.AddAsync(cell);
     }
 
-    public async Task ShowEditAsync()
+    internal async Task LoadEditItemTemplateAsync()
     {
-        _showEdit = true;
-        await InitializeEditAsync();
+        if (Grid.EditItemTemplate is null) return;
+
+        EditItemTemplateContainer = new GridItemEditContainer(this);
+        Grid.EditItemTemplate.InstantiateIn(EditItemTemplateContainer);
+        await Controls.AddAsync(EditItemTemplateContainer);
+    }
+}
+
+
+public class GridItemEditContainer : Control, INamingContainer
+{
+    protected override bool GenerateAutomaticID => false;
+
+    public override string UniqueID => $"{Parent.UniqueID}{IdSeparator}_edit";
+
+    public override string ClientID => $"{Parent.ClientID}_edit";
+
+    private readonly GridItem _item;
+
+    public GridItemEditContainer(GridItem item)
+    {
+        _item = item;
     }
 
-    public async Task ToggleEditAsync()
+    protected override void OnInit(EventArgs args)
     {
-        if (_showEdit)
-        {
-            CloseEdit();
-        }
-        else
-        {
-            await ShowEditAsync();
-        }
+        base.OnInit(args);
+        Visible = false;
     }
 
-    public void CloseEdit()
+    public override async Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        _showEdit = false;
+        if (!Visible) return;
 
-        if (_editItemTemplateContainer is null) return;
+        await writer.RenderBeginTagAsync(HtmlTextWriterTag.Tr);
 
-        Controls.Remove(_editItemTemplateContainer);
-        _editItemTemplateContainer = null;
-    }
+        _item.Grid.EditRowAttributes.AddAttributes(writer);
+        writer.AddAttribute(HtmlTextWriterAttribute.Colspan, _item.Cells.Count(i => i.Visible).ToString());
 
-    private async Task InitializeEditAsync()
-    {
-        if (_editItemTemplateContainer is not null) return;
+        await writer.RenderBeginTagAsync(HtmlTextWriterTag.Td);
 
-        _editItemTemplateContainer = new EditContainer(this);
-        Grid.EditItemTemplate?.InstantiateIn(_editItemTemplateContainer);
-        await Controls.AddAsync(_editItemTemplateContainer);
-    }
+        await base.RenderAsync(writer, token);
 
-    async Task IPostBackLoadHandler.AfterPostBackLoadAsync()
-    {
-        if (_showEdit)
-        {
-            await InitializeEditAsync();
-        }
-    }
-
-    private class EditContainer : Control, INamingContainer
-    {
-        public override string UniqueID => $"{Parent.UniqueID}{IdSeparator}edit";
-
-        public override string ClientID => $"{Parent.ClientID}_edit";
-
-        private readonly GridItem _item;
-
-        public EditContainer(GridItem item)
-        {
-            _item = item;
-        }
-
-        public override async Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
-        {
-            if (!Visible) return;
-
-            await writer.RenderBeginTagAsync(HtmlTextWriterTag.Tr);
-
-            writer.AddAttribute(HtmlTextWriterAttribute.Colspan, _item.Cells.Count(i => i.Visible).ToString());
-            await writer.RenderBeginTagAsync(HtmlTextWriterTag.Td);
-
-            await base.RenderAsync(writer, token);
-
-            await writer.RenderEndTagAsync();
-            await writer.RenderEndTagAsync();
-        }
+        await writer.RenderEndTagAsync();
+        await writer.RenderEndTagAsync();
     }
 }

@@ -2,10 +2,14 @@
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Buffers.Text;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -45,13 +49,6 @@ public class ViewStateManager : IViewStateManager
     /// </summary>
     private const int HeaderLength = sizeof(byte) + sizeof(ushort) + sizeof(ushort);
 
-    private static IEnumerable<Control> GetControls(Control owner)
-    {
-        return owner
-            .EnumerateControls(static c => c is not HtmlForm)
-            .Where(i => i.EnableViewState);
-    }
-
     public bool EnableViewState => _options?.Value.Enabled ?? true;
 
     public IMemoryOwner<byte> WriteBase64(Control control, out int length)
@@ -62,9 +59,11 @@ public class ViewStateManager : IViewStateManager
         {
             ushort controlCount = 0;
 
-            foreach (var child in GetControls(control))
+            using var enumerator = new ViewStateControlEnumerator(control);
+
+            while (enumerator.MoveNext())
             {
-                child.WriteViewState(ref writer);
+                enumerator.Current.WriteViewState(ref writer);
                 controlCount++;
             }
 
@@ -288,12 +287,12 @@ public class ViewStateManager : IViewStateManager
 
     private async ValueTask LoadViewStateAsync(Control owner, ViewStateReaderOwner reader)
     {
-        using var enumerator = GetControls(owner).GetEnumerator();
+        var enumerator = new ViewStateControlEnumerator(owner);
         var actualControlCount = 0;
 
         while (true)
         {
-            var control = LoadViewState(enumerator, reader, ref actualControlCount);
+            var control = LoadViewState(ref enumerator, reader, ref actualControlCount);
 
             if (control == null) break;
 
@@ -304,13 +303,15 @@ public class ViewStateManager : IViewStateManager
         {
             throw new ViewStateException("The control count does not match the viewstate");
         }
+
+        enumerator.Dispose();
     }
 
     /// <summary>
     /// Try to load the view state for as many controls as possible with the span-reader.
     /// </summary>
     private static IPostBackLoadHandler? LoadViewState(
-        IEnumerator<Control> controls,
+        ref ViewStateControlEnumerator controls,
         ViewStateReaderOwner owner,
         ref int actualControlCount)
     {
@@ -400,6 +401,69 @@ public class ViewStateManager : IViewStateManager
             {
                 ArrayPool<byte>.Shared.Return(Array);
             }
+        }
+    }
+
+    private struct ViewStateControlEnumerator : IDisposable
+    {
+        private readonly (Control Control, int Index)[] _array;
+        private int _currentIndex = -1;
+
+        public ViewStateControlEnumerator(Control root, int depth = 512)
+        {
+            if (root == null)
+            {
+                throw new ArgumentNullException(nameof(root));
+            }
+
+            _array = ArrayPool<(Control, int)>.Shared.Rent(depth);
+            Push(root, -1);
+        }
+
+        public Control Current => _array[_currentIndex].Control;
+
+        public bool MoveNext()
+        {
+            while (_currentIndex >= 0)
+            {
+                var (currentControl, index) = _array[_currentIndex--];
+
+                index++;
+
+                if (index >= currentControl.Controls.Count)
+                {
+                    continue;
+                }
+
+                Push(currentControl, index);
+
+                var nextControl = currentControl.Controls[index];
+
+                if (nextControl is HtmlForm)
+                {
+                    continue;
+                }
+
+                Push(nextControl, -1);
+
+                if (nextControl.EnableViewState)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void Push(Control control, int index)
+        {
+            _array[++_currentIndex] = (control, index);
+        }
+
+        public void Dispose()
+        {
+            ArrayPool<(Control, int)>.Shared.Return(_array);
         }
     }
 }

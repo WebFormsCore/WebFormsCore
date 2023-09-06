@@ -11,7 +11,7 @@ internal sealed class PooledControlFactory<T> : IControlFactory<T>, IDisposable
 {
     private readonly IControlInterceptor[] _interceptors;
     private readonly ObjectPool<T> _pool;
-    private readonly ConcurrentStack<T> _controls = new();
+    private readonly List<T> _controls = new();
 
     public PooledControlFactory(ObjectPool<T> pool, IEnumerable<IControlInterceptor> interceptors)
     {
@@ -22,7 +22,7 @@ internal sealed class PooledControlFactory<T> : IControlFactory<T>, IDisposable
     public T CreateControl(IServiceProvider provider)
     {
         var control = _pool.Get();
-        _controls.Push(control);
+        _controls.Add(control);
 
         foreach (var interceptor in _interceptors)
         {

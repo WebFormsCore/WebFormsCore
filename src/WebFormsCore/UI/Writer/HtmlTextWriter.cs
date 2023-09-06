@@ -58,7 +58,7 @@ public class HtmlTextWriter : TextWriter
 
     public bool UseAsync { get; set; } = DefaultAsync;
 
-    public bool AutoFlush { get; set; } = true;
+    public bool AutoFlush { get; set; } = false;
 
     internal void Clear()
     {

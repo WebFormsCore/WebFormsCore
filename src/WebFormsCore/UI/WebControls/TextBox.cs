@@ -42,9 +42,9 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
         }
     }
 
-    public event AsyncEventHandler? TextChanged;
+    public event AsyncEventHandler<TextBox, EventArgs>? TextChanged;
 
-    public event AsyncEventHandler? EnterPressed;
+    public event AsyncEventHandler<TextBox, EventArgs>? EnterPressed;
 
     private bool IsMultiLine => TextMode == TextBoxMode.MultiLine;
 

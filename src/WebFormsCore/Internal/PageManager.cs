@@ -19,10 +19,12 @@ public class PageManager : IPageManager
 {
     private static readonly Encoding Utf8WithoutBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
     private readonly IControlManager _controlManager;
+    private readonly IOptions<WebFormsCoreOptions> _options;
 
-    public PageManager(IControlManager controlManager)
+    public PageManager(IControlManager controlManager, IOptions<WebFormsCoreOptions> options)
     {
         _controlManager = controlManager;
+        _options = options;
     }
 
     public async Task<Page> RenderPageAsync(
@@ -92,9 +94,16 @@ public class PageManager : IPageManager
         }
         else
         {
-            if (page.Csp.Enabled)
+            if (_options.Value.EnableSecurityHeaders)
             {
-                response.Headers["Content-Security-Policy"] = page.Csp.ToString();
+                response.Headers["X-Frame-Options"] = "DENY";
+                response.Headers["X-Content-Type-Options"] = "nosniff";
+                response.Headers["Referrer-Policy"] = "no-referrer";
+
+                if (page.Csp.Enabled)
+                {
+                    response.Headers["Content-Security-Policy"] = page.Csp.ToString();
+                }
             }
 
             await page.RenderAsync(writer, token);
@@ -103,11 +112,9 @@ public class PageManager : IPageManager
         await writer.FlushAsync();
     }
 
-    private static async Task RenderStreamPanelAsync(Page page, string panel, IHttpContext context, CancellationToken token)
+    private async Task RenderStreamPanelAsync(Page page, string panel, IHttpContext context, CancellationToken token)
     {
-        var options = context.RequestServices.GetRequiredService<IOptions<WebFormsCoreOptions>>();
-
-        if (!options.Value.AllowStreamPanel)
+        if (!_options.Value.AllowExternal)
         {
             throw new InvalidOperationException("Stream panels are not allowed.");
         }
@@ -129,11 +136,9 @@ public class PageManager : IPageManager
         context.WebSockets.AcceptWebSocketRequest(streamPanel.StartAsync);
     }
 
-    private static async Task RenderExternalPageAsync(IHttpContext context, HtmlTextWriter writer, Page page, CancellationToken token)
+    private async Task RenderExternalPageAsync(IHttpContext context, HtmlTextWriter writer, Page page, CancellationToken token)
     {
-        var options = context.RequestServices.GetRequiredService<IOptions<WebFormsCoreOptions>>();
-
-        if (!options.Value.AllowExternal)
+        if (!_options.Value.AllowExternal)
         {
             throw new InvalidOperationException("External pages are not allowed.");
         }

@@ -13,7 +13,9 @@ public partial class Button : WebControl, IPostBackAsyncEventHandler
     {
     }
 
-    public event AsyncEventHandler? Click;
+    public event AsyncEventHandler<Button, EventArgs>? Click;
+
+    [ViewState] public AttributeCollection Style { get; set; } = new();
 
     [ViewState]
     public string? Text
@@ -47,7 +49,12 @@ public partial class Button : WebControl, IPostBackAsyncEventHandler
     protected override async Task AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
         await base.AddAttributesToRender(writer, token);
-        writer.AddAttribute(HtmlTextWriterAttribute.Type, "button");
+
+        if (TagKey is HtmlTextWriterTag.Button or HtmlTextWriterTag.Input)
+        {
+            writer.AddAttribute(HtmlTextWriterAttribute.Type, "button");
+        }
+
         writer.AddAttribute("data-wfc-postback", UniqueID);
     }
 }

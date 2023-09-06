@@ -86,7 +86,7 @@ namespace WebFormsCore.UI.WebControls
                 or "hr" or "img" or "input" or "keygen" or "link" or "meta"
                 or "param" or "source" or "track" or "wbr";
 
-            if (isVoidTag)
+            if (isVoidTag && !HasControls())
             {
                 await writer.WriteBeginTagAsync(TagName);
                 await RenderAttributesAsync(writer);

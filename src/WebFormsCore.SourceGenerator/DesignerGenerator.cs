@@ -61,7 +61,7 @@ public abstract class DesignerGenerator : IIncrementalGenerator
                 }
 
                 if (!visited.Add(path)) continue;
-                if (RootNode.Parse(compilation, path, text, ns, namespaces) is not { } type) continue;
+                if (RootNode.Parse(compilation, path, text, ns, namespaces, context: context) is not { } type) continue;
                 if (type.Inherits == null) continue;
 
                 var fullName = type.Inherits.ContainingNamespace.ToDisplayString() + "." + type.Inherits.Name;
