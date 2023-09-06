@@ -49,16 +49,21 @@ public abstract partial class GridColumn : WebControl
         HeaderTemplate?.InstantiateIn(this);
     }
 
-    protected override Task RenderContentsAsync(HtmlTextWriter writer, CancellationToken token)
+    protected virtual string? GetHeaderText()
+    {
+        return HeaderText;
+    }
+
+    protected override ValueTask RenderContentsAsync(HtmlTextWriter writer, CancellationToken token)
     {
         return HasRenderingData()
             ? base.RenderContentsAsync(writer, token)
-            : writer.WriteAsync(HeaderText);
+            : writer.WriteAsync(GetHeaderText());
     }
 
     public virtual GridCell CreateCell(Page page, GridItem item)
     {
-        return page.WebActivator.CreateControl<GridCell>();
+        return new GridCell();
     }
 
     public virtual async ValueTask InvokeDataBinding(GridCell cell, GridItem item)

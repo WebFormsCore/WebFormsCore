@@ -9,6 +9,9 @@ using HttpStack;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 
 namespace WebFormsCore.UI;
 
@@ -76,6 +79,8 @@ public partial class Control : System.Web.UI.Control
     protected bool HasUserId => _id is not null && !_hasGeneratedId;
 
     protected virtual bool ProcessControl => true;
+
+    protected virtual bool ProcessChildren => ProcessControl && _controls is not null && _controls.Count > 0;
 
     /// <summary>Gets a reference to the <see cref="T:System.Web.UI.Page" /> instance that contains the server control.</summary>
     /// <returns>The <see cref="T:System.Web.UI.Page" /> instance that contains the server control.</returns>
@@ -397,7 +402,7 @@ public partial class Control : System.Web.UI.Control
     /// <summary>Sends server control content to a provided <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object, which writes the content to be rendered on the client.</summary>
     /// <param name="writer">The <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object that receives the server control content. </param>
     /// <param name="token"></param>
-    public virtual async Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    public virtual async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
         if (Visible)
         {
@@ -413,7 +418,7 @@ public partial class Control : System.Web.UI.Control
     /// <summary>Outputs the content of a server control's children to a provided <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object, which writes the content to be rendered on the client.</summary>
     /// <param name="writer">The <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object that receives the rendered content. </param>
     /// <param name="token"></param>
-    protected virtual async Task RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
+    protected virtual async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
         if (_renderMethod != null)
         {
@@ -428,8 +433,7 @@ public partial class Control : System.Web.UI.Control
             await control.RenderAsync(writer, token);
         }
     }
-
-    internal Task RenderChildrenInternalAsync(HtmlTextWriter writer, CancellationToken token)
+    internal ValueTask RenderChildrenInternalAsync(HtmlTextWriter writer, CancellationToken token)
     {
         return RenderChildrenAsync(writer, token);
     }
@@ -495,19 +499,19 @@ public partial class Control : System.Web.UI.Control
         }
     }
 
-    internal async ValueTask AddedControlAsync(Control control)
+    internal async ValueTask AddedControlAsync(ControlState state, Control control)
     {
-        if (_state >= ControlState.Initialized)
+        if (state >= ControlState.Initialized)
         {
             await control.InvokeInitAsync(default);
         }
 
-        if (_state >= ControlState.Loaded)
+        if (state >= ControlState.Loaded)
         {
             await control.InvokeLoadAsync(default, Page.ActiveForm);
         }
 
-        if (_state >= ControlState.PreRendered)
+        if (state >= ControlState.PreRendered)
         {
             await control.InvokePreRenderAsync(default, Page.ActiveForm);
         }
@@ -790,27 +794,27 @@ public partial class Control : System.Web.UI.Control
         _trackViewState = true;
     }
     
-    protected virtual Task OnInitAsync(CancellationToken token)
+    protected virtual ValueTask OnInitAsync(CancellationToken token)
     {
-        return Task.CompletedTask;
+        return default;
     }
 
     protected virtual void OnLoad(EventArgs args)
     {
     }
 
-    protected virtual Task OnLoadAsync(CancellationToken token)
+    protected virtual ValueTask OnLoadAsync(CancellationToken token)
     {
-        return Task.CompletedTask;
+        return default;
     }
 
     protected virtual void OnPreRender(EventArgs args)
     {
     }
 
-    protected virtual Task OnPreRenderAsync(CancellationToken token)
+    protected virtual ValueTask OnPreRenderAsync(CancellationToken token)
     {
-        return Task.CompletedTask;
+        return default;
     }
 
     protected virtual void OnWriteViewState(ref ViewStateWriter writer)
@@ -996,6 +1000,60 @@ public partial class Control : System.Web.UI.Control
       "c126",
       "c127"
     };
+
+    #if NET8_0_OR_GREATER
+    private static readonly FrozenSet<string> VoidElements;
+
+    static Control()
+    {
+        VoidElements = new[]
+        {
+            "area",
+            "base",
+            "br",
+            "col",
+            "embed",
+            "hr",
+            "img",
+            "input",
+            "keygen",
+            "link",
+            "meta",
+            "param",
+            "source",
+            "track",
+            "wbr"
+        }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+    }
+
+    protected static bool IsVoidTag(string tagName) => VoidElements.Contains(tagName);
+    #else
+    private static readonly List<string> VoidElements;
+
+    static Control()
+    {
+        VoidElements = new List<string>
+        {
+            "area",
+            "base",
+            "br",
+            "col",
+            "embed",
+            "hr",
+            "img",
+            "input",
+            "keygen",
+            "link",
+            "meta",
+            "param",
+            "source",
+            "track",
+            "wbr"
+        };
+    }
+
+    protected static bool IsVoidTag(string tagName) => VoidElements.Contains(tagName, StringComparer.OrdinalIgnoreCase);
+    #endif
 }
 
 internal sealed class OccasionalFields

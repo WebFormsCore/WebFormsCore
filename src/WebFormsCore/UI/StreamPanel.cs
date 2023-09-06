@@ -33,6 +33,10 @@ public class StreamPanel : Control, INamingContainer
     private TaskCompletionSource<bool> _stateHasChangedTcs = new();
 #endif
 
+    public event AsyncEventHandler<StreamPanel, EventArgs>? Connected;
+
+    public event AsyncEventHandler<StreamPanel, EventArgs>? Disconnected;
+
     public bool IsConnected { get; internal set; }
 
     public bool Prerender
@@ -81,6 +85,7 @@ public class StreamPanel : Control, INamingContainer
     {
         _webSocket = websocket;
 
+        await Connected.InvokeAsync(this, EventArgs.Empty);
         await UpdateControlAsync();
 
         var incoming = new byte[1024];
@@ -94,16 +99,18 @@ public class StreamPanel : Control, INamingContainer
             {
                 _receiveTask ??= _webSocket.ReceiveAsync(new ArraySegment<byte>(incoming), default);
 
-                var result = await Task.WhenAny(_receiveTask, _stateHasChangedTcs.Task);
+                var task = await Task.WhenAny(_receiveTask, _stateHasChangedTcs.Task);
 
-                if (result == _receiveTask)
+                if (task == _receiveTask)
                 {
-                    if (_receiveTask.Result.MessageType == WebSocketMessageType.Close)
+                    var result = _receiveTask.Result;
+
+                    if (result.MessageType == WebSocketMessageType.Close)
                     {
                         break;
                     }
 
-                    await UpdateAsync(_receiveTask.Result, incoming);
+                    await UpdateAsync(result, incoming);
                     _receiveTask = null;
                 }
                 else
@@ -136,6 +143,8 @@ public class StreamPanel : Control, INamingContainer
         {
             // ignored
         }
+
+        await Disconnected.InvokeAsync(this, EventArgs.Empty);
     }
 
     private async ValueTask UpdateAsync(WebSocketReceiveResult result, byte[] incoming)
@@ -169,8 +178,7 @@ public class StreamPanel : Control, INamingContainer
     private async Task UpdateControlAsync(CancellationToken token = default)
     {
         using var memory = new MemoryStream();
-        using var textWriter = new StreamWriter(memory);
-        await using var writer = new HtmlTextWriter(textWriter);
+        using var writer = new StreamHtmlTextWriter(memory);
 
         await RenderAsync(writer, token);
         await writer.FlushAsync();
@@ -188,7 +196,7 @@ public class StreamPanel : Control, INamingContainer
         }
     }
 
-    public override async Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
         writer.AddAttribute("id", UniqueID);
         writer.AddAttribute("data-wfc-stream", null);

@@ -41,7 +41,7 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         Page.Forms.Remove(this);
     }
 
-    protected override async Task RenderAttributesAsync(HtmlTextWriter writer)
+    protected override async ValueTask RenderAttributesAsync(HtmlTextWriter writer)
     {
         await base.RenderAttributesAsync(writer);
 
@@ -54,7 +54,7 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         await writer.WriteAttributeAsync("data-wfc-form", null);
     }
 
-    protected override async Task RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
+    protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
         var viewStateManager = ServiceProvider.GetRequiredService<IViewStateManager>();
 
@@ -64,7 +64,7 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         await writer.WriteAsync(UniqueID);
         await writer.WriteAsync(@"""/>");
 
-        if (viewStateManager.EnableViewState)
+        if (viewStateManager.EnableViewState && !Page.IsStreaming)
         {
             await writer.WriteAsync(@"<input type=""hidden"" name=""wfcFormState"" value=""");
             using (var viewState = viewStateManager.WriteBase64(this, out var length))
@@ -76,12 +76,10 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         }
     }
 
-    public override Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    public override ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        if (!ProcessControl) return Task.CompletedTask;
+        if (!ProcessControl) return default;
 
         return base.RenderAsync(writer, token);
     }
-
-    protected override string GetUniqueIDPrefix() => "";
 }

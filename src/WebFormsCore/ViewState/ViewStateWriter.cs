@@ -148,6 +148,11 @@ public ref struct ViewStateWriter
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Skip(int length)
     {
+        while (_span.Length < length)
+        {
+            Grow();
+        }
+
         _span = _span.Slice(length);
         _length += length;
     }
@@ -155,7 +160,7 @@ public ref struct ViewStateWriter
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Span<byte> AllocateUnsafe(int length)
     {
-        var span = _span.Slice(0, length);
+        var span = GetUnsafeSpan(length);
         Skip(length);
         return span;
     }

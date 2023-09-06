@@ -78,13 +78,11 @@ namespace WebFormsCore.UI.WebControls
         /// <summary>Renders the <see cref="T:WebFormsCore.UI.WebControls.HtmlContainerControl" /> control to the specified <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> object.</summary>
         /// <param name="writer">The <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> that receives the <see cref="T:WebFormsCore.UI.WebControls.HtmlContainerControl" /> content.</param>
         /// <param name="token"></param>
-        public override async Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
+        public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
         {
             if (token.IsCancellationRequested) return;
 
-            var isVoidTag = TagName is "area" or "base" or "br" or "col" or "command" or "embed"
-                or "hr" or "img" or "input" or "keygen" or "link" or "meta"
-                or "param" or "source" or "track" or "wbr";
+            var isVoidTag = Control.IsVoidTag(TagName);
 
             if (isVoidTag && !HasControls())
             {

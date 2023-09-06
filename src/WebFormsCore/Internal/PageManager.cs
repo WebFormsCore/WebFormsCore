@@ -74,17 +74,7 @@ public class PageManager : IPageManager
         }
 
         var stream = context.Response.Body;
-#if NET
-        // await using
-        await
-#endif
-            using var textWriter = new StreamWriter(stream, Utf8WithoutBom, 1024, true)
-            {
-                NewLine = "\n",
-                AutoFlush = false
-            };
-
-        await using var writer = new HtmlTextWriter(textWriter, stream);
+        using var writer = new StreamHtmlTextWriter(stream);
 
         context.Response.ContentType = "text/html; charset=utf-8";
 

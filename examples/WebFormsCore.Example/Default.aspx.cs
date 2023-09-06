@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using HttpStack;
@@ -17,7 +20,7 @@ public partial class Default : Page
 
     [ViewState] public int PostbackCount { get; set; }
 
-    protected override async Task OnInitAsync(CancellationToken token)
+    protected override async ValueTask OnInitAsync(CancellationToken token)
     {
         Csp.Enabled = true;
         // EnablePageViewState = false;
@@ -25,17 +28,16 @@ public partial class Default : Page
         await phTodoContainer.Controls.AddAsync(
             LoadControl("Controls/TodoList.ascx")
         );
-
-        await grid.LoadDataSourceAsync(new[]
-        {
-            new { Id = 1, Name = "Foo", IsNew = true },
-            new { Id = 2, Name = "Bar", IsNew = false },
-        });
     }
 
     protected override void OnLoad(EventArgs args)
     {
         title.InnerText = (PostbackCount++).ToString();
+    }
+
+    protected override async ValueTask OnLoadAsync(CancellationToken token)
+    {
+        await base.OnLoadAsync(token);
     }
 
     protected void choices_OnValuesChanged(Choices sender, EventArgs e)
@@ -55,4 +57,39 @@ public partial class Default : Page
         Response.Headers["Content-Disposition"] = "attachment; filename=\"foo.txt\"";
         await Response.WriteAsync("Hello World");
     }
+
+    protected async Task btnAdd_OnClick(Button sender, EventArgs e)
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        using var httpClient = new HttpClient();
+        using var response = await httpClient.GetAsync("https://jsonplaceholder.typicode.com/todos");
+        var todos = await response.Content.ReadFromJsonAsync(TodoJsonContext.Default.IAsyncEnumerableTodoModel);
+
+        if (todos is not null)
+        {
+            await grid.LoadDataSourceAsync(todos);
+        }
+    }
+
+    protected Task OnConnected(StreamPanel sender, EventArgs e)
+    {
+        return LoadAsync();
+    }
+}
+
+public record TodoModel(
+    [property: JsonPropertyName("userId")] int UserId,
+    [property: JsonPropertyName("id")] int Id,
+    [property: JsonPropertyName("title")] string Title,
+    [property: JsonPropertyName("completed")] bool Completed
+);
+
+[JsonSerializable(typeof(IAsyncEnumerable<TodoModel>))]
+public partial class TodoJsonContext : JsonSerializerContext
+{
+
 }

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.UI;
 using WebFormsCore.UI.Attributes;
@@ -13,6 +15,7 @@ internal sealed class WebObjectActivator : IWebObjectActivator
 {
     private readonly IControlManager _controlManager;
     private readonly IServiceProvider _serviceProvider;
+    private readonly Dictionary<Type, object> _cache = new();
 
     public WebObjectActivator(IServiceProvider serviceProvider, IControlManager controlManager)
     {
@@ -37,7 +40,18 @@ internal sealed class WebObjectActivator : IWebObjectActivator
 
     public T CreateControl<T>()
     {
-        var factory = _serviceProvider.GetRequiredService<IControlFactory<T>>();
+        IControlFactory<T> factory;
+
+        if (_cache.TryGetValue(typeof(T), out var cached))
+        {
+            factory = Unsafe.As<IControlFactory<T>>(cached);
+        }
+        else
+        {
+            factory = _serviceProvider.GetRequiredService<IControlFactory<T>>();
+            _cache[typeof(T)] = factory;
+        }
+
         return factory.CreateControl(_serviceProvider);
     }
 

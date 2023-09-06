@@ -9,6 +9,26 @@ namespace WebFormsCore.UI;
 
 public static class ControlExtensions
 {
+    public static async ValueTask<string> RenderToStringAsync(this Control control, CancellationToken token = default)
+    {
+        using var subWriter = new StringHtmlTextWriter();
+
+        await control.RenderAsync(subWriter, token);
+        await subWriter.FlushAsync();
+
+        return subWriter.ToString();
+    }
+
+    public static async ValueTask<string> RenderChildrenToStringAsync(this Control control, CancellationToken token = default)
+    {
+        using var subWriter = new StringHtmlTextWriter();
+
+        await control.RenderChildrenInternalAsync(subWriter, token);
+        await subWriter.FlushAsync();
+
+        return subWriter.ToString();
+    }
+
     public static T FindControls<T>(this Control control)
         where T : ITemplateControls, new()
     {
@@ -85,153 +105,171 @@ public partial class Control : IInternalControl
 
     internal void InvokeFrameworkInit(CancellationToken token)
     {
-        if (!ProcessControl) return;
-        if (token.IsCancellationRequested) return;
-
-        if (this is IDisposable or IAsyncDisposable)
+        if (ProcessControl)
         {
-            Page.RegisterDisposable(this);
+            if (this is IDisposable or IAsyncDisposable)
+            {
+                Page.RegisterDisposable(this);
+            }
+
+            FrameworkInitialize();
+            FrameworkInitialized();
+
+            _state = ControlState.FrameworkInitialized;
         }
 
-        FrameworkInitialize();
-        FrameworkInitialized();
-
-        _state = ControlState.FrameworkInitialized;
-
-        foreach (var control in Controls)
+        if (ProcessChildren)
         {
-            control.InvokeFrameworkInit(token);
+            foreach (var control in Controls)
+            {
+                control.InvokeFrameworkInit(token);
+            }
         }
     }
 
     public void InvokeTrackViewState(CancellationToken token = default)
     {
-        if (!ProcessControl) return;
-        if (token.IsCancellationRequested) return;
-
-        if (!_trackViewState)
+        if (ProcessControl)
         {
-            TrackViewState(new ViewStateProvider(ServiceProvider));
-            _trackViewState = true;
+            if (!_trackViewState)
+            {
+                TrackViewState(new ViewStateProvider(ServiceProvider));
+                _trackViewState = true;
+            }
         }
 
-        foreach (var control in Controls)
+        if (ProcessChildren)
         {
-            control.InvokeTrackViewState(token);
+            foreach (var control in Controls)
+            {
+                control.InvokeTrackViewState(token);
+            }
         }
     }
 
     internal async ValueTask InvokeInitAsync(CancellationToken token)
     {
-        if (!ProcessControl) return;
-        if (token.IsCancellationRequested) return;
-
-        OnInit(EventArgs.Empty);
-        await OnInitAsync(token);
-
-        InvokeTrackViewState(token);
-
-        _state = ControlState.Initialized;
-        ViewState.TrackViewState();
-
-        for (var i = 0; i < Controls.Count; i++)
+        if (ProcessControl)
         {
-            var control = Controls[i];
+            if (token.IsCancellationRequested) return;
 
-            await control.InvokeInitAsync(token);
+            OnInit(EventArgs.Empty);
+            await OnInitAsync(token);
+
+            InvokeTrackViewState(token);
+
+            _state = ControlState.Initialized;
+            _viewState?.TrackViewState();
+        }
+
+        if (ProcessChildren)
+        {
+            foreach (var control in Controls)
+            {
+                await control.InvokeInitAsync(token);
+            }
         }
     }
 
     internal async ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument)
     {
-        if (!ProcessControl) return;
-        if (token.IsCancellationRequested) return;
-
-        if (UniqueID is {} uniqueId)
+        if (ProcessControl)
         {
-            var didLoad = false;
+            if (token.IsCancellationRequested) return;
 
-            if (this is IPostBackAsyncDataHandler asyncDataHandler)
+            if (UniqueID is { } uniqueId)
             {
-                didLoad = await asyncDataHandler.LoadPostDataAsync(uniqueId, Page.Request.Form, token);
+                var didLoad = false;
+
+                if (this is IPostBackAsyncDataHandler asyncDataHandler)
+                {
+                    didLoad = await asyncDataHandler.LoadPostDataAsync(uniqueId, Page.Request.Form, token);
+                }
+                else if (this is IPostBackDataHandler dataHandler)
+                {
+                    didLoad = dataHandler.LoadPostData(uniqueId, Page.Request.Form);
+                }
+
+                if (didLoad)
+                {
+                    var handlers = Page.ChangedPostDataConsumers ??= new List<object>();
+
+                    handlers.Add(this);
+                }
             }
-            else if (this is IPostBackDataHandler dataHandler)
-            {
-                didLoad = dataHandler.LoadPostData(uniqueId, Page.Request.Form);
-            }
 
-            if (didLoad)
+            if (target == UniqueID)
             {
-                var handlers = Page.ChangedPostDataConsumers ??= new List<object>();
-
-                handlers.Add(this);
+                if (this is IPostBackAsyncEventHandler asyncEventHandler)
+                {
+                    await asyncEventHandler.RaisePostBackEventAsync(argument);
+                }
+                else if (this is IPostBackEventHandler eventHandler)
+                {
+                    eventHandler.RaisePostBackEvent(argument);
+                }
             }
         }
 
-        if (target == UniqueID)
+        if (ProcessChildren)
         {
-            if (this is IPostBackAsyncEventHandler asyncEventHandler)
+            foreach (var control in Controls)
             {
-                await asyncEventHandler.RaisePostBackEventAsync(argument);
+                if (!control.IsInPage)
+                {
+                    continue;
+                }
+
+                if (form != null && control is HtmlForm && control != form) continue;
+
+                await control.InvokePostbackAsync(token, form, target, argument);
             }
-            else if (this is IPostBackEventHandler eventHandler)
-            {
-                eventHandler.RaisePostBackEvent(argument);
-            }
-        }
-
-        for (var i = 0; i < Controls.Count; i++)
-        {
-            var control = Controls[i];
-
-            if (!control.IsInPage)
-            {
-                continue;
-            }
-
-            if (form != null && control is HtmlForm && control != form) continue;
-
-            await control.InvokePostbackAsync(token, form, target, argument);
         }
     }
 
     internal async ValueTask InvokeLoadAsync(CancellationToken token, HtmlForm? form)
     {
-        if (!ProcessControl) return;
-        if (token.IsCancellationRequested) return;
-
-        OnLoad(EventArgs.Empty);
-        await OnLoadAsync(token);
-
-        _state = ControlState.Loaded;
-
-        for (var i = 0; i < Controls.Count; i++)
+        if (ProcessControl)
         {
-            var control = Controls[i];
+            if (token.IsCancellationRequested) return;
 
-            if (form != null && control is HtmlForm && control != form) continue;
+            OnLoad(EventArgs.Empty);
+            await OnLoadAsync(token);
 
-            await control.InvokeLoadAsync(token, form);
+            _state = ControlState.Loaded;
+        }
+
+        if (ProcessChildren)
+        {
+            foreach (var control in Controls)
+            {
+                if (form != null && control is HtmlForm && control != form) continue;
+
+                await control.InvokeLoadAsync(token, form);
+            }
         }
     }
 
     internal async ValueTask InvokePreRenderAsync(CancellationToken token, HtmlForm? form)
     {
-        if (!ProcessControl) return;
-        if (token.IsCancellationRequested) return;
-
-        OnPreRender(EventArgs.Empty);
-        await OnPreRenderAsync(token);
-
-        _state = ControlState.PreRendered;
-
-        for (var i = 0; i < Controls.Count; i++)
+        if (ProcessControl)
         {
-            var control = Controls[i];
+            if (token.IsCancellationRequested) return;
 
-            if (form != null && control is HtmlForm && control != form) continue;
+            OnPreRender(EventArgs.Empty);
+            await OnPreRenderAsync(token);
 
-            await control.InvokePreRenderAsync(token, form);
+            _state = ControlState.PreRendered;
+        }
+
+        if (ProcessChildren)
+        {
+            foreach (var control in Controls)
+            {
+                if (form != null && control is HtmlForm && control != form) continue;
+
+                await control.InvokePreRenderAsync(token, form);
+            }
         }
     }
 

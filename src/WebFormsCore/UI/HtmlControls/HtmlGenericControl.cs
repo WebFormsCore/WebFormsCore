@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WebFormsCore.Security;
 using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI.HtmlControls;
@@ -12,6 +13,7 @@ namespace WebFormsCore.UI.HtmlControls;
 public class HtmlGenericControl : HtmlContainerControl
 {
     private string? _preRenderedContent;
+    private string? _nonce;
 
     /// <summary>Initializes a new instance of the <see cref="T:WebFormsCore.UI.HtmlControls.HtmlGenericControl" /> class with default values.</summary>
     public HtmlGenericControl()
@@ -36,30 +38,67 @@ public class HtmlGenericControl : HtmlContainerControl
         set => _tagName = value;
     }
 
-    protected override async Task OnPreRenderAsync(CancellationToken token)
+    protected override async ValueTask OnPreRenderAsync(CancellationToken token)
     {
         await base.OnPreRenderAsync(token);
 
-        if (!_tagName.Equals("script", StringComparison.OrdinalIgnoreCase) || !Page.Csp.Enabled)
+        if (Page.Csp.Enabled)
+        {
+            await RegisterCsp(token);
+        }
+    }
+
+    private async Task RegisterCsp(CancellationToken token)
+    {
+        CspDirective directive;
+        string? attributeName;
+
+        if (_tagName.Equals("script", StringComparison.OrdinalIgnoreCase))
+        {
+            directive = Page.Csp.ScriptSrc;
+            attributeName = "src";
+        }
+        else if (_tagName.Equals("link", StringComparison.OrdinalIgnoreCase) && Attributes["rel"] == "stylesheet")
+        {
+            directive = Page.Csp.StyleSrc;
+            attributeName = "href";
+        }
+        else if (_tagName.Equals("style", StringComparison.OrdinalIgnoreCase))
+        {
+            directive = Page.Csp.StyleSrc;
+            attributeName = null;
+        }
+        else
         {
             return;
         }
 
-        await using var subWriter = new HtmlTextWriter();
-
-        await RenderChildrenAsync(subWriter, token);
-        await subWriter.FlushAsync();
-
-        var script = subWriter.ToString();
-        _preRenderedContent = script;
-
-        Page.Csp.ScriptSrc.AddInlineHash(script);
+        if (attributeName is not null && Uri.TryCreate(attributeName, UriKind.Absolute, out var href))
+        {
+            directive.Add($"{href.Scheme}://{href.Host}");
+        }
+        else if (Page.Csp.ScriptSrc.Mode == CspMode.Sha256)
+        {
+            _preRenderedContent = await this.RenderChildrenToStringAsync(token);
+            directive.AddInlineHash(_preRenderedContent);
+        }
+        else
+        {
+            _nonce = directive.GenerateNonce();
+        }
     }
 
-    protected override Task RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
+    protected override async ValueTask RenderAttributesAsync(HtmlTextWriter writer)
+    {
+        await base.RenderAttributesAsync(writer);
+
+        if (_nonce != null) await writer.WriteAttributeAsync("nonce", _nonce);
+    }
+
+    protected override ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
         return _preRenderedContent != null
-            ? writer.WriteAsync(_preRenderedContent)
+            ? writer.WriteAsync(_preRenderedContent, token)
             : base.RenderChildrenAsync(writer, token);
     }
 
@@ -67,5 +106,6 @@ public class HtmlGenericControl : HtmlContainerControl
     {
         base.ClearControl();
         _preRenderedContent = null;
+        _nonce = null;
     }
 }

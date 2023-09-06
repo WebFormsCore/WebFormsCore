@@ -243,7 +243,7 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
         _styleColl?.Clear();
     }
 
-    public async Task RenderAsync(HtmlTextWriter writer)
+    public async ValueTask RenderAsync(HtmlTextWriter writer)
     {
         foreach (var kv in _bag)
         {

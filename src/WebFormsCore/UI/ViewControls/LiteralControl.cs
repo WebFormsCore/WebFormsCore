@@ -12,14 +12,11 @@ namespace WebFormsCore.UI;
 [ToolboxItem(false)]
 public sealed class LiteralControl : Control, ITextControl
 {
+    protected override bool ProcessControl => false;
+
     protected override bool GenerateAutomaticID => false;
 
-    private string _text;
-
-    public LiteralControl()
-    {
-        _text = string.Empty;
-    }
+    private string _text = string.Empty;
 
     public override bool EnableViewState
     {
@@ -48,7 +45,7 @@ public sealed class LiteralControl : Control, ITextControl
     /// <summary>Writes the content of the <see cref="T:WebFormsCore.UI.LiteralControl" /> object to the ASP.NET page.</summary>
     /// <param name="output">An <see cref="T:WebFormsCore.UI.HtmlTextWriter" /> that renders the content of the <see cref="T:WebFormsCore.UI.LiteralControl" /> to the requesting client. </param>
     /// <param name="token"></param>
-    public override Task RenderAsync(HtmlTextWriter output, CancellationToken token) => output.WriteAsync(_text);
+    public override ValueTask RenderAsync(HtmlTextWriter output, CancellationToken token) => output.WriteAsync(_text);
 
     public override void ClearControl()
     {

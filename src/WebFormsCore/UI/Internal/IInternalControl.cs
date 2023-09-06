@@ -30,5 +30,5 @@ public interface IInternalControl
 
     ValueTask InvokePreRenderAsync(CancellationToken token, HtmlForm? form);
 
-    Task RenderAsync(HtmlTextWriter writer, CancellationToken token);
+    ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token);
 }

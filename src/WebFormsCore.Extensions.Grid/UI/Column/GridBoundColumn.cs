@@ -6,6 +6,11 @@ public class GridBoundColumn : GridColumn
 {
     public string? DataField { get; set; }
 
+    protected override string? GetHeaderText()
+    {
+        return base.GetHeaderText() ?? DataField;
+    }
+
     public override async ValueTask InvokeItemCreated(GridCell cell, GridItem item)
     {
         var member = DataField is null ? null : item.Grid.ItemType?.GetProperty(DataField);

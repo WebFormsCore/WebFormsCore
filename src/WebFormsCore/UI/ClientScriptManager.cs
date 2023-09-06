@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Text;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using WebFormsCore.Security;
@@ -185,7 +183,7 @@ public sealed class ClientScriptManager
         await WriteEndTag(writer, current);
     }
 
-    private static Task WriteEndTag(HtmlTextWriter writer, RegisterType current)
+    private static ValueTask WriteEndTag(HtmlTextWriter writer, RegisterType current)
     {
         switch (current)
         {
@@ -197,11 +195,11 @@ public sealed class ClientScriptManager
             case RegisterType.ExternalStyle:
                 return writer.WriteAsync(LinkEnd);
             default:
-                return Task.CompletedTask;
+                return default;
         }
     }
 
-    private static Task WriteBeginTag(HtmlTextWriter writer, RegisterType current)
+    private static ValueTask WriteBeginTag(HtmlTextWriter writer, RegisterType current)
     {
         switch (current)
         {
@@ -213,7 +211,7 @@ public sealed class ClientScriptManager
             case RegisterType.ExternalStyle:
                 return writer.WriteAsync(LinkStart);
             default:
-                return Task.CompletedTask;
+                return default;
         }
     }
 

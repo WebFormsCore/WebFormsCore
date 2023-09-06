@@ -20,7 +20,7 @@ public partial class CheckBox : WebControl, IPostBackAsyncDataHandler
 
     public event AsyncEventHandler<CheckBox, EventArgs>? CheckedChanged;
 
-    protected override async Task AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
+    protected override async ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
         await base.AddAttributesToRender(writer, token);
 
@@ -35,7 +35,7 @@ public partial class CheckBox : WebControl, IPostBackAsyncDataHandler
         if (AutoPostBack) writer.AddAttribute("data-wfc-autopostback", null);
     }
 
-    public override async Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
         await AddAttributesToRender(writer, token);
         await writer.RenderSelfClosingTagAsync(TagKey);

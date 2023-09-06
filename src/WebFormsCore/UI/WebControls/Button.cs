@@ -17,36 +17,21 @@ public partial class Button : WebControl, IPostBackAsyncEventHandler
 
     [ViewState] public AttributeCollection Style { get; set; } = new();
 
-    [ViewState]
-    public string? Text
-    {
-        get => Controls.Count == 1 && Controls[0] is LiteralControl literal ? literal.Text : null;
-        set
-        {
-            if (Controls.Count == 1 && Controls[0] is LiteralControl literal)
-            {
-                literal.Text = value ?? string.Empty;
-            }
-            else
-            {
-                Controls.Clear();
-
-                if (value != null)
-                {
-                    Controls.AddWithoutPageEvents(
-                        IsInPage ? WebActivator.CreateLiteral(value) : new LiteralControl { Text = value }
-                    );
-                }
-            }
-        }
-    }
+    [ViewState] public string? Text { get; set; }
 
     public async Task RaisePostBackEventAsync(string? eventArgument)
     {
         await Click.InvokeAsync(this, EventArgs.Empty);
     }
 
-    protected override async Task AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
+    protected override ValueTask RenderContentsAsync(HtmlTextWriter writer, CancellationToken token)
+    {
+        return HasControls()
+            ? base.RenderContentsAsync(writer, token)
+            : writer.WriteAsync(Text, token);
+    }
+
+    protected override async ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
         await base.AddAttributesToRender(writer, token);
 

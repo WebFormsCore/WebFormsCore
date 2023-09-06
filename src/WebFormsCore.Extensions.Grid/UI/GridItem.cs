@@ -20,7 +20,7 @@ public partial class TableCell : WebControl
         Text = null;
     }
 
-    protected override Task RenderContentsAsync(HtmlTextWriter writer, CancellationToken token)
+    protected override ValueTask RenderContentsAsync(HtmlTextWriter writer, CancellationToken token)
     {
         return HasRenderingData()
             ? base.RenderContentsAsync(writer, token)
@@ -40,8 +40,6 @@ public class TableRow : WebControl
 
 public class GridCell : TableCell
 {
-    public int ColumnIndex { get; set; }
-
     public Grid Grid { get; set; } = null!;
 
     public GridColumn Column { get; set; } = null!;
@@ -58,15 +56,15 @@ public class GridCell : TableCell
         Column = null!;
     }
 
-    protected override Task AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
+    protected override ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
         Column.CellAttributes.AddAttributes(writer);
         return base.AddAttributesToRender(writer, token);
     }
 
-    public override Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    public override ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        if (!Column.Visible) return Task.CompletedTask;
+        if (!Column.Visible) return default;
 
         return base.RenderAsync(writer, token);
     }
@@ -149,7 +147,7 @@ public partial class GridItem : TableRow, IDataItemContainer
         return Task.CompletedTask;
     }
 
-    protected override Task AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
+    protected override ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
         Grid.RowAttributes.AddAttributes(writer);
         return base.AddAttributesToRender(writer, token);
@@ -159,10 +157,10 @@ public partial class GridItem : TableRow, IDataItemContainer
 
     int IDataItemContainer.DisplayIndex => ItemIndex;
 
-    internal ValueTask AddCell(GridCell cell)
+    internal async ValueTask AddCell(GridCell cell)
     {
         Cells.Add(cell);
-        return Controls.AddAsync(cell);
+        await Controls.AddAsync(cell);
     }
 
     internal async Task LoadEditItemTemplateAsync()
@@ -197,7 +195,7 @@ public class GridItemEditContainer : Control, INamingContainer
         Visible = false;
     }
 
-    public override async Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
         if (!Visible) return;
 

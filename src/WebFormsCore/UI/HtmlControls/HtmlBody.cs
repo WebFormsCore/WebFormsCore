@@ -44,7 +44,7 @@ public class HtmlBody : HtmlContainerControl
         Page.ClientScript.RegisterStartupScript(typeof(Page), "FormPostback", Script, true);
     }
 
-    protected override async Task RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
+    protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
         var viewStateManager = ServiceProvider.GetRequiredService<IViewStateManager>();
 

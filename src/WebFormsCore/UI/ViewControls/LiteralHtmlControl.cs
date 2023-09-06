@@ -6,6 +6,10 @@ namespace WebFormsCore.UI.WebControls;
 
 public class LiteralHtmlControl : HtmlGenericControl
 {
+    protected override bool ProcessControl => false;
+
+    protected override bool ProcessChildren => HasControls();
+
     protected override bool GenerateAutomaticID => false;
 
     public LiteralHtmlControl()
@@ -28,7 +32,7 @@ public class LiteralHtmlControl : HtmlGenericControl
         }
     }
 
-    protected override Task RenderAttributesAsync(HtmlTextWriter writer)
+    protected override ValueTask RenderAttributesAsync(HtmlTextWriter writer)
     {
         return Attributes.RenderAsync(writer);
     }

@@ -18,6 +18,7 @@ using Microsoft.Extensions.Options;
 using WebFormsCore.Options;
 using WebFormsCore.UI;
 using WebFormsCore.UI.HtmlControls;
+using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore;
 
@@ -439,7 +440,7 @@ public class ViewStateManager : IViewStateManager
 
                 var nextControl = currentControl.Controls[index];
 
-                if (nextControl is HtmlForm)
+                if (nextControl is HtmlForm or StreamPanel)
                 {
                     continue;
                 }

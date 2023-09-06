@@ -25,7 +25,7 @@ public class HtmlHead : HtmlContainerControl
         Page.Header = null;
     }
 
-    protected override async Task RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
+    protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
         await base.RenderChildrenAsync(writer, token);
 

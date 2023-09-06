@@ -20,17 +20,21 @@
 
     <wfc:Button runat="server" Text="Download file" OnClick="btnDownload_OnClick" />
 
-    <wfc:Grid runat="server" ID="grid" class="table" EditRowAttributes-CssClass="table-active">
-        <Columns>
-            <wfc:GridBoundColumn runat="server" HeaderText="ID" DataField="Id" CellAttributes-CssClass="test" />
-            <wfc:GridBoundColumn runat="server" HeaderText="Naam" DataField="Name" />
-            <wfc:GridBoundColumn runat="server" HeaderText="Is nieuw" DataField="IsNew" />
-            <wfc:GridEditColumn runat="server" HeaderText="Edit" width="40px" ButtonAttributes-CssClass="btn btn-sm btn-outline-primary" />
-        </Columns>
-        <EditItemTemplate>
-            Hello world!
-        </EditItemTemplate>
-    </wfc:Grid>
+    <form runat="server">
+        <wfc:StreamPanel runat="server" OnConnected="OnConnected">
+            <wfc:Grid runat="server" ID="grid" class="table" EditRowAttributes-CssClass="table-active">
+                <Columns>
+                    <wfc:GridBoundColumn runat="server" DataField="Id" CellAttributes-CssClass="test" />
+                    <wfc:GridBoundColumn runat="server" DataField="Title" />
+                    <wfc:GridBoundColumn runat="server" DataField="Completed" />
+                    <wfc:GridEditColumn runat="server" HeaderText="Edit" width="40px" ButtonAttributes-CssClass="btn btn-sm btn-outline-primary" />
+                </Columns>
+                <EditItemTemplate>
+                    Hello world!
+                </EditItemTemplate>
+            </wfc:Grid>
+        </wfc:StreamPanel>
+    </form>
 
     <div class="mt-4">
         <div class="row">

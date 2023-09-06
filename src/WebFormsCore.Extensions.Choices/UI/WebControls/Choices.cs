@@ -144,7 +144,7 @@ public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyn
         base.OnPreRender(args);
     }
 
-    public override async Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
         var hiddenClass = _options.Value.HiddenClass;
 

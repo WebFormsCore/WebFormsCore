@@ -62,7 +62,7 @@ public partial class WebControl : Control, IAttributeAccessor
     /// <returns>A <see cref="T:WebFormsCore.UI.AttributeCollection" /> object that contains all attribute name and value pairs expressed on a server control tag within the Web page.</returns>
     public AttributeCollection Attributes => _attributes;
 
-    protected virtual Task AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
+    protected virtual ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
         if (HasUserId)
         {
@@ -89,10 +89,10 @@ public partial class WebControl : Control, IAttributeAccessor
 
         _attributes.AddAttributes(writer);
 
-        return Task.CompletedTask;
+        return default;
     }
 
-    public async Task RenderBeginTag(HtmlTextWriter writer, CancellationToken token)
+    public async ValueTask RenderBeginTag(HtmlTextWriter writer, CancellationToken token)
     {
         await AddAttributesToRender(writer, token);
 
@@ -107,26 +107,24 @@ public partial class WebControl : Control, IAttributeAccessor
         }
     }
 
-    public virtual async Task RenderEndTagAsync(HtmlTextWriter writer, CancellationToken token)
+    public virtual ValueTask RenderEndTagAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        await writer.RenderEndTagAsync();
+        return writer.RenderEndTagAsync();
     }
 
-    protected virtual Task RenderContentsAsync(HtmlTextWriter writer, CancellationToken token)
+    protected virtual ValueTask RenderContentsAsync(HtmlTextWriter writer, CancellationToken token)
     {
         return base.RenderAsync(writer, token);
     }
 
-    public override async Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
         if (!Visible)
         {
             return;
         }
 
-        var isVoidTag = TagName is "area" or "base" or "br" or "col" or "command" or "embed"
-            or "hr" or "img" or "input" or "keygen" or "link" or "meta"
-            or "param" or "source" or "track" or "wbr";
+        var isVoidTag = Control.IsVoidTag(TagName);
 
         if (isVoidTag && !HasControls())
         {

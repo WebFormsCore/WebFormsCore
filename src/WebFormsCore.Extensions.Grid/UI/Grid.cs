@@ -283,12 +283,9 @@ public partial class Grid : WebControl, IPostBackLoadHandler
         // Force tracking since the data item is not available on postback
         item.InvokeTrackViewState();
 
-        for (var i = 0; i < Columns.Count; i++)
+        foreach (var cell in item.Cells)
         {
-            var cell = item.Cells[i];
-            var column = Columns[i];
-
-            await column.InvokeDataBinding(cell, item);
+            await cell.Column.InvokeDataBinding(cell, item);
         }
 
         await item.DataBindAsync();
@@ -306,11 +303,9 @@ public partial class Grid : WebControl, IPostBackLoadHandler
         _items.Add(item);
         await Controls.AddAsync(item);
 
-        for (var i = 0; i < Columns.Count; i++)
+        foreach (var column in Columns)
         {
-            var column = Columns[i];
             var cell = column.CreateCell(Page, item);
-            cell.ColumnIndex = i;
             cell.Column = column;
             cell.Grid = this;
 
@@ -343,7 +338,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler
         return null;
     }
 
-    protected override async Task RenderContentsAsync(HtmlTextWriter writer, CancellationToken token)
+    protected override async ValueTask RenderContentsAsync(HtmlTextWriter writer, CancellationToken token)
     {
         if (RenderHeader)
         {

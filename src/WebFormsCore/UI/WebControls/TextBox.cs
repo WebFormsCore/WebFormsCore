@@ -52,7 +52,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
     private bool WriteValue => !Page.IsPostBack || _changedText;
 
-    protected override async Task AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
+    protected override async ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
         await base.AddAttributesToRender(writer, token);
 
@@ -96,7 +96,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
         if (AutoPostBack) writer.AddAttribute("data-wfc-autopostback", null);
     }
 
-    protected override async Task RenderContentsAsync(HtmlTextWriter writer, CancellationToken token)
+    protected override async ValueTask RenderContentsAsync(HtmlTextWriter writer, CancellationToken token)
     {
         await base.RenderContentsAsync(writer, token);
 

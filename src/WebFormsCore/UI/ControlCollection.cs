@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace WebFormsCore.UI;
@@ -32,7 +34,12 @@ public class ControlCollection : IReadOnlyCollection<Control>
     public virtual ValueTask AddAsync(Control child)
     {
         AddWithoutPageEvents(child);
-        return Owner.AddedControlAsync(child);
+
+        var state = Owner._state;
+
+        return state != ControlState.Constructed
+            ? Owner.AddedControlAsync(state, child)
+            : default;
     }
 
     public virtual void Swap(int oldIndex, int newIndex)
@@ -94,9 +101,9 @@ public class ControlCollection : IReadOnlyCollection<Control>
         return _list.IndexOf(value);
     }
 
-    public List<Control>.Enumerator GetEnumerator()
+    public Enumerator GetEnumerator()
     {
-        return _list.GetEnumerator();
+        return new Enumerator(_list);
     }
 
     IEnumerator<Control> IEnumerable<Control>.GetEnumerator()
@@ -149,5 +156,66 @@ public class ControlCollection : IReadOnlyCollection<Control>
 
         Owner.RemovedControlInternal(child);
         return true;
+    }
+
+    public struct Enumerator : IEnumerator<Control>
+    {
+        private readonly List<Control> _list;
+        private int _index;
+        private Control? _current;
+
+        internal Enumerator(List<Control> list)
+        {
+            _list = list;
+            _index = 0;
+            _current = default;
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public bool MoveNext()
+        {
+#if NET
+            var items = CollectionsMarshal.AsSpan(_list);
+
+            if ((uint)_index < (uint)items.Length)
+            {
+                _current = items[_index];
+                _index++;
+                return true;
+            }
+#else
+            var localList = _list;
+
+            if ((uint)_index < (uint)localList.Count)
+            {
+                _current = localList[_index];
+                _index++;
+                return true;
+            }
+#endif
+
+
+            return MoveNextRare();
+        }
+
+        private bool MoveNextRare()
+        {
+            _index = _list.Count + 1;
+            _current = default;
+            return false;
+        }
+
+        public Control Current => _current!;
+
+        object? IEnumerator.Current => Current;
+
+        void IEnumerator.Reset()
+        {
+            _index = 0;
+            _current = default;
+        }
     }
 }

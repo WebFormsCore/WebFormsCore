@@ -40,6 +40,11 @@ internal sealed class ControlFactory<T> : IControlFactory<T>
 
     private T CreateControlInner(IServiceProvider provider)
     {
+        if (_noConstructor)
+        {
+            return Activator.CreateInstance<T>();
+        }
+
         if (_viewPaths.Length == 0)
         {
             return ActivatorUtilities.CreateInstance<T>(provider);

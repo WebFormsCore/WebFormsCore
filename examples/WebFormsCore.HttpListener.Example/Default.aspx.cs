@@ -8,7 +8,7 @@ public partial class Default : Page
 {
     [ViewState] public int PostbackCount { get; set; }
 
-    protected override Task OnLoadAsync(CancellationToken token)
+    protected override ValueTask OnLoadAsync(CancellationToken token)
     {
         if (Page.IsPostBack)
         {

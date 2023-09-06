@@ -155,7 +155,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
         }
     }
 
-    protected override Task OnPreRenderAsync(CancellationToken token)
+    protected override ValueTask OnPreRenderAsync(CancellationToken token)
     {
         if (_namesDirty)
         {
@@ -165,7 +165,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
         return base.OnPreRenderAsync(token);
     }
 
-    protected override async Task RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
+    protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
         if (_header is not null)
         {
@@ -279,7 +279,12 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
         }
 
         await InvokeItemCreated(item);
-        await AddedControlAsync(item);
+
+        var state = _state;
+        if (state != ControlState.Constructed)
+        {
+            await AddedControlAsync(state, item);
+        }
 
         if (dataBind)
         {

@@ -13,9 +13,9 @@ public class BodyPlaceHolder : PlaceHolder, IBodyControl
         Page.BodyControls.Add(this);
     }
 
-    public override Task RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    public override ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        return Task.CompletedTask;
+        return default;
     }
 
     public virtual async Task RenderInBodyAsync(HtmlTextWriter writer, CancellationToken token)
