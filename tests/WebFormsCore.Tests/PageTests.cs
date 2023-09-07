@@ -3,7 +3,6 @@ using HttpStack;
 using HttpStack.Collections;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
-using WebFormsCore.Options;
 using WebFormsCore.UI;
 
 namespace WebFormsCore.Tests;

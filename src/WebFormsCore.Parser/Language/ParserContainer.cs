@@ -53,6 +53,7 @@ internal class ParserContainer
         Root.Directives.Add(node);
         Add(node);
     }
+
     public void Push(ElementNode? node)
     {
         if (node is not null)

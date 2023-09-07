@@ -3,9 +3,9 @@
 #line {{ $0.Range.Start.Line + 1 }} "{{ $0.Range.File }}"
 {{- end }}
 
-{{- func write_attributes }}
+{{- func write_properties }}
             {{- for prop in $0.Properties }}
-            {{ $0.VariableName }}.{{ prop.Member.Name }}{{ " = " }}
+            {{ $0.VariableName ?? "this" }}.{{ prop.Member.Name }}{{ " = " }}
             {{- if prop.DisplayType == "string" -}}
                 {{ prop.Value.CodeString }};
             {{- else if prop.Value.Converter -}}
@@ -14,6 +14,10 @@
                 WebActivator.ParseAttribute<{{ prop.DisplayType }}>({{ prop.Value.CodeString }});
             {{- end }}
             {{- end }}
+{{- end }}
+
+{{- func write_attributes }}
+            {{- write_properties $0 }}
 
             {{- for prop in $0.Attributes }}
             ((WebFormsCore.UI.IAttributeAccessor){{ $0.VariableName }}).SetAttribute({{ prop.Key.CodeString }}, {{ prop.Value.CodeString }});
@@ -41,6 +45,10 @@
         {{- for child in $0 }}
         {{ line child }}
         {{- case child.Type }}
+
+        {{- when "Directive" }}
+            {{- write_properties child "child" }}
+
         {{- when "Collection" }}
             var {{ child.VariableName }} = {{ child.Parent?.VariableName ?? $1 }}.{{ child.Property }};
             {{ write_attributes child $3 }}

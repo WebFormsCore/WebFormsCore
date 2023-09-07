@@ -2,6 +2,7 @@
 using HttpStack;
 using HttpStack.NetHttpListener;
 using WebFormsCore;
+using WebFormsCore.Example;
 
 using var listener = new System.Net.HttpListener();
 
@@ -11,7 +12,7 @@ var builder = new HttpApplicationBuilder();
 builder.Services.AddWebForms();
 
 var app = builder.Build();
-app.UseWebFormsCore();
+app.Run(context => context.ExecutePageAsync<Default>());
 
 listener.Start(app);
 

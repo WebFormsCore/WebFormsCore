@@ -7,7 +7,7 @@ namespace WebFormsCore.UI.WebControls;
 
 public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyncEventHandler
 {
-    private readonly IOptions<WebFormsCoreOptions> _options;
+    private readonly IOptions<WebFormsCoreOptions>? _options;
 
     [ViewState(nameof(SaveTextViewState))] private string? _json;
 
@@ -26,7 +26,7 @@ public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyn
     private readonly ILogger<Choices>? _logger;
     private ICollection<string>? _values;
 
-    public Choices(IOptions<WebFormsCoreOptions> options, ILogger<Choices>? logger = null)
+    public Choices(IOptions<WebFormsCoreOptions>? options = null, ILogger<Choices>? logger = null)
     {
         _options = options;
         _logger = logger;
@@ -132,7 +132,7 @@ public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyn
     {
         if (Page.Csp.Enabled)
         {
-            if (_options.Value.HiddenClass is null) Page.Csp.StyleSrc.AddUnsafeInlineHash("display:none;");
+            if (_options?.Value.HiddenClass is null) Page.Csp.StyleSrc.AddUnsafeInlineHash("display:none;");
             Page.Csp.ImgSrc.Add("data:");
         }
 
@@ -146,7 +146,7 @@ public partial class Choices : Control, IPostBackAsyncDataHandler, IPostBackAsyn
 
     public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        var hiddenClass = _options.Value.HiddenClass;
+        var hiddenClass = _options?.Value.HiddenClass;
 
         if (_values is not null)
         {

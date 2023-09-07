@@ -18,7 +18,7 @@ partial class PageTest
 
 public partial class CompiledViews
 {
-    [WebFormsCore.CompiledView(@"Example.aspx", "C0CCEADD4ABA9918F5C5D9F4AFBBE6D4")]
+    [WebFormsCore.CompiledView(@"Example.aspx", "87F3495DC0937BFC7C403021323C1819")]
     public class Example_aspx : PageTest
     {
         public Example_aspx()
@@ -34,8 +34,34 @@ public partial class CompiledViews
         private async System.Threading.Tasks.Task Render_0(WebFormsCore.UI.HtmlTextWriter writer, WebFormsCore.UI.ControlCollection controls, System.Threading.CancellationToken token)
         {
             
-            #line 8 "Example.aspx"
-            await controls[0].RenderAsync(writer, token); // Text: "\n    "
+            #line 1 "Example.aspx"
+            #line default
+            
+            #line 1 "Example.aspx"
+            await controls[0].RenderAsync(writer, token); // Text: "\n"
+            #line default
+            
+            #line 2 "Example.aspx"
+            #line default
+            
+            #line 2 "Example.aspx"
+            await controls[1].RenderAsync(writer, token); // Text: "\n"
+            #line default
+            
+            #line 3 "Example.aspx"
+            await controls[2].RenderAsync(writer, token); // Text: "<!DOCTYPE htm>"
+            #line default
+            
+            #line 3 "Example.aspx"
+            await controls[3].RenderAsync(writer, token); // Text: "\n<html>\n"
+            #line default
+            
+            #line 5 "Example.aspx"
+            await controls[4].RenderAsync(writer, token); // Element: head
+            #line default
+            
+            #line 7 "Example.aspx"
+            await controls[5].RenderAsync(writer, token); // Text: "\n<body>\n    "
             #line default
             
             #line 9 "Example.aspx"
@@ -43,25 +69,26 @@ public partial class CompiledViews
             #line default
             
             #line 9 "Example.aspx"
-            await controls[1].RenderAsync(writer, token); // Text: "\n\n    "
+            await controls[6].RenderAsync(writer, token); // Text: "\n\n    "
             #line default
             
             #line 11 "Example.aspx"
-            await controls[2].RenderAsync(writer, token); // Element: form
+            await controls[7].RenderAsync(writer, token); // Element: form
             #line default
             
             #line 17 "Example.aspx"
-            await controls[3].RenderAsync(writer, token); // Text: "\n"
+            await controls[8].RenderAsync(writer, token); // Text: "\n</body>\n</html>"
             #line default
         }
 
         protected override void FrameworkInitialize()
         {
             base.FrameworkInitialize();
+            SetRenderMethodDelegate(Render_0);
             
         
         #line 1 "Example.aspx"
-            // Unhandled type: Directive
+            this.EnableViewState = WebActivator.ParseAttribute<bool>("false");
         #line hidden
         
         #line 1 "Example.aspx"
@@ -69,7 +96,6 @@ public partial class CompiledViews
         #line hidden
         
         #line 2 "Example.aspx"
-            // Unhandled type: Directive
         #line hidden
         
         #line 2 "Example.aspx"
@@ -81,50 +107,22 @@ public partial class CompiledViews
         #line hidden
         
         #line 3 "Example.aspx"
-            this.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
-        #line hidden
-        
-        #line 4 "Example.aspx"
-            var ctrl0 = WebActivator.CreateElement("html");
-            this.AddParsedSubObject(ctrl0);
-        #line hidden
-        
-        #line 4 "Example.aspx"
-            ctrl0.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
+            this.AddParsedSubObject(WebActivator.CreateLiteral("\n<html>\n"));
         #line hidden
         
         #line 5 "Example.aspx"
-            var ctrl1 = WebActivator.CreateControl<global::WebFormsCore.UI.HtmlControls.HtmlHead>();
-            ctrl0.AddParsedSubObject(ctrl1);
+            var ctrl0 = WebActivator.CreateControl<global::WebFormsCore.UI.HtmlControls.HtmlHead>();
+            this.AddParsedSubObject(ctrl0);
 
             
         #line hidden
         
         #line 5 "Example.aspx"
-            ctrl1.AddParsedSubObject(WebActivator.CreateLiteral("\n    "));
-        #line hidden
-        
-        #line 6 "Example.aspx"
-            var ctrl2 = WebActivator.CreateElement("title");
-            ctrl1.AddParsedSubObject(ctrl2);
-        #line hidden
-        
-        #line 6 "Example.aspx"
-            ctrl1.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
+            ctrl0.AddParsedSubObject(WebActivator.CreateLiteral("\n    <title></title>\n"));
         #line hidden
         
         #line 7 "Example.aspx"
-            ctrl0.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
-        #line hidden
-        
-        #line 8 "Example.aspx"
-            var ctrl3 = WebActivator.CreateElement("body");
-            ctrl0.AddParsedSubObject(ctrl3);
-            ctrl3.SetRenderMethodDelegate(Render_0);
-        #line hidden
-        
-        #line 8 "Example.aspx"
-            ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("\n    "));
+            this.AddParsedSubObject(WebActivator.CreateLiteral("\n<body>\n    "));
         #line hidden
         
         #line 9 "Example.aspx"
@@ -132,92 +130,65 @@ public partial class CompiledViews
         #line hidden
         
         #line 9 "Example.aspx"
-            ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("\n\n    "));
+            this.AddParsedSubObject(WebActivator.CreateLiteral("\n\n    "));
         #line hidden
         
         #line 11 "Example.aspx"
-            var ctrl4 = WebActivator.CreateControl<global::WebFormsCore.UI.HtmlControls.HtmlForm>();
-            ctrl4.ID = "form1";
-            ctrl3.AddParsedSubObject(ctrl4);
+            var ctrl1 = WebActivator.CreateControl<global::WebFormsCore.UI.HtmlControls.HtmlForm>();
+            ctrl1.ID = "form1";
+            this.AddParsedSubObject(ctrl1);
 
             
-            this.form1 = ctrl4;
+            this.form1 = ctrl1;
         #line hidden
         
         #line 11 "Example.aspx"
-            ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("\n        "));
-        #line hidden
-        
-        #line 12 "Example.aspx"
-            var ctrl5 = WebActivator.CreateElement("div");
-            ctrl4.AddParsedSubObject(ctrl5);
-        #line hidden
-        
-        #line 12 "Example.aspx"
-            ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("\n            "));
+            ctrl1.AddParsedSubObject(WebActivator.CreateLiteral("\n        <div>\n            "));
         #line hidden
         
         #line 13 "Example.aspx"
-            var ctrl6 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.TextBox>();
-            ctrl6.ID = "tbUsername";
-            ctrl5.AddParsedSubObject(ctrl6);
+            var ctrl2 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.TextBox>();
+            ctrl2.ID = "tbUsername";
+            ctrl1.AddParsedSubObject(ctrl2);
 
             
-            this.tbUsername = ctrl6;
+            this.tbUsername = ctrl2;
         #line hidden
         
         #line 13 "Example.aspx"
-            var ctrl7 = WebActivator.CreateElement("br");
-            ctrl5.AddParsedSubObject(ctrl7);
-        #line hidden
-        
-        #line 13 "Example.aspx"
-            ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("\n            "));
+            ctrl1.AddParsedSubObject(WebActivator.CreateLiteral("<br />\n            "));
         #line hidden
         
         #line 14 "Example.aspx"
-            var ctrl8 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.TextBox>();
-            ctrl8.ID = "tbPassword";
-            ctrl5.AddParsedSubObject(ctrl8);
+            var ctrl3 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.TextBox>();
+            ctrl3.ID = "tbPassword";
+            ctrl1.AddParsedSubObject(ctrl3);
 
             
-            this.tbPassword = ctrl8;
+            this.tbPassword = ctrl3;
         #line hidden
         
         #line 14 "Example.aspx"
-            var ctrl9 = WebActivator.CreateElement("br");
-            ctrl5.AddParsedSubObject(ctrl9);
-        #line hidden
-        
-        #line 14 "Example.aspx"
-            ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("\n            "));
+            ctrl1.AddParsedSubObject(WebActivator.CreateLiteral("<br />\n            "));
         #line hidden
         
         #line 15 "Example.aspx"
-            var ctrl10 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.Button>();
-            ctrl10.ID = "btnLogin";
-            ctrl5.AddParsedSubObject(ctrl10);
+            var ctrl4 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.Button>();
+            ctrl4.ID = "btnLogin";
+            ctrl1.AddParsedSubObject(ctrl4);
 
             
-            ctrl10.Text = "Login";
-            ((WebFormsCore.UI.IAttributeAccessor)ctrl10).SetAttribute("click", "btnLogin_Click");
-            this.btnLogin = ctrl10;
+            ctrl4.Text = "Login";
+            ((WebFormsCore.UI.IAttributeAccessor)ctrl4).SetAttribute("click", "btnLogin_Click");
+            this.btnLogin = ctrl4;
         #line hidden
         
         #line 15 "Example.aspx"
-            ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("\n        "));
-        #line hidden
-        
-        #line 16 "Example.aspx"
-            ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("\n    "));
+            ctrl1.AddParsedSubObject(WebActivator.CreateLiteral("\n        </div>\n    "));
         #line hidden
         
         #line 17 "Example.aspx"
-            ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
-        #line hidden
-        
-        #line 18 "Example.aspx"
-            ctrl0.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
+            this.AddParsedSubObject(WebActivator.CreateLiteral("\n</body>\n</html>"));
         #line hidden
         }
     }
@@ -253,7 +224,6 @@ public partial class CompiledViews
             
         
         #line 1 "Example.ascx"
-            // Unhandled type: Directive
         #line hidden
         
         #line 1 "Example.ascx"

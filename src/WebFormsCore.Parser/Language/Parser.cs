@@ -10,6 +10,19 @@ namespace WebFormsCore.Language;
 
 public class Parser
 {
+    private static List<string> IgnoredDirectiveNames = new()
+    {
+        "Inherits",
+        "Language",
+        "CodeBehind",
+        "CodeFile",
+        "Description",
+        "LinePragmas",
+        "MasterPageFile",
+        "Src",
+        "Strict"
+    };
+
     private readonly Compilation _compilation;
     private readonly string? _rootNamespace;
     public static readonly CSharpParseOptions StatementOptions = new(kind: SourceCodeKind.Script);
@@ -264,6 +277,31 @@ public class Parser
                 if (_type != null)
                 {
                     Root.Inherits = _type;
+
+                    foreach (var kv in element.Attributes)
+                    {
+                        var member = _type.GetMemberDeep(kv.Key);
+
+                        if (member is null or { CanWrite: false })
+                        {
+                            if (!IgnoredDirectiveNames.Contains(kv.Key.Value, StringComparer.OrdinalIgnoreCase))
+                            {
+                                Diagnostics.Add(
+                                    Diagnostic.Create(
+                                        new DiagnosticDescriptor("ASP0003", "Could not find property", $"Could not find property '{kv.Key}' on type '{_type.Name}'", "ASP", DiagnosticSeverity.Warning, true),
+                                        kv.Value.Range,
+                                        kv.Key,
+                                        _type.ToDisplayString()));
+                            }
+
+                            continue;
+                        }
+
+                        element.Properties.Add(new PropertyNode(member, kv.Value, null)
+                        {
+                            Range = kv.Value.Range
+                        });
+                    }
                 }
 
                 if (_type != null && !_type.ContainingNamespace.IsGlobalNamespace)

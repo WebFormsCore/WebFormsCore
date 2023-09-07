@@ -1,20 +1,18 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using WebFormsCore.UI;
+using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.Example;
 
 public partial class Default : Page
 {
-    [ViewState] public int PostbackCount { get; set; }
+    [ViewState] public int Counter { get; set; }
 
-    protected override ValueTask OnLoadAsync(CancellationToken token)
+    protected Task OnClick(Button sender, EventArgs e)
     {
-        if (Page.IsPostBack)
-        {
-            PostbackCount++;
-        }
-
-        return base.OnLoadAsync(token);
+        Counter++;
+        return Task.CompletedTask;
     }
 }

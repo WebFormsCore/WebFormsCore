@@ -55,7 +55,7 @@ public class HtmlBody : HtmlContainerControl
             await control.RenderInBodyAsync(writer, token);
         }
 
-        if (viewStateManager.EnableViewState && Page.EnablePageViewState)
+        if (viewStateManager.EnableViewState && Page.EnableViewState)
         {
             await writer.WriteAsync(@"<input id=""pagestate"" type=""hidden"" name=""wfcPageState"" value=""");
 

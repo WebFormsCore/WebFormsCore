@@ -12,4 +12,6 @@ public class DirectiveNode : Node, IAttributeNode
     public DirectiveType DirectiveType { get; set; }
 
     public Dictionary<TokenString, TokenString> Attributes { get; set; } = new(AttributeCompare.IgnoreCase);
+
+    public List<PropertyNode> Properties { get; set; } = new();
 }

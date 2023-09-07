@@ -15,7 +15,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <HttpStackVersion>0.0.1-alpha.8</HttpStackVersion>
+        <HttpStackVersion>0.0.1-alpha.9</HttpStackVersion>
     </PropertyGroup>
 
 </Project>

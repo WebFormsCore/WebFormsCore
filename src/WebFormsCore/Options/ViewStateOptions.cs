@@ -1,4 +1,4 @@
-﻿namespace WebFormsCore.Options;
+﻿namespace WebFormsCore;
 
 public class ViewStateOptions
 {

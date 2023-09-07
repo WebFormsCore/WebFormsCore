@@ -20,12 +20,12 @@ public class PageManager : IPageManager
     private readonly IOptions<WebFormsCoreOptions> _options;
 
     public PageManager(
-        IOptions<WebFormsCoreOptions> options,
         IControlManager controlManager,
-        IViewStateManager viewStateManager)
+        IViewStateManager viewStateManager,
+        IOptions<WebFormsCoreOptions>? options = null)
     {
         _controlManager = controlManager;
-        _options = options;
+        _options = options ?? Options.Create(new WebFormsCoreOptions());
         _viewStateManager = viewStateManager;
     }
 

@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore;
 using WebFormsCore.Example;
-using WebFormsCore.Options;
 using WebFormsCore.UI;
 
 var builder = WebApplication.CreateBuilder(args);

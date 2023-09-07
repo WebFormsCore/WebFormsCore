@@ -1,4 +1,4 @@
-<%@ Page language="C#" Inherits="WebFormsCore.Example.Default" Async="true" %>
+<%@ Page language="C#" Inherits="WebFormsCore.Example.Default" %>
 <%@ Import Namespace="HttpStack" %>
 <%@ Register TagPrefix="app" Namespace="WebFormsCore.Example.Controls" %>
 <%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI" Assembly="WebFormsCore.Extensions.Grid" %>

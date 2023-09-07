@@ -39,7 +39,7 @@ public class GenerateTest
                 {
                 }
 
-                public partial class PageTest
+                public partial class PageTest : Page
                 {
                     public HtmlForm form1;
                 }
@@ -85,7 +85,7 @@ public class GenerateTest
                 new MemoryAdditionalText(
                     "Example.aspx",
                     """
-                    <%@ Page language="C#" Inherits="Tests.PageTest" %>
+                    <%@ Page language="C#" Inherits="Tests.PageTest" EnableViewState="false" %>
                     <%@ Register TagPrefix="app" Namespace="Tests" %>
                     <!DOCTYPE htm>
                     <html>

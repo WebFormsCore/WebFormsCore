@@ -21,7 +21,7 @@ public static class HttpStackExtensions
         return builder;
     }
 
-    public static async ValueTask<Page?> ExecutePageAsync(this IHttpContext context, string? path = null, bool throwOnError = false)
+    public static async Task<Page?> ExecutePageAsync(this IHttpContext context, string? path = null, bool throwOnError = false)
     {
         var application = context.RequestServices.GetRequiredService<IWebFormsApplication>();
 
@@ -42,7 +42,7 @@ public static class HttpStackExtensions
         return await application.ProcessAsync(context, pagePath, context.RequestAborted);
     }
 
-    public static async ValueTask<T> ExecutePageAsync<T>(this IHttpContext context)
+    public static async Task<T> ExecutePageAsync<T>(this IHttpContext context)
         where T : Page
     {
         var application = context.RequestServices.GetRequiredService<IPageManager>();
@@ -50,14 +50,14 @@ public static class HttpStackExtensions
         return (T) await application.RenderPageAsync(context, typeof(T), context.RequestAborted);
     }
 
-    public static async ValueTask<Page> ExecutePageAsync(this IHttpContext context, Type page)
+    public static async Task<Page> ExecutePageAsync(this IHttpContext context, Type page)
     {
         var application = context.RequestServices.GetRequiredService<IPageManager>();
 
         return await application.RenderPageAsync(context, page, context.RequestAborted);
     }
 
-    public static async ValueTask ExecutePageAsync(this IHttpContext context, Page page)
+    public static async Task ExecutePageAsync(this IHttpContext context, Page page)
     {
         var application = context.RequestServices.GetRequiredService<IPageManager>();
 

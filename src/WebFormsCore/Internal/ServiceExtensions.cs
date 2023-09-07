@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using WebFormsCore.Internal;
-using WebFormsCore.Options;
 using WebFormsCore.Serializer;
 using WebFormsCore.UI;
 using WebFormsCore.UI.Attributes;
