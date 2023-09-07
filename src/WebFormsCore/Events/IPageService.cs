@@ -5,7 +5,11 @@ namespace WebFormsCore.Events;
 
 public interface IPageService
 {
-    Task BeforeInitializeAsync(Page page);
+    ValueTask BeforeInitializeAsync(Page page);
 
-    Task AfterInitializeAsync(Page page);
+    ValueTask AfterInitializeAsync(Page page);
+
+    ValueTask BeforeRenderAsync(Page page);
+
+    ValueTask AfterRenderAsync(Page page);
 }

@@ -21,9 +21,12 @@ builder.Services.Configure<ViewStateOptions>(options =>
     options.EncryptionKey = "35d16461-074a-42df-9114-ca40eb11b070";
 });
 
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession();
 
 var app = builder.Build();
 
+app.UseSession();
 app.UseWebSockets();
 
 var stack = app.UseStack();

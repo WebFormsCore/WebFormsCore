@@ -1,14 +1,12 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using HttpStack;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+using WebFormsCore.Events;
 using WebFormsCore.UI;
 using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
@@ -17,14 +15,18 @@ namespace WebFormsCore;
 
 public class PageManager : IPageManager
 {
-    private static readonly Encoding Utf8WithoutBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+    private readonly IViewStateManager _viewStateManager;
     private readonly IControlManager _controlManager;
     private readonly IOptions<WebFormsCoreOptions> _options;
 
-    public PageManager(IControlManager controlManager, IOptions<WebFormsCoreOptions> options)
+    public PageManager(
+        IOptions<WebFormsCoreOptions> options,
+        IControlManager controlManager,
+        IViewStateManager viewStateManager)
     {
         _controlManager = controlManager;
         _options = options;
+        _viewStateManager = viewStateManager;
     }
 
     public async Task<Page> RenderPageAsync(
@@ -53,9 +55,9 @@ public class PageManager : IPageManager
         Page page,
         CancellationToken token)
     {
-        page.Initialize(context);
+        page.SetContext(context);
 
-        await page.InitAsync(token);
+        await InitPageAsync(page, token);
 
         if (context.Request.Query.TryGetValue("__panel", out var panel) && context.WebSockets.IsWebSocketRequest)
         {
@@ -63,7 +65,7 @@ public class PageManager : IPageManager
             return;
         }
 
-        var control = await page.ProcessRequestAsync(token);
+        var control = await ProcessRequestAsync(context, page, token);
         var response = context.Response;
 
         if (response.HasStarted)
@@ -83,22 +85,146 @@ public class PageManager : IPageManager
         }
         else
         {
-            if (_options.Value.EnableSecurityHeaders)
-            {
-                response.Headers["X-Frame-Options"] = "DENY";
-                response.Headers["X-Content-Type-Options"] = "nosniff";
-                response.Headers["Referrer-Policy"] = "no-referrer";
-
-                if (page.Csp.Enabled)
-                {
-                    response.Headers["Content-Security-Policy"] = page.Csp.ToString();
-                }
-            }
-
-            await control.RenderAsync(writer, token);
+            await RenderPageAsync(page, context, control, writer, token);
         }
 
         await writer.FlushAsync();
+    }
+
+    /// <summary>
+    /// Invoke <see cref="Control.FrameworkInitialize"/> and <see cref="Control.OnInit"/> on the page and all its controls.
+    /// </summary>
+    /// <param name="page">Page to initialize.</param>
+    /// <param name="token">Cancellation token.</param>
+    private static async Task InitPageAsync(Page page, CancellationToken token)
+    {
+        var internalPage = (IInternalPage) page;
+        var serviceProvider = internalPage.Context.RequestServices;
+
+        internalPage.InvokeFrameworkInit(token);
+
+        foreach (var pageService in serviceProvider.GetServices<IPageService>())
+        {
+            await pageService.BeforeInitializeAsync(page);
+        }
+
+        await internalPage.InvokeInitAsync(token);
+
+        foreach (var pageService in serviceProvider.GetServices<IPageService>())
+        {
+            await pageService.AfterInitializeAsync(page);
+        }
+    }
+
+    /// <summary>
+    /// Load the view state of the page and its active form.
+    /// </summary>
+    /// <param name="context">Context of the request.</param>
+    /// <param name="page">Page to load the view state for.</param>
+    /// <returns>The active form if it was loaded.</returns>
+    private async ValueTask<HtmlForm?> LoadViewStateAsync(IHttpContext context, Page page)
+    {
+        if (!_viewStateManager.EnableViewState)
+        {
+            return null;
+        }
+
+        if (!page.IsPostBack)
+        {
+            return null;
+        }
+
+        var request = context.Request;
+
+        HtmlForm? form = null;
+        StringValues formState = default;
+
+        if (request.Form.TryGetValue("wfcForm", out var formId) &&
+            request.Form.TryGetValue("wfcFormState", out formState))
+        {
+            form = page.Forms.FirstOrDefault(i => i.UniqueID == formId);
+        }
+
+        if (form is null or { UpdatePage: true} &&
+            request.Form.TryGetValue("wfcPageState", out var pageState))
+        {
+            await _viewStateManager.LoadAsync(page, pageState.ToString()!);
+        }
+
+        if (form != null && !string.IsNullOrEmpty(formState))
+        {
+            await _viewStateManager.LoadAsync(form, formState.ToString()!);
+        }
+
+        return form;
+    }
+
+    /// <summary>
+    /// Process the request and invoke the page lifecycle events.
+    /// </summary>
+    /// <param name="context">Context of the request.</param>
+    /// <param name="page">Page to process the request for.</param>
+    /// <param name="token">Cancellation token.</param>
+    /// <returns>The control that is loaded and should be rendered.</returns>
+    private async Task<Control> ProcessRequestAsync(IHttpContext context, Page page, CancellationToken token)
+    {
+        var form = await LoadViewStateAsync(context, page);
+        var target = form is null or { UpdatePage: true } ? (Control)page : form;
+
+        page.ActiveForm = form;
+
+        await target.InvokeLoadAsync(token, form);
+
+        if (page.IsPostBack)
+        {
+            if (context.Request.Form.TryGetValue("wfcTarget", out var eventTarget))
+            {
+                var eventArgument = context.Request.Form.TryGetValue("wfcArgument", out var eventArgumentValue)
+                    ? eventArgumentValue.ToString()
+                    : string.Empty;
+
+                await target.InvokePostbackAsync(token, form, eventTarget, eventArgument);
+            }
+
+            await page.RaiseChangedEventsAsync(token);
+
+            if (form != null)
+            {
+                await form.OnSubmitAsync(token);
+            }
+        }
+
+        await target.InvokePreRenderAsync(token, form);
+
+        return target;
+    }
+
+    /// <summary>
+    /// Render the page to the response.
+    /// </summary>
+    /// <param name="page">Page instance.</param>
+    /// <param name="context">Context of the request.</param>
+    /// <param name="controlToRender">Control to render.</param>
+    /// <param name="writer">Writer to render to.</param>
+    /// <param name="token">Cancellation token.</param>
+    private async Task RenderPageAsync(Page page, IHttpContext context, Control controlToRender, HtmlTextWriter writer, CancellationToken token)
+    {
+        var serviceProvider = context.RequestServices;
+        var response = context.Response;
+
+        if (_options.Value.EnableSecurityHeaders)
+        {
+            response.Headers["X-Frame-Options"] = "DENY";
+            response.Headers["X-Content-Type-Options"] = "nosniff";
+            response.Headers["Referrer-Policy"] = "no-referrer";
+
+            if (page.Csp.Enabled)
+            {
+                response.Headers["Content-Security-Policy"] = page.Csp.ToString();
+            }
+        }
+
+        await controlToRender.RenderAsync(writer, token);
     }
 
     private async Task RenderStreamPanelAsync(Page page, string panel, IHttpContext context, CancellationToken token)
@@ -120,7 +246,7 @@ public class PageManager : IPageManager
 
         streamPanel.InvokeFrameworkInit(token);
         await streamPanel.InvokeInitAsync(token);
-        await page.ProcessRequestAsync(token);
+        await ProcessRequestAsync(context, page, token);
 
         context.WebSockets.AcceptWebSocketRequest(streamPanel.StartAsync);
     }

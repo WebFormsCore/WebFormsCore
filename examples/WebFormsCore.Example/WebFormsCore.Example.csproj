@@ -4,9 +4,6 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
-        <PublishAot>true</PublishAot>
-        <IlcGenerateMstatFile>true</IlcGenerateMstatFile>
-        <IlcGenerateDgmlFile>true</IlcGenerateDgmlFile>
         <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
         <WebFormsCoreUseNuget>false</WebFormsCoreUseNuget>
         <WebFormsCoreUseCompiler Condition="$(PublishAot) != 'true'">true</WebFormsCoreUseCompiler>
