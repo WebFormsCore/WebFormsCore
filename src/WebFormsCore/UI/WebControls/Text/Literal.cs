@@ -19,7 +19,7 @@ public partial class Literal : Control, ITextControl
         if (Mode == LiteralMode.Encode)
             return writer.WriteEncodedTextAsync(Text);
 
-        return writer.WriteAsync(Text, token);
+        return writer.WriteAsync(Text);
     }
 
     string ITextControl.Text

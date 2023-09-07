@@ -1020,7 +1020,7 @@
         }
     }
     async function submitForm(element, form, eventTarget, eventArgument) {
-        var _a, _b;
+        var _a;
         const baseElement = element.closest('[data-wfc-base]');
         const release = await postbackMutex.acquire();
         try {
@@ -1051,7 +1051,7 @@
                 method: "POST"
             };
             request.body = hasElementFile(document.body) ? formData : new URLSearchParams(formData);
-            const response = await fetch(url, request);
+            let response = await fetch(url, request);
             if (!response.ok) {
                 document.dispatchEvent(new CustomEvent("wfc:submitError", {
                     detail: {
@@ -1064,42 +1064,93 @@
             }
             const contentDisposition = response.headers.get('content-disposition');
             if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
-                const fileNameMatch = contentDisposition.match(/filename=(?:"([^"]+)"|([^;]+))/);
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.style.display = 'none';
-                if (fileNameMatch) {
-                    a.download = (_b = fileNameMatch[1]) !== null && _b !== void 0 ? _b : fileNameMatch[2];
-                }
-                else {
-                    a.download = "download";
-                }
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, 0);
+                // noinspection ES6MissingAwait
+                receiveFile(element, response, contentDisposition);
             }
             else {
                 const text = await response.text();
                 const options = getMorpdomSettings(form);
                 const parser = new DOMParser();
                 const htmlDoc = parser.parseFromString(text, 'text/html');
-                if (baseElement) {
+                if (form && form.getAttribute('data-wfc-form') === 'self') {
+                    morphdom(form, htmlDoc.querySelector('[data-wfc-form]'), options);
+                }
+                else if (baseElement) {
                     morphdom(baseElement, htmlDoc.querySelector('[data-wfc-base]'), options);
                 }
                 else {
                     morphdom(document.head, htmlDoc.querySelector('head'), options);
                     morphdom(document.body, htmlDoc.querySelector('body'), options);
                 }
+                document.dispatchEvent(new CustomEvent("wfc:afterSubmit", { detail: { container, form, eventTarget } }));
             }
-            document.dispatchEvent(new CustomEvent("wfc:afterSubmit", { detail: { container, form, eventTarget } }));
         }
         finally {
             release();
+        }
+    }
+    async function receiveFile(element, response, contentDisposition) {
+        var _a;
+        document.dispatchEvent(new CustomEvent("wfc:beforeFileDownload", { detail: { element, response } }));
+        try {
+            const contentEncoding = response.headers.get('content-encoding');
+            const contentLength = response.headers.get(contentEncoding ? 'x-file-size' : 'content-length');
+            if (contentLength) {
+                const total = parseInt(contentLength, 10);
+                let loaded = 0;
+                const reader = response.body.getReader();
+                let cancelRequested = false;
+                let onProgress = function (loaded, total) {
+                    const percent = Math.round(loaded / total * 100);
+                    document.dispatchEvent(new CustomEvent("wfc:progressFileDownload", { detail: { element, response, loaded, total, percent } }));
+                };
+                response = new Response(new ReadableStream({
+                    start(controller) {
+                        if (cancelRequested) ;
+                        read();
+                        function read() {
+                            reader.read().then(({ done, value }) => {
+                                if (done) {
+                                    // ensure onProgress called when content-length=0
+                                    if (total === 0) {
+                                        onProgress(loaded, total);
+                                    }
+                                    controller.close();
+                                    return;
+                                }
+                                loaded += value.byteLength;
+                                onProgress(loaded, total);
+                                controller.enqueue(value);
+                                read();
+                            }).catch(error => {
+                                console.error(error);
+                                controller.error(error);
+                            });
+                        }
+                    }
+                }));
+            }
+            const fileNameMatch = contentDisposition.match(/filename=(?:"([^"]+)"|([^;]+))/);
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.style.display = 'none';
+            if (fileNameMatch) {
+                a.download = (_a = fileNameMatch[1]) !== null && _a !== void 0 ? _a : fileNameMatch[2];
+            }
+            else {
+                a.download = "download";
+            }
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 0);
+        }
+        finally {
+            document.dispatchEvent(new CustomEvent("wfc:afterFileDownload", { detail: { element, response } }));
         }
     }
     function getMorpdomSettings(form) {

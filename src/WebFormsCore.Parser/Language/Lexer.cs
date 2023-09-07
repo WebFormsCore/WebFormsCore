@@ -1,4 +1,5 @@
-﻿using WebFormsCore.Models;
+﻿using System.Text;
+using WebFormsCore.Models;
 
 namespace WebFormsCore.Language;
 
@@ -22,6 +23,11 @@ public ref struct Lexer
     private readonly ReadOnlySpan<char> _endComment;
     private readonly ReadOnlySpan<char> _runAt;
 
+    private readonly Stack<string> _tags;
+    private readonly StringBuilder _textBuilder;
+    private TokenPosition _textStart;
+    private TokenPosition _textEnd;
+
     private readonly List<Token> _nodes;
     private readonly ReadOnlySpan<char> _input;
     private int _offset;
@@ -33,6 +39,7 @@ public ref struct Lexer
     public Lexer(string file, ReadOnlySpan<char> input)
     {
         _nodes = new List<Token>();
+        _textBuilder = new StringBuilder();
         _startStatement = StartStatement.Span;
         _startDocType = StartDocType.Span;
         _startComment = StartComment.Span;
@@ -48,6 +55,9 @@ public ref struct Lexer
         _offset = 0;
         _nodeOffset = -1;
         _ignoreNewLine = false;
+        _textStart = default;
+        _textEnd = default;
+        _tags = new Stack<string>();
     }
 
     public string File { get; }
@@ -92,7 +102,7 @@ public ref struct Lexer
         {
             _line++;
             _ignoreNewLine = current == '\r';
-            
+
             Lines.Add(_offset + (_ignoreNewLine ? 2 : 1));
         }
 
@@ -128,9 +138,12 @@ public ref struct Lexer
     {
         var index = _nodeOffset + offset;
 
-        while (index >= _nodes.Count && !Consume())
+        while (index >= _nodes.Count)
         {
-            return null;
+            if (!Consume())
+            {
+                return null;
+            }
         }
 
         if (index >= _nodes.Count)
@@ -145,7 +158,7 @@ public ref struct Lexer
     {
         if (_offset >= _input.Length)
         {
-            return false;
+            return AddText();
         }
 
         if (ConsumeComment())
@@ -221,7 +234,7 @@ public ref struct Lexer
         {
             return false;
         }
-        
+
         return ConsumeElement(true) || ConsumeInline();
     }
 
@@ -234,7 +247,7 @@ public ref struct Lexer
             return false;
         }
 
-        var start = Position;
+        var tagStart = Position;
 
         if (!Consume('<'))
         {
@@ -242,15 +255,28 @@ public ref struct Lexer
         }
 
         var isClosingTag = Consume('/');
-        AddNode(isClosingTag ? TokenType.TagOpenSlash : TokenType.TagOpen, start, default(TokenString));
-
-        start = Position;
+        var start = Position;
         var name = ReadTagName();
+        var isInvalid = name.Value.Length == 0 ||
+                        (!isServerTag && !isClosingTag && !ShouldParse(name.Value));
 
-        if (name.Value.Length == 0)
+        if (isInvalid || isClosingTag)
         {
-            return false;
+            if (isInvalid || _tags.Count == 0 || name.Value != _tags.Peek())
+            {
+                AddNode(TokenType.Text, tagStart, new TokenString(isClosingTag ? "</" : "<", new TokenRange(File, tagStart, start)));
+                AddNode(TokenType.Text, start, new TokenString(name, new TokenRange(File, start, Position)));
+                return true;
+            }
+
+            _tags.Pop();
         }
+        else
+        {
+            _tags.Push(name.Value);
+        }
+
+        AddNode(isClosingTag ? TokenType.TagOpenSlash : TokenType.TagOpen, new TokenRange(File, tagStart, start));
 
         if (Current == ':')
         {
@@ -344,10 +370,27 @@ public ref struct Lexer
 
         if (Consume('>'))
         {
+            if (hasClosing)
+            {
+                _tags.Pop();
+            }
+
             AddNode(hasClosing ? TokenType.TagSlashClose : TokenType.TagClose, start, default(TokenString));
         }
 
         return true;
+    }
+
+    private static bool ShouldParse(string name)
+    {
+        return
+            // Properties
+            char.IsUpper(name[0]) ||
+
+            // CSP elements
+            name.Equals("script", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("style", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("link", StringComparison.OrdinalIgnoreCase);
     }
 
     private bool ConsumeInline()
@@ -515,6 +558,30 @@ public ref struct Lexer
         AddNode(type, new TokenRange(File, start, end), CreateString(start, end));
     }
 
+    private void TrackText(TokenRange range, TokenString value)
+    {
+        if (_textBuilder.Length == 0)
+        {
+            _textStart = range.Start;
+        }
+
+        _textEnd = range.End;
+        _textBuilder.Append(value.Value);
+    }
+
+    private bool AddText()
+    {
+        if (_textBuilder.Length == 0)
+        {
+            return false;
+        }
+
+        var text = new TokenString(_textBuilder.ToString(), new TokenRange(File, _textStart, _textEnd));
+        _textBuilder.Clear();
+        _nodes.Add(new Token(TokenType.Text, text.Range, text));
+        return true;
+    }
+
     private void InsertNode(int index, TokenType type, TokenRange range, TokenString value = default)
     {
         _nodes.Insert(index, new Token(type, range, value));
@@ -522,11 +589,25 @@ public ref struct Lexer
 
     private void AddNode(TokenType type, TokenRange range, TokenString value = default)
     {
+        if (type == TokenType.Text)
+        {
+            TrackText(range, value);
+            return;
+        }
+
+        AddText();
         _nodes.Add(new Token(type, range, value));
     }
 
     private void AddNode(TokenType type, TokenPosition start, TokenString value)
     {
+        if (type == TokenType.Text)
+        {
+            TrackText(value.Range with { Start = start }, value);
+            return;
+        }
+
+        AddText();
         _nodes.Add(new Token(type, new TokenRange(File, start, Position), value));
     }
 

@@ -7,8 +7,6 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using HttpStack;
-using WebFormsCore.Example.Controls;
-using WebFormsCore.Security;
 using WebFormsCore.UI;
 using WebFormsCore.UI.WebControls;
 
@@ -38,6 +36,7 @@ public partial class Default : Page
     protected override async ValueTask OnLoadAsync(CancellationToken token)
     {
         await base.OnLoadAsync(token);
+        if (!IsPostBack) await LoadAsync();
     }
 
     protected void choices_OnValuesChanged(Choices sender, EventArgs e)
@@ -73,11 +72,6 @@ public partial class Default : Page
         {
             await grid.LoadDataSourceAsync(todos);
         }
-    }
-
-    protected Task OnConnected(StreamPanel sender, EventArgs e)
-    {
-        return LoadAsync();
     }
 }
 

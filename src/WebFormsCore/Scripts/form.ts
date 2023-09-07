@@ -193,7 +193,7 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
 
         request.body = hasElementFile(document.body) ? formData : new URLSearchParams(formData as any);
 
-        const response = await fetch(url, request)
+        let response = await fetch(url, request)
 
         if (!response.ok) {
             document.dispatchEvent(new CustomEvent("wfc:submitError", {
@@ -209,26 +209,8 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
         const contentDisposition = response.headers.get('content-disposition');
 
         if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
-            const fileNameMatch = contentDisposition.match(/filename=(?:"([^"]+)"|([^;]+))/);
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.style.display = 'none';
-
-            if (fileNameMatch) {
-                a.download = fileNameMatch[1] ?? fileNameMatch[2];
-            } else {
-                a.download = "download";
-            }
-
-            document.body.appendChild(a);
-            a.click();
-
-            setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, 0);
+            // noinspection ES6MissingAwait
+            receiveFile(element, response, contentDisposition);
         } else {
             const text = await response.text();
             const options = getMorpdomSettings(form);
@@ -236,17 +218,99 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
             const parser = new DOMParser();
             const htmlDoc = parser.parseFromString(text, 'text/html');
 
-            if (baseElement) {
+            if (form && form.getAttribute('data-wfc-form') === 'self') {
+                morphdom(form, htmlDoc.querySelector('[data-wfc-form]'), options);
+            } else if (baseElement) {
                 morphdom(baseElement, htmlDoc.querySelector('[data-wfc-base]'), options);
             } else {
                 morphdom(document.head, htmlDoc.querySelector('head'), options);
                 morphdom(document.body, htmlDoc.querySelector('body'), options);
             }
-        }
 
-        document.dispatchEvent(new CustomEvent("wfc:afterSubmit", {detail: {container, form, eventTarget}}));
+            document.dispatchEvent(new CustomEvent("wfc:afterSubmit", {detail: {container, form, eventTarget}}));
+        }
     } finally {
         release();
+    }
+}
+
+async function receiveFile(element: Element, response: Response, contentDisposition: string) {
+    document.dispatchEvent(new CustomEvent("wfc:beforeFileDownload", {detail: {element, response}}));
+
+    try {
+        const contentEncoding = response.headers.get('content-encoding');
+        const contentLength = response.headers.get(contentEncoding ? 'x-file-size' : 'content-length');
+
+        if (contentLength) {
+            const total = parseInt(contentLength,10);
+            let loaded = 0;
+
+            const reader = response.body.getReader();
+
+            let cancelRequested = false;
+            let onProgress = function(loaded: number, total: number) {
+                const percent = Math.round(loaded / total * 100);
+                document.dispatchEvent(new CustomEvent("wfc:progressFileDownload", {detail: {element, response, loaded, total, percent}}));
+            }
+
+            response = new Response(
+                new ReadableStream({
+                    start(controller) {
+                        if (cancelRequested) {
+                            controller.close();
+                            return;
+                        }
+
+                        read();
+
+                        function read() {
+                            reader.read().then(({done, value}) => {
+                                if (done) {
+                                    // ensure onProgress called when content-length=0
+                                    if (total === 0) {
+                                        onProgress(loaded, total);
+                                    }
+
+                                    controller.close();
+                                    return;
+                                }
+
+                                loaded += value.byteLength;
+                                onProgress(loaded, total);
+                                controller.enqueue(value);
+                                read();
+                            }).catch(error => {
+                                console.error(error);
+                                controller.error(error)
+                            });
+                        }
+                    }
+                })
+            )
+        }
+
+        const fileNameMatch = contentDisposition.match(/filename=(?:"([^"]+)"|([^;]+))/);
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.style.display = 'none';
+
+        if (fileNameMatch) {
+            a.download = fileNameMatch[1] ?? fileNameMatch[2];
+        } else {
+            a.download = "download";
+        }
+
+        document.body.appendChild(a);
+        a.click();
+
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 0);
+    } finally {
+        document.dispatchEvent(new CustomEvent("wfc:afterFileDownload", {detail: {element, response}}));
     }
 }
 

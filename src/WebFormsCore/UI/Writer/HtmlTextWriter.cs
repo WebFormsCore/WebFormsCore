@@ -21,7 +21,7 @@ public class StringHtmlTextWriter : HtmlTextWriter
         _stringBuilder.Append(buffer);
     }
 
-    protected override ValueTask FlushAsync(ReadOnlyMemory<char> buffer, CancellationToken token = default)
+    protected override ValueTask FlushAsync(ReadOnlyMemory<char> buffer)
     {
         _stringBuilder.Append(buffer.Span);
         return default;
@@ -35,7 +35,7 @@ public class StringHtmlTextWriter : HtmlTextWriter
         }
     }
 
-    protected override ValueTask FlushAsync(ReadOnlyMemory<char> buffer, CancellationToken token = default)
+    protected override ValueTask FlushAsync(ReadOnlyMemory<char> buffer)
     {
         Flush(buffer.Span);
         return default;
@@ -66,11 +66,11 @@ public class StreamHtmlTextWriter : HtmlTextWriter
         _stream.Flush();
     }
 
-    protected override async ValueTask FlushAsync(ReadOnlyMemory<char> buffer, CancellationToken token = default)
+    protected override async ValueTask FlushAsync(ReadOnlyMemory<char> buffer)
     {
         var length = Encoding.GetBytes(buffer.Span, _buffer);
-        await _stream.WriteAsync(_buffer, 0, length, token);
-        await _stream.FlushAsync(token);
+        await _stream.WriteAsync(_buffer, 0, length);
+        await _stream.FlushAsync();
     }
 }
 
@@ -140,7 +140,7 @@ public abstract class HtmlTextWriter : IDisposable
 
     protected abstract void Flush(ReadOnlySpan<char> buffer);
 
-    protected abstract ValueTask FlushAsync(ReadOnlyMemory<char> buffer, CancellationToken token = default);
+    protected abstract ValueTask FlushAsync(ReadOnlyMemory<char> buffer);
 
     public void Flush()
     {
@@ -205,19 +205,19 @@ public abstract class HtmlTextWriter : IDisposable
         return _charPos == _charBuffer.Length ? FlushAsync() : default;
     }
 
-    public ValueTask WriteAsync(string? buffer, CancellationToken token = default)
+    public ValueTask WriteAsync(string? buffer)
     {
         if (buffer is null) return default;
-        return WriteAsync(buffer.AsMemory(), token);
+        return WriteAsync(buffer.AsMemory());
     }
 
-    public ValueTask WriteAsync(ReadOnlyMemory<char> buffer, CancellationToken token = default)
+    public ValueTask WriteAsync(ReadOnlyMemory<char> buffer)
     {
         var remaining = (BufferSize - 1) - _charPos;
 
         if (buffer.Length > remaining)
         {
-            return WriteAsyncSlow(buffer, token);
+            return WriteAsyncSlow(buffer);
         }
 
         buffer.Span.CopyTo(_charBuffer.AsSpan(_charPos));
@@ -226,7 +226,7 @@ public abstract class HtmlTextWriter : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private async ValueTask WriteAsyncSlow(ReadOnlyMemory<char> buffer, CancellationToken token = default)
+    private async ValueTask WriteAsyncSlow(ReadOnlyMemory<char> buffer)
     {
         while (buffer.Length > 0)
         {
@@ -237,13 +237,13 @@ public abstract class HtmlTextWriter : IDisposable
 
             if (_charPos == _charBuffer.Length)
             {
-                await FlushAsync(_charBuffer.AsMemory(0, _charPos), token);
+                await FlushAsync(_charBuffer.AsMemory(0, _charPos));
                 _charPos = 0;
             }
         }
     }
 
-    public virtual async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken token = default)
+    public virtual async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer)
     {
         var size = Encoding.GetMaxCharCount(buffer.Length);
         using var charBuffer = MemoryPool<char>.Shared.Rent(size);
@@ -251,7 +251,7 @@ public abstract class HtmlTextWriter : IDisposable
         var chars = charBuffer.Memory.Slice(0, size);
         var count = Encoding.GetChars(buffer.Span, chars.Span);
 
-        await WriteAsync(chars.Slice(0, count), token);
+        await WriteAsync(chars.Slice(0, count));
     }
 
     public virtual ValueTask WriteObjectAsync(object? value)

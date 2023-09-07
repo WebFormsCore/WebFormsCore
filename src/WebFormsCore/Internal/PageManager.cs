@@ -63,8 +63,7 @@ public class PageManager : IPageManager
             return;
         }
 
-        await page.ProcessRequestAsync(token);
-
+        var control = await page.ProcessRequestAsync(token);
         var response = context.Response;
 
         if (response.HasStarted)
@@ -96,7 +95,7 @@ public class PageManager : IPageManager
                 }
             }
 
-            await page.RenderAsync(writer, token);
+            await control.RenderAsync(writer, token);
         }
 
         await writer.FlushAsync();

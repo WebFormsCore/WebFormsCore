@@ -52,7 +52,7 @@ public class ViewStateManager : IViewStateManager
 
     public bool EnableViewState => _options?.Value.Enabled ?? true;
 
-    public IMemoryOwner<byte> WriteBase64(Control control, out int length)
+    public ValueTask<IMemoryOwner<byte>> WriteAsync(Control control, out int length)
     {
         var writer = new ViewStateWriter(_serviceProvider);
 
@@ -110,7 +110,9 @@ public class ViewStateManager : IViewStateManager
 
             Base64.EncodeToUtf8InPlace(result, dataLength + HeaderLength + _hashLength, out length);
 
-            return new ArrayMemoryOwner(array, length, true);
+            var owner = new ArrayMemoryOwner(array, length, true);
+
+            return new ValueTask<IMemoryOwner<byte>>(owner);
         }
         finally
         {
@@ -129,43 +131,7 @@ public class ViewStateManager : IViewStateManager
 #endif
     }
 
-    public async ValueTask<HtmlForm?> LoadFromRequestAsync(IHttpContext context, Page page)
-    {
-        if (!EnableViewState)
-        {
-            return null;
-        }
-
-        var request = context.Request;
-        var isPostback = request.Method == "POST";
-
-        if (!isPostback)
-        {
-            return null;
-        }
-
-        if (request.Form.TryGetValue("wfcPageState", out var pageState))
-        {
-            await LoadFromBase64Async(page, pageState.ToString());
-        }
-
-        if (!request.Form.TryGetValue("wfcForm", out var formId) ||
-            !request.Form.TryGetValue("wfcFormState", out var formState))
-        {
-            return null;
-        }
-
-        var form = page.Forms.FirstOrDefault(i => i.UniqueID == formId);
-
-        if (form != null && !string.IsNullOrEmpty(formState))
-        {
-            await LoadFromBase64Async(form, formState.ToString());
-        }
-
-        return form;
-    }
-
-    public async ValueTask LoadFromBase64Async(Control control, string viewState)
+    public async ValueTask LoadAsync(Control control, string viewState)
     {
         using var reader = CreateReader(viewState);
 
@@ -418,7 +384,7 @@ public class ViewStateManager : IViewStateManager
             }
 
             _array = ArrayPool<(Control, int)>.Shared.Rent(depth);
-            Push(root, -1);
+            Push(root, -2);
         }
 
         public Control Current => _array[_currentIndex].Control;
@@ -437,6 +403,11 @@ public class ViewStateManager : IViewStateManager
                 }
 
                 Push(currentControl, index);
+
+                if (index < 0)
+                {
+                    return true;
+                }
 
                 var nextControl = currentControl.Controls[index];
 

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HttpStack;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Primitives;
 using WebFormsCore.Events;
 using WebFormsCore.Security;
 using WebFormsCore.UI.Attributes;
@@ -78,14 +80,54 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
         }
     }
 
-    internal async Task<HtmlForm?> ProcessRequestAsync(CancellationToken token)
+    private async ValueTask<HtmlForm?> LoadViewStateAsync()
     {
         var viewStateManager = ServiceProvider.GetRequiredService<IViewStateManager>();
-        var form = await viewStateManager.LoadFromRequestAsync(Context, this);
+
+        if (!viewStateManager.EnableViewState)
+        {
+            return null;
+        }
+
+        var request = Context.Request;
+        var isPostback = request.Method == "POST";
+
+        if (!isPostback)
+        {
+            return null;
+        }
+
+        HtmlForm? form = null;
+        StringValues formState = default;
+
+        if (request.Form.TryGetValue("wfcForm", out var formId) &&
+            request.Form.TryGetValue("wfcFormState", out formState))
+        {
+            form = Forms.FirstOrDefault(i => i.UniqueID == formId);
+        }
+
+        if (form is null or { UpdatePage: true} &&
+            request.Form.TryGetValue("wfcPageState", out var pageState))
+        {
+            await viewStateManager.LoadAsync(this, pageState.ToString()!);
+        }
+
+        if (form != null && !string.IsNullOrEmpty(formState))
+        {
+            await viewStateManager.LoadAsync(form, formState.ToString()!);
+        }
+
+        return form;
+    }
+
+    internal async Task<Control> ProcessRequestAsync(CancellationToken token)
+    {
+        var form = await LoadViewStateAsync();
+        var target = form is null or { UpdatePage: true } ? (Control)this : form;
 
         ActiveForm = form;
 
-        await InvokeLoadAsync(token, form);
+        await target.InvokeLoadAsync(token, form);
 
         if (IsPostBack)
         {
@@ -95,7 +137,7 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
                     ? eventArgumentValue.ToString()
                     : string.Empty;
 
-                await InvokePostbackAsync(token, form, eventTarget, eventArgument);
+                await target.InvokePostbackAsync(token, form, eventTarget, eventArgument);
             }
 
             await RaiseChangedEventsAsync(token);
@@ -106,9 +148,9 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
             }
         }
 
-        await InvokePreRenderAsync(token, form);
+        await target.InvokePreRenderAsync(token, form);
 
-        return form;
+        return target;
     }
 
     public async ValueTask RaiseChangedEventsAsync(CancellationToken cancellationToken)

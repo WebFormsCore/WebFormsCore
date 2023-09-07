@@ -98,7 +98,7 @@ public class HtmlGenericControl : HtmlContainerControl
     protected override ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
         return _preRenderedContent != null
-            ? writer.WriteAsync(_preRenderedContent, token)
+            ? writer.WriteAsync(_preRenderedContent)
             : base.RenderChildrenAsync(writer, token);
     }
 

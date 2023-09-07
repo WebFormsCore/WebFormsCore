@@ -18,6 +18,8 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
 
     public event AsyncEventHandler<HtmlForm, EventArgs>? Submit;
 
+    public bool UpdatePage { get; set; } = true;
+
     public override bool EnableViewState { get; set; } = true;
 
     private bool IsDiv => Page.IsExternal;
@@ -51,7 +53,7 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         }
 
         await writer.WriteAttributeAsync("id", ClientID);
-        await writer.WriteAttributeAsync("data-wfc-form", null);
+        await writer.WriteAttributeAsync("data-wfc-form", UpdatePage ? null : "self");
     }
 
     protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
@@ -67,9 +69,9 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         if (viewStateManager.EnableViewState && !Page.IsStreaming)
         {
             await writer.WriteAsync(@"<input type=""hidden"" name=""wfcFormState"" value=""");
-            using (var viewState = viewStateManager.WriteBase64(this, out var length))
+            using (var viewState = await viewStateManager.WriteAsync(this, out var length))
             {
-                await writer.WriteAsync(viewState.Memory.Slice(0, length), token);
+                await writer.WriteAsync(viewState.Memory.Slice(0, length));
             }
 
             await writer.WriteAsync(@"""/>");

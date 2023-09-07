@@ -28,7 +28,7 @@ public partial class Button : WebControl, IPostBackAsyncEventHandler
     {
         return HasControls()
             ? base.RenderContentsAsync(writer, token)
-            : writer.WriteAsync(Text, token);
+            : writer.WriteAsync(Text);
     }
 
     protected override async ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)

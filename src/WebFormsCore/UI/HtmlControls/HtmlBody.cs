@@ -55,23 +55,21 @@ public class HtmlBody : HtmlContainerControl
             await control.RenderInBodyAsync(writer, token);
         }
 
-        if (viewStateManager.EnableViewState)
+        if (viewStateManager.EnableViewState && Page.EnablePageViewState)
         {
-            if (Page.EnablePageViewState)
-            {
-                await writer.WriteAsync(@"<input id=""pagestate"" type=""hidden"" name=""wfcPageState"" value=""");
-                using (var viewState = viewStateManager.WriteBase64(Page, out var length))
-                {
-                    await writer.WriteAsync(viewState.Memory.Slice(0, length), token);
-                }
+            await writer.WriteAsync(@"<input id=""pagestate"" type=""hidden"" name=""wfcPageState"" value=""");
 
-                await writer.WriteAsync(@"""/>");
+            using (var viewState = await viewStateManager.WriteAsync(Page, out var length))
+            {
+                await writer.WriteAsync(viewState.Memory.Slice(0, length));
             }
 
-            if (!Page.IsPostBack)
-            {
-                await Page.ClientScript.RenderStartupBody(writer);
-            }
+            await writer.WriteAsync(@"""/>");
+        }
+
+        if (!Page.IsPostBack)
+        {
+            await Page.ClientScript.RenderStartupBody(writer);
         }
     }
 }
