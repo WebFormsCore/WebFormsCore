@@ -9,11 +9,11 @@ namespace WebFormsCore.UI;
 internal sealed class PooledControlFactory<T> : IControlFactory<T>, IDisposable
     where T : Control
 {
-    private readonly IControlInterceptor[] _interceptors;
+    private readonly IControlInterceptor<T>[] _interceptors;
     private readonly ObjectPool<T> _pool;
     private readonly List<T> _controls = new();
 
-    public PooledControlFactory(ObjectPool<T> pool, IEnumerable<IControlInterceptor> interceptors)
+    public PooledControlFactory(ObjectPool<T> pool, IEnumerable<IControlInterceptor<T>> interceptors)
     {
         _pool = pool;
         _interceptors = interceptors.ToArray();

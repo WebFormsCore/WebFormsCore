@@ -1,8 +1,7 @@
 ﻿using System.Reflection;
-using WebFormsCore.UI;
 using WebFormsCore.UI.WebControls;
 
-namespace WebFormsCore;
+namespace WebFormsCore.UI.CellRenderers;
 
 public class CheckBoxCellRenderer : IGridCellRenderer
 {

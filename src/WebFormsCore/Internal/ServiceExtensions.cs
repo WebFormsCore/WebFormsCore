@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using WebFormsCore.Internal;
+using WebFormsCore.Providers;
 using WebFormsCore.Serializer;
 using WebFormsCore.UI;
 using WebFormsCore.UI.Attributes;
@@ -16,11 +17,20 @@ namespace WebFormsCore;
 
 public static class ServiceExtensions
 {
-    public static IServiceCollection AddWebForms(this IServiceCollection services)
+    public static IServiceCollection AddWebForms(this IServiceCollection services, Action<IWebFormsCoreBuilder>? configure = null)
+    {
+        var builder = services.AddWebFormsCore();
+        configure?.Invoke(builder);
+        return services;
+    }
+
+    public static IWebFormsCoreBuilder AddWebFormsCore(this IServiceCollection services)
     {
         services.TryAddSingleton<IViewStateManager, ViewStateManager>();
 
         services.TryAddSingleton<IWebFormsEnvironment, DefaultWebFormsEnvironment>();
+
+        services.TryAddSingleton<IQueryableCountProvider, DefaultQueryableCountProvider>();
 
         services.AddScoped<ScopedControlContainer>();
         services.TryAddScoped(typeof(IControlFactory<>), typeof(ControlFactory<>));
@@ -68,7 +78,7 @@ public static class ServiceExtensions
         services.TryAddSingleton<IAttributeParser<Unit>, UnitAttributeParser>();
         services.TryAddSingleton<IAttributeParser<string[]>, ArrayAttributeParser<string>>();
 
-        return services;
+        return new WebFormsCoreBuilder(services);
     }
 
     public static IServiceCollection AddPooledControl<T>(this IServiceCollection services, int maxAmount = 1024)

@@ -33,7 +33,7 @@ public class ViewStateManager : IViewStateManager
         _serviceProvider = serviceProvider;
         _options = options;
         _hashAlgorithm = !string.IsNullOrEmpty(options?.Value.EncryptionKey)
-            ? new HMACSHA256(Encoding.UTF8.GetBytes(options!.Value.EncryptionKey))
+            ? new HMACSHA256(Encoding.UTF8.GetBytes(options!.Value.EncryptionKey!))
             : SHA256.Create();
         _hashLength = _hashAlgorithm.HashSize / 8;
     }

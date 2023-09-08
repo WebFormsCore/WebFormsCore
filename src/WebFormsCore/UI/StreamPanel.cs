@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using HttpStack;
+using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI.WebControls;
@@ -110,7 +111,7 @@ public class StreamPanel : Control, INamingContainer
                         break;
                     }
 
-                    await UpdateAsync(result, incoming);
+                    await HandleAsync(result, incoming);
                     _receiveTask = null;
                 }
                 else
@@ -147,7 +148,7 @@ public class StreamPanel : Control, INamingContainer
         await Disconnected.InvokeAsync(this, EventArgs.Empty);
     }
 
-    private async ValueTask UpdateAsync(WebSocketReceiveResult result, byte[] incoming)
+    private async ValueTask HandleAsync(WebSocketReceiveResult result, byte[] incoming)
     {
         var memory = incoming.AsMemory(0, result.Count);
         var command = JsonSerializer.Deserialize(memory.Span, JsonContext.Default.WebSocketCommand);
@@ -173,6 +174,13 @@ public class StreamPanel : Control, INamingContainer
         await UpdateControlAsync();
 
         Page.IsPostBack = false;
+
+        var scopedControlContainer = Context.RequestServices.GetService<ScopedControlContainer>();
+
+        if (scopedControlContainer != null)
+        {
+            await scopedControlContainer.DisposeFloatingControlsAsync();
+        }
     }
 
     private async Task UpdateControlAsync(CancellationToken token = default)

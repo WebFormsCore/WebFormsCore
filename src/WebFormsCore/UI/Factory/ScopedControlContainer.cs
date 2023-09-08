@@ -6,25 +6,49 @@ namespace WebFormsCore.UI;
 
 internal sealed class ScopedControlContainer : IAsyncDisposable, IDisposable
 {
-    private readonly HashSet<object> _controls = new();
+    private readonly HashSet<Control> _controls = new();
 
-    public void Register(object control)
+    public void Register(Control control)
     {
         _controls.Add(control);
+    }
+
+    /// <summary>
+    /// Disposes all controls that are not in the page.
+    /// </summary>
+    public async ValueTask DisposeFloatingControlsAsync()
+    {
+        foreach (var control in _controls)
+        {
+            if (!control.IsInPage)
+            {
+                await DisposeControlAsync(control);
+            }
+        }
+
+        _controls.RemoveWhere(static i => !i.IsInPage);
+    }
+
+    private static ValueTask DisposeControlAsync(Control control)
+    {
+        if (control is IAsyncDisposable asyncDisposable)
+        {
+            return asyncDisposable.DisposeAsync();
+        }
+
+        if (control is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+
+        return default;
     }
 
     public async ValueTask DisposeAsync()
     {
         foreach (var control in _controls)
         {
-            if (control is IAsyncDisposable asyncDisposable)
-            {
-                await asyncDisposable.DisposeAsync();
-            }
-            else if (control is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
+            await DisposeControlAsync(control);
         }
     }
 

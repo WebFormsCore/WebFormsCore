@@ -117,7 +117,7 @@ function getStreamPanel(element: Element) {
     return element.closest('[data-wfc-stream]') as HTMLElement
 }
 
-function addInputs(formData: FormData, root: HTMLElement, addFormElements: boolean) {
+function addInputs(formData: FormData, root: HTMLElement, addFormElements: boolean, allowFileUploads) {
     // Add all the form elements that are not in a form
     const elements = [];
 
@@ -150,8 +150,39 @@ function addInputs(formData: FormData, root: HTMLElement, addFormElements: boole
             continue;
         }
 
+        if (!allowFileUploads && element.type === "file") {
+            continue;
+        }
+
         addElement(element, formData);
     }
+}
+
+function getFormData(form?: HTMLElement, eventTarget?: string, eventArgument?: string, allowFileUploads: boolean = true) {
+    let formData: FormData
+
+    if (form) {
+        if (form.tagName === "FORM" && allowFileUploads) {
+            formData = new FormData(form as HTMLFormElement);
+        } else {
+            formData = new FormData()
+            addInputs(formData, form, true, allowFileUploads);
+        }
+    } else {
+        formData = new FormData();
+    }
+
+    addInputs(formData, document.body, false, allowFileUploads);
+
+    if (eventTarget) {
+        formData.append("wfcTarget", eventTarget);
+    }
+
+    if (eventArgument) {
+        formData.append("wfcArgument", eventArgument);
+    }
+
+    return formData;
 }
 
 async function submitForm(element: Element, form?: HTMLElement, eventTarget?: string, eventArgument?: string) {
@@ -160,29 +191,7 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
 
     try {
         const url = baseElement?.getAttribute('data-wfc-base') ?? location.toString();
-
-        let formData: FormData
-
-        if (form) {
-            if (form.tagName === "FORM") {
-                formData = new FormData(form as HTMLFormElement);
-            } else {
-                formData = new FormData()
-                addInputs(formData, form, true);
-            }
-        } else {
-            formData = new FormData();
-        }
-
-        addInputs(formData, document.body, false);
-
-        if (eventTarget) {
-            formData.append("wfcTarget", eventTarget);
-        }
-
-        if (eventArgument) {
-            formData.append("wfcArgument", eventArgument);
-        }
+        const formData = getFormData(form, eventTarget, eventArgument);
 
         const container = new ViewStateContainer(form, formData);
         document.dispatchEvent(new CustomEvent("wfc:beforeSubmit", {detail: {container, eventTarget}}));

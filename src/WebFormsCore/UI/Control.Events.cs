@@ -105,13 +105,13 @@ public partial class Control : IInternalControl
 
     internal void InvokeFrameworkInit(CancellationToken token)
     {
+        if (this is IDisposable or IAsyncDisposable)
+        {
+            Page.RegisterDisposable(this);
+        }
+
         if (ProcessControl)
         {
-            if (this is IDisposable or IAsyncDisposable)
-            {
-                Page.RegisterDisposable(this);
-            }
-
             FrameworkInitialize();
             FrameworkInitialized();
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
+using WebFormsCore.Providers;
 using WebFormsCore.UI.Attributes;
 using WebFormsCore.UI.WebControls;
 
@@ -8,7 +9,7 @@ namespace WebFormsCore.UI;
 
 [ParseChildren(true)]
 [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
-public partial class Grid : WebControl, IPostBackLoadHandler
+public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsumer
 {
     private readonly List<GridItem> _items = new();
 
@@ -19,7 +20,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler
     [ViewState] public AttributeCollection RowAttributes { get; set; } = new();
     [ViewState] public AttributeCollection EditRowAttributes { get; set; } = new();
 
-    protected object? DataSourceField;
+    private IDataSource? _dataSource;
 
     public event AsyncEventHandler<Grid, GridItemEventArgs>? ItemCreated;
 
@@ -36,9 +37,9 @@ public partial class Grid : WebControl, IPostBackLoadHandler
 
     public object? DataSource
     {
-        get => DataSourceField;
-        [RequiresDynamicCode("The type of the data source is not known at compile time. Use LoadDataSourceAsync<T>(source) instead.")]
-        set => DataSourceField = value;
+        get => _dataSource?.Value;
+        [RequiresDynamicCode("The element type of the data source is not known at compile time. Use SetDataSource<T>(source) instead.")]
+        set => _dataSource = new DataSource(value!);
     }
 
     public int? PageCount => PageSize.HasValue && _dataCount.HasValue ? (int)Math.Ceiling((double)_dataCount / PageSize.Value) : null;
@@ -109,28 +110,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler
         }
     }
 
-    public async Task LoadDataSourceAsync<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
-        T>(IQueryable<T> source)
-    {
-        await LoadDataSourceInnerAsync<T>(source);
-    }
-
-    public async Task LoadDataSourceAsync<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
-        T>(IEnumerable<T> source)
-    {
-        await LoadDataSourceInnerAsync<T>(source);
-    }
-
-    public async Task LoadDataSourceAsync<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
-        T>(IAsyncEnumerable<T> source)
-    {
-        await LoadDataSourceInnerAsync<T>(source);
-    }
-
-    private Task LoadDataSourceInnerAsync<T>(object source)
+    public ValueTask LoadDataSourceAsync<T>(object source)
     {
         return source switch
         {
@@ -141,57 +121,22 @@ public partial class Grid : WebControl, IPostBackLoadHandler
         };
     }
 
-    [RequiresDynamicCode("The type of the data source is not known at compile time. Use LoadDataSourceAsync<T>(source) instead.")]
-    public async Task DataBindAsync()
+    public virtual ValueTask DataBindAsync()
     {
-        await LoadDataSourceAsync();
-    }
-
-    protected virtual async Task LoadDataSourceAsync()
-    {
-        if (DataSourceField is null)
+        if (_dataSource is null)
         {
-            await ClearAsync();
-            return;
+            return ClearAsync();
         }
 
-        var type = DataSourceField.GetType();
-        var elementType = type.GetInterfaces()
-            .Where(i => i.IsGenericType)
-            .FirstOrDefault(i =>
-            {
-                var genericType = i.GetGenericTypeDefinition();
-
-                return genericType == typeof(IQueryable<>) ||
-                       genericType == typeof(IAsyncEnumerable<>) ||
-                       genericType == typeof(IEnumerable<>);
-            })?.GetGenericArguments()[0];
-
-        if (elementType is null)
-        {
-            throw new InvalidOperationException(
-                $"The type {type.FullName} does not implement IQueryable<T>, IAsyncEnumerable<T> or IEnumerable<T>.");
-        }
-
-        var genericMethod = typeof(Grid)
-            .GetMethod(nameof(LoadDataSourceInnerAsync), BindingFlags.Instance | BindingFlags.NonPublic)!
-            .MakeGenericMethod(elementType);
-
-        await (Task)genericMethod.Invoke(this, new[] { DataSourceField })!;
+        return _dataSource.LoadAsync(this);
     }
 
-    protected async Task LoadDataSourceQueryable<T>(IQueryable<T> dataSource)
+    protected async ValueTask LoadDataSourceQueryable<T>(IQueryable<T> dataSource)
     {
+        var countProvider = Context.RequestServices.GetRequiredService<IQueryableCountProvider>();
+
         _itemType = typeof(T);
-
-        if (dataSource is IAsyncEnumerable<T> allEnumerable)
-        {
-            _dataCount = await allEnumerable.CountAsync();
-        }
-        else
-        {
-            _dataCount = dataSource.Count();
-        }
+        _dataCount = await countProvider.CountAsync(dataSource);
 
         UpdatePaging();
 
@@ -223,7 +168,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler
         }
     }
 
-    protected async Task LoadDataSourceEnumerable<T>(IEnumerable<T> dataSource)
+    protected async ValueTask LoadDataSourceEnumerable<T>(IEnumerable<T> dataSource)
     {
         _itemType = typeof(T);
         _dataCount = dataSource.Count();
@@ -248,7 +193,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler
         }
     }
 
-    protected async Task LoadDataSourceAsyncEnumerable<T>(IAsyncEnumerable<T> dataSource)
+    protected async ValueTask LoadDataSourceAsyncEnumerable<T>(IAsyncEnumerable<T> dataSource)
     {
         _itemType = typeof(T);
         _dataCount = await dataSource.CountAsync();
@@ -363,23 +308,10 @@ public partial class Grid : WebControl, IPostBackLoadHandler
 
         await writer.RenderEndTagAsync();
     }
-}
 
-[ParseChildren(true)]
-public partial class Grid<
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
-    T> : Grid
-{
-    public override Type ItemType => base.ItemType ?? typeof(T);
-
-    protected override Task LoadDataSourceAsync()
+    IDataSource? IDataSourceConsumer.DataSource
     {
-        return DataSourceField switch
-        {
-            IQueryable<T> queryable => LoadDataSourceQueryable(queryable),
-            IAsyncEnumerable<T> asyncEnumerable => LoadDataSourceAsyncEnumerable(asyncEnumerable),
-            IEnumerable<T> enumerable => LoadDataSourceEnumerable(enumerable),
-            _ => base.LoadDataSourceAsync()
-        };
+        get => _dataSource;
+        set => _dataSource = value;
     }
 }

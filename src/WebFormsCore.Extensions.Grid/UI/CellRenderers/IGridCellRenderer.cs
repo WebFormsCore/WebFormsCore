@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace WebFormsCore.UI;
+namespace WebFormsCore.UI.CellRenderers;
 
 public interface IGridCellRenderer
 {

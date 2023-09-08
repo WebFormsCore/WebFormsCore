@@ -2,14 +2,18 @@ using System.Threading.Tasks;
 using HttpStack;
 using HttpStack.AspNetCore;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore;
 using WebFormsCore.Example;
-using WebFormsCore.UI;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddWebForms();
-builder.Services.AddSingleton<IGridCellRenderer, CheckBoxCellRenderer>();
+
+builder.Services.AddWebForms(b =>
+{
+    b.AddGridCellRenderers();
+});
+
 builder.Services.Configure<WebFormsCoreOptions>(options =>
 {
     options.HiddenClass = "d-none";
@@ -17,7 +21,7 @@ builder.Services.Configure<WebFormsCoreOptions>(options =>
 
 builder.Services.Configure<ViewStateOptions>(options =>
 {
-    options.EncryptionKey = "35d16461-074a-42df-9114-ca40eb11b070";
+    options.EncryptionKey = builder.Configuration.GetValue<string>("ViewState:EncryptionKey");
 });
 
 builder.Services.AddDistributedMemoryCache();

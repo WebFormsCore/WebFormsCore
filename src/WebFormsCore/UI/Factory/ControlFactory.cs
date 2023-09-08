@@ -8,20 +8,22 @@ namespace WebFormsCore.UI;
 
 internal sealed class ControlFactory<T> : IControlFactory<T>
 {
-    private readonly IControlInterceptor[] _interceptors;
+    private readonly IControlInterceptor<T>[] _interceptors;
     private readonly IControlManager _manager;
     private readonly string[] _viewPaths;
-    private bool _noConstructor;
+    private readonly bool _noConstructor;
 
-    public ControlFactory(IControlManager manager, IEnumerable<IControlInterceptor> interceptors)
+    public ControlFactory(IControlManager manager, IEnumerable<IControlInterceptor<T>> interceptors)
     {
         _manager = manager;
         _interceptors = interceptors.ToArray();
+
         _viewPaths = typeof(T).GetCustomAttributes<CompiledViewAttribute>().Any()
             ? Array.Empty<string>()
             : typeof(T).GetCustomAttributes<ViewPathAttribute>()
                 .Select(i => i.Path)
                 .ToArray();
+
         _noConstructor = _viewPaths.Length == 0 &&
                          typeof(T).GetConstructors(BindingFlags.Public | BindingFlags.Instance).All(i => i.GetParameters().Length == 0);
     }

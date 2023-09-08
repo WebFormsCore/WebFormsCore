@@ -1,6 +1,6 @@
 namespace WebFormsCore.UI;
 
-public interface IControlInterceptor
+public interface IControlInterceptor<T>
 {
-    T OnControlCreated<T>(T control);
+    T OnControlCreated(T control);
 }
