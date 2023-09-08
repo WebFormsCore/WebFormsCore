@@ -83,21 +83,9 @@ public class HtmlGenericControl : HtmlContainerControl
 
     private async ValueTask RegisterCsp(string? attributeName, CspDirective directive, CancellationToken token)
     {
-        if (attributeName is not null)
+        if (attributeName is not null && directive.TryAddUri(Attributes[attributeName]))
         {
-            var value = Attributes[attributeName];
-
-            if (value != null && value.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
-            {
-                directive.Add("data:");
-                return;
-            }
-
-            if (Uri.TryCreate(value, UriKind.Absolute, out var href))
-            {
-                directive.Add($"{href.Scheme}://{href.Host}");
-                return;
-            }
+            return;
         }
 
         if (directive is CspDirectiveGenerated extended)

@@ -1,4 +1,5 @@
-﻿using System.Buffers.Text;
+﻿using System;
+using System.Buffers.Text;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -53,7 +54,51 @@ public class CspDirective : ICollection<string>
 
     public void Add(string item)
     {
+        if (TryAddUri(item))
+        {
+            return;
+        }
+
         SourceList.Add(item);
+    }
+
+    public bool TryAddUri(string? item)
+    {
+        if (string.IsNullOrEmpty(item))
+        {
+            return false;
+        }
+
+        if (item.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            SourceList.Add("data:");
+            return true;
+        }
+
+        if (item.StartsWith("http", StringComparison.OrdinalIgnoreCase) &&
+#if NET
+            !item.Contains('*') &&
+#else
+            !item.Contains("*") &&
+#endif
+            Uri.TryCreate(item, UriKind.Absolute, out var uri))
+        {
+            Add(uri);
+            return true;
+        }
+
+        return false;
+    }
+
+    public void Add(Uri uri)
+    {
+        if (uri.Scheme == "data")
+        {
+            SourceList.Add("data:");
+            return;
+        }
+
+        SourceList.Add($"{uri.Scheme}://{uri.Host}");
     }
 
     public void Clear()
