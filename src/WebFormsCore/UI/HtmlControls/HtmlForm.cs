@@ -20,8 +20,6 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
 
     public bool UpdatePage { get; set; } = true;
 
-    public override bool EnableViewState { get; set; } = true;
-
     private bool IsDiv => Page.IsExternal;
 
     public override string TagName => IsDiv ? "div" : "form";
@@ -65,6 +63,7 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         await writer.WriteAsync(@"<input type=""hidden"" name=""wfcForm"" value=""");
         await writer.WriteAsync(UniqueID);
         await writer.WriteAsync(@"""/>");
+        await writer.WriteLineAsync();
 
         if (viewStateManager.EnableViewState && !Page.IsStreaming)
         {

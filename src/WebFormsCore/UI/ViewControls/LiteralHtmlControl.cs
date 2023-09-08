@@ -20,12 +20,12 @@ public class LiteralHtmlControl : HtmlGenericControl
     {
     }
 
-    public override bool EnableViewState
+    protected override bool? EnableViewStateSelf
     {
         get => false;
         set
         {
-            if (value)
+            if (value == true)
             {
                 throw new InvalidOperationException("Cannot set EnableViewState to true for a LiteralHtmlControl.");
             }

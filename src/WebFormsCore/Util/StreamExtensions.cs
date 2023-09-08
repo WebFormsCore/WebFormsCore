@@ -29,7 +29,7 @@ internal static class StreamExtensions
         }
     }
 
-    public static async Task WriteAsync(this Stream stream, ReadOnlyMemory<byte> buffer, CancellationToken token)
+    public static async ValueTask WriteAsync(this Stream stream, ReadOnlyMemory<byte> buffer, CancellationToken token = default)
     {
         using var pointer = buffer.Pin();
         using var destinationStream = CreateMemoryStream(buffer, pointer);

@@ -98,6 +98,10 @@ internal sealed class WebObjectActivator : IWebObjectActivator
                 return CreateControl<HtmlLink>();
             case "script" or "SCRIPT":
                 return CreateControl<HtmlScript>();
+            case "style" or "STYLE":
+                return CreateControl<HtmlStyle>();
+            case "img" or "IMG":
+                return CreateControl<HtmlImage>();
             default:
                 var control = CreateControl<LiteralHtmlControl>();
                 control.TagName = tagName;

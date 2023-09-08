@@ -390,7 +390,8 @@ public ref struct Lexer
             // CSP elements
             name.Equals("script", StringComparison.OrdinalIgnoreCase) ||
             name.Equals("style", StringComparison.OrdinalIgnoreCase) ||
-            name.Equals("link", StringComparison.OrdinalIgnoreCase);
+            name.Equals("link", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("img", StringComparison.OrdinalIgnoreCase);
     }
 
     private bool ConsumeInline()

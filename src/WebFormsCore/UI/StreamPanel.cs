@@ -55,7 +55,7 @@ public class StreamPanel : Control, INamingContainer
 
     protected override bool ProcessControl => IsConnected || _prerender;
 
-    public override bool EnableViewState => false;
+    protected override bool? EnableViewStateSelf => false;
 
     public WebSocket WebSocket
     {

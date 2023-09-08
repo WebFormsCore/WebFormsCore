@@ -81,12 +81,6 @@ public partial class GridItem : TableRow, IDataItemContainer
 
     public override string ClientID => $"{Parent.ClientID}_tr{ItemIndex}";
 
-    public override bool EnableViewState
-    {
-        get => base.EnableViewState;
-        set => base.EnableViewState = value;
-    }
-
     public GridItemEditContainer? EditItemTemplateContainer { get; private set; }
 
     public GridItem(int itemIndex, Grid grid)

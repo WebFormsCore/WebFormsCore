@@ -5,8 +5,8 @@ namespace WebFormsCore.Security;
 
 public class Csp
 {
-    private CspDirective? _scriptSrc;
-    private CspDirective? _styleSrc;
+    private CspDirectiveGenerated? _scriptSrc;
+    private CspDirectiveGenerated? _styleSrc;
     private CspDirective? _imgSrc;
     private CspDirective? _connectSrc;
     private CspDirective? _fontSrc;
@@ -37,9 +37,9 @@ public class Csp
 
     public CspDirective DefaultSrc { get; }
 
-    public CspDirective ScriptSrc => _scriptSrc ??= new CspDirective(this, "script-src");
+    public CspDirectiveGenerated ScriptSrc => _scriptSrc ??= new CspDirectiveGenerated(this, "script-src");
 
-    public CspDirective StyleSrc => _styleSrc ??= new CspDirective(this, "style-src");
+    public CspDirectiveGenerated StyleSrc => _styleSrc ??= new CspDirectiveGenerated(this, "style-src");
 
     public CspDirective ImgSrc => _imgSrc ??= new CspDirective(this, "img-src");
 

@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace WebFormsCore.UI;
@@ -71,6 +70,18 @@ public class StreamHtmlTextWriter : HtmlTextWriter
         var length = Encoding.GetBytes(buffer.Span, _buffer);
         await _stream.WriteAsync(_buffer, 0, length);
         await _stream.FlushAsync();
+    }
+
+    public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer)
+    {
+        return HasPendingCharacters ? FlushAndWriteAsync(buffer) : _stream.WriteAsync(buffer);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private async ValueTask FlushAndWriteAsync(ReadOnlyMemory<byte> buffer)
+    {
+        await FlushAsync();
+        await _stream.WriteAsync(buffer);
     }
 }
 
@@ -138,6 +149,8 @@ public abstract class HtmlTextWriter : IDisposable
     private int _charPos;
     private readonly char[] _charBuffer = ArrayPool<char>.Shared.Rent(1024);
 
+    protected bool HasPendingCharacters => _charPos > 0;
+
     protected abstract void Flush(ReadOnlySpan<char> buffer);
 
     protected abstract ValueTask FlushAsync(ReadOnlyMemory<char> buffer);
@@ -149,11 +162,17 @@ public abstract class HtmlTextWriter : IDisposable
         _charPos = 0;
     }
 
-    public async ValueTask FlushAsync()
+    public ValueTask FlushAsync()
     {
-        if (_charPos == 0) return;
-        await FlushAsync(_charBuffer.AsMemory(0, _charPos));
+        var pos = _charPos;
+
+        if (pos == 0)
+        {
+            return default;
+        }
+
         _charPos = 0;
+        return FlushAsync(_charBuffer.AsMemory(0, pos));
     }
 
     public void Write(char tagRightChar)
@@ -205,10 +224,10 @@ public abstract class HtmlTextWriter : IDisposable
         return _charPos == _charBuffer.Length ? FlushAsync() : default;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ValueTask WriteAsync(string? buffer)
     {
-        if (buffer is null) return default;
-        return WriteAsync(buffer.AsMemory());
+        return buffer is null ? default : WriteAsync(buffer.AsMemory());
     }
 
     public ValueTask WriteAsync(ReadOnlyMemory<char> buffer)
@@ -226,7 +245,7 @@ public abstract class HtmlTextWriter : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private async ValueTask WriteAsyncSlow(ReadOnlyMemory<char> buffer)
+    async ValueTask WriteAsyncSlow(ReadOnlyMemory<char> buffer)
     {
         while (buffer.Length > 0)
         {
@@ -248,10 +267,10 @@ public abstract class HtmlTextWriter : IDisposable
         var size = Encoding.GetMaxCharCount(buffer.Length);
         using var charBuffer = MemoryPool<char>.Shared.Rent(size);
 
-        var chars = charBuffer.Memory.Slice(0, size);
-        var count = Encoding.GetChars(buffer.Span, chars.Span);
+        var memory = charBuffer.Memory;
+        var count = Encoding.GetChars(buffer.Span, memory.Span);
 
-        await WriteAsync(chars.Slice(0, count));
+        await WriteAsync(memory.Slice(0, count));
     }
 
     public virtual ValueTask WriteObjectAsync(object? value)

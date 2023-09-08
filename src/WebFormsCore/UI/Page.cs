@@ -24,6 +24,12 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
         ClientScript = new ClientScriptManager(this);
     }
 
+    public bool EnableCsp
+    {
+        get => Csp.Enabled;
+        set => Csp.Enabled = value;
+    }
+
     public HtmlHead? Header { get; internal set; }
 
     public HtmlBody? Body { get; internal set; }

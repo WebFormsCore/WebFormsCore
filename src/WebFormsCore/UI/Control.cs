@@ -53,7 +53,13 @@ public partial class Control : System.Web.UI.Control
 
     protected virtual IServiceProvider ServiceProvider => Page.ServiceProvider;
 
-    public virtual bool EnableViewState
+    protected virtual bool? EnableViewStateSelf
+    {
+        get => _enableViewState;
+        set => _enableViewState = value;
+    }
+
+    public bool EnableViewState
     {
         get
         {

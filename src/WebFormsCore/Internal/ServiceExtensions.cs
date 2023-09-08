@@ -35,6 +35,8 @@ public static class ServiceExtensions
         services.AddPooledControl<HtmlBody>();
         services.AddPooledControl<HtmlLink>();
         services.AddPooledControl<HtmlForm>();
+        services.AddPooledControl<HtmlStyle>();
+        services.AddPooledControl<HtmlImage>();
 
         services.AddSingleton<IDefaultViewStateSerializer, DefaultViewStateSerializer>();
         services.AddViewStateSerializer<ArrayViewStateSerializer>();

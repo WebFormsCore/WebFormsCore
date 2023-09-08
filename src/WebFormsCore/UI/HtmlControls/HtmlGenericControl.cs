@@ -48,7 +48,7 @@ public class HtmlGenericControl : HtmlContainerControl
         }
     }
 
-    private async Task RegisterCsp(CancellationToken token)
+    private ValueTask RegisterCsp(CancellationToken token)
     {
         CspDirective directive;
         string? attributeName;
@@ -68,23 +68,49 @@ public class HtmlGenericControl : HtmlContainerControl
             directive = Page.Csp.StyleSrc;
             attributeName = null;
         }
+        else if (_tagName.Equals("img", StringComparison.OrdinalIgnoreCase))
+        {
+            directive = Page.Csp.ImgSrc;
+            attributeName = "src";
+        }
         else
         {
-            return;
+            return default;
         }
 
-        if (attributeName is not null && Uri.TryCreate(attributeName, UriKind.Absolute, out var href))
+        return RegisterCsp(attributeName, directive, token);
+    }
+
+    private async ValueTask RegisterCsp(string? attributeName, CspDirective directive, CancellationToken token)
+    {
+        if (attributeName is not null)
         {
-            directive.Add($"{href.Scheme}://{href.Host}");
+            var value = Attributes[attributeName];
+
+            if (value != null && value.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+            {
+                directive.Add("data:");
+                return;
+            }
+
+            if (Uri.TryCreate(value, UriKind.Absolute, out var href))
+            {
+                directive.Add($"{href.Scheme}://{href.Host}");
+                return;
+            }
         }
-        else if (Page.Csp.ScriptSrc.Mode == CspMode.Sha256)
+
+        if (directive is CspDirectiveGenerated extended)
         {
-            _preRenderedContent = await this.RenderChildrenToStringAsync(token);
-            directive.AddInlineHash(_preRenderedContent);
-        }
-        else
-        {
-            _nonce = directive.GenerateNonce();
+            if (extended.Mode == CspMode.Sha256)
+            {
+                _preRenderedContent = await this.RenderChildrenToStringAsync(token);
+                extended.AddInlineHash(_preRenderedContent);
+            }
+            else
+            {
+                _nonce = extended.GenerateNonce();
+            }
         }
     }
 
