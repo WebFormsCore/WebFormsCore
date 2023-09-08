@@ -1,25 +1,9 @@
 <Project>
     <Import Project="Core.targets" />
 
-    <PropertyGroup>
-        <UseOwin Condition="$(UseOwin) == ''">false</UseOwin>
-    </PropertyGroup>
-
     <!-- NuGet references -->
     <ItemGroup>
         <PackageReference Include="HttpStack.AspNet" Version="$httpStackVersion$" />
-    </ItemGroup>
-
-    <PropertyGroup Condition="$(UseOwin) == 'true'">
-        <DefineConstants>$(DefineConstants);WFC_OWIN</DefineConstants>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="$(UseOwin) == 'false'">
-        <DefineConstants>$(DefineConstants);WFC_ASPNET</DefineConstants>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Condition="$(UseOwin) == 'true'" Include="Microsoft.Owin.Host.SystemWeb" Version="4.2.2" />
     </ItemGroup>
 
     <Import Project="Sdk.targets" Sdk="MSBuild.SDK.SystemWeb" Version="4.0.88" />

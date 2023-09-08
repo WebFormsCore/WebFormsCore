@@ -15,10 +15,12 @@
 <div class="container">
     <wfc:Choices runat="server" ID="choices" AutoPostBack="True" OnValuesChanged="choices_OnValuesChanged" Multiple="True" />
 
-    <wfc:CheckBox runat="server" ID="cb" OnCheckedChanged="cb_OnCheckedChanged" AutoPostBack="True" />
-    <wfc:Literal runat="server" ID="litCb" />
+    <div class="my-2">
+        <wfc:CheckBox runat="server" ID="cb" OnCheckedChanged="cb_OnCheckedChanged" AutoPostBack="True" />
+        <wfc:Literal runat="server" ID="litCb" />
+    </div>
 
-    <wfc:Button runat="server" Text="Download file" OnClick="btnDownload_OnClick" />
+    <wfc:Button runat="server" Text="Download file" OnClick="btnDownload_OnClick" CssClass="btn btn-primary" />
 
     <wfc:HtmlForm runat="server" UpdatePage="False">
         <wfc:Grid runat="server" ID="grid" class="table" PageSize="20" EditRowAttributes-CssClass="table-active">

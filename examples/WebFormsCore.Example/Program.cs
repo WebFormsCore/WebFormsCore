@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddWebForms(b =>
 {
+    b.AddControlCompiler();
     b.AddGridCellRenderers();
 });
 
