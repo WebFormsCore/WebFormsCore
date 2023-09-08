@@ -64,7 +64,7 @@ public class CspDirective : ICollection<string>
 
     public bool TryAddUri(string? item)
     {
-        if (string.IsNullOrEmpty(item))
+        if (item is null or { Length: 0 })
         {
             return false;
         }
