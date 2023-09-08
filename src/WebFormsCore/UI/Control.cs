@@ -209,7 +209,7 @@ public partial class Control : System.Web.UI.Control
             {
                 return _cachedUniqueID;
             }
-            
+
             var namingContainer = NamingContainer;
             if (namingContainer == null)
             {
@@ -799,7 +799,7 @@ public partial class Control : System.Web.UI.Control
         _viewState?.TrackViewState();
         _trackViewState = true;
     }
-    
+
     protected virtual ValueTask OnInitAsync(CancellationToken token)
     {
         return default;
@@ -1007,38 +1007,15 @@ public partial class Control : System.Web.UI.Control
       "c127"
     };
 
-    #if NET8_0_OR_GREATER
+#if NET8_0_OR_GREATER
     private static readonly FrozenSet<string> VoidElements;
-
-    static Control()
-    {
-        VoidElements = new[]
-        {
-            "area",
-            "base",
-            "br",
-            "col",
-            "embed",
-            "hr",
-            "img",
-            "input",
-            "keygen",
-            "link",
-            "meta",
-            "param",
-            "source",
-            "track",
-            "wbr"
-        }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
-    }
-
-    protected static bool IsVoidTag(string tagName) => VoidElements.Contains(tagName);
-    #else
+#else
     private static readonly List<string> VoidElements;
+#endif
 
     static Control()
     {
-        VoidElements = new List<string>
+        var list = new List<string>
         {
             "area",
             "base",
@@ -1056,10 +1033,21 @@ public partial class Control : System.Web.UI.Control
             "track",
             "wbr"
         };
+
+#if NET8_0_OR_GREATER
+        VoidElements = list.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+#else
+        VoidElements = list;
+#endif
     }
 
-    protected static bool IsVoidTag(string tagName) => VoidElements.Contains(tagName, StringComparer.OrdinalIgnoreCase);
-    #endif
+    protected static bool IsVoidTag(string tagName) =>
+#if NET8_0_OR_GREATER
+        VoidElements.Contains(tagName);
+#else
+        VoidElements.Contains(tagName, StringComparer.OrdinalIgnoreCase);
+#endif
+
 }
 
 internal sealed class OccasionalFields
