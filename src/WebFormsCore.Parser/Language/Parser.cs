@@ -800,6 +800,8 @@ public class Parser
     {
         if (!elementNs.HasValue)
         {
+            // Note: make sure this list is up-to-date with WebObjectActivator.CreateElement
+
             return name.Value switch
             {
                 "form" or "FORM" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlForm"),
@@ -807,6 +809,8 @@ public class Parser
                 "head" or "HEAD" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlHead"),
                 "link" or "LINK" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlLink"),
                 "script" or "SCRIPT" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlScript"),
+                "style" or "STYLE" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlStyle"),
+                "img" or "IMG" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlImage"),
                 _ => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlGenericControl")
             };
         }

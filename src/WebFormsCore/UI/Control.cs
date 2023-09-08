@@ -53,13 +53,7 @@ public partial class Control : System.Web.UI.Control
 
     protected virtual IServiceProvider ServiceProvider => Page.ServiceProvider;
 
-    protected virtual bool? EnableViewStateSelf
-    {
-        get => _enableViewState;
-        set => _enableViewState = value;
-    }
-
-    public bool EnableViewState
+    public virtual bool EnableViewState
     {
         get
         {
@@ -87,6 +81,10 @@ public partial class Control : System.Web.UI.Control
     protected virtual bool ProcessControl => true;
 
     protected virtual bool ProcessChildren => ProcessControl && _controls is not null && _controls.Count > 0;
+
+    internal bool ProcessControlInternal => ProcessControl;
+
+    internal bool ProcessChildrenInternal => ProcessChildren;
 
     /// <summary>Gets a reference to the <see cref="T:System.Web.UI.Page" /> instance that contains the server control.</summary>
     /// <returns>The <see cref="T:System.Web.UI.Page" /> instance that contains the server control.</returns>

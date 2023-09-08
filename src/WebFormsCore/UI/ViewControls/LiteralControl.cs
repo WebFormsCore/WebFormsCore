@@ -18,12 +18,12 @@ public sealed class LiteralControl : Control, ITextControl
 
     private string _text = string.Empty;
 
-    protected override bool? EnableViewStateSelf
+    public override bool EnableViewState
     {
         get => false;
         set
         {
-            if (value == true)
+            if (value)
             {
                 throw new InvalidOperationException("Cannot set EnableViewState to true for a LiteralControl.");
             }

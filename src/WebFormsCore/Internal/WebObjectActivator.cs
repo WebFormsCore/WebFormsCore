@@ -88,8 +88,12 @@ internal sealed class WebObjectActivator : IWebObjectActivator
 
     public HtmlContainerControl CreateElement(string tagName)
     {
+        // Note: make sure this list is up-to-date with Parser.GetControlType
+
         switch (tagName)
         {
+            case "form" or "FORM":
+                return CreateControl<HtmlForm>();
             case "head" or "HEAD":
                 return CreateControl<HtmlHead>();
             case "body" or "BODY":

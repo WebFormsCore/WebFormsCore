@@ -396,6 +396,11 @@ public class ViewStateManager : IViewStateManager
 
                 index++;
 
+                if (index == 0 && !currentControl.ProcessChildrenInternal)
+                {
+                    continue;
+                }
+
                 if (index >= currentControl.Controls.Count)
                 {
                     continue;
@@ -417,7 +422,7 @@ public class ViewStateManager : IViewStateManager
 
                 Push(nextControl, -1);
 
-                if (nextControl.EnableViewState)
+                if (nextControl is { EnableViewState: true, ProcessControlInternal: true })
                 {
                     return true;
                 }

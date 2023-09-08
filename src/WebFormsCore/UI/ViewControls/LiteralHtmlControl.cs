@@ -4,7 +4,7 @@ using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI.WebControls;
 
-public class LiteralHtmlControl : HtmlGenericControl
+public sealed class LiteralHtmlControl : HtmlGenericControl
 {
     protected override bool ProcessControl => false;
 
@@ -20,12 +20,12 @@ public class LiteralHtmlControl : HtmlGenericControl
     {
     }
 
-    protected override bool? EnableViewStateSelf
+    public override bool EnableViewState
     {
         get => false;
         set
         {
-            if (value == true)
+            if (value)
             {
                 throw new InvalidOperationException("Cannot set EnableViewState to true for a LiteralHtmlControl.");
             }

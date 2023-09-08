@@ -50,7 +50,6 @@ public class CspDirectiveGenerated : CspDirective
 
     public static string GetHash(string code)
     {
-#if NET
         var encoding = Encoding.UTF8;
         var byteLength = encoding.GetMaxByteCount(code.Length);
         if (byteLength > 4096)
@@ -58,6 +57,7 @@ public class CspDirectiveGenerated : CspDirective
             byteLength = encoding.GetByteCount(code);
         }
 
+#if NET
         using var bytes = MemoryPool<byte>.Shared.Rent(byteLength);
         Span<byte> sha256Bytes = stackalloc byte[32];
 
@@ -71,7 +71,7 @@ public class CspDirectiveGenerated : CspDirective
 
         return $"'sha256-{base64}'";
 #else
-        var bytes = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetByteCount(code));
+        var bytes = ArrayPool<byte>.Shared.Rent(byteLength);
 
         try
         {

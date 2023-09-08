@@ -3,7 +3,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using WebFormsCore.Security;
 using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI.HtmlControls;
@@ -55,7 +54,7 @@ public class HtmlBody : HtmlContainerControl
             await control.RenderInBodyAsync(writer, token);
         }
 
-        if (viewStateManager.EnableViewState && Page.EnableViewState)
+        if (viewStateManager.EnableViewState && Page is { EnableViewState: true, IsStreaming: false })
         {
             await writer.WriteAsync(@"<input id=""pagestate"" type=""hidden"" name=""wfcPageState"" value=""");
 
