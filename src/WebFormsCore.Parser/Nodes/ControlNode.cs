@@ -16,7 +16,7 @@ public interface ITypedNode
 
     List<EventNode> Events { get; }
 
-    Dictionary<TokenString, TokenString> Attributes { get; }
+    Dictionary<TokenString, AttributeValue> Attributes { get; }
 }
 
 public class ControlNode : ElementNode, ITypedNode

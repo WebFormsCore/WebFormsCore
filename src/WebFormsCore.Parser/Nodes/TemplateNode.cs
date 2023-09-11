@@ -16,7 +16,6 @@ public class CollectionNode : ElementNode, ITypedNode
     public List<PropertyNode> Properties { get; set; } = new();
 
     public List<EventNode> Events { get; set; } = new();
-
     INamedTypeSymbol ITypedNode.Type => PropertyType;
 }
 

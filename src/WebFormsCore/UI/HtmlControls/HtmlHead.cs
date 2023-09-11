@@ -1,5 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using WebFormsCore.Events;
 using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI.HtmlControls;
@@ -28,6 +30,11 @@ public class HtmlHead : HtmlContainerControl
     protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
         await base.RenderChildrenAsync(writer, token);
+
+        foreach (var renderer in Context.RequestServices.GetServices<IPageService>())
+        {
+            await renderer.RenderHeadAsync(Page, writer, token);
+        }
 
         if (!Page.IsPostBack)
         {

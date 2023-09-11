@@ -6,9 +6,9 @@
 {{- func write_properties }}
             {{- for prop in $0.Properties }}
             {{ $0.VariableName ?? "this" }}.{{ prop.Member.Name }}{{ " = " }}
-            {{- if prop.DisplayType == "string" -}}
+            {{- if prop.Value.IsCode || prop.DisplayType == "string" -}}
                 {{ prop.Value.CodeString }};
-            {{- else if prop.Value.Converter -}}
+            {{- else if prop.Converter -}}
                 WebActivator.ParseAttribute<{{ prop.DisplayType }}, {{ prop.DisplayConverter }}>({{ prop.Value.CodeString }});
             {{- else -}}
                 WebActivator.ParseAttribute<{{ prop.DisplayType }}>({{ prop.Value.CodeString }});

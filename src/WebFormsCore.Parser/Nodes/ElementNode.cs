@@ -27,5 +27,5 @@ public class ElementNode : ContainerNode, IAttributeNode
 
     public virtual string? VariableName { get; set; }
 
-    public Dictionary<TokenString, TokenString> Attributes { get; set; } = new(AttributeCompare.IgnoreCase);
+    public Dictionary<TokenString, AttributeValue> Attributes { get; set; } = new(AttributeCompare.IgnoreCase);
 }

@@ -241,7 +241,7 @@ public class Parser
                 }
                 else
                 {
-                    element.Attributes.Add(next.Text, value);
+                    element.Attributes.Add(next.Text, new AttributeValue(false, value));
                 }
             }
             else if (next.Type == TokenType.EndDirective)
@@ -485,7 +485,7 @@ public class Parser
 
                 if (member != null)
                 {
-                    controlNode.Properties.Add(new PropertyNode(member, name.Text, null));
+                    controlNode.Properties.Add(new PropertyNode(member, new AttributeValue(false, name.Text), null));
                 }
             }
 
@@ -518,7 +518,7 @@ public class Parser
         }
     }
 
-    private void AddAttributes(Dictionary<TokenString, TokenString> attributes, ITypedNode node)
+    private void AddAttributes(Dictionary<TokenString, AttributeValue> attributes, ITypedNode node)
     {
         var controlType = node.Type;
 
@@ -531,7 +531,7 @@ public class Parser
                 continue;
             }
 
-            var value = attribute.Value.Value;
+            var value = attribute.Value;
 
             if (key.Contains('-'))
             {
@@ -568,7 +568,7 @@ public class Parser
         }
     }
 
-    private void SetAttributeDeep(TokenRange range, ITypedNode parentNode, TokenString key, TokenString value)
+    private void SetAttributeDeep(TokenRange range, ITypedNode parentNode, TokenString key, AttributeValue value)
     {
         var index = key.Value.IndexOf('-');
         var span = key.Value.AsSpan();
@@ -618,7 +618,7 @@ public class Parser
     private void SetAttribute(
         ITypedNode controlNode,
         string key,
-        TokenString value)
+        AttributeValue value)
     {
         var controlType = controlNode.Type;
 
@@ -635,7 +635,7 @@ public class Parser
                 _ => null
             };
 
-            controlNode.Properties.Add(new PropertyNode(member, value.Value, converter)
+            controlNode.Properties.Add(new PropertyNode(member, value, converter)
             {
                 Range = value.Range
             });
@@ -646,7 +646,7 @@ public class Parser
 
         if (implementsAttributeAccessor)
         {
-            controlNode.Attributes.Add(key, value.Value);
+            controlNode.Attributes.Add(key, value);
             return;
         }
 
@@ -691,18 +691,20 @@ public class Parser
         return runAt;
     }
 
-    private (bool Closed, Dictionary<TokenString, TokenString> Attributes) ConsumeAttributes(ref Lexer lexer)
+    private (bool Closed, Dictionary<TokenString, AttributeValue> Attributes) ConsumeAttributes(ref Lexer lexer)
     {
-        var attributes = new Dictionary<TokenString, TokenString>(AttributeCompare.IgnoreCase);
+        var attributes = new Dictionary<TokenString, AttributeValue>(AttributeCompare.IgnoreCase);
 
         while (lexer.Next() is { } keyNode)
         {
             if (keyNode.Type == TokenType.Attribute)
             {
                 TokenString value = default;
+                var isCode = false;
 
-                if (lexer.Peek() is { Type: TokenType.AttributeValue } valueNode)
+                if (lexer.Peek() is { Type: TokenType.AttributeValue or TokenType.EvalExpression } valueNode)
                 {
+                    isCode = valueNode.Type == TokenType.EvalExpression;
                     lexer.Next();
                     value = valueNode.Text;
                 }
@@ -714,7 +716,7 @@ public class Parser
                     _itemType = value.Value;
                 }
 
-                attributes.Add(key, value);
+                attributes.Add(key, new AttributeValue(isCode, value));
             }
             else if (keyNode.Type == TokenType.TagSlashClose)
             {

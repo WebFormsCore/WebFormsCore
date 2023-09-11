@@ -13,6 +13,7 @@ builder.Services.AddWebForms(b =>
 {
     b.AddControlCompiler();
     b.AddGridCellRenderers();
+    b.AddClientResourceManagement();
 });
 
 builder.Services.Configure<WebFormsCoreOptions>(options =>

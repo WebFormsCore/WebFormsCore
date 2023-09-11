@@ -26,6 +26,8 @@ public static class ServiceExtensions
 
     public static IWebFormsCoreBuilder AddWebFormsCore(this IServiceCollection services)
     {
+        var builder = new WebFormsCoreBuilder(services);
+
         services.TryAddSingleton<IViewStateManager, ViewStateManager>();
 
         services.TryAddSingleton<IWebFormsEnvironment, DefaultWebFormsEnvironment>();
@@ -39,37 +41,37 @@ public static class ServiceExtensions
         services.TryAddScoped<IWebObjectActivator, WebObjectActivator>();
         services.TryAddSingleton<IControlManager, DefaultControlManager>();
 
-        services.AddPooledControl<LiteralControl>();
-        services.AddPooledControl<LiteralHtmlControl>();
-        services.AddPooledControl<Literal>();
-        services.AddPooledControl<HtmlBody>();
-        services.AddPooledControl<HtmlLink>();
-        services.AddPooledControl<HtmlForm>();
-        services.AddPooledControl<HtmlStyle>();
-        services.AddPooledControl<HtmlImage>();
+        builder.AddPooledControl<LiteralControl>();
+        builder.AddPooledControl<LiteralHtmlControl>();
+        builder.AddPooledControl<Literal>();
+        builder.AddPooledControl<HtmlBody>();
+        builder.AddPooledControl<HtmlLink>();
+        builder.AddPooledControl<HtmlForm>();
+        builder.AddPooledControl<HtmlStyle>();
+        builder.AddPooledControl<HtmlImage>();
 
-        services.AddSingleton<IDefaultViewStateSerializer, DefaultViewStateSerializer>();
-        services.AddViewStateSerializer<ArrayViewStateSerializer>();
-        services.AddViewStateSerializer<ListViewStateSerializer>();
-        services.AddViewStateSerializer<ViewStateObjectSerializer>();
-        services.AddViewStateSerializer<EnumViewStateSerializer>();
-        services.AddViewStateSerializer<NullableViewStateSerializer>();
-        services.AddViewStateSerializer<Type, TypeViewStateSerializer>();
-        services.AddViewStateSerializer<string, StringViewStateSerializer>();
-        services.AddViewStateSpanSerializer<char, StringViewStateSerializer>();
-        services.AddMarshalViewStateSerializer<int>();
-        services.AddMarshalViewStateSerializer<uint>();
-        services.AddMarshalViewStateSerializer<short>();
-        services.AddMarshalViewStateSerializer<ushort>();
-        services.AddMarshalViewStateSerializer<byte>();
-        services.AddMarshalViewStateSerializer<sbyte>();
-        services.AddMarshalViewStateSerializer<long>();
-        services.AddMarshalViewStateSerializer<ulong>();
-        services.AddMarshalViewStateSerializer<float>();
-        services.AddMarshalViewStateSerializer<double>();
-        services.AddMarshalViewStateSerializer<decimal>();
-        services.AddMarshalViewStateSerializer<bool>();
-        services.AddMarshalViewStateSerializer<char>();
+        services.TryAddSingleton<IDefaultViewStateSerializer, DefaultViewStateSerializer>();
+        builder.AddViewStateSerializer<ArrayViewStateSerializer>();
+        builder.AddViewStateSerializer<ListViewStateSerializer>();
+        builder.AddViewStateSerializer<ViewStateObjectSerializer>();
+        builder.AddViewStateSerializer<EnumViewStateSerializer>();
+        builder.AddViewStateSerializer<NullableViewStateSerializer>();
+        builder.AddViewStateSerializer<Type, TypeViewStateSerializer>();
+        builder.AddViewStateSerializer<string, StringViewStateSerializer>();
+        builder.AddViewStateSpanSerializer<char, StringViewStateSerializer>();
+        builder.AddMarshalViewStateSerializer<int>();
+        builder.AddMarshalViewStateSerializer<uint>();
+        builder.AddMarshalViewStateSerializer<short>();
+        builder.AddMarshalViewStateSerializer<ushort>();
+        builder.AddMarshalViewStateSerializer<byte>();
+        builder.AddMarshalViewStateSerializer<sbyte>();
+        builder.AddMarshalViewStateSerializer<long>();
+        builder.AddMarshalViewStateSerializer<ulong>();
+        builder.AddMarshalViewStateSerializer<float>();
+        builder.AddMarshalViewStateSerializer<double>();
+        builder.AddMarshalViewStateSerializer<decimal>();
+        builder.AddMarshalViewStateSerializer<bool>();
+        builder.AddMarshalViewStateSerializer<char>();
 
         services.TryAddSingleton<IAttributeParser<string>, StringAttributeParser>();
         services.TryAddSingleton<IAttributeParser<int>, Int32AttributeParser>();
@@ -78,10 +80,17 @@ public static class ServiceExtensions
         services.TryAddSingleton<IAttributeParser<Unit>, UnitAttributeParser>();
         services.TryAddSingleton<IAttributeParser<string[]>, ArrayAttributeParser<string>>();
 
-        return new WebFormsCoreBuilder(services);
+        return builder;
     }
 
-    public static IServiceCollection AddPooledControl<T>(this IServiceCollection services, int maxAmount = 1024)
+    public static IWebFormsCoreBuilder AddEnumAttributeParser<T>(this IWebFormsCoreBuilder builder)
+        where T : struct, Enum
+    {
+        builder.Services.TryAddSingleton<IAttributeParser<T>, EnumAttributeParser<T>>();
+        return builder;
+    }
+
+    public static IWebFormsCoreBuilder AddPooledControl<T>(this IWebFormsCoreBuilder builder, int maxAmount = 1024)
         where T : Control, new()
     {
         if (typeof(T).GetCustomAttributes<ViewPathAttribute>().Any())
@@ -99,53 +108,54 @@ public static class ServiceExtensions
             throw new InvalidOperationException("Cannot pool a control that implements IAsyncDisposable");
         }
 
-        services.AddSingleton<ObjectPool<T>>(
+        builder.Services.TryAddSingleton<ObjectPool<T>>(
             new DefaultObjectPool<T>(new ControlObjectPolicy<T>(), maxAmount)
         );
 
-        services.AddScoped<IControlFactory<T>, PooledControlFactory<T>>();
+        builder.Services.TryAddScoped<IControlFactory<T>, PooledControlFactory<T>>();
 
-        return services;
+        return builder;
     }
 
-    public static IServiceCollection AddMarshalViewStateSerializer<T>(this IServiceCollection services)
+    public static IWebFormsCoreBuilder AddMarshalViewStateSerializer<T>(this IWebFormsCoreBuilder builder)
         where T : struct
     {
-        AddViewStateSerializer<T, MarshalViewStateSerializer<T>>(services);
-        return services;
+        AddViewStateSerializer<T, MarshalViewStateSerializer<T>>(builder);
+        return builder;
     }
 
-    public static IServiceCollection AddViewStateSpanSerializer<T, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TSerializer>(this IServiceCollection services)
+    public static IWebFormsCoreBuilder AddViewStateSpanSerializer<T, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TSerializer>(this IWebFormsCoreBuilder builder)
         where TSerializer : class, IViewStateSpanSerializer<T>
         where T : notnull
     {
-        services.TryAddSingleton<TSerializer>();
-        services.AddSingleton<IViewStateSpanSerializer<T>>(p => p.GetRequiredService<TSerializer>());
-        return services;
+        builder.Services.TryAddSingleton<TSerializer>();
+        builder.Services.AddSingleton<IViewStateSpanSerializer<T>>(p => p.GetRequiredService<TSerializer>());
+        return builder;
     }
 
-    public static IServiceCollection AddViewStateSerializer<T,
+    public static IWebFormsCoreBuilder AddViewStateSerializer<T,
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-        TSerializer>(this IServiceCollection services)
+        TSerializer>(this IWebFormsCoreBuilder builder)
         where TSerializer : class, IViewStateSerializer<T>
         where T : notnull
     {
-        AddViewStateSerializer<TSerializer>(services);
-        services.AddSingleton<IViewStateSerializer<T>>(p => p.GetRequiredService<TSerializer>());
-        return services;
+        AddViewStateSerializer<TSerializer>(builder);
+        builder.Services.AddSingleton<IViewStateSerializer<T>>(p => p.GetRequiredService<TSerializer>());
+        return builder;
     }
 
-    public static IServiceCollection AddViewStateSerializer<
+    public static IWebFormsCoreBuilder AddViewStateSerializer<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-        TSerializer>(this IServiceCollection services)
+        TSerializer>(this IWebFormsCoreBuilder builder)
         where TSerializer : class, IViewStateSerializer
     {
+        var services = builder.Services;
         var id = checked((byte)(DefaultViewStateSerializer.Offset + services.Count(i => i.ServiceType == typeof(ViewStateSerializerRegistration))));
 
         services.TryAddSingleton<TSerializer>();
         services.AddSingleton<IViewStateSerializer>(p => p.GetRequiredService<TSerializer>());
         services.AddSingleton(new ViewStateSerializerRegistration(id, typeof(TSerializer)));
 
-        return services;
+        return builder;
     }
 }

@@ -40,7 +40,7 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     public StreamPanel? ActiveStreamPanel { get; set; }
 
-    protected override IHttpContext Context => _context ?? throw new InvalidOperationException("No HttpContext available.");
+    public override IHttpContext Context => _context ?? throw new InvalidOperationException("No HttpContext available.");
 
     public bool IsPostBack { get; internal set; }
 
@@ -57,8 +57,6 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
     public override HtmlForm? Form => null;
 
     internal HtmlForm? ActiveForm { get; set; }
-
-    internal List<IBodyControl> BodyControls { get; set; } = new();
 
     public async ValueTask RaiseChangedEventsAsync(CancellationToken cancellationToken)
     {

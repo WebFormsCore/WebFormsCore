@@ -41,6 +41,8 @@ public class GenerateTest
 
                 public partial class PageTest : Page
                 {
+                    public string Test = "foo";
+                
                     public HtmlForm form1;
                 }
 
@@ -97,7 +99,7 @@ public class GenerateTest
 
                         <form id="form1" runat="server">
                             <div>
-                                <asp:TextBox id="tbUsername" runat="server" /><br />
+                                <asp:TextBox id="tbUsername" runat="server" Text="<%# Test %>" /><br />
                                 <asp:textbox id="tbPassword" runat="server" /><br />
                                 <asp:button id="btnLogin" runat="server" click="btnLogin_Click" text="Login" />
                             </div>

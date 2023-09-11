@@ -18,7 +18,7 @@ partial class PageTest
 
 public partial class CompiledViews
 {
-    [WebFormsCore.CompiledView(@"Example.aspx", "87F3495DC0937BFC7C403021323C1819")]
+    [WebFormsCore.CompiledView(@"Example.aspx", "54923F66579973C927C298D45C4619DF")]
     public class Example_aspx : PageTest
     {
         public Example_aspx()
@@ -152,6 +152,7 @@ public partial class CompiledViews
             ctrl1.AddParsedSubObject(ctrl2);
 
             
+            ctrl2.Text =  Test ;
             this.tbUsername = ctrl2;
         #line hidden
         

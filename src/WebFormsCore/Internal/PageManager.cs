@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -96,23 +97,25 @@ public class PageManager : IPageManager
     /// </summary>
     /// <param name="page">Page to initialize.</param>
     /// <param name="token">Cancellation token.</param>
+    [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
     private static async Task InitPageAsync(Page page, CancellationToken token)
     {
         var internalPage = (IInternalPage) page;
         var serviceProvider = internalPage.Context.RequestServices;
+        var pageServices = serviceProvider.GetServices<IPageService>() as IPageService[] ?? Array.Empty<IPageService>();
 
         internalPage.InvokeFrameworkInit(token);
 
-        foreach (var pageService in serviceProvider.GetServices<IPageService>())
+        foreach (var pageService in pageServices)
         {
-            await pageService.BeforeInitializeAsync(page);
+            await pageService.BeforeInitializeAsync(page, token);
         }
 
         await internalPage.InvokeInitAsync(token);
 
-        foreach (var pageService in serviceProvider.GetServices<IPageService>())
+        foreach (var pageService in pageServices)
         {
-            await pageService.AfterInitializeAsync(page);
+            await pageService.AfterInitializeAsync(page, token);
         }
     }
 
@@ -169,14 +172,31 @@ public class PageManager : IPageManager
     private async Task<Control> ProcessRequestAsync(IHttpContext context, Page page, CancellationToken token)
     {
         var form = await LoadViewStateAsync(context, page);
+        var serviceProvider = context.RequestServices;
         var target = form is null or { UpdatePage: true } ? (Control)page : form;
+        var pageServices = serviceProvider.GetServices<IPageService>() as IPageService[] ?? Array.Empty<IPageService>();
 
         page.ActiveForm = form;
 
+        foreach (var pageService in pageServices)
+        {
+            await pageService.BeforeLoadAsync(page, token);
+        }
+
         await target.InvokeLoadAsync(token, form);
+
+        foreach (var service in pageServices)
+        {
+            await service.AfterLoadAsync(page, token);
+        }
 
         if (page.IsPostBack)
         {
+            foreach (var service in pageServices)
+            {
+                await service.BeforePostbackAsync(page, token);
+            }
+
             if (context.Request.Form.TryGetValue("wfcTarget", out var eventTarget))
             {
                 var eventArgument = context.Request.Form.TryGetValue("wfcArgument", out var eventArgumentValue)
@@ -192,9 +212,24 @@ public class PageManager : IPageManager
             {
                 await form.OnSubmitAsync(token);
             }
+
+            foreach (var service in pageServices)
+            {
+                await service.AfterPostbackAsync(page, token);
+            }
+        }
+
+        foreach (var service in pageServices)
+        {
+            await service.BeforeRenderAsync(page, token);
         }
 
         await target.InvokePreRenderAsync(token, form);
+
+        foreach (var service in pageServices)
+        {
+            await service.AfterRenderAsync(page, token);
+        }
 
         return target;
     }
@@ -209,7 +244,6 @@ public class PageManager : IPageManager
     /// <param name="token">Cancellation token.</param>
     private async Task RenderPageAsync(Page page, IHttpContext context, Control controlToRender, HtmlTextWriter writer, CancellationToken token)
     {
-        var serviceProvider = context.RequestServices;
         var response = context.Response;
 
         if (_options.Value.EnableSecurityHeaders)

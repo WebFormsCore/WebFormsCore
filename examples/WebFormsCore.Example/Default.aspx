@@ -13,6 +13,9 @@
 <body id="Body" runat="server">
 
 <div class="container">
+    <wfc:CssInclude runat="server" FilePath="test.js" />
+    <wfc:CssInclude runat="server" FilePath="foo.js" />
+    <wfc:CssInclude runat="server" FilePath="bar.js" CssMedia="Print" />
     <wfc:Choices runat="server" ID="choices" AutoPostBack="True" OnValuesChanged="choices_OnValuesChanged" Multiple="True" />
 
     <div class="my-2">

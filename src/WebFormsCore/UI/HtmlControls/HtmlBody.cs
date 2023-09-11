@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using WebFormsCore.Events;
 using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI.HtmlControls;
@@ -49,9 +50,14 @@ public class HtmlBody : HtmlContainerControl
 
         await base.RenderChildrenAsync(writer, token);
 
-        foreach (var control in Page.BodyControls)
+        foreach (var renderer in Context.RequestServices.GetServices<IPageService>())
         {
-            await control.RenderInBodyAsync(writer, token);
+            await renderer.RenderBodyAsync(Page, writer, token);
+        }
+
+        if (!Page.IsPostBack)
+        {
+            await Page.ClientScript.RenderStartupBody(writer);
         }
 
         if (viewStateManager.EnableViewState && Page is { EnableViewState: true, IsStreaming: false })
@@ -64,11 +70,6 @@ public class HtmlBody : HtmlContainerControl
             }
 
             await writer.WriteAsync(@"""/>");
-        }
-
-        if (!Page.IsPostBack)
-        {
-            await Page.ClientScript.RenderStartupBody(writer);
         }
     }
 }

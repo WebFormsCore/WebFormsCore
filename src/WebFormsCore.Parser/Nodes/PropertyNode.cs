@@ -5,7 +5,7 @@ namespace WebFormsCore.Nodes;
 
 public class PropertyNode : Node
 {
-    public PropertyNode(MemberResult member, TokenString value, INamedTypeSymbol? converter)
+    public PropertyNode(MemberResult member, AttributeValue value, INamedTypeSymbol? converter)
         : base(NodeType.Property)
     {
         Member = member;
@@ -15,7 +15,7 @@ public class PropertyNode : Node
 
     public MemberResult Member { get; set; }
 
-    public TokenString Value { get; set; }
+    public AttributeValue Value { get; set; }
 
     public INamedTypeSymbol? Converter { get; set; }
 

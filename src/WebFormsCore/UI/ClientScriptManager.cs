@@ -6,7 +6,7 @@ using ScriptDictionary = System.Collections.Generic.Dictionary<(System.Type, str
 
 namespace WebFormsCore.UI;
 
-internal record struct RegisteredScript(string Script, string? Nonce, RegisterType Type);
+internal record struct RegisteredScript(string Script, string? Nonce, RegisterType Type, AttributeCollection? Attributes);
 
 internal enum RegisterType
 {
@@ -19,11 +19,11 @@ internal enum RegisterType
 
 public sealed class ClientScriptManager
 {
-    private const string ScriptStart = "\n<script";
+    private const string ScriptStart = "<script";
     private const string ScriptEnd = "</script>\n";
-    private const string StyleStart = "\n<style";
+    private const string StyleStart = "<style";
     private const string StyleEnd = "</style>\n";
-    private const string LinkStart = "\n<link rel=\"stylesheet\"";
+    private const string LinkStart = "<link rel=\"stylesheet\"";
     private const string LinkEnd = " />\n";
 
     private readonly Page _page;
@@ -51,27 +51,27 @@ public sealed class ClientScriptManager
                _startupBody.ContainsKey((type, key));
     }
 
-    public void RegisterStartupScript(Type type, string key, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true)
+    public void RegisterStartupScript(Type type, string key, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true, AttributeCollection? attributes = null)
     {
-        RegisterBlock(type, key, script, ref _startupBody, addScriptTags ? RegisterType.InlineScript : RegisterType.Raw);
+        RegisterBlock(type, key, script, ref _startupBody, addScriptTags ? RegisterType.InlineScript : RegisterType.Raw, attribute: attributes);
     }
 
-    public void RegisterStartupScriptLink(Type type, string key, string url, bool addScriptTags = true)
+    public void RegisterStartupScriptLink(Type type, string key, string url, bool addScriptTags = true, AttributeCollection? attributes = null)
     {
-        RegisterBlock(type, key, url, ref _startupBody, addScriptTags ? RegisterType.ExternalScript : RegisterType.Raw);
+        RegisterBlock(type, key, url, ref _startupBody, addScriptTags ? RegisterType.ExternalScript : RegisterType.Raw, attribute: attributes);
     }
 
-    public void RegisterStartupStyle(Type type, string key, string content, bool addStyleTags)
+    public void RegisterStartupStyle(Type type, string key, string content, bool addStyleTags, AttributeCollection? attributes = null)
     {
-        RegisterBlock(type, key, content, ref _startupHead, addStyleTags ? RegisterType.InlineStyle : RegisterType.Raw);
+        RegisterBlock(type, key, content, ref _startupHead, addStyleTags ? RegisterType.InlineStyle : RegisterType.Raw, attribute: attributes);
     }
 
-    public void RegisterStartupStyleLink(Type type, string key, string url, bool addStyleTags = true)
+    public void RegisterStartupStyleLink(Type type, string key, string url, bool addStyleTags = true, AttributeCollection? attributes = null)
     {
-        RegisterBlock(type, key, url, ref _startupHead, addStyleTags ? RegisterType.ExternalStyle : RegisterType.Raw);
+        RegisterBlock(type, key, url, ref _startupHead, addStyleTags ? RegisterType.ExternalStyle : RegisterType.Raw, attribute: attributes);
     }
 
-    private void RegisterBlock(Type type, string key, string content, ref ScriptDictionary? dictionary, RegisterType registerType)
+    private void RegisterBlock(Type type, string key, string content, ref ScriptDictionary? dictionary, RegisterType registerType, AttributeCollection? attribute)
     {
         if (type == null)
         {
@@ -116,7 +116,7 @@ public sealed class ClientScriptManager
         }
 
         dictionary ??= new ScriptDictionary();
-        dictionary[dictionaryKey] = new RegisteredScript(content, nonce, registerType);
+        dictionary[dictionaryKey] = new RegisteredScript(content, nonce, registerType, attribute);
     }
 
     private async ValueTask Render(HtmlTextWriter writer, ScriptDictionary? scripts)
@@ -131,7 +131,7 @@ public sealed class ClientScriptManager
 
         foreach (var kv in scripts)
         {
-            var (script, cspNonce, type) = kv.Value;
+            var (script, cspNonce, type, attributes) = kv.Value;
             var attr = type switch
             {
                 RegisterType.ExternalScript => "src",
@@ -149,6 +149,11 @@ public sealed class ClientScriptManager
                     await writer.WriteAsync(" nonce=\"");
                     await writer.WriteAsync(cspNonce);
                     await writer.WriteAsync('"');
+                }
+
+                if (attributes != null)
+                {
+                    await attributes.RenderAsync(writer);
                 }
 
                 if (attr != null)

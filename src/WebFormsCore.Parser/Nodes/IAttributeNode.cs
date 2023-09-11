@@ -4,5 +4,5 @@ namespace WebFormsCore.Nodes;
 
 public interface IAttributeNode
 {
-    Dictionary<TokenString, TokenString> Attributes { get; }
+    Dictionary<TokenString, AttributeValue> Attributes { get; }
 }

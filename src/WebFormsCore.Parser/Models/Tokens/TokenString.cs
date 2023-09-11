@@ -3,6 +3,27 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace WebFormsCore.Models;
 
+public record struct AttributeValue(bool IsCode, TokenString Token)
+{
+    public override string ToString()
+    {
+        return Token.ToString();
+    }
+
+    public string Value => Token.Value;
+
+    public TokenRange Range => Token.Range;
+
+    public string CodeString => IsCode ? Value : Token.CodeString;
+
+    public string VbCodeString => IsCode ? Value : Token.VbCodeString;
+
+    public static implicit operator string(AttributeValue attributeValue)
+    {
+        return attributeValue.Value;
+    }
+}
+
 [DebuggerDisplay("{Value} [{Range}]")]
 public readonly struct TokenString : IEquatable<TokenString>
 {
