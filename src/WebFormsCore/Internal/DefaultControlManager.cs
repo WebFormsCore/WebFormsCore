@@ -63,15 +63,16 @@ public class DefaultControlManager : IControlManager
     {
         var types = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
         var entry = Assembly.GetEntryAssembly();
+        var loaded = AppDomain.CurrentDomain.GetAssemblies().ToDictionary(i => i.GetName().FullName);
 
         if (entry != null)
         {
-            AddAssemblies(entry, types);
+            AddAssemblies(entry, types, loaded);
         }
 
         return types;
 
-        static void AddAssemblies(Assembly current, IDictionary<string, Type> types)
+        static void AddAssemblies(Assembly current, IDictionary<string, Type> types, IDictionary<string, Assembly> assemblies)
         {
             foreach (var attribute in current.GetCustomAttributes<AssemblyViewAttribute>())
             {
@@ -81,15 +82,11 @@ public class DefaultControlManager : IControlManager
                 }
             }
 
-            foreach (var assembly in current.GetReferencedAssemblies())
+            foreach (var assemblyName in current.GetReferencedAssemblies())
             {
-                try
+                if (assemblies.TryGetValue(assemblyName.FullName, out var assembly))
                 {
-                    AddAssemblies(Assembly.Load(assembly), types);
-                }
-                catch
-                {
-                    // ignored
+                    AddAssemblies(assembly, types, assemblies);
                 }
             }
         }
