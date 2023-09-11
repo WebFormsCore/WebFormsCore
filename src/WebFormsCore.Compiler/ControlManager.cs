@@ -109,24 +109,26 @@ public class ControlManager : IDisposable, IControlManager
             return false;
         }
 
-        path = DefaultControlManager.NormalizePath(
-            fullPath.Substring(_environment.ContentRootPath.Length).TrimStart('\\', '/')
-        );
+        path = DefaultControlManager.NormalizePath(fullPath.Substring(_environment.ContentRootPath.Length));
 
         return true;
     }
 
     public async ValueTask<Type> GetTypeAsync(string path)
     {
-        var entry = _controls.GetOrAdd(path, p => new ControlEntry(p));
+        var normalizedPath = DefaultControlManager.NormalizePath(path);
+        var entry = _controls.GetOrAdd(normalizedPath, p => new ControlEntry(p));
 
-        if (entry.Type != null) return entry.Type;
+        if (entry.Type != null)
+        {
+            return entry.Type;
+        }
 
         await entry.Lock.WaitAsync();
 
         try
         {
-            return UpdateType(path, entry);
+            return UpdateType(normalizedPath, entry);
         }
         finally
         {
@@ -136,7 +138,8 @@ public class ControlManager : IDisposable, IControlManager
 
     public Type GetType(string path)
     {
-        var entry = _controls.GetOrAdd(path, p => new ControlEntry(p));
+        var normalizedPath = DefaultControlManager.NormalizePath(path);
+        var entry = _controls.GetOrAdd(normalizedPath, p => new ControlEntry(p));
 
         if (entry.Type != null) return entry.Type;
 
@@ -144,7 +147,7 @@ public class ControlManager : IDisposable, IControlManager
 
         try
         {
-            return UpdateType(path, entry);
+            return UpdateType(normalizedPath, entry);
         }
         finally
         {
@@ -159,14 +162,21 @@ public class ControlManager : IDisposable, IControlManager
             return entry.Type;
         }
 
-        entry.Type = CompileControl(path);
+        var type = CompileControl(path);
+
+        if (type == null)
+        {
+            throw new FileNotFoundException($"Could not find type for path '{path}'");
+        }
+
+        entry.Type = type;
         entry.LastModified = File.GetLastWriteTimeUtc(entry.Path);
         entry.NextCheck = DateTimeOffset.Now.AddSeconds(5);
 
         return entry.Type;
     }
 
-    private Type CompileControl(string path)
+    private Type? CompileControl(string path)
     {
         var sw = Stopwatch.StartNew();
 
@@ -177,10 +187,15 @@ public class ControlManager : IDisposable, IControlManager
 
         if (_environment.ContentRootPath is null)
         {
-            throw new InvalidOperationException("ContentRootPath is not set");
+            return type;
         }
 
         var fullPath = Path.Combine(_environment.ContentRootPath, path);
+
+        if (!File.Exists(fullPath))
+        {
+            return type;
+        }
 
         using var stream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         using var reader = new StreamReader(stream);

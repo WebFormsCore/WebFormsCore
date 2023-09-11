@@ -23,11 +23,11 @@ public class DefaultControlManager : IControlManager
 
     public Type GetType(string path)
     {
-        path = NormalizePath(path).TrimStart('/');
+        path = NormalizePath(path);
 
         if (!_types.TryGetValue(path, out var type))
         {
-            throw new InvalidOperationException($"Could not find type for path '{path}'");
+            throw new FileNotFoundException($"Could not find type for path '{path}'");
         }
 
         return type;
@@ -57,17 +57,80 @@ public class DefaultControlManager : IControlManager
         return true;
     }
 
-    public static string NormalizePath(string path)
-    {
-        return path.IndexOf('\\') == -1
-            ? path
-            : path.Replace('\\', '/');
-    }
-
     public static Dictionary<string, Type> GetCompiledControls()
     {
-        return AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(a => a.GetCustomAttributes<AssemblyViewAttribute>())
-            .ToDictionary(x => NormalizePath(x.Path), x => x.Type, StringComparer.OrdinalIgnoreCase);
+        var types = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
+        var entry = Assembly.GetEntryAssembly();
+
+        if (entry != null)
+        {
+            AddAssemblies(entry, types);
+        }
+
+        return types;
+
+        static void AddAssemblies(Assembly current, IDictionary<string, Type> types)
+        {
+            foreach (var attribute in current.GetCustomAttributes<AssemblyViewAttribute>())
+            {
+                if (!types.ContainsKey(attribute.Path))
+                {
+                    types.Add(NormalizePath(attribute.Path), attribute.Type);
+                }
+            }
+
+            foreach (var assembly in current.GetReferencedAssemblies())
+            {
+                try
+                {
+                    AddAssemblies(Assembly.Load(assembly), types);
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
+        }
+    }
+
+    public static string NormalizePath(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            return path;
+        }
+
+        var span = path.AsSpan();
+
+#if NET
+        var hasInvalidPathSeparator = span.Contains('\\');
+#else
+        var hasInvalidPathSeparator = span.IndexOf('\\') != -1;
+#endif
+
+        if (!hasInvalidPathSeparator && span[0] != '/')
+        {
+            return path;
+        }
+
+        Span<char> buffer = stackalloc char[path.Length];
+
+        for (var i = 0; i < span.Length; i++)
+        {
+            var c = span[i];
+
+            buffer[i] = c switch
+            {
+                '\\' => '/',
+                _ => c
+            };
+        }
+
+        if (buffer[0] == '/')
+        {
+            return buffer.Slice(1).ToString();
+        }
+
+        return buffer.ToString();
     }
 }
