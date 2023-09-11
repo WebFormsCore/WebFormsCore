@@ -13,8 +13,11 @@ public partial class PageTest
     {
         var services = new ServiceCollection();
 
-        services.AddWebForms();
-        services.AddWebFormsCompiler();
+        services.AddWebForms(b =>
+        {
+            b.AddControlCompiler();
+        });
+
         services.AddLogging();
         services.AddSingleton<IWebFormsEnvironment, TestEnvironment>();
 

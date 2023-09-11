@@ -29,9 +29,6 @@ internal class InitializeViewManager : BackgroundService
             return;
         }
 
-        var binPrefix = "bin" + Path.DirectorySeparatorChar;
-        var objPrefix = "obj" + Path.DirectorySeparatorChar;
-
         var files = Directory.GetFiles(_environment.ContentRootPath, "*.*", SearchOption.AllDirectories)
             .Where(i => Path.GetExtension(i) is ".aspx" or ".ascx");
 
@@ -43,8 +40,8 @@ internal class InitializeViewManager : BackgroundService
         {
 #endif
             if (_controlManager.TryGetPath(fullPath, out var path) &&
-                !path.StartsWith(binPrefix) &&
-                !path.StartsWith(objPrefix))
+                !path.StartsWith("bin/") &&
+                !path.StartsWith("obj/"))
             {
                 try
                 {

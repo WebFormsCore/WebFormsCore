@@ -1,10 +1,11 @@
 ﻿using System;
+using System.IO;
 
 namespace WebFormsCore;
 
 public class DefaultWebFormsEnvironment : IWebFormsEnvironment
 {
-    public string? ContentRootPath => AppContext.BaseDirectory;
+    public string? ContentRootPath => Directory.GetCurrentDirectory();
 
     public bool EnableControlWatcher => true; // TODO: Make this configurable
 }

@@ -4,10 +4,10 @@ namespace WebFormsCore;
 
 public static class HostingServiceExtensions
 {
-    public static IServiceCollection AddWebFormsCompiler(this IServiceCollection services)
+    public static IWebFormsCoreBuilder AddControlCompiler(this IWebFormsCoreBuilder builder)
     {
-        services.AddHostedService<InitializeViewManager>();
-        services.AddSingleton<IControlManager, ControlManager>();
-        return services;
+        builder.Services.AddHostedService<InitializeViewManager>();
+        builder.Services.AddSingleton<IControlManager, ControlManager>();
+        return builder;
     }
 }

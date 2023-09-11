@@ -563,7 +563,7 @@ public class Parser
                 continue;
             }
 
-            SetAttribute(node, key, value);
+            SetAttribute(node, key, attribute.Value);
         }
     }
 

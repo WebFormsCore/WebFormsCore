@@ -34,6 +34,8 @@ public class ControlManager : IDisposable, IControlManager
 
         if (environment is { EnableControlWatcher: true, ContentRootPath: not null })
         {
+            _logger?.LogDebug("Control watcher is enabled in {Path}", environment.ContentRootPath);
+
             foreach (var extension in new[] { "*.aspx", "*.ascx" })
             {
                 var watcher = new FileSystemWatcher(environment.ContentRootPath, extension)
@@ -81,7 +83,7 @@ public class ControlManager : IDisposable, IControlManager
         });
     }
 
-    public static async Task<bool> IsFileReady(string filename, int timeOut = 5000)
+    private static async Task<bool> IsFileReady(string filename, int timeOut = 5000)
     {
         var sw = Stopwatch.StartNew();
 
