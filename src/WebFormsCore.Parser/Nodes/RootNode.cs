@@ -86,6 +86,8 @@ public class RootNode : ContainerNode
         }
     }
 
+    public bool AddFields { get; set; }
+
     public string? InheritsClassName => Inherits?.Name ?? (
         Directives.Any(d => d.DirectiveType == DirectiveType.Page)
             ? "global::WebFormsCore.UI.Page"

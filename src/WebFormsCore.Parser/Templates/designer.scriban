@@ -133,7 +133,7 @@ namespace {{ type.Namespace }}
 using {{ ns }};
 {{- end }}
 
-{{- if AddFields }}
+{{- if AddFields && type.AddFields }}
 [WebFormsCore.ViewPath(@"{{ type.Path }}")]
 partial class {{ type.InheritsClassName }}
 {

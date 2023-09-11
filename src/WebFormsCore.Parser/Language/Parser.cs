@@ -277,6 +277,7 @@ public class Parser
                 if (_type != null)
                 {
                     Root.Inherits = _type;
+                    Root.AddFields = _type.ContainingAssembly.Equals(_compilation.Assembly, SymbolEqualityComparer.Default);
 
                     foreach (var kv in element.Attributes)
                     {

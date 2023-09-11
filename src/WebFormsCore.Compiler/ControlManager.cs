@@ -24,10 +24,12 @@ public class ControlManager : IDisposable, IControlManager
     private readonly IWebFormsEnvironment _environment;
     private readonly ILogger<ControlManager>? _logger;
     private readonly Dictionary<string, Type> _compiledViews;
+    private readonly string? _contentRoot;
 
     public ControlManager(IWebFormsEnvironment environment, ILogger<ControlManager>? logger = null)
     {
         _environment = environment;
+        _contentRoot = environment.ContentRootPath ?? AppContext.BaseDirectory;
         _logger = logger;
         _watchers = new List<FileSystemWatcher>();
         _compiledViews = DefaultControlManager.GetCompiledControls();
@@ -105,15 +107,16 @@ public class ControlManager : IDisposable, IControlManager
 
     public bool TryGetPath(string fullPath, [NotNullWhen(true)] out string? path)
     {
-        if (_environment.ContentRootPath is null || !fullPath.StartsWith(_environment.ContentRootPath) || !File.Exists(fullPath))
+        var current = fullPath;
+
+        if (_contentRoot != null && current.StartsWith(_contentRoot))
         {
-            path = null;
-            return false;
+            current = current.Substring(_contentRoot.Length);
+            fullPath = Path.Combine(_contentRoot, current);
         }
 
-        path = DefaultControlManager.NormalizePath(fullPath.Substring(_environment.ContentRootPath.Length));
-
-        return true;
+        path = DefaultControlManager.NormalizePath(current);
+        return _compiledViews.ContainsKey(path) || File.Exists(fullPath);
     }
 
     public async ValueTask<Type> GetTypeAsync(string path)

@@ -44,8 +44,10 @@ public class DefaultControlManager : IControlManager
 
         if (_contentRoot != null && current.StartsWith(_contentRoot))
         {
-            current = current.Substring(_contentRoot.Length).TrimStart('\\', '/');
+            current = current.Substring(_contentRoot.Length);
         }
+
+        current = NormalizePath(current);
 
         if (!_types.ContainsKey(current))
         {
