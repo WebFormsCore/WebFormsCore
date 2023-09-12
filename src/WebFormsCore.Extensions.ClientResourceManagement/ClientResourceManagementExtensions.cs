@@ -25,7 +25,7 @@ public static class ClientResourceManagementExtensions
     {
         builder.Services.TryAddSingleton<IPageService, ClientResourceManagementService>();
         builder.Services.TryAddScoped<ClientDependencyCollection>();
-        builder.AddEnumAttributeParser<CssMediaType>();
+        builder.TryAddEnumAttributeParser<CssMediaType>();
         return new ClientResourceManagementBuilder(builder.Services);
     }
 

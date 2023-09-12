@@ -11,7 +11,7 @@ public static class ControlExtensions
 {
     public static async ValueTask<string> RenderToStringAsync(this Control control, CancellationToken token = default)
     {
-        using var subWriter = new StringHtmlTextWriter();
+        await using var subWriter = new StringHtmlTextWriter();
 
         await control.RenderAsync(subWriter, token);
         await subWriter.FlushAsync();
@@ -21,7 +21,7 @@ public static class ControlExtensions
 
     public static async ValueTask<string> RenderChildrenToStringAsync(this Control control, CancellationToken token = default)
     {
-        using var subWriter = new StringHtmlTextWriter();
+        await using var subWriter = new StringHtmlTextWriter();
 
         await control.RenderChildrenInternalAsync(subWriter, token);
         await subWriter.FlushAsync();

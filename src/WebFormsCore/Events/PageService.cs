@@ -27,12 +27,12 @@ public class PageService : IPageService
         return default;
     }
 
-    public virtual ValueTask BeforeRenderAsync(Page page, CancellationToken token)
+    public virtual ValueTask BeforePreRenderAsync(Page page, CancellationToken token)
     {
         return default;
     }
 
-    public virtual ValueTask AfterRenderAsync(Page page, CancellationToken token)
+    public virtual ValueTask AfterPreRenderAsync(Page page, CancellationToken token)
     {
         return default;
     }

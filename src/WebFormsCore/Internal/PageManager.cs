@@ -76,7 +76,7 @@ public class PageManager : IPageManager
         }
 
         var stream = context.Response.Body;
-        using var writer = new StreamHtmlTextWriter(stream);
+        await using var writer = new StreamHtmlTextWriter(stream);
 
         context.Response.ContentType = "text/html; charset=utf-8";
 
@@ -221,14 +221,14 @@ public class PageManager : IPageManager
 
         foreach (var service in pageServices)
         {
-            await service.BeforeRenderAsync(page, token);
+            await service.BeforePreRenderAsync(page, token);
         }
 
         await target.InvokePreRenderAsync(token, form);
 
         foreach (var service in pageServices)
         {
-            await service.AfterRenderAsync(page, token);
+            await service.AfterPreRenderAsync(page, token);
         }
 
         return target;

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
@@ -10,84 +9,9 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI;
 
-public class StringHtmlTextWriter : HtmlTextWriter
+public abstract class HtmlTextWriter : IAsyncDisposable
 {
-    private readonly StringBuilder _stringBuilder = new();
-
-#if NET
-    protected override void Flush(ReadOnlySpan<char> buffer)
-    {
-        _stringBuilder.Append(buffer);
-    }
-
-    protected override ValueTask FlushAsync(ReadOnlyMemory<char> buffer)
-    {
-        _stringBuilder.Append(buffer.Span);
-        return default;
-    }
-#else
-    protected override unsafe void Flush(ReadOnlySpan<char> buffer)
-    {
-        fixed (char* ptr = buffer)
-        {
-            _stringBuilder.Append(ptr, buffer.Length);
-        }
-    }
-
-    protected override ValueTask FlushAsync(ReadOnlyMemory<char> buffer)
-    {
-        Flush(buffer.Span);
-        return default;
-    }
-#endif
-
-    public override string ToString()
-    {
-        return _stringBuilder.ToString();
-    }
-}
-
-public class StreamHtmlTextWriter : HtmlTextWriter
-{
-    private readonly Stream _stream;
-    private readonly byte[] _buffer;
-
-    public StreamHtmlTextWriter(Stream stream)
-    {
-        _stream = stream;
-        _buffer = ArrayPool<byte>.Shared.Rent(Encoding.GetMaxByteCount(BufferSize));
-    }
-
-    protected override void Flush(ReadOnlySpan<char> buffer)
-    {
-        var length = Encoding.GetBytes(buffer, _buffer);
-        _stream.Write(_buffer, 0, length);
-        _stream.Flush();
-    }
-
-    protected override async ValueTask FlushAsync(ReadOnlyMemory<char> buffer)
-    {
-        var length = Encoding.GetBytes(buffer.Span, _buffer);
-        await _stream.WriteAsync(_buffer, 0, length);
-        await _stream.FlushAsync();
-    }
-
-    public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer)
-    {
-        return HasPendingCharacters ? FlushAndWriteAsync(buffer) : _stream.WriteAsync(buffer);
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private async ValueTask FlushAndWriteAsync(ReadOnlyMemory<byte> buffer)
-    {
-        await FlushAsync();
-        await _stream.WriteAsync(buffer);
-    }
-}
-
-public abstract class HtmlTextWriter : IDisposable
-{
-    public const int BufferSize = 1024;
+    public const int DefaultBufferSize = 1024;
 
     public const string DefaultTabString = "\t";
     public const char DoubleQuoteChar = '"';
@@ -109,45 +33,10 @@ public abstract class HtmlTextWriter : IDisposable
     private readonly Stack<string> _openTags = new();
     private readonly List<KeyValuePair<string, string?>> _attributes = new();
     private readonly List<KeyValuePair<string, string?>> _styleAttributes = new();
-
-    public void AddAttribute(HtmlTextWriterAttribute key, string? value) => AddAttribute(key, value, true);
-
-    public void AddAttribute(HtmlTextWriterAttribute key, string? value, bool encode) =>
-        AddAttribute(key.ToName(), value, encode);
-
-    public void AddAttribute(string name, string? value) => AddAttribute(name, value, true);
-
-    public void AddAttribute(string name, string? value, bool encode)
-    {
-        if (encode) value = WebUtility.HtmlEncode(value);
-
-        _attributes.Add(new KeyValuePair<string, string?>(name, value));
-    }
-
-    public void RemoveAttributes(HtmlTextWriterAttribute key) => RemoveAttributes(key.ToName());
-
-    public void RemoveAttributes(string name)
-    {
-        _attributes.RemoveAll(x => x.Key == name);
-    }
-
-    public void AddStyleAttribute(HtmlTextWriterStyle key, string? value) => AddStyleAttribute(key, value, true);
-
-    public void AddStyleAttribute(HtmlTextWriterStyle key, string? value, bool encode) =>
-        AddStyleAttribute(key.ToName(), value, encode);
-
-    public void AddStyleAttribute(string name, string? value) => AddStyleAttribute(name, value, true);
-
-    public void AddStyleAttribute(string name, string? value, bool encode)
-    {
-        if (encode)
-            value = WebUtility.HtmlEncode(value);
-
-        _styleAttributes.Add(new KeyValuePair<string, string?>(name, value));
-    }
-
     private int _charPos;
-    private readonly char[] _charBuffer = ArrayPool<char>.Shared.Rent(1024);
+    private char[] _charBuffer = ArrayPool<char>.Shared.Rent(1024);
+
+    protected abstract bool ForceAsync { get; }
 
     protected bool HasPendingCharacters => _charPos > 0;
 
@@ -155,11 +44,37 @@ public abstract class HtmlTextWriter : IDisposable
 
     protected abstract ValueTask FlushAsync(ReadOnlyMemory<char> buffer);
 
-    public void Flush()
+    private void Flush()
     {
-        if (_charPos == 0) return;
+        if (_charPos == 0)
+        {
+            return;
+        }
+
+        if (ForceAsync)
+        {
+            // Instead of flushing the buffer, we grow the buffer and let the async flush handle it.
+            GrowBuffer();
+            return;
+        }
+
         Flush(_charBuffer.AsSpan(0, _charPos));
         _charPos = 0;
+    }
+
+    private void GrowBuffer()
+    {
+        var size = _charBuffer.Length * 2;
+        var newBuffer = ArrayPool<char>.Shared.Rent(size);
+        _charBuffer.AsSpan(0, _charPos).CopyTo(newBuffer);
+        ArrayPool<char>.Shared.Return(_charBuffer);
+        _charBuffer = newBuffer;
+
+        OnBufferSizeChange(size);
+    }
+
+    protected virtual void OnBufferSizeChange(int size)
+    {
     }
 
     public ValueTask FlushAsync()
@@ -189,7 +104,7 @@ public abstract class HtmlTextWriter : IDisposable
 
     public void Write(ReadOnlySpan<char> buffer)
     {
-        var remaining = (BufferSize - 1) - _charPos;
+        var remaining = (DefaultBufferSize - 1) - _charPos;
 
         if (buffer.Length > remaining)
         {
@@ -213,7 +128,6 @@ public abstract class HtmlTextWriter : IDisposable
             if (_charPos == _charBuffer.Length)
             {
                 Flush();
-                _charPos = 0;
             }
         }
     }
@@ -232,7 +146,7 @@ public abstract class HtmlTextWriter : IDisposable
 
     public ValueTask WriteAsync(ReadOnlyMemory<char> buffer)
     {
-        var remaining = (BufferSize - 1) - _charPos;
+        var remaining = (DefaultBufferSize - 1) - _charPos;
 
         if (buffer.Length > remaining)
         {
@@ -527,22 +441,43 @@ public abstract class HtmlTextWriter : IDisposable
         return WriteAsync("\n");
     }
 
-    public void Dispose()
+    public void AddAttribute(HtmlTextWriterAttribute key, string? value) => AddAttribute(key, value, true);
+
+    public void AddAttribute(HtmlTextWriterAttribute key, string? value, bool encode) => AddAttribute(key.ToName(), value, encode);
+
+    public void AddAttribute(string name, string? value) => AddAttribute(name, value, true);
+
+    public void AddAttribute(string name, string? value, bool encode)
     {
-        Dispose(true);
+        if (encode) value = WebUtility.HtmlEncode(value);
+        _attributes.Add(new KeyValuePair<string, string?>(name, value));
     }
 
-    ~HtmlTextWriter()
+    public void RemoveAttributes(HtmlTextWriterAttribute key) => RemoveAttributes(key.ToName());
+
+    public void RemoveAttributes(string name) => _attributes.RemoveAll(x => x.Key == name);
+
+    public void AddStyleAttribute(HtmlTextWriterStyle key, string? value) => AddStyleAttribute(key, value, true);
+
+    public void AddStyleAttribute(HtmlTextWriterStyle key, string? value, bool encode) => AddStyleAttribute(key.ToName(), value, encode);
+
+    public void AddStyleAttribute(string name, string? value) => AddStyleAttribute(name, value, true);
+
+    public void AddStyleAttribute(string name, string? value, bool encode)
     {
-        Dispose(false);
+        if (encode) value = WebUtility.HtmlEncode(value);
+        _styleAttributes.Add(new KeyValuePair<string, string?>(name, value));
     }
 
-    protected virtual void Dispose(bool disposing)
+    protected virtual async ValueTask DisposeAsyncCore()
     {
-        if (disposing)
-        {
-            Flush();
-            ArrayPool<char>.Shared.Return(_charBuffer);
-        }
+        await FlushAsync();
+        ArrayPool<char>.Shared.Return(_charBuffer);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await DisposeAsyncCore();
+        GC.SuppressFinalize(this);
     }
 }

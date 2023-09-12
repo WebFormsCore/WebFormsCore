@@ -186,7 +186,7 @@ public class StreamPanel : Control, INamingContainer
     private async Task UpdateControlAsync(CancellationToken token = default)
     {
         using var memory = new MemoryStream();
-        using var writer = new StreamHtmlTextWriter(memory);
+        await using var writer = new StreamHtmlTextWriter(memory);
 
         await RenderAsync(writer, token);
         await writer.FlushAsync();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using HttpStack;
 using Microsoft.Extensions.DependencyInjection;
@@ -62,5 +63,21 @@ public static class HttpStackExtensions
         var application = context.RequestServices.GetRequiredService<IPageManager>();
 
         await application.RenderPageAsync(context, page, context.RequestAborted);
+    }
+
+    public static void RunPage(this IHttpStackBuilder builder, string path)
+    {
+        builder.Run(context => ExecutePageAsync(context, path, true));
+    }
+
+    public static void RunPage<T>(this IHttpStackBuilder builder)
+        where T : Page
+    {
+        builder.Run(ExecutePageAsync<T>);
+    }
+
+    public static void RunPage(this IHttpStackBuilder builder, Type page)
+    {
+        builder.Run(context => ExecutePageAsync(context, page));
     }
 }

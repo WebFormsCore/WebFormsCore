@@ -16,6 +16,8 @@ builder.Services.AddWebForms(b =>
     b.AddClientResourceManagement();
 });
 
+builder.Services.AddWebForms();
+
 builder.Services.Configure<WebFormsCoreOptions>(options =>
 {
     options.HiddenClass = "d-none";
@@ -34,19 +36,16 @@ var app = builder.Build();
 app.UseSession();
 app.UseWebSockets();
 
-var stack = app.UseStack();
-
-stack.RunPath("/favicon.ico", context =>
+app.UseStack(stack =>
 {
-    context.Response.StatusCode = 404;
-    return Task.CompletedTask;
-});
+    stack.RunPath("/favicon.ico", context =>
+    {
+        context.Response.StatusCode = 404;
+        return Task.CompletedTask;
+    });
 
-stack.UseWebFormsCore();
-
-stack.Run(async context =>
-{
-    await context.ExecutePageAsync<Default>();
+    stack.UseWebFormsCore();
+    stack.RunPage<Default>();
 });
 
 app.Run();

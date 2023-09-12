@@ -15,9 +15,9 @@ public interface IPageService
 
     ValueTask AfterLoadAsync(Page page, CancellationToken token);
 
-    ValueTask BeforeRenderAsync(Page page, CancellationToken token);
+    ValueTask BeforePreRenderAsync(Page page, CancellationToken token);
 
-    ValueTask AfterRenderAsync(Page page, CancellationToken token);
+    ValueTask AfterPreRenderAsync(Page page, CancellationToken token);
 
     Task BeforePostbackAsync(Page page, CancellationToken token);
 

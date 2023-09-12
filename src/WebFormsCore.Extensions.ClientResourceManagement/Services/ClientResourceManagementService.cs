@@ -8,7 +8,7 @@ namespace WebFormsCore.Services;
 
 internal class ClientResourceManagementService : PageService
 {
-    public override async ValueTask BeforeRenderAsync(Page page, CancellationToken token)
+    public override async ValueTask BeforePreRenderAsync(Page page, CancellationToken token)
     {
         var service = page.Context.RequestServices.GetService<ClientDependencyCollection>();
 

@@ -39,8 +39,32 @@ public class CspDirective : ICollection<string>
 
         builder.Append(Name);
 
+        var defaultDirective = Csp.DefaultSrc;
+
+        if (defaultDirective == this)
+        {
+            foreach (var item in SourceList)
+            {
+                builder.Append(' ');
+                builder.Append(item);
+            }
+
+            return;
+        }
+
+        foreach (var item in defaultDirective.SourceList)
+        {
+            builder.Append(' ');
+            builder.Append(item);
+        }
+
         foreach (var item in SourceList)
         {
+            if (defaultDirective.SourceList.Contains(item))
+            {
+                continue;
+            }
+
             builder.Append(' ');
             builder.Append(item);
         }
