@@ -11,7 +11,7 @@ namespace WebFormsCore.UI;
 
 public abstract class HtmlTextWriter : IAsyncDisposable
 {
-    public const int DefaultBufferSize = 1024;
+    public const int DefaultBufferSize = 4096;
 
     public const string DefaultTabString = "\t";
     public const char DoubleQuoteChar = '"';
@@ -34,31 +34,33 @@ public abstract class HtmlTextWriter : IAsyncDisposable
     private readonly List<KeyValuePair<string, string?>> _attributes = new();
     private readonly List<KeyValuePair<string, string?>> _styleAttributes = new();
     private int _charPos;
-    private char[] _charBuffer = ArrayPool<char>.Shared.Rent(1024);
+    private char[] _charBuffer = ArrayPool<char>.Shared.Rent(DefaultBufferSize);
 
     protected abstract bool ForceAsync { get; }
 
-    protected bool HasPendingCharacters => _charPos > 0;
+    internal bool HasPendingCharacters => _charPos > 0;
 
     protected abstract void Flush(ReadOnlySpan<char> buffer);
 
     protected abstract ValueTask FlushAsync(ReadOnlyMemory<char> buffer);
 
-    private void Flush()
+    public void Flush(bool ignoreAsync = false)
     {
-        if (_charPos == 0)
+        var pos = _charPos;
+
+        if (pos == 0)
         {
             return;
         }
 
-        if (ForceAsync)
+        if (ForceAsync && !ignoreAsync)
         {
             // Instead of flushing the buffer, we grow the buffer and let the async flush handle it.
             GrowBuffer();
             return;
         }
 
-        Flush(_charBuffer.AsSpan(0, _charPos));
+        Flush(_charBuffer.AsSpan(0, pos));
         _charPos = 0;
     }
 
@@ -104,9 +106,7 @@ public abstract class HtmlTextWriter : IAsyncDisposable
 
     public void Write(ReadOnlySpan<char> buffer)
     {
-        var remaining = (DefaultBufferSize - 1) - _charPos;
-
-        if (buffer.Length > remaining)
+        if (buffer.Length >= _charBuffer.Length - _charPos)
         {
             WriteSlow(buffer);
             return;
@@ -116,6 +116,7 @@ public abstract class HtmlTextWriter : IAsyncDisposable
         _charPos += buffer.Length;
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private void WriteSlow(ReadOnlySpan<char> buffer)
     {
         while (buffer.Length > 0)
@@ -146,9 +147,7 @@ public abstract class HtmlTextWriter : IAsyncDisposable
 
     public ValueTask WriteAsync(ReadOnlyMemory<char> buffer)
     {
-        var remaining = (DefaultBufferSize - 1) - _charPos;
-
-        if (buffer.Length > remaining)
+        if (buffer.Length >= _charBuffer.Length - _charPos)
         {
             return WriteAsyncSlow(buffer);
         }
@@ -179,12 +178,27 @@ public abstract class HtmlTextWriter : IAsyncDisposable
     public virtual async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer)
     {
         var size = Encoding.GetMaxCharCount(buffer.Length);
+        if (size > 4096) size = Encoding.GetCharCount(buffer.Span);
+
         using var charBuffer = MemoryPool<char>.Shared.Rent(size);
 
         var memory = charBuffer.Memory;
         var count = Encoding.GetChars(buffer.Span, memory.Span);
 
         await WriteAsync(memory.Slice(0, count));
+    }
+
+    public virtual void Write(ReadOnlySpan<byte> buffer)
+    {
+        var size = Encoding.GetMaxCharCount(buffer.Length);
+        if (size > 4096) size = Encoding.GetCharCount(buffer);
+
+        using var charBuffer = MemoryPool<char>.Shared.Rent(size);
+
+        var span = charBuffer.Memory.Span;
+        var count = Encoding.GetChars(buffer, span);
+
+        Write(span.Slice(0, count));
     }
 
     public virtual ValueTask WriteObjectAsync(object? value)

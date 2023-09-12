@@ -54,6 +54,7 @@ public class ViewStateManager : IViewStateManager
     public ValueTask<IMemoryOwner<byte>> WriteAsync(Control control, out int length)
     {
         var writer = new ViewStateWriter(_serviceProvider);
+        var debug = _options?.Value.Debug ?? false;
 
         try
         {
@@ -64,6 +65,12 @@ public class ViewStateManager : IViewStateManager
             while (enumerator.MoveNext())
             {
                 enumerator.Current.WriteViewState(ref writer);
+
+                if (debug)
+                {
+                    writer.Write((ushort) writer.Length);
+                }
+
                 controlCount++;
             }
 
@@ -276,11 +283,12 @@ public class ViewStateManager : IViewStateManager
     /// <summary>
     /// Try to load the view state for as many controls as possible with the span-reader.
     /// </summary>
-    private static IPostBackLoadHandler? LoadViewState(
+    private IPostBackLoadHandler? LoadViewState(
         ref ViewStateControlEnumerator controls,
         ViewStateReaderOwner owner,
         ref int actualControlCount)
     {
+        var debug = _options?.Value.Debug ?? false;
         var reader = owner.CreateReader();
 
         try
@@ -291,6 +299,17 @@ public class ViewStateManager : IViewStateManager
 
                 control.LoadViewState(ref reader);
                 actualControlCount++;
+
+                if (debug)
+                {
+                    var offset = reader.Offset;
+                    var writerOffset = reader.Read<ushort>();
+
+                    if (writerOffset != offset)
+                    {
+                        throw new ViewStateException("The reader offset does not match the length");
+                    }
+                }
 
                 if (control is IPostBackLoadHandler handler)
                 {

@@ -50,7 +50,7 @@ namespace {{ item.Namespace }}
         {{- if prop.Type == "bool" }}
             if ({{ prop.Name }}) flag |= {{ prop.Flag }};
         {{- else }}
-            var write{{ prop.Name }} = (defaultValues == null || writer.StoreInViewState<{{ prop.Type }}>({{ prop.Name }}, defaultValues.{{ prop.Name }}))
+            var write{{ prop.Name }} = {{ if prop.TrackDefault }}true{{ else }}(defaultValues == null || writer.StoreInViewState<{{ prop.Type }}>({{ prop.Name }}, defaultValues.{{ prop.Name }})){{ end }}
             {{- if prop.ValidateProperty }} && {{ prop.ValidateProperty }}{{ end -}};
             if (write{{ prop.Name }}) flag |= {{ prop.Flag }};
         {{- end }}

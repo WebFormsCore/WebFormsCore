@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HttpStack;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IO;
 using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI.WebControls;
@@ -25,6 +26,8 @@ internal record WebSocketCommand(
 
 public class StreamPanel : Control, INamingContainer
 {
+    private static readonly RecyclableMemoryStreamManager MemoryStreamManager = new();
+
     private WebSocket _webSocket = null!;
     private Task<WebSocketReceiveResult>? _receiveTask;
     private bool _prerender;
@@ -84,6 +87,8 @@ public class StreamPanel : Control, INamingContainer
 
     internal async Task StartAsync(IHttpContext context, WebSocket websocket)
     {
+        context.Response.Body = Stream.Null;
+
         _webSocket = websocket;
 
         await Connected.InvokeAsync(this, EventArgs.Empty);
@@ -185,23 +190,24 @@ public class StreamPanel : Control, INamingContainer
 
     private async Task UpdateControlAsync(CancellationToken token = default)
     {
-        using var memory = new MemoryStream();
+        using var memory = MemoryStreamManager.GetStream();
         await using var writer = new StreamHtmlTextWriter(memory);
+
+        Context.Response.Body = new FlushHtmlStream(memory, writer);
 
         await RenderAsync(writer, token);
         await writer.FlushAsync();
 
-        memory.Position = 0;
+        var length = (int) memory.Length;
+        var buffer = memory.GetBuffer();
 
-        var buffer = new byte[1024];
+#if NET
+        await _webSocket.SendAsync(buffer.AsMemory(0, length), WebSocketMessageType.Text, true, token);
+#else
+        await _webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, length), WebSocketMessageType.Text, true, token);
+#endif
 
-        while (memory.Position < memory.Length)
-        {
-            var count = await memory.ReadAsync(buffer, 0, buffer.Length, token);
-            var isLast = memory.Position == memory.Length;
-
-            await _webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, count), WebSocketMessageType.Text, isLast, token);
-        }
+        Context.Response.Body = Stream.Null;
     }
 
     public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)

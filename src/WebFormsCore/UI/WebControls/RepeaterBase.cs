@@ -19,6 +19,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
     protected Control? Header => _header;
     protected Control? Footer => _footer;
 
+    [ViewState] private bool _loadFromViewState;
     [ViewState] private int _itemCount;
 
     public virtual string? ItemType { get; set; }
@@ -39,6 +40,11 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
 
     public async Task AfterPostBackLoadAsync()
     {
+        if (!_loadFromViewState)
+        {
+            return;
+        }
+
         var count = _itemCount;
 
         if (count == 0)
@@ -210,6 +216,8 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
         {
             throw new InvalidOperationException("DataSource is not an IEnumerable.");
         }
+
+        _loadFromViewState = IsTrackingViewState;
 
         foreach (var dataItem in dataSource)
         {

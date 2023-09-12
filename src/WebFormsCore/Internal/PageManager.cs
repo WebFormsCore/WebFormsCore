@@ -78,6 +78,7 @@ public class PageManager : IPageManager
         var stream = context.Response.Body;
         await using var writer = new StreamHtmlTextWriter(stream);
 
+        context.Response.Body = new FlushHtmlStream(stream, writer);
         context.Response.ContentType = "text/html; charset=utf-8";
 
         if (context.Request.Query.ContainsKey("__external"))
@@ -90,6 +91,8 @@ public class PageManager : IPageManager
         }
 
         await writer.FlushAsync();
+
+        context.Response.Body = stream;
     }
 
     /// <summary>

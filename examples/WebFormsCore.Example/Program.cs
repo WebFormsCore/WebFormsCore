@@ -26,6 +26,7 @@ builder.Services.Configure<WebFormsCoreOptions>(options =>
 builder.Services.Configure<ViewStateOptions>(options =>
 {
     options.EncryptionKey = builder.Configuration.GetValue<string>("ViewState:EncryptionKey");
+    options.Debug = true;
 });
 
 builder.Services.AddDistributedMemoryCache();

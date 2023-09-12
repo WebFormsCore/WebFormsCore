@@ -11,5 +11,7 @@ namespace WebFormsCore
         }
 
         public string? ValidateProperty { get; }
+
+        public bool WriteAlways { get; set; }
     }
 }

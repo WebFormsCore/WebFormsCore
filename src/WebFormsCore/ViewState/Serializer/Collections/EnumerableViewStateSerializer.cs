@@ -34,7 +34,7 @@ public abstract class EnumerableViewStateSerializer<T> : IViewStateSerializer
 
         foreach (var item in (IEnumerable)value)
         {
-            writer.Write(typeArgument, item, null);
+            writer.WriteObject(typeArgument, item, null);
             count++;
         }
 
@@ -60,7 +60,7 @@ public abstract class EnumerableViewStateSerializer<T> : IViewStateSerializer
 
         for (var i = 0; i < count; i++)
         {
-            var value = reader.Read(typeArgument, null);
+            var value = reader.ReadObject(typeArgument, null);
 
             Add(collection, i, value);
         }

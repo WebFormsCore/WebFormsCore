@@ -99,7 +99,6 @@
             {{ line child }}
             {{- case child.Type }}
             {{- when "Statement" }}
-            await writer.FlushAsync();
             {{ child.Text }}
             {{- when "Expression" }}
             await writer.WriteObjectAsync({{ child.Text }});

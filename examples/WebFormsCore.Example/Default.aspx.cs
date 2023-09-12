@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
@@ -26,17 +27,16 @@ public partial class Default : Page
         await phTodoContainer.Controls.AddAsync(
             LoadControl("Controls/TodoList.ascx")
         );
+
+        if (!IsPostBack)
+        {
+            await grid.DataBindAsync();
+        }
     }
 
     protected override void OnLoad(EventArgs args)
     {
         title.InnerText = (PostbackCount++).ToString();
-    }
-
-    protected override async ValueTask OnLoadAsync(CancellationToken token)
-    {
-        await base.OnLoadAsync(token);
-        if (!IsPostBack) await LoadAsync();
     }
 
     protected void choices_OnValuesChanged(Choices sender, EventArgs e)
@@ -50,28 +50,32 @@ public partial class Default : Page
         return Task.CompletedTask;
     }
 
-    protected async Task btnDownload_OnClick(object sender, EventArgs e)
+    protected async Task btnDownload_OnClick(Button sender, EventArgs e)
     {
         Response.ContentType = "application/octet-stream";
         Response.Headers["Content-Disposition"] = "attachment; filename=\"foo.txt\"";
         await Response.WriteAsync("Hello World");
     }
 
-    protected async Task btnAdd_OnClick(Button sender, EventArgs e)
-    {
-        await LoadAsync();
-    }
-
-    private async Task LoadAsync()
+    protected async Task grid_OnNeedDataSource(Grid sender, GridNeedDataSourceEventArgs e)
     {
         using var httpClient = new HttpClient();
         using var response = await httpClient.GetAsync("https://jsonplaceholder.typicode.com/todos");
         var todos = await response.Content.ReadFromJsonAsync(TodoJsonContext.Default.IAsyncEnumerableTodoModel);
 
-        if (todos is not null)
+        if (todos is null)
         {
-            await grid.LoadDataSourceAsync(todos);
+            return;
         }
+
+        if (e.FilterByKeys)
+        {
+            var keys = sender.Keys.GetAll<int>("Id");
+
+            todos = todos.Where(x => keys.Contains(x.Id));
+        }
+
+        await grid.LoadDataSourceAsync(todos);
     }
 }
 

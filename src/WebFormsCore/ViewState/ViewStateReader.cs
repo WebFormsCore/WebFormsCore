@@ -34,7 +34,7 @@ public ref struct ViewStateReader
 
     public int Offset => _offset;
 
-    public object? Read(Type type, object? defaultValue = default)
+    public object? ReadObject(Type type, object? defaultValue = default)
     {
         var objSerializer = Provider
             .GetServices<IViewStateSerializer>()
@@ -59,7 +59,7 @@ public ref struct ViewStateReader
             return serializer.Read(typeof(T), ref this, defaultValue);
         }
 
-        return (T?) Read(typeof(T), defaultValue);
+        return (T?) ReadObject(typeof(T), defaultValue);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

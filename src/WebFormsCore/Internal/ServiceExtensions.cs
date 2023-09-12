@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
@@ -77,6 +78,9 @@ public static class ServiceExtensions
         services.TryAddSingleton<IAttributeParser<bool>, BoolAttributeParser>();
         services.TryAddSingleton<IAttributeParser<Unit>, UnitAttributeParser>();
         services.TryAddSingleton<IAttributeParser<string[]>, ArrayAttributeParser<string>>();
+        services.TryAddSingleton<IAttributeParser<IReadOnlyList<string>>, ArrayAttributeParser<string>>();
+        services.TryAddSingleton<IAttributeParser<List<string>>, ListAttributeParser<string>>();
+        services.TryAddSingleton<IAttributeParser<IList<string>>, ListAttributeParser<string>>();
 
         return builder;
     }

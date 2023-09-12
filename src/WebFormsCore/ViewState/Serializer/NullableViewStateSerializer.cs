@@ -26,7 +26,7 @@ public class NullableViewStateSerializer : IViewStateSerializer
             throw new InvalidOperationException("Invalid type");
         }
 
-        writer.Write(typeArgument, value, defaultValue);
+        writer.WriteObject(typeArgument, value, defaultValue);
     }
 
     public object? Read(Type type, ref ViewStateReader reader, object? defaultValue)
@@ -43,7 +43,7 @@ public class NullableViewStateSerializer : IViewStateSerializer
             throw new InvalidOperationException("Invalid type");
         }
 
-        return reader.Read(typeArgument, defaultValue);
+        return reader.ReadObject(typeArgument, defaultValue);
     }
 
     public bool StoreInViewState(Type type, object? value, object? defaultValue)

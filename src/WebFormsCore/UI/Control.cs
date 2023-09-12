@@ -49,6 +49,8 @@ public partial class Control : System.Web.UI.Control
     protected internal ControlState _state = ControlState.Constructed;
     private bool? _enableViewState;
 
+    protected bool IsTrackingViewState => _trackViewState;
+
     public IWebObjectActivator WebActivator => _webObjectActivator ??= ServiceProvider.GetRequiredService<IWebObjectActivator>();
 
     protected virtual IServiceProvider ServiceProvider => Page.ServiceProvider;

@@ -22,7 +22,7 @@ public class StreamHtmlTextWriter : HtmlTextWriter
     protected override void OnBufferSizeChange(int size)
     {
         ArrayPool<byte>.Shared.Return(_buffer);
-        _buffer = ArrayPool<byte>.Shared.Rent(size);
+        _buffer = ArrayPool<byte>.Shared.Rent(Encoding.GetMaxByteCount(size));
     }
 
     protected override void Flush(ReadOnlySpan<char> buffer)

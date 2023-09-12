@@ -18,5 +18,6 @@
         <ProjectReference Condition="$(WebFormsCoreUseCompiler) == 'true'" Include="..\..\src\WebFormsCore.Compiler\WebFormsCore.Compiler.csproj" />
     </ItemGroup>
 
+
     <Import Project="..\..\sdk\WebFormsCore.SDK.AspNetCore\Sdk\Sdk.targets" />
 </Project>

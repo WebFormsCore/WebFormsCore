@@ -34,7 +34,7 @@ namespace WebFormsCore.SourceGenerator
 
             foreach (var member in type.Members)
             {
-                if (HasViewStateAttribute(member, out _))
+                if (HasViewStateAttribute(member))
                 {
                     return true;
                 }
@@ -42,8 +42,7 @@ namespace WebFormsCore.SourceGenerator
 
             return false;
         }
-
-        private static bool HasViewStateAttribute(MemberDeclarationSyntax member, out string? validateProperty)
+        private static bool HasViewStateAttribute(MemberDeclarationSyntax member)
         {
             foreach (var attributeList in member.AttributeLists)
             {
@@ -58,7 +57,36 @@ namespace WebFormsCore.SourceGenerator
 
                     if (name is "ViewState" or "ViewStateAttribute")
                     {
-                        validateProperty = attribute.ArgumentList?.Arguments.FirstOrDefault()?.Expression switch
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool HasViewStateAttribute(MemberDeclarationSyntax member, out string? validateProperty, out bool trackDefault)
+        {
+            foreach (var attributeList in member.AttributeLists)
+            {
+                foreach (var attribute in attributeList.Attributes)
+                {
+                    var name = attribute.Name switch
+                    {
+                        IdentifierNameSyntax identifier => identifier.Identifier.Text,
+                        QualifiedNameSyntax qualified => qualified.Right.Identifier.Text,
+                        _ => attribute.Name.ToString()
+                    };
+
+                    if (name is "ViewState" or "ViewStateAttribute")
+                    {
+                        trackDefault = attribute.ArgumentList?.Arguments.FirstOrDefault(x => x.NameEquals?.Name.Identifier.Text == "WriteAlways")?.Expression switch
+                        {
+                            LiteralExpressionSyntax literal => (bool?)literal.Token.Value ?? false,
+                            _ => false
+                        };
+
+                        validateProperty = attribute.ArgumentList?.Arguments.FirstOrDefault(x => x.NameEquals is null)?.Expression switch
                         {
                             LiteralExpressionSyntax literal => literal.Token.ValueText,
                             InvocationExpressionSyntax invocation => invocation.ArgumentList.Arguments.FirstOrDefault()?.Expression switch
@@ -74,6 +102,7 @@ namespace WebFormsCore.SourceGenerator
             }
 
             validateProperty = null;
+            trackDefault = false;
             return false;
         }
 
@@ -92,7 +121,8 @@ namespace WebFormsCore.SourceGenerator
             string? ValidateProperty,
             string? DefaultValue,
             int Flag,
-            bool IsViewStateObject
+            bool IsViewStateObject,
+            bool TrackDefault
         );
 
         public record Model(
@@ -115,7 +145,7 @@ namespace WebFormsCore.SourceGenerator
 
                 foreach (var member in typeDeclaration.Members)
                 {
-                    if (!HasViewStateAttribute(member, out var validateProperty))
+                    if (!HasViewStateAttribute(member, out var validateProperty, out var trackDefault))
                     {
                         continue;
                     }
@@ -135,7 +165,8 @@ namespace WebFormsCore.SourceGenerator
                                 validateProperty,
                                 variable.Initializer?.Value.ToString(),
                                 flag,
-                                type.AllInterfaces.Any(x => x.Name == "IViewStateObject")
+                                type.AllInterfaces.Any(x => x.Name == "IViewStateObject"),
+                                trackDefault
                             ));
 
                             flag *= 2;
@@ -154,7 +185,8 @@ namespace WebFormsCore.SourceGenerator
                             validateProperty,
                             property.Initializer?.Value.ToString(),
                             flag,
-                            type.AllInterfaces.Any(x => x.Name == "IViewStateObject")
+                            type.AllInterfaces.Any(x => x.Name == "IViewStateObject"),
+                            trackDefault
                         ));
 
                         flag *= 2;

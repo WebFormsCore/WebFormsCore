@@ -56,7 +56,7 @@ public ref struct ViewStateWriter
         return StoreInViewState(typeof(T), value, defaultValue);
     }
 
-    public void Write(Type type, object? value, object? defaultValue = default)
+    public void WriteObject(Type type, object? value, object? defaultValue = default)
     {
         var objSerializer = _provider
             .GetServices<IViewStateSerializer>()
@@ -83,7 +83,7 @@ public ref struct ViewStateWriter
         }
         else
         {
-            Write(typeof(T), value, defaultValue);
+            WriteObject(typeof(T), value, defaultValue);
         }
     }
 

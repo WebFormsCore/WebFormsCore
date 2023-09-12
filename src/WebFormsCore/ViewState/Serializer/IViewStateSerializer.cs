@@ -53,12 +53,12 @@ public abstract class ViewStateSerializer<T> : IViewStateSerializer<T>
         return typeof(T) == type;
     }
 
-    void IViewStateSerializer.Write(Type type, ref ViewStateWriter writer, object? value, object? defaultValue)
+    public virtual void Write(Type type, ref ViewStateWriter writer, object? value, object? defaultValue)
     {
         Write(type, ref writer, (T?)value, defaultValue is null ? default : (T?)defaultValue);
     }
 
-    object? IViewStateSerializer.Read(Type type, ref ViewStateReader reader, object? defaultValue)
+    public virtual object? Read(Type type, ref ViewStateReader reader, object? defaultValue)
     {
         return Read(type, ref reader, defaultValue is null ? default : (T?)defaultValue);
     }

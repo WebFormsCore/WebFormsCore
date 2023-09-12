@@ -13,9 +13,6 @@
 <body id="Body" runat="server">
 
 <div class="container">
-    <wfc:CssInclude runat="server" FilePath="test.js" />
-    <wfc:CssInclude runat="server" FilePath="foo.js" />
-    <wfc:CssInclude runat="server" FilePath="bar.js" CssMedia="Print" />
     <wfc:Choices runat="server" ID="choices" AutoPostBack="True" OnValuesChanged="choices_OnValuesChanged" Multiple="True" />
 
     <div class="my-2">
@@ -26,7 +23,7 @@
     <wfc:Button runat="server" Text="Download file" OnClick="btnDownload_OnClick" CssClass="btn btn-primary" />
 
     <wfc:HtmlForm runat="server" UpdatePage="False">
-        <wfc:Grid runat="server" ID="grid" class="table" PageSize="20" EditRowAttributes-CssClass="table-active">
+        <wfc:Grid runat="server" ID="grid" class="table" PageSize="20" OnNeedDataSource="grid_OnNeedDataSource" EditRowAttributes-CssClass="table-active" DataKeys="Id">
             <Columns>
                 <wfc:GridBoundColumn runat="server" DataField="Id" CellAttributes-CssClass="test" />
                 <wfc:GridBoundColumn runat="server" DataField="Title" />
@@ -61,7 +58,7 @@
                         <%
                             foreach (var kv in Context.Request.Query)
                             {
-                                await Response.WriteAsync($"<div>{kv.Key} = {kv.Value}</div>");
+                                Response.Write($"<div>{kv.Key} = {kv.Value}</div>");
                             }
                         %>
                     </div>

@@ -127,11 +127,11 @@ public partial class Control : IInternalControl
         }
     }
 
-    public void InvokeTrackViewState(CancellationToken token = default)
+    public void InvokeTrackViewState(bool force = false)
     {
         if (ProcessControl)
         {
-            if (!_trackViewState)
+            if (!_trackViewState || force)
             {
                 TrackViewState(new ViewStateProvider(ServiceProvider));
                 _trackViewState = true;
@@ -142,7 +142,7 @@ public partial class Control : IInternalControl
         {
             foreach (var control in Controls)
             {
-                control.InvokeTrackViewState(token);
+                control.InvokeTrackViewState(force);
             }
         }
     }
@@ -156,7 +156,7 @@ public partial class Control : IInternalControl
             OnInit(EventArgs.Empty);
             await OnInitAsync(token);
 
-            InvokeTrackViewState(token);
+            InvokeTrackViewState();
 
             _state = ControlState.Initialized;
             _viewState?.TrackViewState();
@@ -298,7 +298,7 @@ public partial class Control : IInternalControl
 
     void IInternalControl.InvokeTrackViewState(CancellationToken token)
     {
-        InvokeTrackViewState(token);
+        InvokeTrackViewState();
     }
 
     ValueTask IInternalControl.InvokeInitAsync(CancellationToken token)
