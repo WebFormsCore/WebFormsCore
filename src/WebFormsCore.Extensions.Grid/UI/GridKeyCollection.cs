@@ -63,6 +63,20 @@ public sealed class GridKeyCollection : IViewStateObject, IDisposable
         return keys;
     }
 
+    public object Get(string name, int itemIndex)
+    {
+        var index = GetIndex(name);
+
+        if (_keys is null)
+        {
+            return null!;
+        }
+
+        var length = _grid.DataKeys.Length;
+
+        return _keys[itemIndex * length + index]!;
+    }
+
     private int GetIndex(string name)
     {
         if (name is null)
@@ -91,24 +105,27 @@ public sealed class GridKeyCollection : IViewStateObject, IDisposable
     {
         var properties = GetProperties();
 
-        if (_keys is null)
+        if (_keyCount == 0 || properties.Length == 0)
         {
             writer.Write((ushort) 0);
             return;
         }
 
-        var span = _keys.AsSpan();
-
         writer.Write((ushort) _keyCount);
 
-        for (var i = 0; i < _keyCount; i++)
-        {
-            var offset = i * properties.Length;
+        var span = _keys.AsSpan(0, _keyCount * properties.Length);
+        var propertyIndex = 0;
 
-            for (var j = 0; j < properties.Length; j++)
+        foreach (var item in span)
+        {
+            var property = properties[propertyIndex++];
+
+            if (propertyIndex == properties.Length)
             {
-                writer.WriteObject(properties[j].PropertyType, span[offset + j]);
+                propertyIndex = 0;
             }
+
+            writer.WriteObject(property.PropertyType, item);
         }
     }
 
@@ -116,21 +133,23 @@ public sealed class GridKeyCollection : IViewStateObject, IDisposable
     {
         ReturnKeysToCache();
 
-        var length = reader.Read<ushort>();
+        var keyCount = reader.Read<ushort>();
 
-        if (length == 0)
+        if (keyCount == 0)
         {
             return;
         }
 
+        var properties = GetProperties();
+        var length = keyCount * properties.Length;
+
         _isFromViewState = true;
         _keys = ArrayPool<object?>.Shared.Rent(length);
-        _keyCount = length;
+        _keyCount = keyCount;
 
-        var properties = GetProperties();
         var span = _keys.AsSpan();
 
-        for (var i = 0; i < length; i++)
+        for (var i = 0; i < keyCount; i++)
         {
             var offset = i * properties.Length;
 
@@ -207,6 +226,11 @@ public sealed class GridKeyCollection : IViewStateObject, IDisposable
 
     private ReadOnlySpan<PropertyInfo> GetProperties()
     {
+        if (_grid.DataKeys.Length == 0)
+        {
+            return ReadOnlySpan<PropertyInfo>.Empty;
+        }
+
         if (IsCacheValid)
         {
             return _cachedProperties.AsSpan(0, _cachedPropertyCount);

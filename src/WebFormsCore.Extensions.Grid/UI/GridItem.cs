@@ -116,6 +116,8 @@ public partial class GridItem : TableRow, IDataItemContainer
         set => SetDataItem(value);
     }
 
+    public object GetDataKey(string name) => Grid.Keys.Get(name, ItemIndex);
+
     public TableCell this[int index] => Cells[index];
 
     public TableCell this[string name]

@@ -7,6 +7,4 @@ public class ViewStateOptions
     public string? EncryptionKey { get; set; }
 
     public int MaxBytes { get; set; } = 102400;
-
-    public bool Debug { get; set; }
 }
