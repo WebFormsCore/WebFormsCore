@@ -1,0 +1,346 @@
+﻿[
+  {
+    Type: TagOpen,
+    Range: {
+      File: Tests.aspx,
+      End: {
+        Offset: 1,
+        Column: 1
+      }
+    }
+  },
+  {
+    Type: ElementName,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 1,
+        Column: 1
+      },
+      End: {
+        Offset: 5,
+        Column: 5
+      }
+    },
+    Text: {
+      Value: html,
+      CodeString: "html",
+      VbCodeString: "html",
+      Range: {
+        File: Tests.aspx,
+        Start: {
+          Offset: 1,
+          Column: 1
+        },
+        End: {
+          Offset: 5,
+          Column: 5
+        }
+      }
+    }
+  },
+  {
+    Type: TagClose,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 5,
+        Column: 5
+      },
+      End: {
+        Offset: 6,
+        Column: 6
+      }
+    }
+  },
+  {
+    Type: TagOpen,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 6,
+        Column: 6
+      },
+      End: {
+        Offset: 7,
+        Column: 7
+      }
+    }
+  },
+  {
+    Type: ElementName,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 7,
+        Column: 7
+      },
+      End: {
+        Offset: 11,
+        Column: 11
+      }
+    },
+    Text: {
+      Value: body,
+      CodeString: "body",
+      VbCodeString: "body",
+      Range: {
+        File: Tests.aspx,
+        Start: {
+          Offset: 7,
+          Column: 7
+        },
+        End: {
+          Offset: 11,
+          Column: 11
+        }
+      }
+    }
+  },
+  {
+    Type: TagClose,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 11,
+        Column: 11
+      },
+      End: {
+        Offset: 12,
+        Column: 12
+      }
+    }
+  },
+  {
+    Type: TagOpen,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 12,
+        Column: 12
+      },
+      End: {
+        Offset: 13,
+        Column: 13
+      }
+    }
+  },
+  {
+    Type: ElementName,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 13,
+        Column: 13
+      },
+      End: {
+        Offset: 19,
+        Column: 19
+      }
+    },
+    Text: {
+      Value: script,
+      CodeString: "script",
+      VbCodeString: "script",
+      Range: {
+        File: Tests.aspx,
+        Start: {
+          Offset: 13,
+          Column: 13
+        },
+        End: {
+          Offset: 19,
+          Column: 19
+        }
+      }
+    }
+  },
+  {
+    Type: TagClose,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 19,
+        Column: 19
+      },
+      End: {
+        Offset: 20,
+        Column: 20
+      }
+    }
+  },
+  {
+    Type: TagOpenSlash,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 20,
+        Column: 20
+      },
+      End: {
+        Offset: 21,
+        Column: 21
+      }
+    }
+  },
+  {
+    Type: ElementName,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 20,
+        Column: 20
+      },
+      End: {
+        Offset: 28,
+        Column: 28
+      }
+    },
+    Text: {
+      Value: script,
+      CodeString: "script",
+      VbCodeString: "script",
+      Range: {
+        File: Tests.aspx,
+        Start: {
+          Offset: 22,
+          Column: 22
+        },
+        End: {
+          Offset: 28,
+          Column: 28
+        }
+      }
+    }
+  },
+  {
+    Type: TagClose,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 20,
+        Column: 20
+      },
+      End: {
+        Offset: 29,
+        Column: 29
+      }
+    }
+  },
+  {
+    Type: TagOpenSlash,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 29,
+        Column: 29
+      },
+      End: {
+        Offset: 31,
+        Column: 31
+      }
+    }
+  },
+  {
+    Type: ElementName,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 31,
+        Column: 31
+      },
+      End: {
+        Offset: 35,
+        Column: 35
+      }
+    },
+    Text: {
+      Value: body,
+      CodeString: "body",
+      VbCodeString: "body",
+      Range: {
+        File: Tests.aspx,
+        Start: {
+          Offset: 31,
+          Column: 31
+        },
+        End: {
+          Offset: 35,
+          Column: 35
+        }
+      }
+    }
+  },
+  {
+    Type: TagClose,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 31,
+        Column: 31
+      },
+      End: {
+        Offset: 36,
+        Column: 36
+      }
+    }
+  },
+  {
+    Type: TagOpenSlash,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 36,
+        Column: 36
+      },
+      End: {
+        Offset: 38,
+        Column: 38
+      }
+    }
+  },
+  {
+    Type: ElementName,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 38,
+        Column: 38
+      },
+      End: {
+        Offset: 42,
+        Column: 42
+      }
+    },
+    Text: {
+      Value: html,
+      CodeString: "html",
+      VbCodeString: "html",
+      Range: {
+        File: Tests.aspx,
+        Start: {
+          Offset: 38,
+          Column: 38
+        },
+        End: {
+          Offset: 42,
+          Column: 42
+        }
+      }
+    }
+  },
+  {
+    Type: TagClose,
+    Range: {
+      File: Tests.aspx,
+      Start: {
+        Offset: 38,
+        Column: 38
+      },
+      End: {
+        Offset: 43,
+        Column: 43
+      }
+    }
+  }
+]
