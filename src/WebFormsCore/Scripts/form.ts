@@ -209,11 +209,6 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
 
         const response = await fetch(url, request)
 
-        if (response.redirected) {
-            window.location.assign(response.url);
-            return;
-        }
-
         if (!response.ok) {
             document.dispatchEvent(new CustomEvent("wfc:submitError", {
                 detail: {
