@@ -6,7 +6,7 @@ using WebFormsCore.UI.Attributes;
 
 namespace WebFormsCore.UI.WebControls;
 
-public interface IRepeaterItem
+public interface IRepeaterItem : IDataItemContainer
 {
     ListItemType ItemType { get; }
 
@@ -26,11 +26,52 @@ public enum ListItemType
 }
 
 [ParseChildren(true)]
-public class Repeater : RepeaterBase<RepeaterItem>
+public class Repeater : RepeaterBase<RepeaterItem>, INeedDataSourceProvider
 {
+    private bool _ignorePaging;
+
     public event AsyncEventHandler<Repeater, RepeaterItemEventArgs>? ItemCreated;
 
     public event AsyncEventHandler<Repeater, RepeaterItemEventArgs>? ItemDataBound;
+
+    public event AsyncEventHandler<Repeater, NeedDataSourceEventArgs>? NeedDataSource;
+
+    public override async Task DataBindAsync()
+    {
+        if (DataSource is null)
+        {
+            await NeedDataSource.InvokeAsync(this, new NeedDataSourceEventArgs(this, false));
+        }
+
+        await base.DataBindAsync();
+    }
+
+    public override async Task AfterPostBackLoadAsync()
+    {
+        var count = ItemCount;
+
+        if (NeedDataSource != null)
+        {
+            if (ItemsAndSeparators.Count != count)
+            {
+                var filterByKeys = DataKeys.Length > 0;
+
+                await NeedDataSource.InvokeAsync(this, new NeedDataSourceEventArgs(this, filterByKeys));
+                _ignorePaging = false;
+            }
+
+            if (ItemsAndSeparators.Count != count)
+            {
+                throw new InvalidOperationException($"The number of items in the repeater ({ItemsAndSeparators.Count}) does not match the number of items in the data source ({count}).");
+            }
+
+            Keys.Validate();
+
+            return;
+        }
+
+        await base.AfterPostBackLoadAsync();
+    }
 
     protected override ValueTask<RepeaterItem> CreateItemAsync(int itemIndex, ListItemType itemType)
     {
@@ -51,6 +92,12 @@ public class Repeater : RepeaterBase<RepeaterItem>
     {
         return ItemCreated.InvokeAsync(this, new RepeaterItemEventArgs(item));
     }
+
+    bool INeedDataSourceProvider.IgnorePaging
+    {
+        get => _ignorePaging;
+        set => _ignorePaging = value;
+    }
 }
 
 public class Repeater<T> : Repeater
@@ -59,9 +106,9 @@ public class Repeater<T> : Repeater
 
     public new event AsyncEventHandler<Repeater<T>, RepeaterItemEventArgs<T>>? ItemDataBound;
 
-    public override string? ItemType
+    public override Type? ItemType
     {
-        get => typeof(T).FullName;
+        get => typeof(T);
         set
         {
             // ignore

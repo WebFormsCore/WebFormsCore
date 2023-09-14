@@ -11,9 +11,10 @@ public class GridItemEventArgs : EventArgs
     /// <param name="item">
     /// The <see cref="T:System.Web.UI.WebControls.RepeaterItem" /> associated with the event. The <see cref="P:System.Web.UI.WebControls.RepeaterItemEventArgs.Item" /> property is set to this value.
     /// </param>
-    public GridItemEventArgs(GridItem item)
+    public GridItemEventArgs(GridItem item, bool isPostBack)
     {
         Item = item;
+        IsPostBack = isPostBack;
     }
 
     /// <summary>
@@ -23,4 +24,6 @@ public class GridItemEventArgs : EventArgs
     /// The <see cref="T:System.Web.UI.WebControls.RepeaterItem" /> associated with the event.
     /// </returns>
     public GridItem Item { get; }
+
+    public bool IsPostBack { get; set; }
 }

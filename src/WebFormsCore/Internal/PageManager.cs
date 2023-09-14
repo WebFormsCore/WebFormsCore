@@ -67,6 +67,12 @@ public class PageManager : IPageManager
         }
 
         var control = await ProcessRequestAsync(context, page, token);
+
+        if (control is null)
+        {
+            return;
+        }
+
         var response = context.Response;
 
         if (response.HasStarted)
@@ -172,7 +178,7 @@ public class PageManager : IPageManager
     /// <param name="page">Page to process the request for.</param>
     /// <param name="token">Cancellation token.</param>
     /// <returns>The control that is loaded and should be rendered.</returns>
-    private async Task<Control> ProcessRequestAsync(IHttpContext context, Page page, CancellationToken token)
+    private async Task<Control?> ProcessRequestAsync(IHttpContext context, Page page, CancellationToken token)
     {
         var form = await LoadViewStateAsync(context, page);
         var serviceProvider = context.RequestServices;
@@ -220,6 +226,18 @@ public class PageManager : IPageManager
             {
                 await service.AfterPostbackAsync(page, token);
             }
+        }
+
+        if (context.Response.StatusCode is 301 or 302)
+        {
+            if (context.Request.Headers.ContainsKey("X-IsPostback"))
+            {
+                context.Response.StatusCode = 204;
+                context.Response.Headers["X-Redirect-To"] = context.Response.Headers["Location"];
+                context.Response.Headers.Remove("Location");
+            }
+
+            return null;
         }
 
         foreach (var service in pageServices)

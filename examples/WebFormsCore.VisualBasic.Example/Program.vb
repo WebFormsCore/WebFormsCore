@@ -9,7 +9,7 @@ Module Program
         Dim app = builder.Build()
 
         app.UseStack(sub(stack)
-            stack.UseWebFormsCore()
+            stack.UsePage()
         End Sub)
 
         app.Run()

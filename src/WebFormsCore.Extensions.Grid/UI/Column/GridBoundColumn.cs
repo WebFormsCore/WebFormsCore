@@ -12,7 +12,7 @@ public class GridBoundColumn : GridColumn
         return base.GetHeaderText() ?? DataField;
     }
 
-    public override async ValueTask InvokeItemCreated(GridCell cell, GridItem item)
+    public override async ValueTask InvokeItemCreated(GridCell cell, GridItem item, bool isPostBack)
     {
         var member = DataField is null ? null : item.Grid.ItemType?.GetProperty(DataField);
 
@@ -32,10 +32,10 @@ public class GridBoundColumn : GridColumn
             }
         }
 
-        await base.InvokeItemCreated(cell, item);
+        await base.InvokeItemCreated(cell, item, isPostBack);
     }
 
-    public override async ValueTask InvokeDataBinding(GridCell cell, GridItem item)
+    public override async ValueTask InvokeDataBinding(GridCell cell, GridItem item, bool isPostBack)
     {
         if (DataField is not null)
         {
@@ -51,7 +51,7 @@ public class GridBoundColumn : GridColumn
             }
         }
 
-        await base.InvokeDataBinding(cell, item);
+        await base.InvokeDataBinding(cell, item, isPostBack);
     }
 
     protected override string? GetDefaultUniqueName()

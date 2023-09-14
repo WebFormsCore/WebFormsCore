@@ -9,14 +9,15 @@ namespace WebFormsCore.UI;
 
 [ParseChildren(true)]
 [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
-public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsumer, IDisposable
+public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsumer, IDisposable, IDataKeyProvider, INeedDataSourceProvider
 {
     private readonly List<GridItem> _items = new();
-    internal bool IgnorePaging;
+    private bool _ignorePaging;
+    private bool _isPostBack;
 
     [ViewState(WriteAlways = true)] private Type? _itemType;
     [ViewState(WriteAlways = true)] private int _itemCount;
-    [ViewState] public GridKeyCollection Keys { get; set; }
+    [ViewState] public KeyCollection Keys { get; set; }
 
     [ViewState] private int _pageIndex;
     [ViewState] private int? _dataCount;
@@ -33,14 +34,14 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
 
     public event AsyncEventHandler<Grid, GridItemEventArgs>? ItemDataBound;
 
-    public event AsyncEventHandler<Grid, GridNeedDataSourceEventArgs>? NeedDataSource;
+    public event AsyncEventHandler<Grid, NeedDataSourceEventArgs>? NeedDataSource;
 
     public ITemplate? EditItemTemplate { get; set; }
 
     public Grid()
         : base(HtmlTextWriterTag.Table)
     {
-        Keys = new GridKeyCollection(this);
+        Keys = new KeyCollection(this);
     }
 
     public virtual Type? ItemType => _itemType;
@@ -91,40 +92,49 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
 
     public async Task AfterPostBackLoadAsync()
     {
-        var count = _itemCount;
+        _isPostBack = true;
 
-        if (NeedDataSource != null)
+        try
         {
-            if (_items.Count != count)
-            {
-                var filterByKeys = DataKeys.Length > 0;
+            var count = _itemCount;
 
-                await NeedDataSource.InvokeAsync(this, new GridNeedDataSourceEventArgs(this, filterByKeys));
-                IgnorePaging = false;
+            if (NeedDataSource != null)
+            {
+                if (_items.Count != count)
+                {
+                    var filterByKeys = DataKeys.Length > 0;
+
+                    await NeedDataSource.InvokeAsync(this, new NeedDataSourceEventArgs(this, filterByKeys));
+                    _ignorePaging = false;
+                }
+
+                if (_items.Count != count)
+                {
+                    throw new InvalidOperationException($"The number of items in the grid ({_items.Count}) does not match the number of items in the data source ({count}).");
+                }
+
+                Keys.Validate();
+
+                return;
             }
 
-            if (_items.Count != count)
+            if (count == 0)
             {
-                throw new InvalidOperationException($"The number of items in the grid ({_items.Count}) does not match the number of items in the data source ({count}).");
+                return;
             }
 
-            Keys.Validate();
+            await ClearAsync();
 
-            return;
+            _itemCount = count;
+
+            for (var i = 0; i < count; i++)
+            {
+                await CreateItemAsync(i);
+            }
         }
-
-        if (count == 0)
+        finally
         {
-            return;
-        }
-
-        await ClearAsync();
-
-        _itemCount = count;
-
-        for (var i = 0; i < count; i++)
-        {
-            await CreateItemAsync(i);
+            _isPostBack = false;
         }
     }
 
@@ -161,7 +171,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
     {
         if (_dataSource is null)
         {
-            await NeedDataSource.InvokeAsync(this, new GridNeedDataSourceEventArgs(this, false));
+            await NeedDataSource.InvokeAsync(this, new NeedDataSourceEventArgs(this, false));
         }
 
         if (_dataSource is null)
@@ -181,7 +191,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
 
         UpdatePaging();
 
-        if (PageSize.HasValue && !IgnorePaging)
+        if (PageSize.HasValue && !_ignorePaging)
         {
             if (PageIndex > 0)
             {
@@ -216,7 +226,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
 
         UpdatePaging();
 
-        if (PageSize.HasValue && !IgnorePaging)
+        if (PageSize.HasValue && !_ignorePaging)
         {
             if (PageIndex > 0)
             {
@@ -241,7 +251,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
 
         UpdatePaging();
 
-        if (PageSize.HasValue && !IgnorePaging)
+        if (PageSize.HasValue && !_ignorePaging)
         {
             if (PageIndex > 0)
             {
@@ -273,14 +283,14 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
 
         foreach (var cell in item.Cells)
         {
-            await cell.Column.InvokeDataBinding(cell, item);
+            await cell.Column.InvokeDataBinding(cell, item, _isPostBack);
         }
 
         await item.DataBindAsync();
 
         if (ItemDataBound != null)
         {
-            await ItemDataBound.InvokeAsync(this, new GridItemEventArgs(item));
+            await ItemDataBound.InvokeAsync(this, new GridItemEventArgs(item, _isPostBack));
         }
 
         if (NeedDataSource != null)
@@ -303,14 +313,14 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
             cell.Grid = this;
 
             await item.AddCell(cell);
-            await column.InvokeItemCreated(cell, item);
+            await column.InvokeItemCreated(cell, item, _isPostBack);
         }
 
         await item.LoadEditItemTemplateAsync();
 
         if (ItemCreated != null)
         {
-            await ItemCreated.InvokeAsync(this, new GridItemEventArgs(item));
+            await ItemCreated.InvokeAsync(this, new GridItemEventArgs(item, _isPostBack));
         }
 
         return item;
@@ -375,5 +385,15 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
     {
         Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    int IDataKeyProvider.ItemCount => _itemCount;
+
+    IEnumerable<IDataItemContainer> IDataKeyProvider.Items => _items;
+
+    bool INeedDataSourceProvider.IgnorePaging
+    {
+        get => _ignorePaging;
+        set => _ignorePaging = value;
     }
 }

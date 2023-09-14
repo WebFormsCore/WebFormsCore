@@ -7,7 +7,7 @@ public sealed partial class ListItem : IAttributeAccessor
 {
     [ViewState] private bool _selected;
     [ViewState] private bool _enabled;
-    [ViewState] private string? _text;
+    [ViewState] private string? _text { get; set; }
     [ViewState] private string? _value;
     [ViewState] private AttributeCollection _attributes = new();
 

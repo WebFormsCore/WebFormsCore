@@ -5,15 +5,18 @@ namespace WebFormsCore.UI;
 
 public class CellEventArgs : EventArgs
 {
-    public CellEventArgs(GridCell cell, GridItem item)
+    public CellEventArgs(GridCell cell, GridItem item, bool isPostBack)
     {
         Cell = cell;
         Item = item;
+        IsPostBack = isPostBack;
     }
 
     public GridCell Cell { get; }
 
     public GridItem Item { get; }
+
+    public bool IsPostBack { get; }
 }
 
 [ParseChildren(true)]
@@ -66,19 +69,19 @@ public abstract partial class GridColumn : WebControl
         return new GridCell();
     }
 
-    public virtual async ValueTask InvokeDataBinding(GridCell cell, GridItem item)
+    public virtual async ValueTask InvokeDataBinding(GridCell cell, GridItem item, bool isPostBack)
     {
         if (CellDataBound != null)
         {
-            await CellDataBound.InvokeAsync(this, new CellEventArgs(cell, item));
+            await CellDataBound.InvokeAsync(this, new CellEventArgs(cell, item, isPostBack));
         }
     }
 
-    public virtual async ValueTask InvokeItemCreated(GridCell cell, GridItem item)
+    public virtual async ValueTask InvokeItemCreated(GridCell cell, GridItem item, bool isPostBack)
     {
         if (CellCreated != null)
         {
-            await CellCreated.InvokeAsync(this, new CellEventArgs(cell, item));
+            await CellCreated.InvokeAsync(this, new CellEventArgs(cell, item, isPostBack));
         }
     }
 

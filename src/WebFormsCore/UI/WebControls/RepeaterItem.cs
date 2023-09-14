@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI.WebControls;
 
-public class RepeaterItem : Control, IDataItemContainer, IRepeaterItem
+public class RepeaterItem : Control, IRepeaterItem
 {
     private object? _dataItem;
 

@@ -1,37 +1,82 @@
 ﻿using System.Text.Json;
 using HttpStack.Collections;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WebFormsCore.UI.WebControls.Internal;
 
 namespace WebFormsCore.UI.WebControls;
 
-public partial class Choices : ChoicesBase, IPostBackAsyncDataHandler, IPostBackAsyncEventHandler
+public partial class TextChoices : ChoicesBase, IPostBackAsyncDataHandler, IPostBackAsyncEventHandler
 {
     private readonly IOptions<WebFormsCoreOptions>? _options;
-    private ListItemValues? _values;
 
-    private IEnumerable<string> SelectedValues => Items.Where(x => x.Selected).Select(x => x.Value);
+    [ViewState(nameof(SaveTextViewState))] private string? _json;
 
     [ViewState] public bool IsReadOnly { get; set; }
 
     [ViewState] public bool AutoPostBack { get; set; }
 
-    [ViewState] public bool Multiple { get; set; }
+    protected virtual bool SaveTextViewState => (ValuesChanged != null || IsReadOnly);
 
-    [ViewState] public List<ListItem> Items { get; private set; } = new();
+    public event AsyncEventHandler<TextChoices, EventArgs>? ValuesChanged;
 
-    public ICollection<string> Values => _values ??= new ListItemValues(Items);
+    private readonly ILogger<TextChoices>? _logger;
+    private ICollection<string>? _values;
+    private bool _isChanged;
 
-    public event AsyncEventHandler<Choices, EventArgs>? ValuesChanged;
-
-    public Choices(IOptions<WebFormsCoreOptions>? options = null)
+    public TextChoices(IOptions<WebFormsCoreOptions>? options = null, ILogger<TextChoices>? logger = null)
     {
         _options = options;
+        _logger = logger;
+    }
+
+    public ICollection<string> Values
+    {
+        get
+        {
+            if (_values != null)
+            {
+                return _values;
+            }
+
+            if (_json != null)
+            {
+                try
+                {
+                    _values = JsonSerializer.Deserialize(_json, JsonContext.Default.ICollectionString);
+                }
+                catch (Exception e)
+                {
+                    _logger?.LogWarning(e, "Failed to deserialize choices");
+                }
+            }
+
+            _values ??= new List<string>();
+
+            return _values;
+        }
+    }
+
+    protected override void OnPreRender(EventArgs args)
+    {
+        if (_values != null)
+        {
+            var json = JsonSerializer.Serialize(_values, JsonContext.Default.ICollectionString);
+            _isChanged = !string.Equals(_json ?? "[]", json, StringComparison.Ordinal);
+            _json = json;
+        }
+
+        base.OnPreRender(args);
     }
 
     public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
         var hiddenClass = _options?.Value.HiddenClass;
+
+        if (_isChanged)
+        {
+            writer.AddAttribute("data-value", _json);
+        }
 
         writer.AddAttribute(HtmlTextWriterAttribute.Class, "js-choice choices__inner");
         writer.AddAttribute("data-wfc-ignore", null);
@@ -59,63 +104,25 @@ public partial class Choices : ChoicesBase, IPostBackAsyncDataHandler, IPostBack
                 writer.AddAttribute(HtmlTextWriterAttribute.Style, "display:none;");
             }
 
-            if (Multiple)
-            {
-                writer.AddAttribute(HtmlTextWriterAttribute.Multiple, null);
-            }
-
-            await writer.RenderBeginTagAsync(HtmlTextWriterTag.Select);
-            {
-                foreach (var item in Items)
-                {
-                    writer.AddAttribute(HtmlTextWriterAttribute.Value, item.Value);
-
-                    if (item.Selected)
-                    {
-                        writer.AddAttribute(HtmlTextWriterAttribute.Selected, null);
-                    }
-
-                    if (!item.Enabled)
-                    {
-                        writer.AddAttribute(HtmlTextWriterAttribute.Disabled, null);
-                    }
-
-                    await writer.RenderBeginTagAsync(HtmlTextWriterTag.Option);
-                    {
-                        await writer.WriteEncodedTextAsync(item.Text);
-                    }
-                    await writer.RenderEndTagAsync();
-                }
-            }
-            await writer.RenderEndTagAsync();
+            writer.AddAttribute(HtmlTextWriterAttribute.Type, "text");
+            await writer.RenderSelfClosingTagAsync(HtmlTextWriterTag.Input);
         }
         await writer.RenderEndTagAsync();
     }
 
-    private ValueTask<bool> LoadPostDataAsync(string postDataKey, IFormCollection postCollection)
+    private ValueTask<bool> LoadPostDataAsync(string postDataKey, IFormCollection postCollection, CancellationToken cancellationToken)
     {
         if (IsReadOnly || !postCollection.TryGetValue(postDataKey, out var value))
         {
             return new ValueTask<bool>(false);
         }
 
-        if (!Multiple && !string.IsNullOrEmpty(value))
-        {
-            value = $"[{value}]";
-        }
+        var isChanged = !string.Equals(_json ?? "[]", value, StringComparison.Ordinal);
+        _isChanged = isChanged;
+        _json = value;
+        _values = null;
 
-        var items = JsonSerializer.Deserialize(value, JsonContext.Default.ICollectionString) ?? Array.Empty<string>();
-        var isEqual = SelectedValues.SequenceEqual(items);
-
-        if (!isEqual)
-        {
-            foreach (var item in Items)
-            {
-                item.Selected = items.Contains(item.Value);
-            }
-        }
-
-        return new ValueTask<bool>(ValuesChanged != null && !isEqual);
+        return new ValueTask<bool>(ValuesChanged != null && isChanged);
     }
 
     protected virtual ValueTask RaisePostDataChangedEventAsync(CancellationToken cancellationToken)
@@ -132,7 +139,7 @@ public partial class Choices : ChoicesBase, IPostBackAsyncDataHandler, IPostBack
         => RaisePostBackEventAsync(eventArgument);
 
     ValueTask<bool> IPostBackAsyncDataHandler.LoadPostDataAsync(string postDataKey, IFormCollection postCollection, CancellationToken cancellationToken)
-        => LoadPostDataAsync(postDataKey, postCollection);
+        => LoadPostDataAsync(postDataKey, postCollection, cancellationToken);
 
     ValueTask IPostBackAsyncDataHandler.RaisePostDataChangedEventAsync(CancellationToken cancellationToken)
         => RaisePostDataChangedEventAsync(cancellationToken);

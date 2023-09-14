@@ -173,6 +173,8 @@ public partial class Control : IInternalControl
 
     internal async ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument)
     {
+        IsNew = false;
+
         if (ProcessControl)
         {
             if (token.IsCancellationRequested) return;

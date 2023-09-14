@@ -41,7 +41,7 @@ public abstract class EnumerableViewStateSerializer<T> : IViewStateSerializer
         MemoryMarshal.Write(writer.GetUnsafeSpan(countSpan), ref count);
     }
 
-    public object? Read(Type type, ref ViewStateReader reader, object? defaultValue)
+    public object? Read(Type type, ref ViewStateReader reader, object? defaultCollectionObject)
     {
         var countSpan = reader.ReadBytes(sizeof(ushort));
         var count = MemoryMarshal.Read<ushort>(countSpan);
@@ -56,13 +56,16 @@ public abstract class EnumerableViewStateSerializer<T> : IViewStateSerializer
             throw new InvalidOperationException("Invalid type");
         }
 
-        var collection = Create(typeArgument, count, (T?)defaultValue);
+        var defaultCollection = defaultCollectionObject as T;
+        var defaultCollectionCount = GetCount(defaultCollection);
+        var collection = Create(typeArgument, count, (T?)defaultCollectionObject);
 
         for (var i = 0; i < count; i++)
         {
-            var value = reader.ReadObject(typeArgument, null);
+            var defaultValue = i < defaultCollectionCount ? GetValue(defaultCollection, i) : null;
+            var value = reader.ReadObject(typeArgument, defaultValue);
 
-            Add(collection, i, value);
+            Set(collection, i, value);
         }
 
         return collection;
@@ -93,7 +96,11 @@ public abstract class EnumerableViewStateSerializer<T> : IViewStateSerializer
 
     protected abstract T Create(Type typeArgument, int count, T? defaultValue);
 
-    protected abstract void Add(T collection, int index, object? value);
+    protected abstract void Set(T collection, int index, object? value);
 
     protected abstract bool IsSupported(Type type, [NotNullWhen(true)] out Type? typeArgument);
+
+    protected abstract int GetCount(T? collection);
+
+    protected abstract object? GetValue(T? collection, int index);
 }

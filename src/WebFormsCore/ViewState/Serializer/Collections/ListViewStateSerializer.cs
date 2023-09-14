@@ -14,19 +14,17 @@ public class ListViewStateSerializer : EnumerableViewStateSerializer<IList>
 
     protected override IList Create(Type typeArgument, int count, IList? defaultValue)
     {
-        if (defaultValue == null)
+        if (defaultValue != null && defaultValue.Count == count)
         {
-            return GetListConstructor(typeArgument)(count);
+            return defaultValue;
         }
 
-        defaultValue.Clear();
-        return defaultValue;
-
+        return GetListConstructor(typeArgument)(count);
     }
 
-    protected override void Add(IList collection, int index, object? value)
+    protected override void Set(IList collection, int index, object? value)
     {
-        collection.Add(value);
+        collection[index] = value;
     }
 
     protected override bool IsSupported(Type type, [NotNullWhen(true)] out Type? typeArgument)
@@ -44,6 +42,16 @@ public class ListViewStateSerializer : EnumerableViewStateSerializer<IList>
 
         typeArgument = null;
         return false;
+    }
+
+    protected override int GetCount(IList? collection)
+    {
+        return collection?.Count ?? 0;
+    }
+
+    protected override object? GetValue(IList? collection, int index)
+    {
+        return collection?[index];
     }
 
     private Func<int, IList> GetListConstructor(Type typeArgument)

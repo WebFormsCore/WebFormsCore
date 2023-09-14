@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI.WebControls;
 
-public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandler, INamingContainer
+public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandler, INamingContainer, IDataKeyProvider
     where TItem : Control, IRepeaterItem
 {
     private readonly List<(TItem Item, Control? Seperator)> _items = new();
@@ -20,9 +20,23 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
     protected Control? Footer => _footer;
 
     [ViewState] private bool _loadFromViewState;
-    [ViewState] private int _itemCount;
+    [ViewState(WriteAlways = true)] private Type? _itemType;
+    [ViewState(WriteAlways = true)] private int _itemCount;
 
-    public virtual string? ItemType { get; set; }
+    [ViewState] public KeyCollection Keys { get; set; }
+
+    protected RepeaterBase()
+    {
+        Keys = new KeyCollection(this);
+    }
+
+    public string[] DataKeys { get; set; } = Array.Empty<string>();
+
+    public virtual Type? ItemType
+    {
+        get => _itemType;
+        set => _itemType = value;
+    }
 
     public IEnumerable<TItem> Items => _items.Select(x => x.Item);
 
@@ -38,13 +52,8 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
 
     public object? DataSource { get; set; }
 
-    public async Task AfterPostBackLoadAsync()
+    public virtual async Task AfterPostBackLoadAsync()
     {
-        if (!_loadFromViewState)
-        {
-            return;
-        }
-
         var count = _itemCount;
 
         if (count == 0)
@@ -60,10 +69,11 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
         }
     }
 
-    public async Task DataBindAsync()
+    public virtual async Task DataBindAsync()
     {
         Clear();
         await LoadDataSource();
+        Keys.Store();
     }
 
     [Obsolete("Use DataBindAsync instead.")]
@@ -315,4 +325,10 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
     protected abstract ValueTask InvokeItemDataBound(TItem item);
 
     protected abstract ValueTask InvokeItemCreated(TItem item);
+
+    protected int ItemCount => _itemCount;
+
+    int IDataKeyProvider.ItemCount => _itemCount;
+
+    IEnumerable<IDataItemContainer> IDataKeyProvider.Items => _items.Select(x => x.Item);
 }

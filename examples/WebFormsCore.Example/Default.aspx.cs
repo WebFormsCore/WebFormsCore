@@ -39,9 +39,16 @@ public partial class Default : Page
         title.InnerText = (PostbackCount++).ToString();
     }
 
-    protected void choices_OnValuesChanged(Choices sender, EventArgs e)
+    protected Task choices_OnValuesChanged(Choices sender, EventArgs e)
     {
         choices.Values.Remove("1");
+        return Task.CompletedTask;
+    }
+
+    protected Task textChoice_OnValuesChanged(TextChoices sender, EventArgs e)
+    {
+        textChoice.Values.Remove("1");
+        return Task.CompletedTask;
     }
 
     protected Task cb_OnCheckedChanged(CheckBox sender, EventArgs e)
@@ -57,7 +64,7 @@ public partial class Default : Page
         await Response.WriteAsync("Hello World");
     }
 
-    protected async Task grid_OnNeedDataSource(Grid sender, GridNeedDataSourceEventArgs e)
+    protected async Task grid_OnNeedDataSource(Grid sender, NeedDataSourceEventArgs e)
     {
         using var httpClient = new HttpClient();
         using var response = await httpClient.GetAsync("https://jsonplaceholder.typicode.com/todos");
@@ -76,6 +83,13 @@ public partial class Default : Page
         }
 
         await grid.LoadDataSourceAsync(todos);
+    }
+
+    protected Task btnRedirect_OnClick(Button sender, EventArgs e)
+    {
+        Response.StatusCode = 302;
+        Response.Headers["Location"] = "https://www.example.com";
+        return Task.CompletedTask;
     }
 }
 

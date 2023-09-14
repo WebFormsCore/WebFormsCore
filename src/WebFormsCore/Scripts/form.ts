@@ -197,12 +197,22 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
         document.dispatchEvent(new CustomEvent("wfc:beforeSubmit", {detail: {container, eventTarget}}));
 
         const request: RequestInit = {
-            method: "POST"
+            method: "POST",
+            redirect: "error",
+            credentials: "include",
+            headers: {
+                'X-IsPostback': 'true',
+            }
         };
 
         request.body = hasElementFile(document.body) ? formData : new URLSearchParams(formData as any);
 
-        let response = await fetch(url, request)
+        const response = await fetch(url, request)
+
+        if (response.redirected) {
+            window.location.assign(response.url);
+            return;
+        }
 
         if (!response.ok) {
             document.dispatchEvent(new CustomEvent("wfc:submitError", {
@@ -215,9 +225,18 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
             throw new Error(response.statusText);
         }
 
+        const redirectTo = response.headers.get('x-redirect-to');
+
+        if (redirectTo) {
+            window.location.assign(redirectTo);
+            return;
+        }
+
         const contentDisposition = response.headers.get('content-disposition');
 
-        if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
+        if (response.status === 204) {
+            // No Content
+        } else if (response.ok && contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
             // noinspection ES6MissingAwait
             receiveFile(element, response, contentDisposition);
         } else {
@@ -235,9 +254,9 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
                 morphdom(document.head, htmlDoc.querySelector('head'), options);
                 morphdom(document.body, htmlDoc.querySelector('body'), options);
             }
-
-            document.dispatchEvent(new CustomEvent("wfc:afterSubmit", {detail: {container, form, eventTarget}}));
         }
+
+        document.dispatchEvent(new CustomEvent("wfc:afterSubmit", {detail: {container, form, eventTarget}}));
     } finally {
         release();
     }

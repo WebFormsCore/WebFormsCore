@@ -13,7 +13,15 @@
 <body id="Body" runat="server">
 
 <div class="container">
-    <wfc:Choices runat="server" ID="choices" AutoPostBack="True" OnValuesChanged="choices_OnValuesChanged" Multiple="True" />
+    <wfc:Choices runat="server" ID="choices" AutoPostBack="True" Multiple="True" OnValuesChanged="choices_OnValuesChanged">
+        <Items>
+            <wfc:ListItem runat="server" Value="1" Text="One" />
+            <wfc:ListItem runat="server" Value="2" Text="Two" />
+            <wfc:ListItem runat="server" Value="3" Text="Three" />
+        </Items>
+    </wfc:Choices>
+    <wfc:TextChoices runat="server" ID="textChoice" AutoPostBack="True" OnValuesChanged="textChoice_OnValuesChanged" />
+
 
     <div class="my-2">
         <wfc:CheckBox runat="server" ID="cb" OnCheckedChanged="cb_OnCheckedChanged" AutoPostBack="True" />
@@ -21,6 +29,7 @@
     </div>
 
     <wfc:Button runat="server" Text="Download file" OnClick="btnDownload_OnClick" CssClass="btn btn-primary" />
+    <wfc:Button runat="server" Text="Go to example" OnClick="btnRedirect_OnClick" CssClass="btn btn-primary" />
 
     <wfc:HtmlForm runat="server" UpdatePage="False">
         <wfc:Grid runat="server" ID="grid" class="table" PageSize="20" OnNeedDataSource="grid_OnNeedDataSource" EditRowAttributes-CssClass="table-active" DataKeys="Id">

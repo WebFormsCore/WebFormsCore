@@ -991,7 +991,7 @@
     function getStreamPanel(element) {
         return element.closest('[data-wfc-stream]');
     }
-    function addInputs(formData, root, addFormElements) {
+    function addInputs(formData, root, addFormElements, allowFileUploads) {
         // Add all the form elements that are not in a form
         const elements = [];
         // @ts-ignore
@@ -1016,8 +1016,34 @@
             if (getStreamPanel(element)) {
                 continue;
             }
+            if (!allowFileUploads && element.type === "file") {
+                continue;
+            }
             addElement(element, formData);
         }
+    }
+    function getFormData(form, eventTarget, eventArgument, allowFileUploads = true) {
+        let formData;
+        if (form) {
+            if (form.tagName === "FORM" && allowFileUploads) {
+                formData = new FormData(form);
+            }
+            else {
+                formData = new FormData();
+                addInputs(formData, form, true, allowFileUploads);
+            }
+        }
+        else {
+            formData = new FormData();
+        }
+        addInputs(formData, document.body, false, allowFileUploads);
+        if (eventTarget) {
+            formData.append("wfcTarget", eventTarget);
+        }
+        if (eventArgument) {
+            formData.append("wfcArgument", eventArgument);
+        }
+        return formData;
     }
     async function submitForm(element, form, eventTarget, eventArgument) {
         var _a;
@@ -1025,33 +1051,23 @@
         const release = await postbackMutex.acquire();
         try {
             const url = (_a = baseElement === null || baseElement === void 0 ? void 0 : baseElement.getAttribute('data-wfc-base')) !== null && _a !== void 0 ? _a : location.toString();
-            let formData;
-            if (form) {
-                if (form.tagName === "FORM") {
-                    formData = new FormData(form);
-                }
-                else {
-                    formData = new FormData();
-                    addInputs(formData, form, true);
-                }
-            }
-            else {
-                formData = new FormData();
-            }
-            addInputs(formData, document.body, false);
-            if (eventTarget) {
-                formData.append("wfcTarget", eventTarget);
-            }
-            if (eventArgument) {
-                formData.append("wfcArgument", eventArgument);
-            }
+            const formData = getFormData(form, eventTarget, eventArgument);
             const container = new ViewStateContainer(form, formData);
             document.dispatchEvent(new CustomEvent("wfc:beforeSubmit", { detail: { container, eventTarget } }));
             const request = {
-                method: "POST"
+                method: "POST",
+                redirect: "error",
+                credentials: "include",
+                headers: {
+                    'X-IsPostback': 'true',
+                }
             };
             request.body = hasElementFile(document.body) ? formData : new URLSearchParams(formData);
-            let response = await fetch(url, request);
+            const response = await fetch(url, request);
+            if (response.redirected) {
+                window.location.assign(response.url);
+                return;
+            }
             if (!response.ok) {
                 document.dispatchEvent(new CustomEvent("wfc:submitError", {
                     detail: {
@@ -1062,8 +1078,16 @@
                 }));
                 throw new Error(response.statusText);
             }
+            const redirectTo = response.headers.get('x-redirect-to');
+            if (redirectTo) {
+                window.location.assign(redirectTo);
+                return;
+            }
             const contentDisposition = response.headers.get('content-disposition');
-            if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
+            if (response.status === 204) {
+                // No Content
+            }
+            else if (response.ok && contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
                 // noinspection ES6MissingAwait
                 receiveFile(element, response, contentDisposition);
             }
@@ -1082,8 +1106,8 @@
                     morphdom(document.head, htmlDoc.querySelector('head'), options);
                     morphdom(document.body, htmlDoc.querySelector('body'), options);
                 }
-                document.dispatchEvent(new CustomEvent("wfc:afterSubmit", { detail: { container, form, eventTarget } }));
             }
+            document.dispatchEvent(new CustomEvent("wfc:afterSubmit", { detail: { container, form, eventTarget } }));
         }
         finally {
             release();

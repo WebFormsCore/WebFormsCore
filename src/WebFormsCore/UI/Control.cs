@@ -82,6 +82,8 @@ public partial class Control : System.Web.UI.Control
 
     protected virtual bool ProcessControl => true;
 
+    public bool IsNew { get; internal set; } = true;
+
     protected virtual bool ProcessChildren => ProcessControl && _controls is not null && _controls.Count > 0;
 
     internal bool ProcessControlInternal => ProcessControl;

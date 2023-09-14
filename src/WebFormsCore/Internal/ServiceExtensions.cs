@@ -73,6 +73,7 @@ public static class ServiceExtensions
         builder.TryAddMarshalViewStateSerializer<char>();
 
         services.TryAddSingleton<IAttributeParser<string>, StringAttributeParser>();
+        services.TryAddSingleton<IAttributeParser<Type>, TypeAttributeParser>();
         services.TryAddSingleton<IAttributeParser<int>, Int32AttributeParser>();
         services.TryAddSingleton<IAttributeParser<int?>, NullableAttributeParser<int>>();
         services.TryAddSingleton<IAttributeParser<bool>, BoolAttributeParser>();

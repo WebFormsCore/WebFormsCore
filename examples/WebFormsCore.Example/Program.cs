@@ -44,7 +44,7 @@ app.UseStack(stack =>
         return Task.CompletedTask;
     });
 
-    stack.UseWebFormsCore();
+    stack.UsePage();
     stack.RunPage<Default>();
 });
 

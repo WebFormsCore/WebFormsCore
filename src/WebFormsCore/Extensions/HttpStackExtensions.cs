@@ -9,14 +9,16 @@ namespace WebFormsCore;
 
 public static class HttpStackExtensions
 {
-    public static IHttpStackBuilder UseWebFormsCore(this IHttpStackBuilder builder)
+    public static IHttpStackBuilder UsePage(this IHttpStackBuilder builder)
     {
         builder.Use((context, next) =>
         {
             var application = context.RequestServices.GetRequiredService<IWebFormsApplication>();
             var path = application.GetPath(context.Request.Path);
 
-            return path == null ? next() : application.ProcessAsync(context, path, context.RequestAborted);
+            return path == null || !path.EndsWith(".aspx", StringComparison.OrdinalIgnoreCase)
+                ? next()
+                : application.ProcessAsync(context, path, context.RequestAborted);
         });
 
         return builder;

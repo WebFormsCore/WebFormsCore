@@ -1,38 +1,51 @@
-﻿using System.Buffers;
+﻿using System;
+using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace WebFormsCore.UI;
 
-public sealed class GridKeyCollection : IViewStateObject, IDisposable
+public interface IDataKeyProvider
+{
+    Type? ItemType { get; }
+
+    int ItemCount { get; }
+
+    IEnumerable<IDataItemContainer> Items { get; }
+
+    string[] DataKeys { get; }
+}
+
+public sealed class KeyCollection : IViewStateObject, IDisposable
 {
     private int _cachedPropertyCount;
     private int _keyCount;
     private PropertyInfo[]? _cachedProperties;
-    private readonly Grid _grid;
+    private readonly IDataKeyProvider _dataKeyProvider;
     private object?[]? _keys;
     private bool _isFromViewState;
 
-    public GridKeyCollection(Grid grid)
+    public KeyCollection(IDataKeyProvider dataKeyProvider)
     {
-        _grid = grid;
+        _dataKeyProvider = dataKeyProvider;
     }
 
-    public bool WriteToViewState => _grid is { ItemType: not null, DataKeys.Length: > 0 };
+    public bool WriteToViewState => _dataKeyProvider is { ItemType: not null, DataKeys.Length: > 0 };
 
     private bool IsCacheValid
     {
         [MemberNotNullWhen(true, nameof(_cachedProperties))]
         get
         {
-            if (_cachedProperties == null || _cachedPropertyCount != _grid.DataKeys.Length)
+            if (_cachedProperties == null || _cachedPropertyCount != _dataKeyProvider.DataKeys.Length)
             {
                 return false;
             }
 
             for (var i = 0; i < _cachedPropertyCount; i++)
             {
-                if (_cachedProperties[i].Name != _grid.DataKeys[i])
+                if (_cachedProperties[i].Name != _dataKeyProvider.DataKeys[i])
                 {
                     return false;
                 }
@@ -52,7 +65,7 @@ public sealed class GridKeyCollection : IViewStateObject, IDisposable
             return keys;
         }
 
-        var length = _grid.DataKeys.Length;
+        var length = _dataKeyProvider.DataKeys.Length;
         var span = _keys.AsSpan();
 
         for (var i = 0; i < _keyCount; i++)
@@ -72,7 +85,7 @@ public sealed class GridKeyCollection : IViewStateObject, IDisposable
             return null!;
         }
 
-        var length = _grid.DataKeys.Length;
+        var length = _dataKeyProvider.DataKeys.Length;
 
         return _keys[itemIndex * length + index]!;
     }
@@ -84,17 +97,17 @@ public sealed class GridKeyCollection : IViewStateObject, IDisposable
             throw new ArgumentNullException(nameof(name));
         }
 
-        var length = _grid.DataKeys.Length;
+        var length = _dataKeyProvider.DataKeys.Length;
 
         for (var i = 0; i < length; i++)
         {
-            if (name.Equals(_grid.DataKeys[i], StringComparison.OrdinalIgnoreCase))
+            if (name.Equals(_dataKeyProvider.DataKeys[i], StringComparison.OrdinalIgnoreCase))
             {
                 return i;
             }
         }
 
-        throw new InvalidOperationException($"The property '{name}' does not exist on type '{_grid.ItemType?.FullName}'.");
+        throw new InvalidOperationException($"The property '{name}' does not exist on type '{_dataKeyProvider.ItemType?.FullName}'.");
     }
 
     public void TrackViewState(ViewStateProvider provider)
@@ -160,9 +173,9 @@ public sealed class GridKeyCollection : IViewStateObject, IDisposable
         }
     }
 
-    internal void Store()
+    public void Store()
     {
-        if (_grid.DataKeys.Length == 0)
+        if (_dataKeyProvider.DataKeys.Length == 0)
         {
             return;
         }
@@ -172,15 +185,15 @@ public sealed class GridKeyCollection : IViewStateObject, IDisposable
         var properties = GetProperties();
 
         _isFromViewState = false;
-        _keyCount = _grid.Items.Count;
+        _keyCount = _dataKeyProvider.ItemCount;
         _keys = ArrayPool<object?>.Shared.Rent(_keyCount * properties.Length);
 
         var span = _keys.AsSpan();
+        var index = 0;
 
-        for (var i = 0; i < _grid.Items.Count; i++)
+        foreach(var item in _dataKeyProvider.Items)
         {
-            var item = _grid.Items[i];
-            var offset = i * properties.Length;
+            var offset = index * properties.Length;
 
             for (var j = 0; j < properties.Length; j++)
             {
@@ -188,12 +201,14 @@ public sealed class GridKeyCollection : IViewStateObject, IDisposable
                 var value = property.GetValue(item.DataItem);
                 span[offset + j] = value;
             }
+
+            index++;
         }
     }
 
-    internal void Validate()
+    public void Validate()
     {
-        if (_grid.DataKeys.Length == 0)
+        if (_dataKeyProvider.DataKeys.Length == 0)
         {
             return;
         }
@@ -205,11 +220,11 @@ public sealed class GridKeyCollection : IViewStateObject, IDisposable
 
         var properties = GetProperties();
         var span = _keys.AsSpan();
+        var index = 0;
 
-        for (var i = 0; i < _grid.Items.Count; i++)
+        foreach(var item in _dataKeyProvider.Items)
         {
-            var item = _grid.Items[i];
-            var offset = i * properties.Length;
+            var offset = index * properties.Length;
 
             for (var j = 0; j < properties.Length; j++)
             {
@@ -218,15 +233,17 @@ public sealed class GridKeyCollection : IViewStateObject, IDisposable
 
                 if (!Equals(value, span[offset + j]))
                 {
-                    throw new InvalidOperationException($"The value of the property '{property.Name}' on item '{i}' does not match the value in the view state.");
+                    throw new InvalidOperationException($"The value of the property '{property.Name}' on item '{index}' does not match the value in the view state.");
                 }
             }
+
+            index++;
         }
     }
 
     private ReadOnlySpan<PropertyInfo> GetProperties()
     {
-        if (_grid.DataKeys.Length == 0)
+        if (_dataKeyProvider.DataKeys.Length == 0)
         {
             return ReadOnlySpan<PropertyInfo>.Empty;
         }
@@ -241,18 +258,18 @@ public sealed class GridKeyCollection : IViewStateObject, IDisposable
             ArrayPool<PropertyInfo>.Shared.Return(_cachedProperties, true);
         }
 
-        var properties = ArrayPool<PropertyInfo>.Shared.Rent(_grid.DataKeys.Length);
+        var properties = ArrayPool<PropertyInfo>.Shared.Rent(_dataKeyProvider.DataKeys.Length);
 
-        for (var i = 0; i < _grid.DataKeys.Length; i++)
+        for (var i = 0; i < _dataKeyProvider.DataKeys.Length; i++)
         {
-            var item = _grid.DataKeys[i];
-            var property = _grid.ItemType!.GetProperty(item);
+            var item = _dataKeyProvider.DataKeys[i];
+            var property = _dataKeyProvider.ItemType!.GetProperty(item);
 
-            properties[i] = property ?? throw new InvalidOperationException($"The property '{item}' does not exist on type '{_grid.ItemType.FullName}'.");
+            properties[i] = property ?? throw new InvalidOperationException($"The property '{item}' does not exist on type '{_dataKeyProvider.ItemType.FullName}'.");
         }
 
         _cachedProperties = properties;
-        _cachedPropertyCount = _grid.DataKeys.Length;
+        _cachedPropertyCount = _dataKeyProvider.DataKeys.Length;
 
         return properties.AsSpan(0, _cachedPropertyCount);
     }

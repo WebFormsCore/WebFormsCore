@@ -11,12 +11,17 @@ public class ArrayViewStateSerializer : EnumerableViewStateSerializer<Array>
 
     protected override Array Create(Type typeArgument, int count, Array? defaultValue)
     {
+        if (defaultValue != null && defaultValue.Length == count)
+        {
+            return defaultValue;
+        }
+
         return count == 0
             ? GetEmptyArray(typeArgument)
             : Array.CreateInstance(typeArgument, count);
     }
 
-    protected override void Add(Array collection, int index, object? value)
+    protected override void Set(Array collection, int index, object? value)
     {
         collection.SetValue(value, index);
     }
@@ -62,5 +67,15 @@ public class ArrayViewStateSerializer : EnumerableViewStateSerializer<Array>
 
         typeArgument = null;
         return false;
+    }
+
+    protected override int GetCount(Array? collection)
+    {
+        return collection?.Length ?? 0;
+    }
+
+    protected override object? GetValue(Array? collection, int index)
+    {
+        return collection?.GetValue(index);
     }
 }
