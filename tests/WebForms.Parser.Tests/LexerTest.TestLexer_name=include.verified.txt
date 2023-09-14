@@ -1,0 +1,28 @@
+﻿[
+  {
+    Type: Comment,
+    Range: {
+      File: Tests.aspx,
+      End: {
+        Offset: 40,
+        Column: 40
+      }
+    },
+    Text: {
+      Value: #include file="Common/Include.ascx" ,
+      CodeString: "#include file=\"Common/Include.ascx\" ",
+      VbCodeString: "#include file=""Common/Include.ascx"" ",
+      Range: {
+        File: Tests.aspx,
+        Start: {
+          Offset: 4,
+          Column: 4
+        },
+        End: {
+          Offset: 40,
+          Column: 40
+        }
+      }
+    }
+  }
+]

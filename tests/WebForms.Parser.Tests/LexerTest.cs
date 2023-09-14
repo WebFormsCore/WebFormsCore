@@ -10,6 +10,7 @@ public class LexerTest
     [InlineData("text", """<div>Test</div>""")]
     [InlineData("control", """<div runat="server"><Inner><span runat="server" /></Inner></div>""")]
     [InlineData("script", "<html><body><script></script></body></html>")]
+    [InlineData("include", """<!--#include file="Common/Include.ascx" -->""")]
     public Task TestLexer(string name, string input)
     {
         var lexer = new Lexer("Tests.aspx", input);
