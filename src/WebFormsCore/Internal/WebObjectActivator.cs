@@ -96,6 +96,8 @@ internal sealed class WebObjectActivator : IWebObjectActivator
                 return CreateControl<HtmlForm>();
             case "head" or "HEAD":
                 return CreateControl<HtmlHead>();
+            case "title" or "TITLE":
+                return CreateControl<HtmlTitle>();
             case "body" or "BODY":
                 return CreateControl<HtmlBody>();
             case "link" or "LINK":

@@ -197,6 +197,8 @@ public partial class Control : System.Web.UI.Control
 
     public virtual string? AppRelativeVirtualPath => null;
 
+    public virtual string? AppFullPath => null;
+
     public virtual string? TemplateSourceDirectory => null;
 
     /// <summary>Gets the unique, hierarchically qualified identifier for the server control.</summary>

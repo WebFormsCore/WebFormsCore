@@ -32,13 +32,15 @@ public class Parser
     private readonly Dictionary<string, List<string>> _namespaces = new(StringComparer.OrdinalIgnoreCase);
     private INamedTypeSymbol? _type;
     private bool _addFields;
+    private readonly string? _rootDirectory;
 
-    public Parser(Compilation compilation, string? rootNamespace, bool addFields)
+    public Parser(Compilation compilation, string? rootNamespace, bool addFields, string? rootDirectory = null)
     {
         _compilation = compilation;
         _rootNamespace = rootNamespace;
         _container = _rootContainer;
         _addFields = addFields;
+        _rootDirectory = rootDirectory?.Replace('\\', '/');
     }
 
     public static ReadOnlySpan<char> IncludeSpan => "include".AsSpan();
@@ -166,7 +168,19 @@ public class Parser
         }
 
         var text = File.ReadAllText(fullPath);
-        var newLexer = new Lexer(path, text.AsSpan());
+
+        var newLexer = new Lexer(fullPath, text.AsSpan());
+
+        fullPath = Path.GetFullPath(fullPath).Replace('\\', '/');
+
+        var includePathRelative = _rootDirectory != null && fullPath.StartsWith(_rootDirectory)
+            ? fullPath.Substring(_rootDirectory.Length).TrimStart('/')
+            : path;
+
+        if (Root.IncludeFiles.All(i => i.Path != includePathRelative))
+        {
+            Root.IncludeFiles.Add(new IncludeFile(includePathRelative, RootNode.GenerateHash(text)));
+        }
 
         Parse(ref newLexer);
     }
@@ -406,22 +420,10 @@ public class Parser
                 return;
             }
 
-            if (lexer.Peek() is { Type: TokenType.Text, Text.Value: var text })
+            if (lexer.Peek() is { Type: TokenType.Text, Text: var text })
             {
                 lexer.Next();
-
-                if (Root.Language == Nodes.Language.CSharp)
-                {
-                    var tree = CSharpSyntaxTree.ParseText(text);
-                    var root = (Microsoft.CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax) tree.GetRoot();
-                }
-                else
-                {
-                    var tree = VisualBasicSyntaxTree.ParseText(text);
-                    var root = (Microsoft.CodeAnalysis.VisualBasic.Syntax.CompilationUnitSyntax) tree.GetRoot();
-                }
-
-                // TODO: Register script
+                Root.ScriptBlocks.Add(text);
             }
 
             if (lexer.Peek() is { Type: TokenType.TagClose })
@@ -809,6 +811,7 @@ public class Parser
             {
                 "form" or "FORM" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlForm"),
                 "body" or "BODY" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlBody"),
+                "title" or "TITLE" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlTitle"),
                 "head" or "HEAD" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlHead"),
                 "link" or "LINK" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlLink"),
                 "script" or "SCRIPT" => _compilation.GetTypeByMetadataName("WebFormsCore.UI.HtmlControls.HtmlScript"),

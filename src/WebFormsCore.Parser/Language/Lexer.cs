@@ -49,7 +49,7 @@ public ref struct Lexer
         _end = End.Span;
         _endServerComment = EndServerComment.Span;
         _input = input;
-        File = file;
+        File = Path.GetFullPath(file);
         _line = 0;
         _column = 0;
         _offset = 0;
@@ -388,10 +388,13 @@ public ref struct Lexer
             // Properties
             char.IsUpper(name[0]) ||
 
-            // CSP elements
+            // Special elements
             name.Equals("html", StringComparison.OrdinalIgnoreCase) ||
             name.Equals("body", StringComparison.OrdinalIgnoreCase) ||
             name.Equals("head", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("title", StringComparison.OrdinalIgnoreCase) ||
+
+            // CSP elements
             name.Equals("script", StringComparison.OrdinalIgnoreCase) ||
             name.Equals("style", StringComparison.OrdinalIgnoreCase) ||
             name.Equals("link", StringComparison.OrdinalIgnoreCase) ||

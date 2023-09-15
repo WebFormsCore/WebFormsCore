@@ -1,7 +1,7 @@
 <Project>
 
     <PropertyGroup>
-        <Version>0.0.1-alpha.19</Version>
+        <Version>0.0.1-alpha.20</Version>
         <PackageVersion>$(Version)</PackageVersion>
         <Authors>WebFormsCore</Authors>
         <RepositoryUrl>https://github.com/WebFormsCore/WebFormsCore</RepositoryUrl>
@@ -10,7 +10,7 @@
         <PackageProjectUrl>https://github.com/WebFormsCore/WebFormsCore</PackageProjectUrl>
         <PackageLicense>https://github.com/WebFormsCore/WebFormsCore/blob/main/LICENSE</PackageLicense>
         <ExtensionsVersion>6.0.0</ExtensionsVersion>
-        <NoWarn>$(NoWarn);CS0436;CS9057;ASP0000;NU5128</NoWarn>
+        <NoWarn>$(NoWarn);CS0436;CS9057;NU5128</NoWarn>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
 

@@ -47,15 +47,22 @@ public abstract class DesignerGenerator : IIncrementalGenerator
         var (webConfigPath, webConfigText) = files.FirstOrDefault(x => x.Path.EndsWith("web.config", StringComparison.OrdinalIgnoreCase));
         var namespaces = RootNode.GetNamespaces(webConfigText);
 
-        foreach (var (fullPath, text) in files)
+        foreach (var (fullPathRaw, text) in files)
         {
-            if (fullPath == webConfigPath) continue;
+            if (fullPathRaw == webConfigPath) continue;
 
             try
             {
-                var path = fullPath.Replace('\\', '/');
-                if (!visited.Add(path)) continue;
-                if (RootNode.Parse(compilation, path, text, ns, namespaces, context: context) is not { } type) continue;
+                var fullPath = fullPathRaw.Replace('\\', '/');
+                var relativePath = fullPath;
+
+                if (directory != null && relativePath.StartsWith(directory))
+                {
+                    relativePath = relativePath.Substring(directory.Length + 1);
+                }
+
+                if (!visited.Add(fullPath)) continue;
+                if (RootNode.Parse(compilation, fullPath, text, ns, namespaces, context: context, relativePath: relativePath, rootDirectory: directory) is not { } type) continue;
                 if (type.Inherits == null) continue;
 
                 var fullName = type.Inherits.ContainingNamespace.ToDisplayString() + "." + type.Inherits.Name;

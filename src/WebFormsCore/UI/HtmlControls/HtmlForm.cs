@@ -22,6 +22,30 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
 
     private bool IsDiv => Page.IsExternal;
 
+    public string? Target
+    {
+        get => Attributes["target"];
+        set => Attributes["target"] = value;
+    }
+
+    public string? Action
+    {
+        get => Attributes["action"];
+        set => Attributes["action"] = value;
+    }
+
+    public string? Method
+    {
+        get => Attributes["method"];
+        set => Attributes["method"] = value;
+    }
+
+    public string? Enctype
+    {
+        get => Attributes["enctype"];
+        set => Attributes["enctype"] = value;
+    }
+
     public override string TagName => IsDiv ? "div" : "form";
 
     protected internal virtual async Task OnSubmitAsync(CancellationToken token)

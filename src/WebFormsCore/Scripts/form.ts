@@ -187,14 +187,23 @@ function getFormData(form?: HTMLElement, eventTarget?: string, eventArgument?: s
 
 async function submitForm(element: Element, form?: HTMLElement, eventTarget?: string, eventArgument?: string) {
     const baseElement = element.closest('[data-wfc-base]') as HTMLElement;
+    let target: HTMLElement;
+
+    if (form && form.getAttribute('data-wfc-form') === 'self') {
+        target = form;
+    } else if (baseElement) {
+        target = baseElement;
+    } else {
+        target = document.body;
+    }
+
+    const url = baseElement?.getAttribute('data-wfc-base') ?? location.toString();
+    const formData = getFormData(form, eventTarget, eventArgument);
+    const container = new ViewStateContainer(form, formData);
     const release = await postbackMutex.acquire();
 
     try {
-        const url = baseElement?.getAttribute('data-wfc-base') ?? location.toString();
-        const formData = getFormData(form, eventTarget, eventArgument);
-
-        const container = new ViewStateContainer(form, formData);
-        document.dispatchEvent(new CustomEvent("wfc:beforeSubmit", {detail: {container, eventTarget}}));
+        document.dispatchEvent(new CustomEvent("wfc:beforeSubmit", {detail: {target, container, eventTarget}}));
 
         const request: RequestInit = {
             method: "POST",
@@ -250,10 +259,9 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
                 morphdom(document.body, htmlDoc.querySelector('body'), options);
             }
         }
-
-        document.dispatchEvent(new CustomEvent("wfc:afterSubmit", {detail: {container, form, eventTarget}}));
     } finally {
         release();
+        document.dispatchEvent(new CustomEvent("wfc:afterSubmit", {detail: {target, container, form, eventTarget}}));
     }
 }
 

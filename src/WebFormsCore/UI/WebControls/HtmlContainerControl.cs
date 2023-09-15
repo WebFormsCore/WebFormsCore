@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -31,9 +32,14 @@ namespace WebFormsCore.UI.WebControls
         {
             get
             {
-                if (Controls.Count == 1 && Controls[0] is LiteralControl textControl)
+                if (Controls is [LiteralControl textControl])
                 {
                     return textControl.Text;
+                }
+
+                if (Controls.All(c => c is LiteralControl))
+                {
+                    return string.Join(string.Empty, Controls.Cast<LiteralControl>().Select(c => c.Text));
                 }
 
                 if (Controls.Count == 0)
@@ -45,9 +51,14 @@ namespace WebFormsCore.UI.WebControls
             }
             set
             {
-                if (Controls.Count == 1 && Controls[0] is LiteralControl textControl)
+                if (Controls is [LiteralControl textControl])
                 {
                     textControl.Text = value;
+                }
+                else if (Controls.All(c => c is LiteralControl))
+                {
+                    Controls.Clear();
+                    Controls.AddWithoutPageEvents(WebActivator.CreateLiteral(value));
                 }
                 else if (Controls.Count > 0)
                 {

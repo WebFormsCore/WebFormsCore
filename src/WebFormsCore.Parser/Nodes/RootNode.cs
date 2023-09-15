@@ -14,6 +14,8 @@ using TokenType = WebFormsCore.Models.TokenType;
 
 namespace WebFormsCore.Nodes;
 
+public record IncludeFile(string Path, string Hash);
+
 public class RootNode : ContainerNode
 {
     private IReadOnlyList<Constructor>? _constructors;
@@ -106,6 +108,8 @@ public class RootNode : ContainerNode
         }
     }
 
+    public string? RelativePath { get; set; }
+
     private static readonly char[] DirectorySeparators = { '/', '\\' };
 
     public string? Directory
@@ -137,6 +141,10 @@ public class RootNode : ContainerNode
 
     public List<string> Namespaces { get; set; } = new();
 
+    public List<IncludeFile> IncludeFiles { get; set; } = new();
+
+    public List<TokenString> ScriptBlocks { get; set; } = new();
+
     public SyntaxTree GenerateCode(string? rootNamespace)
     {
         var types = new List<RootNode>
@@ -160,17 +168,19 @@ public class RootNode : ContainerNode
     [return: NotNullIfNotNull("text")]
     public static RootNode? Parse(
         Compilation compilation,
-        string path,
+        string fullPath,
         string? text,
         string? rootNamespace = null,
         IEnumerable<KeyValuePair<string, string>>? namespaces = null,
         bool addFields = true,
-        SourceProductionContext? context = null)
+        SourceProductionContext? context = null,
+        string? relativePath = null,
+        string? rootDirectory = null)
     {
         if (text == null) return null;
 
-        var lexer = new Lexer(path, text.AsSpan());
-        var parser = new Parser(compilation, rootNamespace, addFields);
+        var lexer = new Lexer(fullPath, text.AsSpan());
+        var parser = new Parser(compilation, rootNamespace, addFields, rootDirectory);
 
         if (namespaces != null)
         {
@@ -190,8 +200,11 @@ public class RootNode : ContainerNode
             }
         }
 
-        parser.Root.Path = path;
-        parser.Root.ClassName = Regex.Replace(path, "[^a-zA-Z0-9_]+", "_");
+        relativePath ??= fullPath;
+
+        parser.Root.Path = fullPath;
+        parser.Root.RelativePath = relativePath;
+        parser.Root.ClassName = Regex.Replace(relativePath, "[^a-zA-Z0-9_]+", "_");
         parser.Root.Hash = GenerateHash(text);
 
         return parser.Root;

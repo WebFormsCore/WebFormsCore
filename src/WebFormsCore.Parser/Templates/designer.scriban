@@ -43,7 +43,6 @@
 
 {{- func write_children }}
         {{- for child in $0 }}
-        {{ line child }}
         {{- case child.Type }}
 
         {{- when "Directive" }}
@@ -85,7 +84,6 @@
         {{- if $2 && child.FieldName }}
             {{ $1 }}.{{ child.FieldName }} = {{ child.VariableName }};
         {{- end }}
-        #line hidden
         {{- end }}
 {{-end}}
 
@@ -96,12 +94,17 @@
         {
             {{- i = 0 }}
             {{- for child in render.Children }}
-            {{ line child }}
             {{- case child.Type }}
             {{- when "Statement" }}
-            {{ child.Text }}
+#line {{ child.Range.Start.Line + 1 }} "{{ child.Range.File }}"
+{{ child.Text.Range.Start.ColumnOffsetString }}{{ child.Text }}
+#line hidden
             {{- when "Expression" }}
-            await writer.WriteObjectAsync({{ child.Text }});
+            await writer.WriteObjectAsync(
+#line {{ child.Range.Start.Line + 1 }} "{{ child.Range.File }}"
+{{ child.Text.Range.Start.ColumnOffsetString }}{{ child.Text }}
+#line hidden
+            );
             {{- when "Text" }}
             await controls[{{ i }}].RenderAsync(writer, token); // Text: {{ child.Text.CodeString }}
             {{- i = i + 1 }}
@@ -109,7 +112,6 @@
             await controls[{{ i }}].RenderAsync(writer, token); // Element: {{ child.Name }}
             {{- i = i + 1 }}
             {{- end }}
-            #line default
             {{- end }}
         }
         {{- end }}
@@ -119,7 +121,7 @@
 [assembly:WebFormsCore.RootNamespaceAttribute("{{ RootNamespace }}")]
 {{- end }}
 {{- for type in Types }}
-[assembly:WebFormsCore.AssemblyViewAttribute(@"{{ type.Path }}", typeof({{ type.Namespace ? (type.Namespace + ".") : ""  }}CompiledViews.{{ type.ClassName }}))]
+[assembly:WebFormsCore.AssemblyViewAttribute(@"{{ type.RelativePath }}", typeof({{ type.Namespace ? (type.Namespace + ".") : ""  }}CompiledViews.{{ type.ClassName }}))]
 {{- end }}
 
 {{ for type in Types }}
@@ -133,7 +135,7 @@ using {{ ns }};
 {{- end }}
 
 {{- if AddFields && type.AddFields }}
-[WebFormsCore.ViewPath(@"{{ type.Path }}")]
+[WebFormsCore.ViewPath(@"{{ type.RelativePath }}")]
 partial class {{ type.InheritsClassName }}
 {
 {{- for prop in type.Ids }}
@@ -163,7 +165,10 @@ partial class {{ type.InheritsClassName }}
 
 public partial class CompiledViews
 {
-    [WebFormsCore.CompiledView(@"{{ type.Path }}", "{{ type.Hash }}")]
+    [WebFormsCore.CompiledView(@"{{ type.RelativePath }}", "{{ type.Hash }}")]
+    {{- for file in type.IncludeFiles }}
+    [WebFormsCore.CompiledViewInclude(@"{{ file.Path }}", "{{ file.Hash }}")]
+    {{- end }}
     public class {{ type.ClassName }} : {{ type.InheritsClassName }}
     {
         {{- for constructor in type.Constructors }}
@@ -175,12 +180,23 @@ public partial class CompiledViews
 
         {{- if type.Path }}
 
-        public override string AppRelativeVirtualPath => @"{{ type.Path }}";
+        public override string AppFullPath => @"{{ type.Path }}";
+        {{- end }}
+
+        {{- if type.RelativePath }}
+
+        public override string AppRelativeVirtualPath => @"{{ type.RelativePath }}";
         {{- end }}
 
         {{- if type.Directory }}
 
         public override string TemplateSourceDirectory => @"{{ type.Directory }}";
+        {{- end }}
+
+        {{- for text in type.ScriptBlocks }}
+#line {{ text.Range.Start.Line + 1 }} "{{ text.Range.File }}"
+{{ text.Text }}
+#line hidden
         {{- end }}
 
         {{- write_methods type }}

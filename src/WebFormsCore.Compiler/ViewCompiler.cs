@@ -17,7 +17,7 @@ internal static class ViewCompiler
     private static IReadOnlyList<MetadataReference>? _references;
     private static readonly object ReferencesLock = new();
 
-    public static ViewCompileResult Compile(string path, string? text = null)
+    public static ViewCompileResult Compile(string path, string? text = null, string? rootDirectory = null)
     {
         var tempAssemblyName = path
             .Replace('/', '_')
@@ -63,7 +63,8 @@ internal static class ViewCompiler
             path,
             text,
             namespaces: GetNamespaces(path),
-            addFields: false
+            addFields: false,
+            rootDirectory: rootDirectory
         );
 
 

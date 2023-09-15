@@ -2,6 +2,7 @@
 
 namespace WebFormsCore;
 
+[AttributeUsage(AttributeTargets.Class)]
 public class CompiledViewAttribute : Attribute
 {
     public CompiledViewAttribute(string path, string hash)

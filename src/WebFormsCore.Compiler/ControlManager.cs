@@ -57,20 +57,35 @@ public class ControlManager : IDisposable, IControlManager
 
     private void OnChanged(object sender, FileSystemEventArgs e)
     {
-        var modifyTime = File.GetLastWriteTimeUtc(e.FullPath);
-
         if (!TryGetPath(e.FullPath, out var path)) return;
-        if (!_controls.TryGetValue(path, out var entry)) return;
-        if (entry.LastModified >= modifyTime) return;
+
+        if (_controls.TryGetValue(path, out var entry))
+        {
+            Update(entry, path);
+        }
+
+        foreach (var kv in _controls)
+        {
+            if (kv.Value.Includes.Contains(path))
+            {
+                Update(kv.Value, kv.Key, ignoreModifyDate: true);
+            }
+        }
+    }
+
+    private void Update(ControlEntry entry, string path, bool ignoreModifyDate = false)
+    {
+        var modifyTime = File.GetLastWriteTimeUtc(entry.Path);
+        if (entry.LastModified >= modifyTime && !ignoreModifyDate) return;
 
         entry.LastModified = modifyTime;
         entry.Type = null;
 
         _ = Task.Run(async () =>
         {
-            if (!await IsFileReady(e.FullPath))
+            if (!await IsFileReady(entry.Path))
             {
-                _logger?.LogWarning("File {Path} is still locked after 5s", e.FullPath);
+                _logger?.LogWarning("File {Path} is still locked after 5s", entry.Path);
                 return;
             }
 
@@ -80,7 +95,7 @@ public class ControlManager : IDisposable, IControlManager
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Failed to re-compile control {Path}", e.FullPath);
+                _logger?.LogError(ex, "Failed to re-compile control {Path}", entry.Path);
             }
         });
     }
@@ -112,7 +127,6 @@ public class ControlManager : IDisposable, IControlManager
         if (_contentRoot != null && current.StartsWith(_contentRoot))
         {
             current = current.Substring(_contentRoot.Length);
-            fullPath = Path.Combine(_contentRoot, current);
         }
 
         path = DefaultControlManager.NormalizePath(current);
@@ -178,6 +192,13 @@ public class ControlManager : IDisposable, IControlManager
         entry.LastModified = File.GetLastWriteTimeUtc(entry.Path);
         entry.NextCheck = DateTimeOffset.Now.AddSeconds(5);
 
+        entry.Includes.Clear();
+
+        foreach (var include in type.GetCustomAttributes<CompiledViewInclude>())
+        {
+            entry.Includes.Add(include.Path);
+        }
+
         return entry.Type;
     }
 
@@ -209,8 +230,31 @@ public class ControlManager : IDisposable, IControlManager
         if (type != null)
         {
             var attribute = type.GetCustomAttribute<CompiledViewAttribute>();
+            var isUpToDate = attribute?.Hash == RootNode.GenerateHash(text);
 
-            if (attribute?.Hash == RootNode.GenerateHash(text))
+            if (isUpToDate)
+            {
+                foreach (var include in type.GetCustomAttributes<CompiledViewInclude>())
+                {
+                    var includeFullPath = Path.Combine(_environment.ContentRootPath, include.Path);
+
+                    if (!File.Exists(includeFullPath))
+                    {
+                        isUpToDate = false;
+                        break;
+                    }
+
+                    var includeText = File.ReadAllText(includeFullPath).ReplaceLineEndings("\n");
+
+                    if (include.Hash != RootNode.GenerateHash(includeText))
+                    {
+                        isUpToDate = false;
+                        break;
+                    }
+                }
+            }
+
+            if (isUpToDate)
             {
                 _logger?.LogDebug("Using pre-compiled view of control {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
                 return type;
@@ -219,7 +263,10 @@ public class ControlManager : IDisposable, IControlManager
             type = null;
         }
 
-        var (compilation, designerType) = ViewCompiler.Compile(fullPath, text);
+        var (compilation, designerType) = ViewCompiler.Compile(
+            fullPath,
+            text,
+            _environment.ContentRootPath);
 
         if (type != null)
         {
@@ -268,6 +315,8 @@ public class ControlManager : IDisposable, IControlManager
         public DateTimeOffset? NextCheck { get; set; }
 
         public SemaphoreSlim Lock { get; } = new(1, 1);
+
+        public List<string> Includes { get; } = new();
     }
 
     public void Dispose()

@@ -45,6 +45,7 @@ public static class ServiceExtensions
         builder.TryAddPooledControl<Literal>();
         builder.TryAddPooledControl<HtmlBody>();
         builder.TryAddPooledControl<HtmlLink>();
+        builder.TryAddPooledControl<HtmlLink>();
         builder.TryAddPooledControl<HtmlForm>();
         builder.TryAddPooledControl<HtmlStyle>();
         builder.TryAddPooledControl<HtmlImage>();
