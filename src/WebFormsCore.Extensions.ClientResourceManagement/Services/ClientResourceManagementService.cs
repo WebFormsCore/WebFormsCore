@@ -78,7 +78,7 @@ internal class ClientResourceManagementService : PageService
                     clientScript.RegisterStartupStyleLink(type, file.Name ?? path, path, attributes: file.Attributes);
                     break;
                 case ClientDependencyType.Javascript:
-                    clientScript.RegisterStartupScript(type, file.Name ?? path, path, attributes: file.Attributes);
+                    clientScript.RegisterStartupScriptLink(type, file.Name ?? path, path, attributes: file.Attributes);
                     break;
                 default:
                     throw new InvalidOperationException();
