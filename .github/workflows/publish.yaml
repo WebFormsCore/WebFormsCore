@@ -39,7 +39,7 @@ jobs:
             sdk/WebFormsCore.SDK/WebFormsCore.SDK.csproj
             sdk/WebFormsCore.SDK.AspNet/WebFormsCore.SDK.AspNet.csproj
             sdk/WebFormsCore.SDK.AspNetCore/WebFormsCore.SDK.AspNetCore.csproj
-            sdk/WebFormsCore.Extensions.Choices/WebFormsCore.Extensions.Choices.csproj
-            sdk/WebFormsCore.Extensions.ChoicesWebFormsCore.Extensions.ClientResourceManagement/WebFormsCore.Extensions.ChoicesWebFormsCore.Extensions.ClientResourceManagement.csproj
-            sdk/WebFormsCore.Extensions.EntityFrameworkCore/WebFormsCore.Extensions.EntityFrameworkCore.csproj
-            sdk/WebFormsCore.Extensions.Grid/WebFormsCore.Extensions.Grid.csproj
+            src/WebFormsCore.Extensions.Choices/WebFormsCore.Extensions.Choices.csproj
+            src/WebFormsCore.Extensions.ClientResourceManagement/WebFormsCore.Extensions.ClientResourceManagement.csproj
+            src/WebFormsCore.Extensions.EntityFrameworkCore/WebFormsCore.Extensions.EntityFrameworkCore.csproj
+            src/WebFormsCore.Extensions.Grid/WebFormsCore.Extensions.Grid.csproj

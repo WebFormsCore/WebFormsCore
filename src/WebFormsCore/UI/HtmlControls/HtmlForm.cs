@@ -83,4 +83,12 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
 
         return base.RenderAsync(writer, token);
     }
+
+    public override void ClearControl()
+    {
+        base.ClearControl();
+
+        UpdatePage = true;
+        Submit = null;
+    }
 }

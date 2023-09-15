@@ -362,6 +362,7 @@ public ref struct Lexer
                         AddNode(TokenType.TagOpenSlash, range);
                         AddNode(TokenType.ElementName, start, currentName);
                         SkipWhiteSpace();
+                        _tags.Pop();
                         break;
                     }
                 }
@@ -388,6 +389,9 @@ public ref struct Lexer
             char.IsUpper(name[0]) ||
 
             // CSP elements
+            name.Equals("html", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("body", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("head", StringComparison.OrdinalIgnoreCase) ||
             name.Equals("script", StringComparison.OrdinalIgnoreCase) ||
             name.Equals("style", StringComparison.OrdinalIgnoreCase) ||
             name.Equals("link", StringComparison.OrdinalIgnoreCase) ||

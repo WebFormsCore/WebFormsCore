@@ -22,7 +22,7 @@
     </wfc:Choices>
     <wfc:TextChoices runat="server" ID="textChoice" AutoPostBack="True" OnValuesChanged="textChoice_OnValuesChanged" />
 
-
+    <!--#include file="Common/Include.ascx" -->
     <div class="my-2">
         <wfc:CheckBox runat="server" ID="cb" OnCheckedChanged="cb_OnCheckedChanged" AutoPostBack="True" />
         <wfc:Literal runat="server" ID="litCb" />
