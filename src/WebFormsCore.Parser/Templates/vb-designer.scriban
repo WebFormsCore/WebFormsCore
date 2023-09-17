@@ -1,8 +1,55 @@
+{{- func write_properties }}
+            {{- for prop in $0.Properties }}
+            {{ $0.VariableName ?? "Me" }}.{{ prop.Member.Name }}{{ " = " }}
+            {{- if prop.Value.IsCode || prop.DisplayType == "string" -}}
+                {{ prop.Value.CodeString }}
+            {{- else if prop.Converter -}}
+                WebActivator.ParseAttribute(Of {{ prop.DisplayType }}, Of {{ prop.DisplayConverter }})({{ prop.Value.CodeString }})
+            {{- else -}}
+                WebActivator.ParseAttribute(Of {{ prop.DisplayType }})({{ prop.Value.CodeString }})
+            {{- end }}
+            {{- end }}
+{{- end }}
+
+{{- func write_attributes }}
+            {{- write_properties $0 }}
+
+            {{- for prop in $0.Attributes }}
+            DirectCast({{ $0.VariableName }}, WebFormsCore.UI.IAttributeAccessor).SetAttribute({{ prop.Key.VbCodeString }}, {{ prop.Value.VbCodeString }})
+            {{- end }}
+
+            {{- for prop in $0.Templates }}
+            {{ $0.VariableName }}.{{ prop.Property }} = new {{ prop.ClassName }}(WebActivator, Me)
+            {{- end }}
+
+            {{- for prop in $0.Events }}
+            {{- if IsReturnTypeSame }}
+            {{ $0.VariableName }}.{{ prop.EventName }} += {{ $3 }}{{ prop.MethodName }}
+            {{- else }}
+            AddHandler {{ $0.VariableName }}.{{ prop.EventName }}, Function({{ prop.Arguments }})
+                {{ if !prop.IsVoid }}Dim result = {{ end -}}
+                {{ $1 }}{{- prop.MethodName }}({{ prop.Arguments }})
+                Return {{ prop.ReturnValue }}
+            End function
+            {{- end }}
+            {{- end }}
+{{- end }}
+
 {{ func write_children }}
         {{- for child in $0 }}
         {{- case child.Type }}
+
+        {{- when "Directive" }}
+            {{- write_properties child "child" }}
+
+        {{- when "Collection" }}
+            Dim {{ child.VariableName }} = {{ child.Parent?.VariableName ?? $1 }}.{{ child.Property }}
+            {{ write_attributes child $3 }}
+
         {{- when "Text" }}
+            {{ if child.Parent?.Type != "Collection" -}}
             {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject(WebActivator.CreateLiteral({{ child.Text.VbCodeString }}))
+            {{- end }}
 
         {{- when "Control" }}
             Dim {{ child.VariableName }} = WebActivator.CreateControl(Of {{ child.DisplayControlType }})()
@@ -11,34 +58,7 @@
             {{- end }}
             {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject({{ child.VariableName }})
 
-            {{- for prop in child.Events }}
-            {{- if IsReturnTypeSame }}
-            AddHandler {{ child.VariableName }}.{{ prop.Event.Name }}, AddressOf {{ $3 }}{{ prop.Method.Name }}
-            {{- else }}
-            AddHandler {{ child.VariableName }}.{{ prop.Event.Name }}, Function({{ prop.Arguments }})
-                {{ if !prop.IsVoid }}Dim result = {{ end }}
-                {{ $3 }}{{- prop.Method.Name }}({{ prop.Arguments }})
-                Return {{ prop.ReturnValue }}
-            End function
-            {{- end }}
-            {{- end }}
-
-            {{- for prop in child.Properties }}
-            {{ child.VariableName }}.{{ prop.Member.Name }} = WebActivator.
-            {{- if prop.Value.Converter -}}
-            ParseAttribute(Of {{ prop.DisplayType }}, Of {{ prop.DisplayConverter }})({{ prop.Value.VbCodeString }})
-            {{- else -}}
-            ParseAttribute(Of {{ prop.DisplayType }})({{ prop.Value.VbCodeString }})
-            {{- end }}
-            {{- end }}
-
-            {{- for prop in child.Attributes }}
-            DirectCast({{ child.VariableName }}, WebFormsCore.UI.IAttributeAccessor).SetAttribute({{ prop.Key.VbCodeString }}, {{ prop.Value.VbCodeString }})
-            {{- end }}
-
-            {{- for prop in child.Templates }}
-            {{ child.VariableName }}.{{ prop.Property }} = new {{ prop.ClassName }}(WebActivator, Me)
-            {{- end }}
+            {{ write_attributes child $3 }}
 
         {{- when "Element" }}
             Dim {{ child.VariableName }} = WebActivator.CreateElement({{ child.Name.VbCodeString }})
@@ -105,7 +125,9 @@ Imports {{ ns }}
 <WebFormsCore.ViewPath("{{ type.Path }}")>
 Partial Class {{ type.InheritsClassName }}
 {{- for prop in type.Ids }}
+{{- if !prop.Designer }}
     Protected {{ prop.Name }} As {{ prop.DisplayType }}
+{{- end }}
 {{- end }}
 
     {{- for template in type.Templates }}
@@ -135,7 +157,13 @@ Public Partial Class CompiledViews
      Public Class {{ type.ClassName }}
         Inherits {{ type.InheritsClassName }}
 
-        {{- write_methods type }}
+        {{- for prop in type.Ids }}
+	{{- if prop.Designer }}
+	Protected {{ prop.Member ? "Shadows " : "" }}{{ prop.Name }} As {{ prop.DisplayType }}
+	{{- end }}
+	{{- end }}
+	
+	{{- write_methods type }}
 
         {{- if type.Path }}
 
@@ -155,10 +183,14 @@ Public Partial Class CompiledViews
         End Property
         {{- end }}
 
+        {{- for text in type.ScriptBlocks }}
+{{ text.Text }}
+        {{- end }}
+
         Protected Overrides Sub FrameworkInitialize()
             MyBase.FrameworkInitialize()
             {{- if type.RenderName }}
-            SetRenderMethodDelegate(AddressOf {{ type.RenderName }});
+            SetRenderMethodDelegate(AddressOf {{ type.RenderName }})
             {{- end }}
             {{ write_children type.AllChildren "Me" true }}
         End Sub

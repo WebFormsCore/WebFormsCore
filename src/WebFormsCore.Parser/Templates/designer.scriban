@@ -1,8 +1,3 @@
-#line hidden
-{{ func line }}
-#line {{ $0.Range.Start.Line + 1 }} "{{ $0.Range.File }}"
-{{- end }}
-
 {{- func write_properties }}
             {{- for prop in $0.Properties }}
             {{ $0.VariableName ?? "this" }}.{{ prop.Member.Name }}{{ " = " }}
@@ -54,7 +49,7 @@
 
         {{- when "Text" }}
             {{ if child.Parent?.Type != "Collection" -}}
-                {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject(WebActivator.CreateLiteral({{ child.Text.CodeString }}));
+            {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject(WebActivator.CreateLiteral({{ child.Text.CodeString }}));
             {{- end }}
 
         {{- when "Control" }}
@@ -98,12 +93,12 @@
             {{- when "Statement" }}
 #line {{ child.Range.Start.Line + 1 }} "{{ child.Range.File }}"
 {{ child.Text.Range.Start.ColumnOffsetString }}{{ child.Text }}
-#line hidden
+#line restore
             {{- when "Expression" }}
             await writer.WriteObjectAsync(
 #line {{ child.Range.Start.Line + 1 }} "{{ child.Range.File }}"
 {{ child.Text.Range.Start.ColumnOffsetString }}{{ child.Text }}
-#line hidden
+#line restore
             , {{ child.IsEncode ? "true" : "false"}});
             {{- when "Text" }}
             await controls[{{ i }}].RenderAsync(writer, token); // Text: {{ child.Text.CodeString }}
