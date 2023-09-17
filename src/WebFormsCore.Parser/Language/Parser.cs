@@ -467,9 +467,9 @@ public class Parser
                 {
                     var member = _type?.GetMemberDeep(id.Value);
 
-                    if (member is null or { CanWrite: true })
+                    if (member is null or { CanWrite: false })
                     {
-                        var addToDesigner = !(_addFields && Root.AddFields);
+                        var addToDesigner = !(_addFields && Root.AddFields) || member is { CanWrite: false };
                         Root.Ids.Add(new ControlId(addToDesigner, id, controlType, member));
                         controlNode.FieldName = id;
                     }

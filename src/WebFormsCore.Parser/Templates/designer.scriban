@@ -180,10 +180,9 @@ public partial class CompiledViews
         }
         {{ end -}}
 
-        // {{ type.Ids }}
         {{- for prop in type.Ids }}
         {{- if prop.Designer }}
-        protected {{ prop.DisplayType }} {{ prop.Name }};
+        protected {{ prop.Member ? "new " : "" }}{{ prop.DisplayType }} {{ prop.Name }};
         {{- end }}
         {{- end }}
 
