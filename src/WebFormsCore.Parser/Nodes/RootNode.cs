@@ -272,6 +272,11 @@ public class RootNode : ContainerNode
 
     public void Add(RootNode type)
     {
+        if (!type.AddFields)
+        {
+            return;
+        }
+
         for (var i = type.Ids.Count - 1; i >= 0; i--)
         {
             var id = type.Ids[i];

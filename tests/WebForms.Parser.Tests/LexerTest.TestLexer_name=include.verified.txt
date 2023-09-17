@@ -2,7 +2,7 @@
   {
     Type: Comment,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       End: {
         Offset: 40,
         Column: 40
@@ -13,7 +13,7 @@
       CodeString: "#include file=\"Common/Include.ascx\" ",
       VbCodeString: "#include file=""Common/Include.ascx"" ",
       Range: {
-        File: Tests.aspx,
+        File: {CurrentDirectory}Tests.aspx,
         Start: {
           Offset: 4,
           Column: 4

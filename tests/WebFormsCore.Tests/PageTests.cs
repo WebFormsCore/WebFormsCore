@@ -24,6 +24,9 @@ public partial class PageTest
         services.AddOptions<ViewStateOptions>()
             .Configure(options => options.Enabled = false);
 
+        services.AddOptions<WebFormsCoreOptions>()
+            .Configure(options => options.AddWebFormsCoreScript = false);
+
         var serviceProvider = services.BuildServiceProvider();
         await using var stream = new MemoryStream();
 

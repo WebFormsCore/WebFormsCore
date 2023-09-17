@@ -3,11 +3,11 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head id="Head" runat="server">
+<head>
     <meta charset="UTF-8"/>
     <title>Smoke Test</title>
 </head>
-<body id="Body" runat="server">
+<body>
 
 <app:BaseControl runat="server" ID="BaseControl" />
 

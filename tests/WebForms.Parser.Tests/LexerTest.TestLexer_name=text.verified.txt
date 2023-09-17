@@ -2,7 +2,7 @@
   {
     Type: Text,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       End: {
         Offset: 15,
         Column: 15
@@ -13,7 +13,7 @@
       CodeString: "<div>Test</div>",
       VbCodeString: "<div>Test</div>",
       Range: {
-        File: Tests.aspx,
+        File: {CurrentDirectory}Tests.aspx,
         End: {
           Offset: 15,
           Column: 15

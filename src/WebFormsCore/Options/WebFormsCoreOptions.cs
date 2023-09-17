@@ -22,4 +22,9 @@ public class WebFormsCoreOptions
     /// Gets or sets a value indicating whether security headers are enabled.
     /// </summary>
     public bool EnableSecurityHeaders { get; set; } = true;
+
+    /// <summary>
+    /// <c>true</c> to add the WebFormsCore script to the page; otherwise, <c>false</c>.
+    /// </summary>
+    public bool AddWebFormsCoreScript { get; set; } = true;
 }

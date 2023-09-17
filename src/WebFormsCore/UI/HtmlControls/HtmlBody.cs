@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using WebFormsCore.Events;
 using WebFormsCore.UI.WebControls;
 
@@ -41,7 +42,12 @@ public class HtmlBody : HtmlContainerControl
     protected override void OnInit(EventArgs args)
     {
         // TODO: Move this to a better place.
-        Page.ClientScript.RegisterStartupScript(typeof(Page), "FormPostback", Script, true);
+        var options = Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>()?.Value?.AddWebFormsCoreScript;
+
+        if (options == true)
+        {
+            Page.ClientScript.RegisterStartupScript(typeof(Page), "FormPostback", Script);
+        }
     }
 
     protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)

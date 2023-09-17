@@ -22,9 +22,29 @@ public class ListViewStateSerializer : EnumerableViewStateSerializer<IList>
         return GetListConstructor(typeArgument)(count);
     }
 
-    protected override void Set(IList collection, int index, object? value)
+    protected override void Set(IList collection, Type typeArgument, int index, object? value)
     {
-        collection[index] = value;
+        if (index < collection.Count)
+        {
+            collection[index] = value!;
+        }
+        else if (index == collection.Count)
+        {
+            collection.Add(value!);
+        }
+        else
+        {
+            var defaultValue = typeArgument.IsValueType
+                ? Activator.CreateInstance(typeArgument)
+                : null;
+
+            while (index > collection.Count)
+            {
+                collection.Add(defaultValue);
+            }
+
+            collection.Add(value!);
+        }
     }
 
     protected override bool IsSupported(Type type, [NotNullWhen(true)] out Type? typeArgument)
@@ -63,7 +83,7 @@ public class ListViewStateSerializer : EnumerableViewStateSerializer<IList>
 #if NET6_0_OR_GREATER
             if (!RuntimeFeature.IsDynamicCodeSupported)
             {
-                return _ => (IList)Activator.CreateInstance(genericType)!;
+                return c => (IList)Activator.CreateInstance(genericType, c)!;
             }
 #endif
 

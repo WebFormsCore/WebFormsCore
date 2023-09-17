@@ -25,13 +25,12 @@ public class Parser
 
     private readonly Compilation _compilation;
     private readonly string? _rootNamespace;
-    public static readonly CSharpParseOptions StatementOptions = new(kind: SourceCodeKind.Script);
     private readonly ParserContainer _rootContainer = new();
     private ParserContainer _container;
     private string? _itemType;
     private readonly Dictionary<string, List<string>> _namespaces = new(StringComparer.OrdinalIgnoreCase);
     private INamedTypeSymbol? _type;
-    private bool _addFields;
+    private readonly bool _addFields;
     private readonly string? _rootDirectory;
 
     public Parser(Compilation compilation, string? rootNamespace, bool addFields, string? rootDirectory = null)
@@ -464,24 +463,24 @@ public class Parser
 
             if (attributes.TryGetValue("id", out var id))
             {
-                var member = _type?.GetMemberDeep(id.Value);
-
-                if (member is null or { CanWrite: true })
+                if (_container.Template == null)
                 {
-                    controlNode.FieldName = member?.Name;
+                    var member = _type?.GetMemberDeep(id.Value);
 
-                    if (_container.Template == null)
+                    if (member is null or { CanWrite: true })
                     {
-                        if (member is null && _addFields)
-                        {
-                            Root.Ids.Add(new ControlId(id, controlType, member));
-                            controlNode.FieldName = id;
-                        }
+                        var addToDesigner = !(_addFields && Root.AddFields);
+                        Root.Ids.Add(new ControlId(addToDesigner, id, controlType, member));
+                        controlNode.FieldName = id;
                     }
                     else
                     {
-                        _container.Template.Ids.Add(new ControlId(id, controlType, member));
+                        controlNode.FieldName = member?.Name;
                     }
+                }
+                else
+                {
+                    _container.Template.Ids.Add(new ControlId(false, id, controlType, null));
                 }
             }
 

@@ -47,48 +47,52 @@ Public Partial Class CompiledViews
             ' Unhandled type: Directive
             Me.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "" + vbLf + ""))
             Me.AddParsedSubObject(WebActivator.CreateLiteral("<!DOCTYPE html>"))
-            Me.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "<html lang=""en"">" + vbLf + ""))
-            Dim ctrl0 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.HtmlControls.HtmlBody)()
-            ctrl0.ID = "Body"
+            Me.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + ""))
+            Dim ctrl0 = WebActivator.CreateElement("html")
             Me.AddParsedSubObject(ctrl0)
-            ctrl0.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "" + vbLf + "    <div class=""container"">" + vbLf + "        <div class=""mt-4"">" + vbLf + "            "))
-            Dim ctrl1 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.HtmlControls.HtmlForm)()
+            ctrl0.Attributes.Add("lang", "en")
+            ctrl0.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + ""))
+            Dim ctrl1 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.HtmlControls.HtmlBody)()
+            ctrl1.ID = "Body"
             ctrl0.AddParsedSubObject(ctrl1)
-            DirectCast(ctrl1, WebFormsCore.UI.IAttributeAccessor).SetAttribute("method", "post")
-            ctrl1.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                "))
-            Dim ctrl2 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.WebControls.Button)()
-            ctrl2.ID = "btnAdd"
+            ctrl1.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "" + vbLf + "    <div class=""container"">" + vbLf + "        <div class=""mt-4"">" + vbLf + "            "))
+            Dim ctrl2 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.HtmlControls.HtmlForm)()
             ctrl1.AddParsedSubObject(ctrl2)
-            AddHandler ctrl2.Click, Function(sender, e)
+            ctrl2.Method = WebActivator.ParseAttribute(Of String)("post")
+            ctrl2.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                "))
+            Dim ctrl3 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.WebControls.Button)()
+            ctrl3.ID = "btnAdd"
+            ctrl2.AddParsedSubObject(ctrl3)
+            AddHandler ctrl3.Click, Function(sender, e)
                 
                 btnAdd_OnClick(sender, e)
                 Return System.Threading.Tasks.Task.CompletedTask
             End function
-            Me.btnAdd = ctrl2
-            ctrl2.AddParsedSubObject(WebActivator.CreateLiteral("Add"))
-            ctrl1.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                "))
-            Dim ctrl3 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.WebControls.Repeater)()
-            ctrl3.ID = "rptItems"
-            ctrl1.AddParsedSubObject(ctrl3)
-            Me.rptItems = ctrl3
-            ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                    "))
-            Dim ctrl4 = WebActivator.CreateElement("ItemTemplate")
-            ctrl3.AddParsedSubObject(ctrl4)
-            ctrl4.SetRenderMethodDelegate(AddressOf Render_0)
-            ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                        "))
-            ' Unhandled type: Statement
-            ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                            "))
-            Dim ctrl5 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.WebControls.Literal)()
-            ctrl5.ID = "litItem"
-            ctrl4.AddParsedSubObject(ctrl5)
-            Me.litItem = ctrl5
-            ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                        "))
-            ' Unhandled type: Statement
+            Me.btnAdd = ctrl3
+            ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("Add"))
+            ctrl2.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                "))
+            Dim ctrl4 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.WebControls.Repeater)()
+            ctrl4.ID = "rptItems"
+            ctrl2.AddParsedSubObject(ctrl4)
+            Me.rptItems = ctrl4
             ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                    "))
-            ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                "))
-            ctrl1.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "            "))
-            ctrl0.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "        </div>" + vbLf + "    </div>" + vbLf + "" + vbLf + ""))
-            Me.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "</html>"))
+            Dim ctrl5 = WebActivator.CreateElement("ItemTemplate")
+            ctrl4.AddParsedSubObject(ctrl5)
+            ctrl5.SetRenderMethodDelegate(AddressOf Render_0)
+            ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                        "))
+            ' Unhandled type: Statement
+            ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                            "))
+            Dim ctrl6 = WebActivator.CreateControl(Of Global.WebFormsCore.UI.WebControls.Literal)()
+            ctrl6.ID = "litItem"
+            ctrl5.AddParsedSubObject(ctrl6)
+            Me.litItem = ctrl6
+            ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                        "))
+            ' Unhandled type: Statement
+            ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                    "))
+            ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "                "))
+            ctrl2.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "            "))
+            ctrl1.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + "        </div>" + vbLf + "    </div>" + vbLf + "" + vbLf + ""))
+            ctrl0.AddParsedSubObject(WebActivator.CreateLiteral("" + vbLf + ""))
         End Sub
     End Class
 End Class

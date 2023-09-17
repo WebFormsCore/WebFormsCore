@@ -17,6 +17,11 @@
     <ItemGroup>
         <None Remove="Template.liquid" />
         <None Remove="Templates\viewstate.scriban" />
+        <None Update="Properties\launchSettings.json">
+          <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+          <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+          <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        </None>
     </ItemGroup>
 
     <ItemGroup>

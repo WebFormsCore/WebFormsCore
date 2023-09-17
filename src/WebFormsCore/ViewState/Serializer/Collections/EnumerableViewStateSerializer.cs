@@ -34,7 +34,7 @@ public abstract class EnumerableViewStateSerializer<T> : IViewStateSerializer
 
         foreach (var item in (IEnumerable)value)
         {
-            writer.WriteObject(typeArgument, item, null);
+            writer.WriteObject(typeArgument, item);
             count++;
         }
 
@@ -65,7 +65,7 @@ public abstract class EnumerableViewStateSerializer<T> : IViewStateSerializer
             var defaultValue = i < defaultCollectionCount ? GetValue(defaultCollection, i) : null;
             var value = reader.ReadObject(typeArgument, defaultValue);
 
-            Set(collection, i, value);
+            Set(collection, typeArgument, i, value);
         }
 
         return collection;
@@ -96,7 +96,7 @@ public abstract class EnumerableViewStateSerializer<T> : IViewStateSerializer
 
     protected abstract T Create(Type typeArgument, int count, T? defaultValue);
 
-    protected abstract void Set(T collection, int index, object? value);
+    protected abstract void Set(T collection, Type typeArgument, int index, object? value);
 
     protected abstract bool IsSupported(Type type, [NotNullWhen(true)] out Type? typeArgument);
 

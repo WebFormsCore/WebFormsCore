@@ -139,7 +139,9 @@ using {{ ns }};
 partial class {{ type.InheritsClassName }}
 {
 {{- for prop in type.Ids }}
+{{- if !prop.Designer }}
     protected {{ prop.DisplayType }} {{ prop.Name }};
+{{- end }}
 {{- end }}
 
     {{- for template in type.Templates }}
@@ -178,8 +180,9 @@ public partial class CompiledViews
         }
         {{ end -}}
 
-        {{- if !AddFields || !type.AddFields }}
+        // {{ type.Ids }}
         {{- for prop in type.Ids }}
+        {{- if prop.Designer }}
         protected {{ prop.DisplayType }} {{ prop.Name }};
         {{- end }}
         {{- end }}

@@ -2,7 +2,7 @@
   {
     Type: TagOpen,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       End: {
         Offset: 1,
         Column: 1
@@ -12,7 +12,7 @@
   {
     Type: ElementName,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 1,
         Column: 1
@@ -27,7 +27,7 @@
       CodeString: "div",
       VbCodeString: "div",
       Range: {
-        File: Tests.aspx,
+        File: {CurrentDirectory}Tests.aspx,
         Start: {
           Offset: 1,
           Column: 1
@@ -42,7 +42,7 @@
   {
     Type: Attribute,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 5,
         Column: 5
@@ -57,7 +57,7 @@
       CodeString: "runat",
       VbCodeString: "runat",
       Range: {
-        File: Tests.aspx,
+        File: {CurrentDirectory}Tests.aspx,
         Start: {
           Offset: 5,
           Column: 5
@@ -72,7 +72,7 @@
   {
     Type: AttributeValue,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 12,
         Column: 12
@@ -87,7 +87,7 @@
       CodeString: "server",
       VbCodeString: "server",
       Range: {
-        File: Tests.aspx,
+        File: {CurrentDirectory}Tests.aspx,
         Start: {
           Offset: 12,
           Column: 12
@@ -102,7 +102,7 @@
   {
     Type: TagClose,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 19,
         Column: 19
@@ -116,7 +116,7 @@
   {
     Type: TagOpen,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 20,
         Column: 20
@@ -130,7 +130,7 @@
   {
     Type: ElementName,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 21,
         Column: 21
@@ -145,7 +145,7 @@
       CodeString: "Inner",
       VbCodeString: "Inner",
       Range: {
-        File: Tests.aspx,
+        File: {CurrentDirectory}Tests.aspx,
         Start: {
           Offset: 21,
           Column: 21
@@ -160,7 +160,7 @@
   {
     Type: TagClose,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 26,
         Column: 26
@@ -174,7 +174,7 @@
   {
     Type: TagOpen,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 27,
         Column: 27
@@ -188,7 +188,7 @@
   {
     Type: ElementName,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 28,
         Column: 28
@@ -203,7 +203,7 @@
       CodeString: "span",
       VbCodeString: "span",
       Range: {
-        File: Tests.aspx,
+        File: {CurrentDirectory}Tests.aspx,
         Start: {
           Offset: 28,
           Column: 28
@@ -218,7 +218,7 @@
   {
     Type: Attribute,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 33,
         Column: 33
@@ -233,7 +233,7 @@
       CodeString: "runat",
       VbCodeString: "runat",
       Range: {
-        File: Tests.aspx,
+        File: {CurrentDirectory}Tests.aspx,
         Start: {
           Offset: 33,
           Column: 33
@@ -248,7 +248,7 @@
   {
     Type: AttributeValue,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 40,
         Column: 40
@@ -263,7 +263,7 @@
       CodeString: "server",
       VbCodeString: "server",
       Range: {
-        File: Tests.aspx,
+        File: {CurrentDirectory}Tests.aspx,
         Start: {
           Offset: 40,
           Column: 40
@@ -278,7 +278,7 @@
   {
     Type: TagSlashClose,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 48,
         Column: 48
@@ -292,7 +292,7 @@
   {
     Type: TagOpenSlash,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 50,
         Column: 50
@@ -306,7 +306,7 @@
   {
     Type: ElementName,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 52,
         Column: 52
@@ -321,7 +321,7 @@
       CodeString: "Inner",
       VbCodeString: "Inner",
       Range: {
-        File: Tests.aspx,
+        File: {CurrentDirectory}Tests.aspx,
         Start: {
           Offset: 52,
           Column: 52
@@ -336,7 +336,7 @@
   {
     Type: TagClose,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 52,
         Column: 52
@@ -350,7 +350,7 @@
   {
     Type: TagOpenSlash,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 58,
         Column: 58
@@ -364,7 +364,7 @@
   {
     Type: ElementName,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 60,
         Column: 60
@@ -379,7 +379,7 @@
       CodeString: "div",
       VbCodeString: "div",
       Range: {
-        File: Tests.aspx,
+        File: {CurrentDirectory}Tests.aspx,
         Start: {
           Offset: 60,
           Column: 60
@@ -394,7 +394,7 @@
   {
     Type: TagClose,
     Range: {
-      File: Tests.aspx,
+      File: {CurrentDirectory}Tests.aspx,
       Start: {
         Offset: 60,
         Column: 60
