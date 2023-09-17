@@ -18,11 +18,10 @@ internal sealed class ControlFactory<T> : IControlFactory<T>
         _manager = manager;
         _interceptors = interceptors.ToArray();
 
-        _viewPaths = typeof(T).GetCustomAttributes<CompiledViewAttribute>().Any()
-            ? Array.Empty<string>()
-            : typeof(T).GetCustomAttributes<ViewPathAttribute>()
-                .Select(i => i.Path)
-                .ToArray();
+        _viewPaths = _manager.ViewTypes
+            .Where(i => typeof(T).IsAssignableFrom(i.Value))
+            .Select(i => i.Key)
+            .ToArray();
 
         _noConstructor = _viewPaths.Length == 0 &&
                          typeof(T).GetConstructors(BindingFlags.Public | BindingFlags.Instance).All(i => i.GetParameters().Length == 0);

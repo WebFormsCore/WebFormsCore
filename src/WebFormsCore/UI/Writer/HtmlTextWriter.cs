@@ -201,14 +201,18 @@ public abstract class HtmlTextWriter : IAsyncDisposable
         Write(span.Slice(0, count));
     }
 
-    public virtual ValueTask WriteObjectAsync(object? value)
+    public virtual ValueTask WriteObjectAsync<T>(T value, bool encode = true)
     {
-        return WriteAsync(value?.ToString());
+        var str = value?.ToString();
+        if (encode) str = WebUtility.HtmlEncode(str);
+        return WriteAsync(str.AsMemory());
     }
 
-    public virtual void WriteObject(object? value)
+    public virtual void WriteObject<T>(T value, bool encode = true)
     {
-        Write(value?.ToString());
+        var str = value?.ToString();
+        if (encode) str = WebUtility.HtmlEncode(str);
+        Write(str.AsSpan());
     }
 
     public void RenderBeginTag(HtmlTextWriterTag tagKey) => RenderBeginTag(tagKey.ToName());

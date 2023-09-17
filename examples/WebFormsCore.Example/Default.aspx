@@ -64,12 +64,9 @@
                         <strong>Request Query</strong>
                     </div>
                     <div class="card-body">
-                        <%
-                            foreach (var kv in Context.Request.Query)
-                            {
-                                Response.Write($"<div>{kv.Key} = {kv.Value}</div>");
-                            }
-                        %>
+                        <% foreach (var kv in Context.Request.Query) { %>
+                            <%: kv.Key %> = <%: kv.Value %><br />
+                        <% } %>
                     </div>
                 </div>
 

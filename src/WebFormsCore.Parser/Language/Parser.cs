@@ -66,10 +66,13 @@ public class Parser
         switch (token.Type)
         {
             case TokenType.Expression:
-                ConsumeExpression(token, false);
+                ConsumeExpression(token);
+                break;
+            case TokenType.EncodeExpression:
+                ConsumeExpression(token, encode: true);
                 break;
             case TokenType.EvalExpression:
-                ConsumeExpression(token, true);
+                ConsumeExpression(token, eval: true);
                 break;
             case TokenType.Statement:
                 ConsumeStatement(token);
@@ -203,14 +206,15 @@ public class Parser
         });
     }
 
-    private void ConsumeExpression(Token token, bool isEval)
+    private void ConsumeExpression(Token token, bool eval = false, bool encode = false)
     {
         var element = new ExpressionNode
         {
             Range = token.Range,
             Text = token.Text,
-            IsEval = isEval,
-            ItemType = isEval ? _itemType : null
+            IsEval = eval,
+            IsEncode = encode,
+            ItemType = eval ? _itemType : null
         };
 
         _container.AddExpression(element);

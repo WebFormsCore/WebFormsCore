@@ -419,7 +419,11 @@ public ref struct Lexer
             type = TokenType.Comment;
             end = _endServerComment;
         }
-        else if (Consume(':') || Consume('='))
+        else if (Consume(':'))
+        {
+            type = TokenType.EncodeExpression;
+        }
+        else if (Consume('='))
         {
             type = TokenType.Expression;
         }

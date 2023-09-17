@@ -21,6 +21,8 @@ public class DefaultControlManager : IControlManager
 
     public IEnumerable<Type> Types => _types.Values;
 
+    public IReadOnlyDictionary<string, Type> ViewTypes => _types;
+
     public Type GetType(string path)
     {
         path = NormalizePath(path);

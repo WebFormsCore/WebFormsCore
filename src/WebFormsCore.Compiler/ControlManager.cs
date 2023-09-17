@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -33,6 +34,7 @@ public class ControlManager : IDisposable, IControlManager
         _logger = logger;
         _watchers = new List<FileSystemWatcher>();
         _compiledViews = DefaultControlManager.GetCompiledControls();
+        ViewTypes = new ControlsDictionary(_controls);
 
         if (environment is { EnableControlWatcher: true, ContentRootPath: not null })
         {
@@ -54,6 +56,8 @@ public class ControlManager : IDisposable, IControlManager
             }
         }
     }
+
+    public IReadOnlyDictionary<string, Type> ViewTypes { get; }
 
     private void OnChanged(object sender, FileSystemEventArgs e)
     {
@@ -325,5 +329,51 @@ public class ControlManager : IDisposable, IControlManager
         {
             watcher.Dispose();
         }
+    }
+
+    private class ControlsDictionary : IReadOnlyDictionary<string, Type>
+    {
+        private readonly ConcurrentDictionary<string, ControlEntry> _controls;
+
+        public ControlsDictionary(ConcurrentDictionary<string, ControlEntry> controls)
+        {
+            _controls = controls;
+        }
+
+        public IEnumerator<KeyValuePair<string, Type>> GetEnumerator()
+        {
+            return _controls
+                .Where(i => i.Value.Type != null)
+                .Select(i => new KeyValuePair<string, Type>(i.Key, i.Value.Type!))
+                .GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public int Count => _controls.Count(i => i.Value.Type != null);
+        public bool ContainsKey(string key)
+        {
+            return _controls.ContainsKey(key);
+        }
+
+        public bool TryGetValue(string key, out Type value)
+        {
+            if (_controls.TryGetValue(key, out var entry) && entry.Type != null)
+            {
+                value = entry.Type;
+                return true;
+            }
+
+            value = null!;
+            return false;
+        }
+
+        public Type this[string key] => _controls[key].Type ?? throw new KeyNotFoundException();
+
+        public IEnumerable<string> Keys => _controls.Keys;
+        public IEnumerable<Type> Values => _controls.Values.Where(i => i.Type != null).Select(i => i.Type!);
     }
 }

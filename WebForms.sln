@@ -60,6 +60,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.Extensions.Ent
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.Extensions.ClientResourceManagement", "src\WebFormsCore.Extensions.ClientResourceManagement\WebFormsCore.Extensions.ClientResourceManagement.csproj", "{45A2D922-2E26-4DBF-BEB2-66FF7D82CAE4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Smoke Tests", "Smoke Tests", "{E33BEFF2-A3C5-4095-9FE5-4D213CF8AC39}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Inherit Designer Controls", "Inherit Designer Controls", "{6676E971-745C-4821-996E-C98AF3BD8669}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library", "tests\smoke\InheritDesignerControls\Library\Library.csproj", "{6B683F1B-6AC7-4423-8D65-170A0C9F1B30}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "tests\smoke\InheritDesignerControls\Application\Application.csproj", "{8A710484-78BC-42E9-9A93-EEBA96A613FD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -142,6 +150,14 @@ Global
 		{45A2D922-2E26-4DBF-BEB2-66FF7D82CAE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45A2D922-2E26-4DBF-BEB2-66FF7D82CAE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45A2D922-2E26-4DBF-BEB2-66FF7D82CAE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B683F1B-6AC7-4423-8D65-170A0C9F1B30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B683F1B-6AC7-4423-8D65-170A0C9F1B30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B683F1B-6AC7-4423-8D65-170A0C9F1B30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B683F1B-6AC7-4423-8D65-170A0C9F1B30}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A710484-78BC-42E9-9A93-EEBA96A613FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A710484-78BC-42E9-9A93-EEBA96A613FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A710484-78BC-42E9-9A93-EEBA96A613FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A710484-78BC-42E9-9A93-EEBA96A613FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -162,6 +178,10 @@ Global
 		{FD3DAD2A-6F9C-440C-A427-C1688265EF75} = {6BD7E14E-80F4-4849-9959-86FD034114D9}
 		{064B9336-1C39-41F6-A300-06EDCA35F0E2} = {6BD7E14E-80F4-4849-9959-86FD034114D9}
 		{45A2D922-2E26-4DBF-BEB2-66FF7D82CAE4} = {6BD7E14E-80F4-4849-9959-86FD034114D9}
+		{E33BEFF2-A3C5-4095-9FE5-4D213CF8AC39} = {726D3801-795C-4C82-8B50-4AB15C7F004B}
+		{6676E971-745C-4821-996E-C98AF3BD8669} = {E33BEFF2-A3C5-4095-9FE5-4D213CF8AC39}
+		{6B683F1B-6AC7-4423-8D65-170A0C9F1B30} = {6676E971-745C-4821-996E-C98AF3BD8669}
+		{8A710484-78BC-42E9-9A93-EEBA96A613FD} = {6676E971-745C-4821-996E-C98AF3BD8669}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {022403F7-A5A6-4639-8579-D9B56627AE73}

@@ -104,7 +104,7 @@
 #line {{ child.Range.Start.Line + 1 }} "{{ child.Range.File }}"
 {{ child.Text.Range.Start.ColumnOffsetString }}{{ child.Text }}
 #line hidden
-            );
+            , {{ child.IsEncode ? "true" : "false"}});
             {{- when "Text" }}
             await controls[{{ i }}].RenderAsync(writer, token); // Text: {{ child.Text.CodeString }}
             {{- i = i + 1 }}
@@ -177,6 +177,12 @@ public partial class CompiledViews
         {
         }
         {{ end -}}
+
+        {{- if !AddFields || !type.AddFields }}
+        {{- for prop in type.Ids }}
+        protected {{ prop.DisplayType }} {{ prop.Name }};
+        {{- end }}
+        {{- end }}
 
         {{- if type.Path }}
 
