@@ -200,15 +200,17 @@ public class RootNode : ContainerNode
             }
         }
 
-        if (relativePath == null && rootDirectory != null && fullPath.StartsWith(rootDirectory))
+        if (relativePath == null)
         {
-            relativePath = NormalizePath(fullPath.Substring(rootDirectory.Length));
+            if (rootDirectory != null && fullPath.StartsWith(rootDirectory))
+            {
+                relativePath = NormalizePath(fullPath.Substring(rootDirectory.Length));
+            }
+            else
+            {
+                relativePath = fullPath;
+            }
         }
-        else
-        {
-            relativePath = fullPath;
-        }
-
 
         parser.Root.Path = fullPath;
         parser.Root.RelativePath = relativePath;
