@@ -20,7 +20,7 @@ namespace WebFormsCore;
 
 public class ControlManager : IDisposable, IControlManager
 {
-    private readonly ConcurrentDictionary<string, ControlEntry> _controls = new();
+    private readonly ConcurrentDictionary<string, ControlEntry> _controls;
     private readonly List<FileSystemWatcher> _watchers;
     private readonly IWebFormsEnvironment _environment;
     private readonly ILogger<ControlManager>? _logger;
@@ -34,7 +34,8 @@ public class ControlManager : IDisposable, IControlManager
         _logger = logger;
         _watchers = new List<FileSystemWatcher>();
         _compiledViews = DefaultControlManager.GetAndWatchTypes();
-        ViewTypes = new ControlsDictionary(_controls);
+        _controls = new ConcurrentDictionary<string, ControlEntry>();
+        ViewTypes = new ControlsDictionary(_controls, _compiledViews);
 
         if (environment is { EnableControlWatcher: true, ContentRootPath: not null })
         {
@@ -305,9 +306,10 @@ public class ControlManager : IDisposable, IControlManager
 
     private class ControlEntry
     {
-        public ControlEntry(string path)
+        public ControlEntry(string path, Type? type = null)
         {
             Path = path;
+            Type = type;
         }
 
         public string Path { get; }
@@ -334,10 +336,14 @@ public class ControlManager : IDisposable, IControlManager
     private class ControlsDictionary : IReadOnlyDictionary<string, Type>
     {
         private readonly ConcurrentDictionary<string, ControlEntry> _controls;
+        private readonly Dictionary<string, Type> _compiledViews;
 
-        public ControlsDictionary(ConcurrentDictionary<string, ControlEntry> controls)
+        public ControlsDictionary(
+            ConcurrentDictionary<string, ControlEntry> controls,
+            Dictionary<string, Type> compiledViews)
         {
             _controls = controls;
+            _compiledViews = compiledViews;
         }
 
         public IEnumerator<KeyValuePair<string, Type>> GetEnumerator()
@@ -345,6 +351,7 @@ public class ControlManager : IDisposable, IControlManager
             return _controls
                 .Where(i => i.Value.Type != null)
                 .Select(i => new KeyValuePair<string, Type>(i.Key, i.Value.Type!))
+                .Concat(_compiledViews.Where(i => !_controls.ContainsKey(i.Key)))
                 .GetEnumerator();
         }
 
@@ -353,10 +360,11 @@ public class ControlManager : IDisposable, IControlManager
             return GetEnumerator();
         }
 
-        public int Count => _controls.Count(i => i.Value.Type != null);
+        public int Count => _controls.Count(i => i.Value.Type != null) +
+                            _compiledViews.Count(i => !_controls.ContainsKey(i.Key));
         public bool ContainsKey(string key)
         {
-            return _controls.ContainsKey(key);
+            return _controls.ContainsKey(key) || _compiledViews.ContainsKey(key);
         }
 
         public bool TryGetValue(string key, out Type value)
@@ -367,13 +375,24 @@ public class ControlManager : IDisposable, IControlManager
                 return true;
             }
 
+            if (_compiledViews.TryGetValue(key, out var type))
+            {
+                value = type;
+                return true;
+            }
+
             value = null!;
             return false;
         }
 
-        public Type this[string key] => _controls[key].Type ?? throw new KeyNotFoundException();
+        public Type this[string key] => _controls.TryGetValue(key, out var entry) && entry.Type != null
+            ? entry.Type
+            : _compiledViews[key];
 
-        public IEnumerable<string> Keys => _controls.Keys;
-        public IEnumerable<Type> Values => _controls.Values.Where(i => i.Type != null).Select(i => i.Type!);
+        public IEnumerable<string> Keys => _controls.Keys.Concat(_compiledViews.Keys).Distinct();
+
+        public IEnumerable<Type> Values => _controls.Values
+            .Where(i => i.Type != null).Select(i => i.Type!)
+            .Concat(_compiledViews.Values.Where(i => !_controls.ContainsKey(i.FullName!)));
     }
 }
