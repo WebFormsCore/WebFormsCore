@@ -33,7 +33,7 @@ public class ControlManager : IDisposable, IControlManager
         _contentRoot = environment.ContentRootPath ?? AppContext.BaseDirectory;
         _logger = logger;
         _watchers = new List<FileSystemWatcher>();
-        _compiledViews = DefaultControlManager.GetCompiledControls();
+        _compiledViews = DefaultControlManager.GetAndWatchTypes();
         ViewTypes = new ControlsDictionary(_controls);
 
         if (environment is { EnableControlWatcher: true, ContentRootPath: not null })

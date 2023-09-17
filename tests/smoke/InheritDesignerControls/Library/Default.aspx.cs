@@ -1,6 +1,6 @@
 ﻿using WebFormsCore.UI;
 
-namespace Application;
+namespace Library;
 
 public partial class Default : Page
 {

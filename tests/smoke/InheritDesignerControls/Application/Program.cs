@@ -4,7 +4,7 @@ using HttpStack.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore;
-using Default = Application.Default;
+using Default = Library.Default;
 
 var builder = WebApplication.CreateBuilder(args);
 

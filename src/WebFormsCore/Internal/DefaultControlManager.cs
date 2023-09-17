@@ -16,7 +16,7 @@ public class DefaultControlManager : IControlManager
     public DefaultControlManager(IWebFormsEnvironment? environment = null)
     {
         _contentRoot = environment?.ContentRootPath ?? AppContext.BaseDirectory;
-        _types = GetCompiledControls();
+        _types = GetAndWatchTypes();
     }
 
     public IEnumerable<Type> Types => _types.Values;
@@ -61,10 +61,16 @@ public class DefaultControlManager : IControlManager
         return true;
     }
 
-    public static Dictionary<string, Type> GetCompiledControls()
+    public static Dictionary<string, Type> GetAndWatchTypes()
     {
         var types = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
-        var entry = Assembly.GetEntryAssembly();
+        AddCompiledControls(types, Assembly.GetEntryAssembly());
+        AppDomain.CurrentDomain.AssemblyLoad += (_, args) => AddCompiledControls(types, args.LoadedAssembly);
+        return types;
+    }
+
+    public static void AddCompiledControls(Dictionary<string, Type> types, Assembly? entry)
+    {
         var loaded = AppDomain.CurrentDomain.GetAssemblies().ToDictionary(i => i.GetName().FullName);
 
         if (entry != null)
@@ -72,7 +78,7 @@ public class DefaultControlManager : IControlManager
             AddAssemblies(entry, types, loaded);
         }
 
-        return types;
+        return;
 
         static void AddAssemblies(Assembly current, IDictionary<string, Type> types, IDictionary<string, Assembly> assemblies)
         {
