@@ -21,10 +21,11 @@ public interface ITypedNode
 
 public class ControlNode : ElementNode, ITypedNode
 {
-    public ControlNode(INamedTypeSymbol controlType)
+    public ControlNode(INamedTypeSymbol controlType, string? controlPath)
         : base(NodeType.Control)
     {
         ControlType = controlType;
+        ControlPath = controlPath;
     }
 
     public string? Id { get; set; }
@@ -36,6 +37,8 @@ public class ControlNode : ElementNode, ITypedNode
     public List<TemplateNode> Templates { get; set; } = new();
 
     public INamedTypeSymbol ControlType { get; }
+
+    public string? ControlPath { get; }
 
     public string? FieldName { get; set; }
 

@@ -1,4 +1,4 @@
 ﻿<%@ Control Language="C#" Inherits="Library.BaseControl" %>
-<%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI.WebControls" Assembly="WebFormsCore" %>
+<%@ Register TagPrefix="app" TagName="Test" Src="Test.ascx" %>
 
-<wfc:TextBox runat="server" ID="tbInput" />
+<app:Test runat="server" ID="Test" />

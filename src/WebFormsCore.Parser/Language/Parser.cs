@@ -29,6 +29,7 @@ public class Parser
     private ParserContainer _container;
     private string? _itemType;
     private readonly Dictionary<string, List<string>> _namespaces = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<ControlKey, (string Type, string Path)> _controlTypes = new(ControlKeyCompare.OrdinalIgnoreCase);
     private INamedTypeSymbol? _type;
     private readonly bool _addFields;
     private readonly string? _rootDirectory;
@@ -344,11 +345,84 @@ public class Parser
         }
 
         if (element.DirectiveType is DirectiveType.Register &&
-            element.Attributes.TryGetValue("tagprefix", out var tagPrefix) &&
-            element.Attributes.TryGetValue("namespace", out var ns))
+            element.Attributes.TryGetValue("tagprefix", out var tagPrefix))
         {
-            AddNamespace(tagPrefix, ns);
+            if (element.Attributes.TryGetValue("namespace", out var ns))
+            {
+                AddNamespace(tagPrefix, ns);
+            }
+            else if (element.Attributes.TryGetValue("tagname", out var tagName) &&
+                     element.Attributes.TryGetValue("src", out var src))
+            {
+                RegisterControl(lexer, tagPrefix, tagName, src);
+            }
         }
+    }
+
+    private void RegisterControl(Lexer lexer, AttributeValue tagPrefix, AttributeValue tagName, AttributeValue src)
+    {
+        var key = new ControlKey(tagPrefix.Value, tagName.Value);
+
+        if (_controlTypes.ContainsKey(key))
+        {
+            Diagnostics.Add(
+                Diagnostic.Create(
+                    new DiagnosticDescriptor("ASP0004", "Duplicate control registration",
+                        $"Duplicate control registration for '{key.Namespace}:{key.Name}'", "ASP",
+                        DiagnosticSeverity.Warning, true),
+                    src.Range));
+
+            return;
+        }
+
+        if (_rootDirectory is null)
+        {
+            return;
+        }
+
+        string path;
+        string fullPath;
+
+        if (lexer.File.StartsWith("~/"))
+        {
+            path = lexer.File.Substring(2);
+            fullPath = Path.Combine(_rootDirectory, path);
+        }
+        else if (lexer.File.StartsWith("/"))
+        {
+            path = lexer.File.Substring(1);
+            fullPath = Path.Combine(_rootDirectory, path);
+        }
+        else
+        {
+            var basePath = Path.GetDirectoryName(lexer.File)!;
+
+            fullPath = Path.Combine(basePath, src.Value).Replace('\\', '/');
+
+            if (_rootDirectory != null && fullPath.StartsWith(_rootDirectory))
+            {
+                path = fullPath.Substring(_rootDirectory.Length).TrimStart('/');
+            }
+            else
+            {
+                path = fullPath;
+            }
+        }
+
+        var text = File.ReadAllText(fullPath); // TODO: Don't read the whole file
+        var typeName = RootNode.DetectInherits(text);
+
+        if (typeName is null)
+        {
+            Diagnostics.Add(
+                Diagnostic.Create(
+                    new DiagnosticDescriptor("ASP0006", "Could not find inherits",
+                        $"Could not find inherits for '{lexer.File}'", "ASP", DiagnosticSeverity.Warning, true), src.Range));
+
+            return;
+        }
+
+        _controlTypes.Add(key, (typeName, path));
     }
 
     public void AddNamespace(string tagPrefix, string ns)
@@ -439,19 +513,29 @@ public class Parser
         else if (runAt == RunAt.Server)
         {
             INamedTypeSymbol? controlType = null;
+            string? controlPath = null;
 
-            if (attributes.TryGetValue("itemtype", out var itemTypeStr) &&
-                _compilation.GetType(itemTypeStr.Value) is { } itemType)
+            if (ns.HasValue && _controlTypes.TryGetValue(new ControlKey(ns.Value.Text, name.Text), out var controlTypeName))
             {
-                var type = GetControlType(ns?.Text, name.Text + "`1", true);
-
-                if (type != null)
+                controlType = _compilation.GetType(controlTypeName.Type);
+                controlPath = controlTypeName.Path;
+            }
+            else
+            {
+                if (attributes.TryGetValue("itemtype", out var itemTypeStr) &&
+                    _compilation.GetType(itemTypeStr.Value) is { } itemType)
                 {
-                    controlType = type.Construct(itemType);
+                    var type = GetControlType(ns?.Text, name.Text + "`1", true);
+
+                    if (type != null)
+                    {
+                        controlType = type.Construct(itemType);
+                    }
                 }
+
+                controlType ??= GetControlType(ns?.Text, name.Text);
             }
 
-            controlType ??= GetControlType(ns?.Text, name.Text);
             controlType ??= _compilation.GetType("WebFormsCore.UI.HtmlGenericControl");
 
             if (controlType == null)
@@ -459,7 +543,7 @@ public class Parser
                 return;
             }
 
-            var controlNode = new ControlNode(controlType);
+            var controlNode = new ControlNode(controlType, controlPath);
 
             if (attributes.TryGetValue("id", out var id))
             {

@@ -53,7 +53,11 @@
             {{- end }}
 
         {{- when "Control" }}
+            {{- if child.ControlPath }}
+            var {{ child.VariableName }} = ({{ child.DisplayControlType }}) WebActivator.CreateControl("{{ child.ControlPath }}");
+            {{- else }}
             var {{ child.VariableName }} = WebActivator.CreateControl<{{ child.DisplayControlType }}>();
+            {{- end }}
             {{- if child.Id }}
             {{ child.VariableName }}.ID = "{{ child.Id }}";
             {{- end }}

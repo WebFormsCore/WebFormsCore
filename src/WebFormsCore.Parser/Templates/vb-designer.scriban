@@ -52,7 +52,11 @@
             {{- end }}
 
         {{- when "Control" }}
+            {{- if child.ControlPath }}
+            Dim {{ child.VariableName }} = DirectCast(WebActivator.CreateControl("{{ child.ControlPath }}"), {{ child.DisplayControlType }})
+            {{- else }}
             Dim {{ child.VariableName }} = WebActivator.CreateControl(Of {{ child.DisplayControlType }})()
+            {{- end }}
             {{- if child.Id }}
             {{ child.VariableName }}.ID = "{{ child.Id }}"
             {{- end }}

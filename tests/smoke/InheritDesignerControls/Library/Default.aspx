@@ -7,6 +7,5 @@
     <title>Smoke Test</title>
 </head>
 <body>
-Test
 </body>
 </html>

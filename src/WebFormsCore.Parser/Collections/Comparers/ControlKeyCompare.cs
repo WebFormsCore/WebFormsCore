@@ -20,9 +20,6 @@ public class ControlKeyCompare : IEqualityComparer<ControlKey>
 
     public int GetHashCode(ControlKey obj)
     {
-        checked
-        {
-            return (_comparer.GetHashCode(obj.Namespace) * 397) ^ _comparer.GetHashCode(obj.Name);
-        }
+        return _comparer.GetHashCode(obj.Namespace) ^ _comparer.GetHashCode(obj.Name);
     }
 }
