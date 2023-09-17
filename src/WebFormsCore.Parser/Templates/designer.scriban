@@ -93,12 +93,12 @@
             {{- when "Statement" }}
 #line {{ child.Range.Start.Line + 1 }} "{{ child.Range.File }}"
 {{ child.Text.Range.Start.ColumnOffsetString }}{{ child.Text }}
-#line restore
+#line default
             {{- when "Expression" }}
             await writer.WriteObjectAsync(
 #line {{ child.Range.Start.Line + 1 }} "{{ child.Range.File }}"
 {{ child.Text.Range.Start.ColumnOffsetString }}{{ child.Text }}
-#line restore
+#line default
             , {{ child.IsEncode ? "true" : "false"}});
             {{- when "Text" }}
             await controls[{{ i }}].RenderAsync(writer, token); // Text: {{ child.Text.CodeString }}
