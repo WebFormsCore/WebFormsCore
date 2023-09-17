@@ -15,6 +15,9 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.Extensions.Logging;
 using WebFormsCore.Compiler;
 using WebFormsCore.Nodes;
+#if NET6_0_OR_GREATER
+using System.Runtime.Loader;
+#endif
 
 namespace WebFormsCore;
 
@@ -85,6 +88,14 @@ public class ControlManager : IDisposable, IControlManager
 
         entry.LastModified = modifyTime;
         entry.Type = null;
+
+#if NET6_0_OR_GREATER
+        if (entry.LoadContext != null)
+        {
+            entry.LoadContext.Unload();
+            entry.LoadContext = null;
+        }
+#endif
 
         _ = Task.Run(async () =>
         {
@@ -186,20 +197,19 @@ public class ControlManager : IDisposable, IControlManager
             return entry.Type;
         }
 
-        var type = CompileControl(path);
+        CompileControl(path, entry);
 
-        if (type == null)
+        if (entry.Type == null)
         {
             throw new FileNotFoundException($"Could not find type for path '{path}'");
         }
 
-        entry.Type = type;
         entry.LastModified = File.GetLastWriteTimeUtc(entry.Path);
         entry.NextCheck = DateTimeOffset.Now.AddSeconds(5);
 
         entry.Includes.Clear();
 
-        foreach (var include in type.GetCustomAttributes<CompiledViewInclude>())
+        foreach (var include in entry.Type.GetCustomAttributes<CompiledViewInclude>())
         {
             entry.Includes.Add(include.Path);
         }
@@ -207,7 +217,7 @@ public class ControlManager : IDisposable, IControlManager
         return entry.Type;
     }
 
-    private Type? CompileControl(string path)
+    private void CompileControl(string path, ControlEntry entry)
     {
         var sw = Stopwatch.StartNew();
 
@@ -218,14 +228,16 @@ public class ControlManager : IDisposable, IControlManager
 
         if (_environment.ContentRootPath is null)
         {
-            return type;
+            entry.Type = type;
+            return;
         }
 
         var fullPath = Path.Combine(_environment.ContentRootPath, path);
 
         if (!File.Exists(fullPath))
         {
-            return type;
+            entry.Type = type;
+            return;
         }
 
         using var stream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -262,21 +274,15 @@ public class ControlManager : IDisposable, IControlManager
             if (isUpToDate)
             {
                 _logger?.LogDebug("Using pre-compiled view of control {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
-                return type;
+                entry.Type = type;
+                return;
             }
-
-            type = null;
         }
 
         var (compilation, designerType) = ViewCompiler.Compile(
             fullPath,
             text,
             _environment.ContentRootPath);
-
-        if (type != null)
-        {
-            return type;
-        }
 
         using var assemblyStream = new MemoryStream();
 
@@ -296,12 +302,22 @@ public class ControlManager : IDisposable, IControlManager
             throw new InvalidOperationException();
         }
 
+#if NET6_0_OR_GREATER
+        var loadContext = new AssemblyLoadContext("Control", isCollectible: true);
+
+        assemblyStream.Seek(0, SeekOrigin.Begin);
+        loadContext.LoadFromStream(assemblyStream);
+
+        entry.LoadContext = loadContext;
+        entry.Type = loadContext.Assemblies
+            .SelectMany(i => i.GetTypes())
+            .FirstOrDefault(i => i.FullName == designerType.DesignerFullTypeName);
+#else
         var assembly = Assembly.Load(assemblyStream.ToArray());
-        type = assembly.GetType(designerType.DesignerFullTypeName!)!;
+        entry.Type = assembly.GetType(designerType.DesignerFullTypeName!)!;
+#endif
 
         _logger?.LogDebug("Compiled view of page {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
-
-        return type;
     }
 
     private class ControlEntry
@@ -323,6 +339,10 @@ public class ControlManager : IDisposable, IControlManager
         public SemaphoreSlim Lock { get; } = new(1, 1);
 
         public List<string> Includes { get; } = new();
+
+#if NET6_0_OR_GREATER
+        public AssemblyLoadContext? LoadContext { get; set; }
+#endif
     }
 
     public void Dispose()

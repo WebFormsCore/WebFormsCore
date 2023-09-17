@@ -8,7 +8,10 @@ using Default = Library.Default;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddWebForms();
+builder.Services.AddWebForms(config =>
+{
+    config.AddControlCompiler();
+});
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession();

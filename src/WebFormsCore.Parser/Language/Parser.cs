@@ -383,14 +383,14 @@ public class Parser
         string path;
         string fullPath;
 
-        if (lexer.File.StartsWith("~/"))
+        if (src.Value.StartsWith("~/"))
         {
-            path = lexer.File.Substring(2);
+            path = src.Value.Substring(2);
             fullPath = Path.Combine(_rootDirectory, path);
         }
-        else if (lexer.File.StartsWith("/"))
+        else if (src.Value.StartsWith("/"))
         {
-            path = lexer.File.Substring(1);
+            path = src.Value.Substring(1);
             fullPath = Path.Combine(_rootDirectory, path);
         }
         else
@@ -407,6 +407,16 @@ public class Parser
             {
                 path = fullPath;
             }
+        }
+
+        if (!File.Exists(fullPath))
+        {
+            Diagnostics.Add(
+                Diagnostic.Create(
+                    new DiagnosticDescriptor("ASP0005", "Could not find control",
+                        $"Could not find control '{lexer.File}'", "ASP", DiagnosticSeverity.Warning, true), src.Range));
+
+            return;
         }
 
         var text = File.ReadAllText(fullPath); // TODO: Don't read the whole file

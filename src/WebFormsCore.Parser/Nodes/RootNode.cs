@@ -200,7 +200,15 @@ public class RootNode : ContainerNode
             }
         }
 
-        relativePath ??= fullPath;
+        if (relativePath == null && rootDirectory != null && fullPath.StartsWith(rootDirectory))
+        {
+            relativePath = NormalizePath(fullPath.Substring(rootDirectory.Length));
+        }
+        else
+        {
+            relativePath = fullPath;
+        }
+
 
         parser.Root.Path = fullPath;
         parser.Root.RelativePath = relativePath;
@@ -208,6 +216,47 @@ public class RootNode : ContainerNode
         parser.Root.Hash = GenerateHash(text);
 
         return parser.Root;
+    }
+
+    public static string NormalizePath(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            return path;
+        }
+
+        var span = path.AsSpan();
+
+#if NET
+        var hasInvalidPathSeparator = span.Contains('\\');
+#else
+        var hasInvalidPathSeparator = span.IndexOf('\\') != -1;
+#endif
+
+        if (!hasInvalidPathSeparator && span[0] != '/')
+        {
+            return path;
+        }
+
+        Span<char> buffer = stackalloc char[path.Length];
+
+        for (var i = 0; i < span.Length; i++)
+        {
+            var c = span[i];
+
+            buffer[i] = c switch
+            {
+                '\\' => '/',
+                _ => c
+            };
+        }
+
+        if (buffer[0] == '/')
+        {
+            return buffer.Slice(1).ToString();
+        }
+
+        return buffer.ToString();
     }
 
     public static Language DetectLanguage(string text)
