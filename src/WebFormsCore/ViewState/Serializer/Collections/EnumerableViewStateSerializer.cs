@@ -41,7 +41,7 @@ public abstract class EnumerableViewStateSerializer<T> : IViewStateSerializer
         MemoryMarshal.Write(writer.GetUnsafeSpan(countSpan), ref count);
     }
 
-    public object? Read(Type type, ref ViewStateReader reader, object? defaultCollectionObject)
+    public object? Read([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, ref ViewStateReader reader, object? defaultCollectionObject)
     {
         var countSpan = reader.ReadBytes(sizeof(ushort));
         var count = MemoryMarshal.Read<ushort>(countSpan);
@@ -96,7 +96,7 @@ public abstract class EnumerableViewStateSerializer<T> : IViewStateSerializer
 
     protected abstract T Create(Type typeArgument, int count, T? defaultValue);
 
-    protected abstract void Set(T collection, Type typeArgument, int index, object? value);
+    protected abstract void Set(T collection, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type typeArgument, int index, object? value);
 
     protected abstract bool IsSupported(Type type, [NotNullWhen(true)] out Type? typeArgument);
 

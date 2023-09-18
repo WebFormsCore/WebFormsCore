@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WebFormsCore.Serializer;
 
@@ -19,7 +20,7 @@ public class ViewStateObjectSerializer : ViewStateSerializer<IViewStateObject>
         value!.WriteViewState(ref writer);
     }
 
-    public override IViewStateObject? Read(Type type, ref ViewStateReader reader, IViewStateObject? defaultValue)
+    public override IViewStateObject? Read([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, ref ViewStateReader reader, IViewStateObject? defaultValue)
     {
         var value = defaultValue ?? (IViewStateObject) Activator.CreateInstance(type)!;
         value.ReadViewState(ref reader);

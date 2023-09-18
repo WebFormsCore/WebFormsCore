@@ -42,7 +42,7 @@ public class PageManager : IPageManager
 
     public async Task<Page> RenderPageAsync(
         IHttpContext context,
-        Type pageType,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type pageType,
         CancellationToken token)
     {
         var objectActivator = context.RequestServices.GetRequiredService<IWebObjectActivator>();
@@ -60,9 +60,11 @@ public class PageManager : IPageManager
 
         await InitPageAsync(page, token);
 
-        if (context.Request.Query.TryGetValue("__panel", out var panel) && context.WebSockets.IsWebSocketRequest)
+        if (context.Request.Query.TryGetValue("__panel", out var panel) &&
+            panel.ToString() is { Length: > 0 } panelStr &&
+            context.WebSockets.IsWebSocketRequest)
         {
-            await RenderStreamPanelAsync(page, panel, context, token);
+            await RenderStreamPanelAsync(page, panelStr, context, token);
             return;
         }
 
@@ -209,7 +211,7 @@ public class PageManager : IPageManager
             if (context.Request.Form.TryGetValue("wfcTarget", out var eventTarget))
             {
                 var eventArgument = context.Request.Form.TryGetValue("wfcArgument", out var eventArgumentValue)
-                    ? eventArgumentValue.ToString()
+                    ? eventArgumentValue.ToString() ?? string.Empty
                     : string.Empty;
 
                 await target.InvokePostbackAsync(token, form, eventTarget, eventArgument);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WebFormsCore.Serializer;
 
@@ -38,7 +39,7 @@ public class TypeViewStateSerializer : ViewStateSerializer<Type>
         _cachedTypes.TryAdd(span.ToString(), value);
     }
 
-    public override Type? Read(Type type, ref ViewStateReader reader, Type? defaultValue)
+    public override Type? Read([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, ref ViewStateReader reader, Type? defaultValue)
     {
         var value = reader.Read<string>();
 
@@ -52,7 +53,9 @@ public class TypeViewStateSerializer : ViewStateSerializer<Type>
             return typeValue;
         }
 
+#pragma warning disable IL2057
         return Type.GetType(value);
+#pragma warning restore IL2057
     }
 
     public override bool StoreInViewState(Type type, Type? value, Type? defaultValue)

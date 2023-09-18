@@ -17,7 +17,7 @@ public interface IPageManager
 
     Task<Page> RenderPageAsync(
         IHttpContext context,
-        Type pageType,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type pageType,
         CancellationToken token);
 
     Task RenderPageAsync(IHttpContext context,

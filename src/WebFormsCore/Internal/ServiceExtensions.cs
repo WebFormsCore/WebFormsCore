@@ -94,7 +94,7 @@ public static class ServiceExtensions
         return builder;
     }
 
-    public static IWebFormsCoreBuilder TryAddPooledControl<T>(this IWebFormsCoreBuilder builder, int maxAmount = 1024)
+    public static IWebFormsCoreBuilder TryAddPooledControl<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IWebFormsCoreBuilder builder, int maxAmount = 1024)
         where T : Control, new()
     {
         if (typeof(T).GetCustomAttributes<ViewPathAttribute>().Any())

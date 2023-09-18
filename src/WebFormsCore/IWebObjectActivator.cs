@@ -14,7 +14,7 @@ public interface IWebObjectActivator
 {
     T ParseAttribute<T>(string attributeValue);
 
-    T ParseAttribute<T, TConverter>(string attributeValue) where TConverter : TypeConverter;
+    T ParseAttribute<T, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TConverter>(string attributeValue) where TConverter : TypeConverter;
 
     T CreateControl<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using HttpStack;
 using WebFormsCore.UI;
@@ -16,7 +17,7 @@ public static class ControlManagerExtensions
         );
     }
 
-    public static Task<Page> RenderPageAsync(this IPageManager controlManager, IHttpContext context, Type type)
+    public static Task<Page> RenderPageAsync(this IPageManager controlManager, IHttpContext context, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type)
     {
         return controlManager.RenderPageAsync(
             context,

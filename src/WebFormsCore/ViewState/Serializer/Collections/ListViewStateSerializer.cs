@@ -22,7 +22,7 @@ public class ListViewStateSerializer : EnumerableViewStateSerializer<IList>
         return GetListConstructor(typeArgument)(count);
     }
 
-    protected override void Set(IList collection, Type typeArgument, int index, object? value)
+    protected override void Set(IList collection, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type typeArgument, int index, object? value)
     {
         if (index < collection.Count)
         {

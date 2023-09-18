@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +10,7 @@ namespace WebFormsCore;
 
 public static class ViewStateReaderExtensions
 {
-    public static void Read<T>(ViewStateReader reader)
+    public static void Read<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(ViewStateReader reader)
         where T : IViewStateObject
     {
         var value = ActivatorUtilities.CreateInstance<T>(reader.Provider);
@@ -34,7 +35,7 @@ public ref struct ViewStateReader
 
     public int Offset => _offset;
 
-    public object? ReadObject(Type type, object? defaultValue = default)
+    public object? ReadObject([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, object? defaultValue = default)
     {
         var objSerializer = Provider
             .GetServices<IViewStateSerializer>()
@@ -50,7 +51,7 @@ public ref struct ViewStateReader
         return objSerializer.Read(type, ref this, defaultValue);
     }
 
-    public T? Read<T>(T? defaultValue = default)
+    public T? Read<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T? defaultValue = default)
     {
         var serializer = Provider.GetService<IViewStateSerializer<T>>();
 

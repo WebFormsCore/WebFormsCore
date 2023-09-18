@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace WebFormsCore;
@@ -64,8 +65,21 @@ public class DefaultControlManager : IControlManager
     public static Dictionary<string, Type> GetAndWatchTypes()
     {
         var types = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
-        AddCompiledControls(types, Assembly.GetEntryAssembly());
-        AppDomain.CurrentDomain.AssemblyLoad += (_, args) => AddCompiledControls(types, args.LoadedAssembly);
+
+        try
+        {
+            AddCompiledControls(types, Assembly.GetEntryAssembly());
+            AppDomain.CurrentDomain.AssemblyLoad += (_, args) => AddCompiledControls(types, args.LoadedAssembly);
+        }
+        catch (PlatformNotSupportedException)
+        {
+            // Assume AOT
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                AddAssembly(assembly, types);
+            }
+        }
+
         return types;
     }
 
@@ -79,16 +93,10 @@ public class DefaultControlManager : IControlManager
         }
 
         return;
-
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "")]
         static void AddAssemblies(Assembly current, IDictionary<string, Type> types, IDictionary<string, Assembly> assemblies)
         {
-            foreach (var attribute in current.GetCustomAttributes<AssemblyViewAttribute>())
-            {
-                if (!types.ContainsKey(attribute.Path))
-                {
-                    types.Add(NormalizePath(attribute.Path), attribute.Type);
-                }
-            }
+            AddAssembly(current, types);
 
             foreach (var assemblyName in current.GetReferencedAssemblies())
             {
@@ -96,6 +104,17 @@ public class DefaultControlManager : IControlManager
                 {
                     AddAssemblies(assembly, types, assemblies);
                 }
+            }
+        }
+    }
+
+    private static void AddAssembly(Assembly assembly, IDictionary<string, Type> types)
+    {
+        foreach (var attribute in assembly.GetCustomAttributes<AssemblyViewAttribute>())
+        {
+            if (!types.ContainsKey(attribute.Path))
+            {
+                types.Add(NormalizePath(attribute.Path), attribute.Type);
             }
         }
     }

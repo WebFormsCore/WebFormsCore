@@ -17,7 +17,7 @@ public class MarshalViewStateSerializer<T> : ViewStateSerializer<T>
         MemoryMarshal.Write(writer.AllocateUnsafe(Size), ref value);
     }
 
-    public override T Read(Type type, ref ViewStateReader reader, T defaultValue)
+    public override T Read([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, ref ViewStateReader reader, T defaultValue)
     {
         return MemoryMarshal.Read<T>(reader.ReadBytes(Size));
     }

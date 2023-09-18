@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace WebFormsCore.UI;
 
-internal sealed class ControlFactory<T> : IControlFactory<T>
+internal sealed class ControlFactory<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T> : IControlFactory<T>
 {
     private readonly IControlInterceptor<T>[] _interceptors;
     private readonly IControlManager _manager;
@@ -53,10 +54,12 @@ internal sealed class ControlFactory<T> : IControlFactory<T>
 
         if (_viewPaths.Length == 1)
         {
+#pragma warning disable IL2072
             return (T)ActivatorUtilities.CreateInstance(
                 provider,
                 _manager.GetType(_viewPaths[0])
             );
+#pragma warning restore IL2072
         }
 
         throw new InvalidOperationException(

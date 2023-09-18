@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -42,7 +43,7 @@ public class StringViewStateSerializer : ViewStateSerializer<string>, IViewState
         writer.Skip(byteCount);
     }
 
-    public override string? Read(Type type, ref ViewStateReader reader, string? defaultValue)
+    public override string? Read([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, ref ViewStateReader reader, string? defaultValue)
     {
         var sizeSpan = reader.ReadBytes(sizeof(ushort));
         var size = MemoryMarshal.Read<ushort>(sizeSpan);
