@@ -171,7 +171,27 @@ public partial class Control : IInternalControl
         }
     }
 
-    internal async ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument)
+    internal void InvokeUnload()
+    {
+        if (ProcessControl)
+        {
+
+            OnUnload(EventArgs.Empty);
+
+            _state = ControlState.Initialized;
+            _viewState?.TrackViewState();
+        }
+
+        if (ProcessChildren)
+        {
+            foreach (var control in Controls)
+            {
+                control.InvokeUnload();
+            }
+        }
+    }
+
+    internal async ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form)
     {
         IsNew = false;
 
@@ -199,18 +219,6 @@ public partial class Control : IInternalControl
                     handlers.Add(this);
                 }
             }
-
-            if (target == UniqueID)
-            {
-                if (this is IPostBackAsyncEventHandler asyncEventHandler)
-                {
-                    await asyncEventHandler.RaisePostBackEventAsync(argument);
-                }
-                else if (this is IPostBackEventHandler eventHandler)
-                {
-                    eventHandler.RaisePostBackEvent(argument);
-                }
-            }
         }
 
         if (ProcessChildren)
@@ -224,7 +232,7 @@ public partial class Control : IInternalControl
 
                 if (form != null && control is HtmlForm && control != form) continue;
 
-                await control.InvokePostbackAsync(token, form, target, argument);
+                await control.InvokePostbackAsync(token, form);
             }
         }
     }
@@ -310,7 +318,7 @@ public partial class Control : IInternalControl
 
     ValueTask IInternalControl.InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument)
     {
-        return InvokePostbackAsync(token, form, target, argument);
+        return InvokePostbackAsync(token, form);
     }
 
     ValueTask IInternalControl.InvokeLoadAsync(CancellationToken token, HtmlForm? form)

@@ -471,8 +471,6 @@ public partial class Control : System.Web.UI.Control
 
         if (namingContainer is null)
         {
-            control.AfterAddedToParent();
-            AfterChildControlAdded(control);
             return;
         }
 
@@ -499,9 +497,6 @@ public partial class Control : System.Web.UI.Control
         {
             namingContainer.DirtyNameTable();
         }
-
-        control.AfterAddedToParent();
-        AfterChildControlAdded(control);
 
         if (_state >= ControlState.FrameworkInitialized)
         {
@@ -534,8 +529,7 @@ public partial class Control : System.Web.UI.Control
 
     protected internal virtual void RemovedControlInternal(Control control)
     {
-        control.BeforeRemovedFromParent();
-        BeforeChildControlRemoved(control);
+        control.InvokeUnload();
 
         if (control._hasGeneratedId)
         {
@@ -548,22 +542,6 @@ public partial class Control : System.Web.UI.Control
         control._page = null;
         control._form = null;
         control._namingContainer = null;
-    }
-
-    protected virtual void BeforeRemovedFromParent()
-    {
-    }
-
-    protected virtual void AfterAddedToParent()
-    {
-    }
-
-    protected virtual void BeforeChildControlRemoved(Control control)
-    {
-    }
-
-    protected virtual void AfterChildControlAdded(Control control)
-    {
     }
 
     private void UpdateNamingContainer(Control namingContainer)
@@ -710,6 +688,33 @@ public partial class Control : System.Web.UI.Control
         OccasionalFields.NamedControls = null;
     }
 
+    /// <summary>
+    /// Determines whether the event for the control should be passed up the page's control hierarchy.
+    /// </summary>
+    protected virtual ValueTask<bool> OnBubbleEventAsync(object source, EventArgs args)
+    {
+        return default;
+    }
+
+    /// <summary>
+    ///  Assigns an sources of the event and its information up the page control
+    ///  hierarchy until they reach the top of the control tree
+    /// </summary>
+    protected async ValueTask RaiseBubbleEventAsync(object source, EventArgs args)
+    {
+        var currentTarget = ParentInternal;
+
+        while (currentTarget != null)
+        {
+            if (await currentTarget.OnBubbleEventAsync(source, args))
+            {
+                return;
+            }
+
+            currentTarget = currentTarget.ParentInternal;
+        }
+    }
+
     /// <summary>Searches the current naming container for a server control with the specified <paramref name="id" /> parameter.</summary>
     /// <param name="id">The identifier for the control to be found. </param>
     /// <returns>The specified control, or <see langword="null" /> if the specified control does not exist.</returns>
@@ -807,6 +812,10 @@ public partial class Control : System.Web.UI.Control
     protected virtual ValueTask OnInitAsync(CancellationToken token)
     {
         return default;
+    }
+
+    protected virtual void OnUnload(EventArgs args)
+    {
     }
 
     protected virtual void OnLoad(EventArgs args)

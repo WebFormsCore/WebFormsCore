@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.Events;
@@ -15,16 +16,24 @@ public class HtmlHead : HtmlContainerControl
     {
     }
 
-    protected override void AfterAddedToParent()
+    protected override void OnInit(EventArgs args)
     {
-        base.AfterAddedToParent();
-        Page.Header = this;
+        base.OnInit(args);
+
+        if (Page.Header == null)
+        {
+            Page.Header = this;
+        }
     }
 
-    protected override void BeforeRemovedFromParent()
+    protected override void OnUnload(EventArgs args)
     {
-        base.BeforeRemovedFromParent();
-        Page.Header = null;
+        base.OnUnload(args);
+
+        if (Page.Header == this)
+        {
+            Page.Header = null;
+        }
     }
 
     protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)

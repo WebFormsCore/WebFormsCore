@@ -53,15 +53,17 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         await Submit.InvokeAsync(this, EventArgs.Empty);
     }
 
-    protected override void AfterAddedToParent()
+    protected override void OnInit(EventArgs args)
     {
-        base.AfterAddedToParent();
+        base.OnInit(args);
+
         Page.Forms.Add(this);
     }
 
-    protected override void BeforeRemovedFromParent()
+    protected override void OnUnload(EventArgs args)
     {
-        base.BeforeRemovedFromParent();
+        base.OnUnload(args);
+
         Page.Forms.Remove(this);
     }
 

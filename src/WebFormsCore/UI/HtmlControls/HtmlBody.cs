@@ -27,26 +27,31 @@ public class HtmlBody : HtmlContainerControl
     {
     }
 
-    protected override void AfterAddedToParent()
-    {
-        base.AfterAddedToParent();
-        Page.Body = this;
-    }
-
-    protected override void BeforeRemovedFromParent()
-    {
-        base.BeforeRemovedFromParent();
-        Page.Body = null;
-    }
-
     protected override void OnInit(EventArgs args)
     {
+        base.OnUnload(args);
+
+        if (Page.Body == null)
+        {
+            Page.Body = this;
+        }
+
         // TODO: Move this to a better place.
         var options = Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>()?.Value?.AddWebFormsCoreScript;
 
         if (options == true)
         {
             Page.ClientScript.RegisterStartupScript(typeof(Page), "FormPostback", Script);
+        }
+    }
+
+    protected override void OnUnload(EventArgs args)
+    {
+        base.OnUnload(args);
+
+        if (Page.Body == this)
+        {
+            Page.Body = null;
         }
     }
 

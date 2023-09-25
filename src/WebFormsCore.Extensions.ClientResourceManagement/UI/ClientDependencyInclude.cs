@@ -42,10 +42,8 @@ public abstract partial class ClientDependencyInclude : Control, IClientDependen
         service.Files.Add(this);
     }
 
-    protected override void BeforeRemovedFromParent()
+    protected override void OnUnload(EventArgs args)
     {
-        base.BeforeRemovedFromParent();
-
         var service = Context.RequestServices.GetService<ClientDependencyCollection>();
         service?.Files.Remove(this);
     }

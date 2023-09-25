@@ -19,6 +19,12 @@ public class WebFormsCoreOptions
     public string? HiddenClass { get; set; }
 
     /// <summary>
+    /// Gets or sets the default class for disabled elements.
+    /// When no class is specified, aspNetDisabled will be used.
+    /// </summary>
+    public string? DisabledClass { get; set; } = "aspNetDisabled";
+
+    /// <summary>
     /// Gets or sets a value indicating whether security headers are enabled.
     /// </summary>
     public bool EnableSecurityHeaders { get; set; } = true;

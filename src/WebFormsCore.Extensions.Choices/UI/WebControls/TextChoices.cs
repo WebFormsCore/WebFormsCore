@@ -6,7 +6,7 @@ using WebFormsCore.UI.WebControls.Internal;
 
 namespace WebFormsCore.UI.WebControls;
 
-public partial class TextChoices : ChoicesBase, IPostBackAsyncDataHandler, IPostBackAsyncEventHandler
+public partial class TextChoices : ChoicesBase, IPostBackAsyncDataHandler, IPostBackAsyncEventHandler, IValidateableControl
 {
     private readonly IOptions<WebFormsCoreOptions>? _options;
 
@@ -143,4 +143,6 @@ public partial class TextChoices : ChoicesBase, IPostBackAsyncDataHandler, IPost
 
     ValueTask IPostBackAsyncDataHandler.RaisePostDataChangedEventAsync(CancellationToken cancellationToken)
         => RaisePostDataChangedEventAsync(cancellationToken);
+
+    string IValidateableControl.GetValidationValue() => string.Join(",", Values);
 }

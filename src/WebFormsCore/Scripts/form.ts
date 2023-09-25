@@ -431,13 +431,21 @@ document.addEventListener('click', async function(e){
         return;
     }
 
-    const eventTarget = e.target?.closest("[data-wfc-postback]")?.getAttribute('data-wfc-postback');
+    const postbackControl = e.target?.closest("[data-wfc-postback]");
 
-    if (!eventTarget) {
+    if (!postbackControl) {
         return;
     }
 
     e.preventDefault();
+
+    const wfcDisabled = postbackControl.getAttribute('data-wfc-disabled');
+
+    if (wfcDisabled === "true") {
+        return;
+    }
+
+    const eventTarget = postbackControl.getAttribute('data-wfc-postback');
 
     postBackElement(e.target, eventTarget);
 });

@@ -475,6 +475,29 @@ public abstract class HtmlTextWriter : IAsyncDisposable
 
     public void RemoveAttributes(string name) => _attributes.RemoveAll(x => x.Key == name);
 
+    public void MergeAttribute(HtmlTextWriterAttribute key, string? value) => MergeAttribute(key, value, true);
+
+    public void MergeAttribute(HtmlTextWriterAttribute key, string? value, bool encode) => MergeAttribute(key.ToName(), value, encode);
+
+    public void MergeAttribute(string name, string? value) => MergeAttribute(name, value, true);
+
+    public void MergeAttribute(string name, string? value, bool encode)
+    {
+        if (encode) value = WebUtility.HtmlEncode(value);
+        var index = _attributes.FindIndex(x => x.Key == name);
+        if (index == -1)
+        {
+            _attributes.Add(new KeyValuePair<string, string?>(name, value));
+        }
+        else
+        {
+            var oldValue = _attributes[index].Value;
+            var separator = name.Equals("style", StringComparison.OrdinalIgnoreCase) ? ';' : ' ';
+
+            _attributes[index] = new KeyValuePair<string, string?>(name, $"{oldValue}{separator}{value}");
+        }
+    }
+
     public void AddStyleAttribute(HtmlTextWriterStyle key, string? value) => AddStyleAttribute(key, value, true);
 
     public void AddStyleAttribute(HtmlTextWriterStyle key, string? value, bool encode) => AddStyleAttribute(key.ToName(), value, encode);

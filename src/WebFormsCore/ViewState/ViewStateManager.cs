@@ -123,7 +123,7 @@ public class ViewStateManager : IViewStateManager
     {
         var offset = HeaderLength + _hashLength;
 
-#if NETSTANDARD2_0
+#if NETSTANDARD2_0 || NETFRAMEWORK
         _hashAlgorithm.ComputeHash(data, offset, dataLength).CopyTo(hash);
 #else
         _hashAlgorithm.TryComputeHash(data.AsSpan(offset, dataLength), hash, out _);

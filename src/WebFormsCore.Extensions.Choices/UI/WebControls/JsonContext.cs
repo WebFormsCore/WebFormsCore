@@ -2,8 +2,9 @@
 
 namespace WebFormsCore.UI.WebControls;
 
+[JsonSerializable(typeof(string[]))]
 [JsonSerializable(typeof(ICollection<string>))]
-[JsonSerializable(typeof(IEnumerable<string>))]
+[JsonSerializable(typeof(ListItemValues))]
 internal partial class JsonContext : JsonSerializerContext
 {
 }

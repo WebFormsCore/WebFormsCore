@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Tracing;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace WebFormsCore;
+
+public delegate Task AsyncEventHandler(object sender, EventArgs e);
 
 public delegate Task AsyncEventHandler<in TSender, in TArgs>(TSender sender, TArgs e);
 
@@ -88,6 +91,27 @@ public static class AsyncEventHandlerHelper
         {
             var @delegate = objects[index];
             var task = Unsafe.As<AsyncEventHandler<TSender, TArgs>>(@delegate)(sender, e);
+            if (task != null) await task;
+        }
+    }
+
+    public static async ValueTask InvokeAsync(this AsyncEventHandler? handler, object sender, EventArgs e)
+    {
+        if (handler == null) return;
+
+        var (length, result) = GetInvocationList(handler);
+
+        if (result is not object[] objects)
+        {
+            var task = handler(sender, e);
+            if (task != null) await task;
+            return;
+        }
+
+        for (var index = 0; index < length; index++)
+        {
+            var @delegate = objects[index];
+            var task = Unsafe.As<AsyncEventHandler>(@delegate)(sender, e);
             if (task != null) await task;
         }
     }

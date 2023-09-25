@@ -16,11 +16,10 @@ builder.Services.AddWebForms(b =>
     b.AddClientResourceManagement();
 });
 
-builder.Services.AddWebForms();
-
 builder.Services.Configure<WebFormsCoreOptions>(options =>
 {
     options.HiddenClass = "d-none";
+    options.DisabledClass = "disabled";
 });
 
 builder.Services.Configure<ViewStateOptions>(options =>

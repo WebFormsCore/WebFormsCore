@@ -89,7 +89,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
 
     public void Remove(TItem item)
     {
-        var index = _items.FindIndex(x => x.Item == item);
+        var index = _items.FindIndex(x => x.Item.UniqueID == item.UniqueID);
 
         if (index == -1)
         {

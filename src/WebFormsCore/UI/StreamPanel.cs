@@ -165,7 +165,7 @@ public class StreamPanel : Control, INamingContainer
 
         Page.IsPostBack = true;
 
-        await InvokePostbackAsync(default, null, command.EventTarget, command.EventArgument);
+        await InvokePostbackAsync(default, null);
         await Page.RaiseChangedEventsAsync(default);
         Page.ClearChangedPostDataConsumers();
 

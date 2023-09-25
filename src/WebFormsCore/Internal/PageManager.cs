@@ -212,7 +212,22 @@ public class PageManager : IPageManager
                     ? eventArgumentValue.ToString()
                     : string.Empty;
 
-                await target.InvokePostbackAsync(token, form, eventTarget, eventArgument);
+                await target.InvokePostbackAsync(token, form);
+
+                var postbackControl = page.FindControl(eventTarget.ToString());
+
+                if (postbackControl is IPostBackAsyncEventHandler asyncEventHandler)
+                {
+                    await asyncEventHandler.RaisePostBackEventAsync(eventArgument);
+                }
+                else if (postbackControl is IPostBackEventHandler eventHandler)
+                {
+                    eventHandler.RaisePostBackEvent(eventArgument);
+                }
+            }
+            else
+            {
+                await page.ValidateAsync();
             }
 
             await page.RaiseChangedEventsAsync(token);

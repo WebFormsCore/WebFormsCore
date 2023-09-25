@@ -1048,12 +1048,22 @@
     async function submitForm(element, form, eventTarget, eventArgument) {
         var _a;
         const baseElement = element.closest('[data-wfc-base]');
+        let target;
+        if (form && form.getAttribute('data-wfc-form') === 'self') {
+            target = form;
+        }
+        else if (baseElement) {
+            target = baseElement;
+        }
+        else {
+            target = document.body;
+        }
+        const url = (_a = baseElement === null || baseElement === void 0 ? void 0 : baseElement.getAttribute('data-wfc-base')) !== null && _a !== void 0 ? _a : location.toString();
+        const formData = getFormData(form, eventTarget, eventArgument);
+        const container = new ViewStateContainer(form, formData);
         const release = await postbackMutex.acquire();
         try {
-            const url = (_a = baseElement === null || baseElement === void 0 ? void 0 : baseElement.getAttribute('data-wfc-base')) !== null && _a !== void 0 ? _a : location.toString();
-            const formData = getFormData(form, eventTarget, eventArgument);
-            const container = new ViewStateContainer(form, formData);
-            document.dispatchEvent(new CustomEvent("wfc:beforeSubmit", { detail: { container, eventTarget } }));
+            document.dispatchEvent(new CustomEvent("wfc:beforeSubmit", { detail: { target, container, eventTarget } }));
             const request = {
                 method: "POST",
                 redirect: "error",
@@ -1103,10 +1113,10 @@
                     morphdom(document.body, htmlDoc.querySelector('body'), options);
                 }
             }
-            document.dispatchEvent(new CustomEvent("wfc:afterSubmit", { detail: { container, form, eventTarget } }));
         }
         finally {
             release();
+            document.dispatchEvent(new CustomEvent("wfc:afterSubmit", { detail: { target, container, form, eventTarget } }));
         }
     }
     async function receiveFile(element, response, contentDisposition) {
@@ -1243,15 +1253,20 @@
         }
     });
     document.addEventListener('click', async function (e) {
-        var _a, _b;
+        var _a;
         if (!(e.target instanceof Element)) {
             return;
         }
-        const eventTarget = (_b = (_a = e.target) === null || _a === void 0 ? void 0 : _a.closest("[data-wfc-postback]")) === null || _b === void 0 ? void 0 : _b.getAttribute('data-wfc-postback');
-        if (!eventTarget) {
+        const postbackControl = (_a = e.target) === null || _a === void 0 ? void 0 : _a.closest("[data-wfc-postback]");
+        if (!postbackControl) {
             return;
         }
         e.preventDefault();
+        const wfcDisabled = postbackControl.getAttribute('data-wfc-disabled');
+        if (wfcDisabled === "true") {
+            return;
+        }
+        const eventTarget = postbackControl.getAttribute('data-wfc-postback');
         postBackElement(e.target, eventTarget);
     });
     document.addEventListener('keypress', async function (e) {

@@ -45,6 +45,7 @@
         </wfc:Grid>
     </wfc:HtmlForm>
 
+    <wfc:Panel runat="server">
     <div class="mt-4">
         <div class="row">
             <div class="col-6">
@@ -94,6 +95,7 @@
             </div>
         </div>
     </div>
+    </wfc:Panel>
 </div>
 
 <script>

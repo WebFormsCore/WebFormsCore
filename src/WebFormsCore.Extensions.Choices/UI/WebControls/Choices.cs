@@ -5,12 +5,10 @@ using WebFormsCore.UI.WebControls.Internal;
 
 namespace WebFormsCore.UI.WebControls;
 
-public partial class Choices : ChoicesBase, IPostBackAsyncDataHandler, IPostBackAsyncEventHandler
+public partial class Choices : ChoicesBase, IPostBackAsyncDataHandler, IPostBackAsyncEventHandler, IValidateableControl
 {
     private readonly IOptions<WebFormsCoreOptions>? _options;
     private ListItemValues? _values;
-
-    private IEnumerable<string> SelectedValues => Items.Where(x => x.Selected).Select(x => x.Value);
 
     [ViewState] public bool IsReadOnly { get; set; }
 
@@ -20,7 +18,7 @@ public partial class Choices : ChoicesBase, IPostBackAsyncDataHandler, IPostBack
 
     [ViewState] public List<ListItem> Items { get; private set; } = new();
 
-    public ICollection<string> Values => _values ??= new ListItemValues(Items);
+    public ListItemValues Values => _values ??= new ListItemValues(Items);
 
     public event AsyncEventHandler<Choices, EventArgs>? ValuesChanged;
 
@@ -104,8 +102,8 @@ public partial class Choices : ChoicesBase, IPostBackAsyncDataHandler, IPostBack
             value = $"[{value}]";
         }
 
-        var items = JsonSerializer.Deserialize(value, JsonContext.Default.ICollectionString) ?? Array.Empty<string>();
-        var isEqual = SelectedValues.SequenceEqual(items);
+        var items = JsonSerializer.Deserialize(value, JsonContext.Default.StringArray) ?? Array.Empty<string>();
+        var isEqual = Values.SequenceEqual(items);
 
         if (!isEqual)
         {
@@ -136,4 +134,6 @@ public partial class Choices : ChoicesBase, IPostBackAsyncDataHandler, IPostBack
 
     ValueTask IPostBackAsyncDataHandler.RaisePostDataChangedEventAsync(CancellationToken cancellationToken)
         => RaisePostDataChangedEventAsync(cancellationToken);
+
+    string IValidateableControl.GetValidationValue() => Values.ToString();
 }

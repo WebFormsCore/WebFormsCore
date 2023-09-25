@@ -18,6 +18,8 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
     private ScopedControlContainer? _scopedContainer;
 
     internal List<object>? ChangedPostDataConsumers;
+    private bool _validated;
+    private List<IValidator>? _validators;
 
     public Page()
     {
@@ -54,13 +56,50 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     public List<HtmlForm> Forms { get; set; } = new();
 
+    public List<IValidator> Validators
+    {
+        get => _validators ??= new List<IValidator>();
+        set => _validators = value;
+    }
+
+    public bool IsValid
+    {
+        get
+        {
+            if (!_validated)
+            {
+                throw new InvalidOperationException("Page has not been validated yet.");
+            }
+
+            if (_validators is null)
+            {
+                return true;
+            }
+
+            var isValid = true;
+
+            foreach (var validator in Validators)
+            {
+                if (!validator.IsValid)
+                {
+                    isValid = false;
+                }
+            }
+
+            return isValid;
+        }
+    }
+
     public override HtmlForm? Form => null;
 
     internal HtmlForm? ActiveForm { get; set; }
 
     public async ValueTask RaiseChangedEventsAsync(CancellationToken cancellationToken)
     {
-        if (ChangedPostDataConsumers is not {} consumers) return;
+        if (ChangedPostDataConsumers is not { } consumers)
+        {
+            return;
+        }
 
         foreach (var consumer in consumers)
         {
@@ -94,4 +133,39 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
     }
 
     protected override string GetUniqueIDPrefix() => "p$";
+
+    public void SetValidatorInvalidControlFocus(string? validateId)
+    {
+        // TODO: implement
+    }
+
+    public async ValueTask<bool> ValidateAsync(string? validationGroup = null)
+    {
+        _validated = true;
+
+        if (_validators is null)
+        {
+            return true;
+        }
+
+        var isValid = true;
+
+        foreach (var validator in Validators)
+        {
+            if (validationGroup is not null or { Length: 0 } &&
+                (validator is not BaseValidator v || !string.Equals(v.ValidationGroup, validationGroup, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            await validator.ValidateAsync();
+
+            if (!validator.IsValid)
+            {
+                isValid = false;
+            }
+        }
+
+        return isValid;
+    }
 }

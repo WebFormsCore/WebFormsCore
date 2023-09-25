@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HttpStack.Collections;
@@ -7,16 +8,31 @@ using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI.WebControls;
 
-public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBackAsyncDataHandler
+public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBackAsyncDataHandler, IValidateableControl, ICausesValidationControl
 {
     [ViewState(nameof(SaveTextViewState))] private string? _text;
     private bool _changedText;
+    [ViewState] private string? _validationGroup;
 
     public TextBox()
     {
     }
 
     protected override HtmlTextWriterTag TagKey => IsMultiLine ? HtmlTextWriterTag.Textarea : HtmlTextWriterTag.Input;
+
+    [ViewState] public bool CausesValidation { get; set; } = true;
+
+
+    public string? ValidationGroup
+    {
+        get => _validationGroup ?? DefaultValidationGroup;
+        set => _validationGroup = value;
+    }
+
+    public string? DefaultValidationGroup => Page.Validators
+        .OfType<BaseValidator>()
+        .FirstOrDefault(v => v.GetControlToValidate() == this)
+        ?.ValidationGroup;
 
     [ViewState] public bool AutoPostBack { get; set; }
 
@@ -50,7 +66,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
     protected virtual bool SaveTextViewState => TextMode != TextBoxMode.Password && (TextChanged != null || !IsEnabled || GetType() != typeof (TextBox));
 
-    private bool WriteValue => !Page.IsPostBack || _changedText;
+    protected virtual bool WriteValue => !Page.IsPostBack || _changedText;
 
     protected override async ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
@@ -194,6 +210,14 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
     protected virtual async Task RaisePostBackEventAsync(string? eventArgument)
     {
+        if (CausesValidation)
+        {
+            if (!await Page.ValidateAsync(ValidationGroup))
+            {
+                return;
+            }
+        }
+
         if (eventArgument == "ENTER")
         {
             await EnterPressed.InvokeAsync(this, EventArgs.Empty);
@@ -208,4 +232,6 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
     ValueTask IPostBackAsyncDataHandler.RaisePostDataChangedEventAsync(CancellationToken cancellationToken)
         => RaisePostDataChangedEventAsync(cancellationToken);
+
+    string? IValidateableControl.GetValidationValue() => Text;
 }

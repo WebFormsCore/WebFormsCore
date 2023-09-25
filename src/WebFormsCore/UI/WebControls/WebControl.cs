@@ -2,6 +2,8 @@
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace WebFormsCore.UI.WebControls;
 
@@ -27,11 +29,20 @@ public partial class WebControl : Control, IAttributeAccessor
 
     protected virtual HtmlTextWriterTag TagKey { get; }
 
-    public virtual bool SupportsDisabledAttribute => true;
+    public virtual string? DisabledCssClass => Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>()?.Value?.DisabledClass;
+
+    public virtual bool SupportsDisabledAttribute => TagKey is (
+        HtmlTextWriterTag.Button or
+        HtmlTextWriterTag.Input or
+        HtmlTextWriterTag.Select or
+        HtmlTextWriterTag.Textarea or
+        HtmlTextWriterTag.Option or
+        HtmlTextWriterTag.Fieldset or
+        HtmlTextWriterTag.Menu);
 
     protected virtual string TagName => TagKey == HtmlTextWriterTag.Unknown ? "span" : TagKey.ToName();
 
-    [ViewState] public bool Enabled { get; set; } = true;
+    [ViewState] public virtual bool Enabled { get; set; } = true;
 
     [ViewState] public string? ToolTip { get; set; }
 
@@ -88,6 +99,22 @@ public partial class WebControl : Control, IAttributeAccessor
         }
 
         _attributes.AddAttributes(writer);
+
+        if (!IsEnabled)
+        {
+            if (SupportsDisabledAttribute)
+            {
+                writer.AddAttribute(HtmlTextWriterAttribute.Disabled, "disabled");
+            }
+
+            if (!string.IsNullOrEmpty(DisabledCssClass))
+            {
+                writer.MergeAttribute(HtmlTextWriterAttribute.Class, DisabledCssClass);
+            }
+
+            writer.AddAttribute("aria-disabled", "true");
+            writer.AddAttribute("data-wfc-disabled", "true");
+        }
 
         return default;
     }
