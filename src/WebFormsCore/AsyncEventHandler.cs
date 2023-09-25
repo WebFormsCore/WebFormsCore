@@ -18,7 +18,7 @@ public static class AsyncEventHandlerHelper
 
     private static bool SupportsUnsafeAccessors { get; set; }
 
-    private static (int, object) GetInvocationList([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicFields)] MulticastDelegate d)
+    private static (int, object) GetInvocationList(MulticastDelegate d)
     {
         if (!SupportsUnsafeAccessors)
         {

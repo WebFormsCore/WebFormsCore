@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
     protected Control? Footer => _footer;
 
     [ViewState] private bool _loadFromViewState;
-    [ViewState(WriteAlways = true)] private Type? _itemType;
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties), ViewState(WriteAlways = true)] private Type? _itemType;
     [ViewState(WriteAlways = true)] private int _itemCount;
 
     [ViewState] public KeyCollection Keys { get; set; }
@@ -32,6 +33,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
 
     public string[] DataKeys { get; set; } = Array.Empty<string>();
 
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
     public virtual Type? ItemType
     {
         get => _itemType;

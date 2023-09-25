@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using WebFormsCore.UI.Attributes;
@@ -100,12 +101,13 @@ public class Repeater : RepeaterBase<RepeaterItem>, INeedDataSourceProvider
     }
 }
 
-public class Repeater<T> : Repeater
+public class Repeater<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T> : Repeater
 {
     public new event AsyncEventHandler<Repeater<T>, RepeaterItemEventArgs<T>>? ItemCreated;
 
     public new event AsyncEventHandler<Repeater<T>, RepeaterItemEventArgs<T>>? ItemDataBound;
 
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
     public override Type? ItemType
     {
         get => typeof(T);

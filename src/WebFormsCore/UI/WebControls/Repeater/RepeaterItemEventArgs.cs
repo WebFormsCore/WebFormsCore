@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WebFormsCore.UI.WebControls;
 
@@ -30,7 +31,7 @@ public class RepeaterItemEventArgs : EventArgs
 /// <summary>
 /// Provides data for the <see cref="E:System.Web.UI.WebControls.Repeater.ItemCreated" /> and <see cref="E:System.Web.UI.WebControls.Repeater.ItemDataBound" /> events of a <see cref="T:System.Web.UI.WebControls.Repeater" />.
 /// </summary>
-public class RepeaterItemEventArgs<T> : RepeaterItemEventArgs
+public class RepeaterItemEventArgs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T> : RepeaterItemEventArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="T:System.Web.UI.WebControls.RepeaterItemEventArgs" /> class.

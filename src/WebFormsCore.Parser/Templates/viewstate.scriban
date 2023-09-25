@@ -1,5 +1,6 @@
 #nullable enable
 #pragma warning disable CS8601 // Possible null reference assignment.
+#pragma warning disable IL2074 // Value stored in field 'target field' does not satisfy 'DynamicallyAccessedMembersAttribute' requirements.
 
 using System;
 using System.Collections;

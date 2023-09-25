@@ -8,6 +8,7 @@ namespace WebFormsCore.UI;
 
 public interface IDataKeyProvider
 {
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
     Type? ItemType { get; }
 
     int ItemCount { get; }
@@ -168,7 +169,9 @@ public sealed class KeyCollection : IViewStateObject, IDisposable
 
             for (var j = 0; j < properties.Length; j++)
             {
+#pragma warning disable IL2072
                 span[offset + j] = reader.ReadObject(properties[j].PropertyType);
+#pragma warning restore IL2072
             }
         }
     }

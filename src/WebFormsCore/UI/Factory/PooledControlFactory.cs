@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.Extensions.ObjectPool;
 
 namespace WebFormsCore.UI;
 
-internal sealed class PooledControlFactory<T> : IControlFactory<T>, IDisposable
+internal sealed class PooledControlFactory<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T> : IControlFactory<T>, IDisposable
     where T : Control
 {
     private readonly IControlInterceptor<T>[] _interceptors;

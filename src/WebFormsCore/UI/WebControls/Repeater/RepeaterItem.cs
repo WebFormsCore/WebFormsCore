@@ -44,7 +44,7 @@ public class RepeaterItem : Control, IRepeaterItem
     int IDataItemContainer.DisplayIndex => ItemIndex;
 }
 
-public class RepeaterItem<T> : RepeaterItem
+public class RepeaterItem<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T> : RepeaterItem
 {
     private T? _dataItem;
 

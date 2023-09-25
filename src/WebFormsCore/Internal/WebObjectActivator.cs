@@ -29,7 +29,7 @@ internal sealed class WebObjectActivator : IWebObjectActivator
         return parser.Parse(attributeValue);
     }
 
-    public T ParseAttribute<T, TConverter>(string attributeValue)
+    public T ParseAttribute<T, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TConverter>(string attributeValue)
         where TConverter : TypeConverter
     {
         var converter = _serviceProvider.GetService<TConverter>() ??
@@ -38,7 +38,7 @@ internal sealed class WebObjectActivator : IWebObjectActivator
         return (T) converter.ConvertFrom(attributeValue)!;
     }
 
-    public T CreateControl<T>()
+    public T CreateControl<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>()
     {
         IControlFactory<T> factory;
 
@@ -55,7 +55,7 @@ internal sealed class WebObjectActivator : IWebObjectActivator
         return factory.CreateControl(_serviceProvider);
     }
 
-    public object CreateControl(Type type)
+    public object CreateControl([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type)
     {
         var factoryType = typeof(IControlFactory<>).MakeGenericType(type);
         var factory = (IControlFactory) _serviceProvider.GetRequiredService(factoryType);
@@ -71,7 +71,9 @@ internal sealed class WebObjectActivator : IWebObjectActivator
 
         var type = _controlManager.GetType(fullPath);
 
+#pragma warning disable IL2072
         return CreateControl(type);
+#pragma warning restore IL2072
     }
 
     public LiteralControl CreateLiteral(string text)

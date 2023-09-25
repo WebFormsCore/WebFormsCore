@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -77,7 +78,7 @@ public class EnumViewStateSerializer : IViewStateSerializer
         }
     }
 
-    public object? Read(Type type, ref ViewStateReader reader, object? defaultValue)
+    public object? Read([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, ref ViewStateReader reader, object? defaultValue)
     {
         var underlyingType = Enum.GetUnderlyingType(type);
 

@@ -45,7 +45,7 @@ public static class HttpStackExtensions
         return await application.ProcessAsync(context, pagePath, context.RequestAborted);
     }
 
-    public static async Task<T> ExecutePageAsync<T>(this IHttpContext context)
+    public static async Task<T> ExecutePageAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IHttpContext context)
         where T : Page
     {
         var application = context.RequestServices.GetRequiredService<IPageManager>();
@@ -53,7 +53,7 @@ public static class HttpStackExtensions
         return (T) await application.RenderPageAsync(context, typeof(T), context.RequestAborted);
     }
 
-    public static async Task<Page> ExecutePageAsync(this IHttpContext context, Type page)
+    public static async Task<Page> ExecutePageAsync(this IHttpContext context, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type page)
     {
         var application = context.RequestServices.GetRequiredService<IPageManager>();
 
@@ -72,13 +72,13 @@ public static class HttpStackExtensions
         builder.Run(context => ExecutePageAsync(context, path, true));
     }
 
-    public static void RunPage<T>(this IHttpStackBuilder builder)
+    public static void RunPage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IHttpStackBuilder builder)
         where T : Page
     {
         builder.Run(ExecutePageAsync<T>);
     }
 
-    public static void RunPage(this IHttpStackBuilder builder, Type page)
+    public static void RunPage(this IHttpStackBuilder builder, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type page)
     {
         builder.Run(context => ExecutePageAsync(context, page));
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WebFormsCore.Serializer;
 
@@ -8,7 +9,7 @@ public interface IViewStateSerializer
 
     void Write(Type type, ref ViewStateWriter writer, object? value, object? defaultValue);
 
-    object? Read(Type type, ref ViewStateReader reader, object? defaultValue);
+    object? Read([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, ref ViewStateReader reader, object? defaultValue);
 
     bool StoreInViewState(Type type, object? value, object? defaultValue);
 
@@ -23,7 +24,7 @@ public interface IViewStateSerializer<T> : IViewStateSerializer
 {
     void Write(Type type, ref ViewStateWriter writer, T? value, T? defaultValue);
 
-    T? Read(Type type, ref ViewStateReader reader, T? defaultValue);
+    T? Read([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, ref ViewStateReader reader, T? defaultValue);
 
     bool StoreInViewState(Type type, T? value, T? defaultValue);
 
@@ -42,7 +43,7 @@ public abstract class ViewStateSerializer<T> : IViewStateSerializer<T>
 {
     public abstract void Write(Type type, ref ViewStateWriter writer, T? value, T? defaultValue);
 
-    public abstract T? Read(Type type, ref ViewStateReader reader, T? defaultValue);
+    public abstract T? Read([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, ref ViewStateReader reader, T? defaultValue);
 
     public abstract bool StoreInViewState(Type type, T? value, T? defaultValue);
 
@@ -58,7 +59,7 @@ public abstract class ViewStateSerializer<T> : IViewStateSerializer<T>
         Write(type, ref writer, (T?)value, defaultValue is null ? default : (T?)defaultValue);
     }
 
-    public virtual object? Read(Type type, ref ViewStateReader reader, object? defaultValue)
+    public virtual object? Read([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, ref ViewStateReader reader, object? defaultValue)
     {
         return Read(type, ref reader, defaultValue is null ? default : (T?)defaultValue);
     }

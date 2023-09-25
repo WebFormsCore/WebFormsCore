@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -886,7 +887,7 @@ public partial class Control : System.Web.UI.Control
 
     public Control LoadControl(string path) => (Control) WebActivator.CreateControl(path);
 
-    public Control LoadControl<T>() where T : Control => WebActivator.CreateControl<T>();
+    public Control LoadControl<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() where T : Control => WebActivator.CreateControl<T>();
 
     private static readonly string[] AutomaticIDs =
     {

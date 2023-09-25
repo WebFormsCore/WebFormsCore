@@ -21,7 +21,7 @@ public class ArrayViewStateSerializer : EnumerableViewStateSerializer<Array>
             : Array.CreateInstance(typeArgument, count);
     }
 
-    protected override void Set(Array collection, Type typeArgument, int index, object? value)
+    protected override void Set(Array collection, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type typeArgument, int index, object? value)
     {
         collection.SetValue(value, index);
     }

@@ -29,7 +29,7 @@ public class NullableViewStateSerializer : IViewStateSerializer
         writer.WriteObject(typeArgument, value, defaultValue);
     }
 
-    public object? Read(Type type, ref ViewStateReader reader, object? defaultValue)
+    public object? Read([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, ref ViewStateReader reader, object? defaultValue)
     {
         var hasValue = reader.ReadByte();
 

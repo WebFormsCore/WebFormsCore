@@ -15,7 +15,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
     private bool _ignorePaging;
     private bool _isPostBack;
 
-    [ViewState(WriteAlways = true)] private Type? _itemType;
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties), ViewState(WriteAlways = true)] private Type? _itemType;
     [ViewState(WriteAlways = true)] private int _itemCount;
     [ViewState] public KeyCollection Keys { get; set; }
 
@@ -44,6 +44,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
         Keys = new KeyCollection(this);
     }
 
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
     public virtual Type? ItemType => _itemType;
 
     public object? DataSource
@@ -182,7 +183,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
         await _dataSource.LoadAsync(this);
     }
 
-    protected async ValueTask LoadDataSourceQueryable<T>(IQueryable<T> dataSource)
+    protected async ValueTask LoadDataSourceQueryable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(IQueryable<T> dataSource)
     {
         var countProvider = Context.RequestServices.GetRequiredService<IQueryableCountProvider>();
 
@@ -219,7 +220,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
         }
     }
 
-    protected async ValueTask LoadDataSourceEnumerable<T>(IEnumerable<T> dataSource)
+    protected async ValueTask LoadDataSourceEnumerable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(IEnumerable<T> dataSource)
     {
         _itemType = typeof(T);
         _dataCount = dataSource.Count();
@@ -244,7 +245,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
         }
     }
 
-    protected async ValueTask LoadDataSourceAsyncEnumerable<T>(IAsyncEnumerable<T> dataSource)
+    protected async ValueTask LoadDataSourceAsyncEnumerable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(IAsyncEnumerable<T> dataSource)
     {
         _itemType = typeof(T);
         _dataCount = await dataSource.CountAsync();

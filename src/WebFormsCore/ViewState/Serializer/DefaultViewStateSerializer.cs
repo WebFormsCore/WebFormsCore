@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -53,7 +54,7 @@ public class DefaultViewStateSerializer : IDefaultViewStateSerializer
         registration.Value.Write(valueType, ref writer, value, defaultValue);
     }
 
-    public object? Read(Type type, ref ViewStateReader reader, object? defaultValue)
+    public object? Read([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, ref ViewStateReader reader, object? defaultValue)
     {
         var id = reader.ReadByte();
 
