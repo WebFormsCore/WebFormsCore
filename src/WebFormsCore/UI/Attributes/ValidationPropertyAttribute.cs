@@ -8,7 +8,8 @@ namespace System.Web.UI;
 /// Identifies the validation property for a component.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
-public sealed class ValidationPropertyAttribute : Attribute {
+public sealed class ValidationPropertyAttribute : Attribute
+{
     /// <summary>
     /// Initializes a new instance of the <see cref='ValidationPropertyAttribute'/> class.
     /// </summary>

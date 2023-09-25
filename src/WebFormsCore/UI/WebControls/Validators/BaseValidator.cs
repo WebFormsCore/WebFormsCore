@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -174,12 +176,15 @@ public abstract partial class BaseValidator : Label, IValidator
     ///    <para>Helper function to get the validation
     ///       property of a control if it exists.</para>
     /// </devdoc>
+    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Controls implement IValidateableControl")]
     public static PropertyDescriptor? GetValidationProperty(object component)
     {
         var valProp = component.GetType().GetCustomAttribute<ValidationPropertyAttribute>();
         if (valProp is { Name: not null })
         {
-            return TypeDescriptor.GetProperties(component, null)[valProp.Name];
+            var properties = TypeDescriptor.GetProperties(component);
+
+            return properties[valProp.Name];
         }
 
         return null;
