@@ -1,4 +1,4 @@
-﻿#if NETSTANDARD
+﻿#if NETSTANDARD || NETFRAMEWORK
 using System.Text.RegularExpressions;
 
 namespace WebFormsCore;

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace WebFormsCore;
@@ -8,5 +9,5 @@ public interface IDataSourceConsumer
 
     ValueTask DataBindAsync();
 
-    ValueTask LoadDataSourceAsync<T>(object source);
+    ValueTask LoadDataSourceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(object source);
 }

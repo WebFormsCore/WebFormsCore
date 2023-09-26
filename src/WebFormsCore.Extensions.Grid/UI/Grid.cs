@@ -151,13 +151,13 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
         }
     }
 
-    public async ValueTask LoadDataSourceAsync<T>(object source)
+    public async ValueTask LoadDataSourceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(object source)
     {
         await LoadDataSourceCoreAsync<T>(source);
         Keys.Store();
     }
 
-    private ValueTask LoadDataSourceCoreAsync<T>(object source)
+    private ValueTask LoadDataSourceCoreAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(object source)
     {
         return source switch
         {

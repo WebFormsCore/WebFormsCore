@@ -97,12 +97,14 @@ public partial class Choices : ChoicesBase, IPostBackAsyncDataHandler, IPostBack
             return new ValueTask<bool>(false);
         }
 
-        if (!Multiple && !string.IsNullOrEmpty(value))
+        var valueStr = value.ToString();
+
+        if (!Multiple && !string.IsNullOrEmpty(valueStr))
         {
-            value = $"[{value}]";
+            valueStr = $"[{value}]";
         }
 
-        var items = JsonSerializer.Deserialize(value, JsonContext.Default.StringArray) ?? Array.Empty<string>();
+        var items = JsonSerializer.Deserialize(valueStr, JsonContext.Default.StringArray) ?? Array.Empty<string>();
         var isEqual = Values.SequenceEqual(items);
 
         if (!isEqual)

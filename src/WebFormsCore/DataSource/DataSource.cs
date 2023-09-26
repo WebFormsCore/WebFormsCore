@@ -47,6 +47,7 @@ public class DataSource : IDataSource
         }
     }
 
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2075:UnrecognizedReflectionPattern", Justification = "Requires dynamic code")]
     public ValueTask LoadAsync(IDataSourceConsumer consumer)
     {
         var genericMethod = typeof(IDataSourceConsumer)

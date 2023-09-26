@@ -1,9 +1,10 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace WebFormsCore;
 
-public class DataSource<T> : IDataSource
+public class DataSource<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T> : IDataSource
 {
     public DataSource(object value)
     {
