@@ -51,6 +51,11 @@ public sealed class ClientScriptManager
                _startupBody.ContainsKey((type, key));
     }
 
+    public void RegisterHeadScript(Type type, string key, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true, AttributeCollection? attributes = null)
+    {
+        RegisterBlock(type, key, script, ref _startupHead, addScriptTags ? RegisterType.InlineScript : RegisterType.Raw, attribute: attributes);
+    }
+
     public void RegisterStartupScript(Type type, string key, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true, AttributeCollection? attributes = null)
     {
         RegisterBlock(type, key, script, ref _startupBody, addScriptTags ? RegisterType.InlineScript : RegisterType.Raw, attribute: attributes);

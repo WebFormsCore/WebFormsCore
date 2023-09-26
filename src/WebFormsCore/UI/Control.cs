@@ -169,8 +169,6 @@ public partial class Control : System.Web.UI.Control
             _id = value;
             _hasGeneratedId = false;
 
-            ClearCachedUniqueIDRecursive();
-
             if (_namingContainer != null && id != null)
             {
                 _namingContainer.DirtyNameTable();
@@ -179,6 +177,7 @@ public partial class Control : System.Web.UI.Control
             if (id != null && id != _id)
             {
                 ClearCachedClientID();
+                ClearCachedUniqueIDRecursive();
             }
 
             if (updateGeneratedIds)
@@ -653,6 +652,12 @@ public partial class Control : System.Web.UI.Control
     private void ClearCachedUniqueIDRecursive()
     {
         _cachedUniqueID = null;
+
+        if (_occasionalFields != null)
+        {
+            _occasionalFields.UniqueIDPrefix = null;
+        }
+
         if (_controls == null) return;
 
         foreach (var control in _controls)
@@ -676,6 +681,7 @@ public partial class Control : System.Web.UI.Control
     protected void ClearCachedClientID()
     {
         _cachedPredictableID = null;
+
         if (_controls == null) return;
 
         foreach (var control in _controls)

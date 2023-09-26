@@ -13,5 +13,5 @@ public interface ICausesValidationControl
     /// <devdoc>
     /// The name of the validation group for the button.
     /// </devdoc>
-    string? ValidationGroup { get; set; }
+    string ValidationGroup { get; set; }
 }

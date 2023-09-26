@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using WebFormsCore.Events;
 using WebFormsCore.UI.WebControls;
 
@@ -24,6 +25,10 @@ public class HtmlHead : HtmlContainerControl
         {
             Page.Header = this;
         }
+
+        var hiddenClass = Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>()?.Value?.HiddenClass ?? "";
+
+        Page.ClientScript.RegisterHeadScript(typeof(Page), "FormPostback", $$$"""WebFormsCore={hiddenClass:'{{{hiddenClass}}}',_:[],bind:function(a,b){this._.push([0,a,b])},bindValidator:function(a,b){this._.push([1,a,b])}};""");
     }
 
     protected override void OnUnload(EventArgs args)

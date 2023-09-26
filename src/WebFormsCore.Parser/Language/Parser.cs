@@ -467,8 +467,7 @@ public class Parser
         ElementNode node;
 
         if (!ns.HasValue &&
-            _container.Current is ITypedNode parentControl &&
-            parentControl.Type.ParseChildren() &&
+            _container.Current is ITypedNode { ParseChildren: true } parentControl &&
             parentControl.Type.GetMemberDeep(name.Text) is {} elementMember)
         {
             if (elementMember.Type.IsTemplate())
@@ -520,7 +519,7 @@ public class Parser
 
             return;
         }
-        else if (runAt == RunAt.Server)
+        else if (runAt == RunAt.Server || (ns.HasValue && _container.Current is CollectionNode))
         {
             INamedTypeSymbol? controlType = null;
             string? controlPath = null;

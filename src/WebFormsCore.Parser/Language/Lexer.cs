@@ -258,7 +258,7 @@ public ref struct Lexer
         var start = Position;
         var name = ReadTagName();
         var isInvalid = name.Value.Length == 0 ||
-                        (!isServerTag && !isClosingTag && !ShouldParse(name.Value));
+                        (!isServerTag && !isClosingTag && !ShouldParse(name.Value) && Current != ':');
 
         if (isInvalid || isClosingTag)
         {

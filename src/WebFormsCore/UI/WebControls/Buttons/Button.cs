@@ -34,13 +34,13 @@ public partial class Button : WebControl, IButtonControl, IPostBackAsyncEventHan
 
     [ViewState] public string? Text { get; set; }
 
-    [ViewState] public bool CausesValidation { get; set; }
+    [ViewState] public bool CausesValidation { get; set; } = true;
 
     [ViewState] public string? CommandArgument { get; set; }
 
     [ViewState] public string? CommandName { get; set; }
 
-    [ViewState] public string? ValidationGroup { get; set; }
+    [ViewState] public string ValidationGroup { get; set; } = "";
 
     public async Task RaisePostBackEventAsync(string? eventArgument)
     {
@@ -79,7 +79,7 @@ public partial class Button : WebControl, IButtonControl, IPostBackAsyncEventHan
 
         if (CausesValidation)
         {
-            writer.AddAttribute("data-wfc-validate", "true");
+            writer.AddAttribute("data-wfc-validate", ValidationGroup);
         }
     }
 
@@ -102,10 +102,10 @@ public partial class Button : WebControl, IButtonControl, IPostBackAsyncEventHan
         base.ClearControl();
 
         Text = null;
-        CausesValidation = false;
+        CausesValidation = true;
         CommandArgument = null;
         CommandName = null;
-        ValidationGroup = null;
+        ValidationGroup = "";
         Command = null;
         Click = null;
         _click = null;

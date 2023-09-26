@@ -1,4 +1,4 @@
-namespace WebFormsCore.UI;
+namespace WebFormsCore.UI.WebControls;
 
 public class GridTemplateColumn : GridColumn
 {

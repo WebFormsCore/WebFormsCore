@@ -7,10 +7,6 @@ public class RepeaterItem : Control, IRepeaterItem
 {
     private object? _dataItem;
 
-    public override string UniqueID => Parent.UniqueID + IdSeparator + base.UniqueID;
-
-    public override string ClientID => Parent.ClientID + '_' + base.ClientID;
-
     public RepeaterItem(int itemIndex, ListItemType itemType, Repeater repeater)
     {
         ItemIndex = itemIndex;

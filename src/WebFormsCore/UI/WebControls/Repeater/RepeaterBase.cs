@@ -14,7 +14,6 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
     private readonly List<(TItem Item, Control? Seperator)> _items = new();
     private Control? _header;
     private Control? _footer;
-    private bool _namesDirty;
 
     protected IReadOnlyList<(TItem Item, Control? Seperator)> ItemsAndSeparators => _items;
     protected Control? Header => _header;
@@ -131,15 +130,12 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
                     _items[0] = (firstItem, null);
                 }
             }
-
-            _namesDirty = true;
         }
     }
 
     public void Swap(int index1, int index2)
     {
         (_items[index1], _items[index2]) = (_items[index2], _items[index1]);
-        _namesDirty = true;
     }
 
     public void Swap(TItem item1, TItem item2)
@@ -175,11 +171,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
 
     protected override ValueTask OnPreRenderAsync(CancellationToken token)
     {
-        if (_namesDirty)
-        {
-            UpdateNames();
-        }
-
+        UpdateNames();
         return base.OnPreRenderAsync(token);
     }
 

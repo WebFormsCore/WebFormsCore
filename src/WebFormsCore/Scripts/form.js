@@ -953,6 +953,7 @@
             a: eventArgument
         };
         webSocket.send(JSON.stringify(data));
+        return Promise.resolve();
     }
     function addElement(element, formData) {
         if (element.type === "checkbox" || element.type === "radio") {
@@ -1063,7 +1064,19 @@
         const container = new ViewStateContainer(form, formData);
         const release = await postbackMutex.acquire();
         try {
-            document.dispatchEvent(new CustomEvent("wfc:beforeSubmit", { detail: { target, container, eventTarget } }));
+            const cancelled = !target.dispatchEvent(new CustomEvent("wfc:beforeSubmit", {
+                bubbles: true,
+                cancelable: true,
+                detail: {
+                    target,
+                    container,
+                    eventTarget,
+                    element
+                }
+            }));
+            if (cancelled) {
+                return;
+            }
             const request = {
                 method: "POST",
                 redirect: "error",
@@ -1075,7 +1088,8 @@
             request.body = hasElementFile(document.body) ? formData : new URLSearchParams(formData);
             const response = await fetch(url, request);
             if (!response.ok) {
-                document.dispatchEvent(new CustomEvent("wfc:submitError", {
+                target.dispatchEvent(new CustomEvent("wfc:submitError", {
+                    bubbles: true,
                     detail: {
                         form,
                         eventTarget,
@@ -1116,7 +1130,7 @@
         }
         finally {
             release();
-            document.dispatchEvent(new CustomEvent("wfc:afterSubmit", { detail: { target, container, form, eventTarget } }));
+            target.dispatchEvent(new CustomEvent("wfc:afterSubmit", { bubbles: true, detail: { target, container, form, eventTarget } }));
         }
     }
     async function receiveFile(element, response, contentDisposition) {
@@ -1325,23 +1339,66 @@
         }
     });
     const WebFormsCore = {
+        hiddenClass: '',
         postBackChange,
         postBack,
+        show: function (element) {
+            if (WebFormsCore.hiddenClass) {
+                element.classList.remove(WebFormsCore.hiddenClass);
+            }
+            else {
+                element.style.display = '';
+            }
+        },
+        hide: function (element) {
+            if (WebFormsCore.hiddenClass) {
+                element.classList.add(WebFormsCore.hiddenClass);
+            }
+            else {
+                element.style.display = 'none';
+            }
+        },
+        toggle: function (element, value) {
+            if (value) {
+                WebFormsCore.show(element);
+            }
+            else {
+                WebFormsCore.hide(element);
+            }
+        },
+        validate: function (validationGroup = "") {
+            var _a;
+            const detail = { isValid: true };
+            for (const element of document.querySelectorAll('[data-wfc-validate]')) {
+                const elementValidationGroup = (_a = element.getAttribute('data-wfc-validate')) !== null && _a !== void 0 ? _a : "";
+                if (elementValidationGroup !== validationGroup) {
+                    continue;
+                }
+                element.dispatchEvent(new CustomEvent('wfc:validate', {
+                    bubbles: true,
+                    detail
+                }));
+            }
+            return detail.isValid;
+        },
         bind: function (selectors, options) {
-            var _a, _b;
-            const init = (_a = options.init) !== null && _a !== void 0 ? _a : function () { };
-            const update = (_b = options.update) !== null && _b !== void 0 ? _b : function () { };
-            const submit = options.submit;
-            const destroy = options.destroy;
+            var _a, _b, _c, _d, _e;
+            const init = ((_a = options.init) !== null && _a !== void 0 ? _a : function () { }).bind(options);
+            const update = ((_b = options.update) !== null && _b !== void 0 ? _b : function () { }).bind(options);
+            const afterUpdate = ((_c = options.afterUpdate) !== null && _c !== void 0 ? _c : function () { }).bind(options);
+            const submit = (_d = options.submit) === null || _d === void 0 ? void 0 : _d.bind(options);
+            const destroy = (_e = options.destroy) === null || _e === void 0 ? void 0 : _e.bind(options);
             for (const element of document.querySelectorAll(selectors)) {
                 init(element);
                 update(element, element);
+                afterUpdate(element);
             }
             document.addEventListener('wfc:addElement', function (e) {
                 const { element } = e.detail;
                 if (element.matches(selectors)) {
                     init(element);
                     update(element, element);
+                    afterUpdate(element);
                 }
             });
             document.addEventListener('wfc:beforeUpdateElement', function (e) {
@@ -1350,6 +1407,14 @@
                     e.preventDefault();
                 }
             });
+            if (afterUpdate) {
+                document.addEventListener('wfc:updateElement', function (e) {
+                    const { element } = e.detail;
+                    if (element.matches(selectors)) {
+                        afterUpdate(element);
+                    }
+                });
+            }
             if (submit) {
                 document.addEventListener('wfc:beforeSubmit', function (e) {
                     const { container } = e.detail;
@@ -1367,8 +1432,58 @@
                     }
                 });
             }
+        },
+        bindValidator: function (selectors, validate) {
+            WebFormsCore.bind(selectors, {
+                init: function (element) {
+                    element._isValid = true;
+                },
+                afterUpdate: function (element) {
+                    // Restore old state
+                    const isValidStr = element.getAttribute('data-wfc-validated');
+                    if (isValidStr) {
+                        element._isValid = isValidStr === 'true';
+                    }
+                    else {
+                        WebFormsCore.toggle(element, !element._isValid);
+                    }
+                    // Bind to element
+                    const idToValidate = element.getAttribute('data-wfc-validator');
+                    if (!idToValidate) {
+                        console.warn('No data-wfc-validator attribute found', element);
+                        return;
+                    }
+                    const elementToValidate = document.getElementById(idToValidate);
+                    if (element._elementToValidate === elementToValidate) {
+                        return;
+                    }
+                    this.destroy(element);
+                    element._elementToValidate = elementToValidate;
+                    if (!elementToValidate) {
+                        console.warn(`Element with id ${idToValidate} not found`);
+                        return;
+                    }
+                    element._callback = function (e) {
+                        const isValid = validate(elementToValidate, element);
+                        element._isValid = isValid;
+                        WebFormsCore.toggle(element, !isValid);
+                        if (!isValid) {
+                            e.detail.isValid = false;
+                        }
+                    };
+                    elementToValidate.addEventListener('wfc:validate', element._callback);
+                },
+                destroy: function (element) {
+                    if (element._callback && element._elementToValidate) {
+                        element._elementToValidate.removeEventListener('wfc:validate', element._callback);
+                        element._callback = undefined;
+                        element._elementToValidate = undefined;
+                    }
+                }
+            });
         }
     };
+    // Stream
     WebFormsCore.bind('[data-wfc-stream]', {
         init: function (element) {
             const id = element.id;
@@ -1405,6 +1520,39 @@
             }
         }
     });
+    document.addEventListener("wfc:beforeSubmit", function (e) {
+        var _a, _b;
+        const element = (_a = e.detail) === null || _a === void 0 ? void 0 : _a.element;
+        if (!element || !element.hasAttribute('data-wfc-validate')) {
+            return;
+        }
+        const validationGroup = (_b = element.getAttribute('data-wfc-validate')) !== null && _b !== void 0 ? _b : "";
+        const isValid = WebFormsCore.validate(validationGroup);
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+    if ('WebFormsCore' in window) {
+        const current = window.WebFormsCore;
+        if ('hiddenClass' in current) {
+            WebFormsCore.hiddenClass = current.hiddenClass;
+        }
+        window.WebFormsCore = WebFormsCore;
+        if ('_' in current) {
+            for (const bind of current._) {
+                const [type, selector, func] = bind;
+                if (type === 0) {
+                    WebFormsCore.bind(selector, func);
+                }
+                else if (type === 1) {
+                    WebFormsCore.bindValidator(selector, func);
+                }
+                else {
+                    console.warn('Unknown bind type', type);
+                }
+            }
+        }
+    }
     window.WebFormsCore = WebFormsCore;
 
 })();

@@ -1,7 +1,5 @@
 <%@ Page language="C#" Inherits="WebFormsCore.Example.Default" %>
-<%@ Import Namespace="HttpStack" %>
 <%@ Register TagPrefix="app" Namespace="WebFormsCore.Example.Controls" %>
-<%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI" Assembly="WebFormsCore.Extensions.Grid" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -35,9 +33,9 @@
         <wfc:Grid runat="server" ID="grid" class="table" PageSize="20" OnNeedDataSource="grid_OnNeedDataSource" EditRowAttributes-CssClass="table-active" DataKeys="Id">
             <Columns>
                 <wfc:GridBoundColumn runat="server" DataField="Id" CellAttributes-CssClass="test" />
-                <wfc:GridBoundColumn runat="server" DataField="Title" />
-                <wfc:GridBoundColumn runat="server" DataField="Completed" />
-                <wfc:GridEditColumn runat="server" HeaderText="Edit" width="40px" ButtonAttributes-CssClass="btn btn-sm btn-outline-primary" />
+                <wfc:GridBoundColumn DataField="Title" />
+                <wfc:GridBoundColumn DataField="Completed" />
+                <wfc:GridEditColumn HeaderText="Edit" width="40px" ButtonAttributes-CssClass="btn btn-sm btn-outline-primary" />
             </Columns>
             <EditItemTemplate>
                 Hello world!

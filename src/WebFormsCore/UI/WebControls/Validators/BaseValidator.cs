@@ -14,6 +14,8 @@ namespace WebFormsCore.UI.WebControls;
 
 public abstract partial class BaseValidator : Label, IValidator
 {
+    private bool _didValidate;
+
     [ViewState] private bool? _isValid = true;
 
     public virtual bool IsValid
@@ -74,6 +76,7 @@ public abstract partial class BaseValidator : Label, IValidator
 
     public async ValueTask ValidateAsync()
     {
+        _didValidate = true;
         IsValid = true;
 
         if (!Visible || !Enabled) {
@@ -107,6 +110,7 @@ public abstract partial class BaseValidator : Label, IValidator
     {
         base.ClearControl();
 
+        _didValidate = false;
         IsValid = true;
         ErrorMessage = null;
         ControlToValidate = null;
@@ -216,6 +220,16 @@ public abstract partial class BaseValidator : Label, IValidator
             {
                 writer.MergeAttribute("class", options.Value.HiddenClass);
             }
+        }
+
+        if (GetControlToValidate() is {} controlValue)
+        {
+            writer.AddAttribute("data-wfc-validator", controlValue.ClientID);
+        }
+
+        if (_didValidate)
+        {
+            writer.AddAttribute("data-wfc-validated", IsValid ? "true" : "false");
         }
 
         return base.AddAttributesToRender(writer, token);

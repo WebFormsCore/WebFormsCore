@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.UI.CellRenderers;
 
-namespace WebFormsCore.UI;
+namespace WebFormsCore.UI.WebControls;
 
 public class GridBoundColumn : GridColumn
 {

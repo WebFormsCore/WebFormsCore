@@ -1,7 +1,6 @@
 ﻿using WebFormsCore.UI.Attributes;
-using WebFormsCore.UI.WebControls;
 
-namespace WebFormsCore.UI;
+namespace WebFormsCore.UI.WebControls;
 
 public class CellEventArgs : EventArgs
 {

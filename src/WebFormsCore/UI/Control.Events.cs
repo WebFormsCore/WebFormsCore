@@ -175,11 +175,7 @@ public partial class Control : IInternalControl
     {
         if (ProcessControl)
         {
-
             OnUnload(EventArgs.Empty);
-
-            _state = ControlState.Initialized;
-            _viewState?.TrackViewState();
         }
 
         if (ProcessChildren)

@@ -152,7 +152,7 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
         foreach (var validator in Validators)
         {
-            if (validationGroup is not null or { Length: 0 } &&
+            if (validationGroup is not null &&
                 (validator is not BaseValidator v || !string.Equals(v.ValidationGroup, validationGroup, StringComparison.OrdinalIgnoreCase)))
             {
                 continue;

@@ -17,6 +17,8 @@ public interface ITypedNode
     List<EventNode> Events { get; }
 
     Dictionary<TokenString, AttributeValue> Attributes { get; }
+
+    bool ParseChildren { get; }
 }
 
 public class ControlNode : ElementNode, ITypedNode
@@ -33,6 +35,8 @@ public class ControlNode : ElementNode, ITypedNode
     public List<PropertyNode> Properties { get; set; } = new();
 
     public List<EventNode> Events { get; set; } = new();
+
+    public bool ParseChildren => ControlType.ParseChildren();
 
     public List<TemplateNode> Templates { get; set; } = new();
 

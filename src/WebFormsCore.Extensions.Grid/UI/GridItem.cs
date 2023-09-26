@@ -41,9 +41,9 @@ public class TableRow : WebControl
 
 public class GridCell : TableCell
 {
-    public Grid Grid { get; set; } = null!;
+    public WebControls.Grid Grid { get; set; } = null!;
 
-    public GridColumn Column { get; set; } = null!;
+    public WebControls.GridColumn Column { get; set; } = null!;
 
     public IGridCellRenderer? Renderer { get; set; }
 
@@ -84,7 +84,7 @@ public partial class GridItem : TableRow, IDataItemContainer
 
     public GridItemEditContainer? EditItemTemplateContainer { get; private set; }
 
-    public GridItem(int itemIndex, Grid grid)
+    public GridItem(int itemIndex, WebControls.Grid grid)
     {
         ItemIndex = itemIndex;
         Grid = grid;
@@ -104,7 +104,7 @@ public partial class GridItem : TableRow, IDataItemContainer
         }
     }
 
-    public Grid Grid { get; }
+    public WebControls.Grid Grid { get; }
 
     protected virtual object? GetDataItem() => _dataItem;
 
