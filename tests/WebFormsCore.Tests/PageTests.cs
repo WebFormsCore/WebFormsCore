@@ -81,5 +81,7 @@ public partial class PageTest
         public string? ContentRootPath => AppContext.BaseDirectory;
 
         public bool EnableControlWatcher => false;
+
+        public bool CompileInBackground => false;
     }
 }
