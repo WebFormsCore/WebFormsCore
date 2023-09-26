@@ -45,7 +45,7 @@
 
         {{- when "Collection" }}
             var {{ child.VariableName }} = {{ child.Parent?.VariableName ?? $1 }}.{{ child.Property }};
-            {{ write_attributes child $3 }}
+            {{ write_attributes child $2 }}
 
         {{- when "Text" }}
             {{ if child.Parent?.Type != "Collection" -}}
@@ -63,7 +63,7 @@
             {{- end }}
             {{ child.Parent?.VariableName ?? $1 }}.{{ child.Parent?.Type == "Collection" ? "Add" : "AddParsedSubObject" }}({{ child.VariableName }});
 
-            {{ write_attributes child $3 }}
+            {{ write_attributes child $2 }}
 
         {{- when "Element" }}
             var {{ child.VariableName }} = WebActivator.CreateElement({{ child.Name.CodeString }});
@@ -80,7 +80,7 @@
             {{ child.VariableName }}.SetRenderMethodDelegate({{ child.RenderName }});
         {{- end }}
 
-        {{- if $2 && child.FieldName }}
+        {{- if child.FieldName }}
             {{ $1 }}.{{ child.FieldName }} = {{ child.VariableName }};
         {{- end }}
         {{- end }}
@@ -214,7 +214,7 @@ public partial class CompiledViews
             {{- if type.RenderName }}
             SetRenderMethodDelegate({{ type.RenderName }});
             {{- end }}
-            {{ write_children type.AllChildren "this" true }}
+            {{ write_children type.AllChildren "this" }}
         }
 
         {{- for template in type.Templates }}
@@ -234,7 +234,7 @@ public partial class CompiledViews
 
             public void InstantiateIn(WebFormsCore.UI.Control container)
             {
-                {{ write_children template.AllChildren "container" false "_parent." }}
+                {{ write_children template.AllChildren "container" "_parent." }}
             }
         }
         {{- end }}

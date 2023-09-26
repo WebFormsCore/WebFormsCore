@@ -34,7 +34,7 @@ public static class ServiceExtensions
         services.TryAddSingleton<IQueryableCountProvider, DefaultQueryableCountProvider>();
 
         services.TryAddScoped<ScopedControlContainer>();
-        services.TryAddScoped(typeof(IControlFactory<>), typeof(ControlFactory<>));
+        services.TryAddSingleton(typeof(IControlFactory<>), typeof(ControlFactory<>));
         services.TryAddSingleton<IPageManager, PageManager>();
         services.TryAddSingleton<IWebFormsApplication, WebFormsApplications>();
         services.TryAddScoped<IWebObjectActivator, WebObjectActivator>();

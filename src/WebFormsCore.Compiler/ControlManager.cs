@@ -86,8 +86,10 @@ public class ControlManager : IDisposable, IControlManager
         var modifyTime = File.GetLastWriteTimeUtc(entry.Path);
         if (entry.LastModified >= modifyTime && !ignoreModifyDate) return;
 
+        _logger?.LogDebug("Updating control {Path}", entry.Path);
+
         entry.LastModified = modifyTime;
-        entry.Type = null;
+        entry.IsCompiling = true;
 
 #if NET6_0_OR_GREATER
         if (entry.LoadContext != null)
@@ -99,41 +101,25 @@ public class ControlManager : IDisposable, IControlManager
 
         _ = Task.Run(async () =>
         {
-            if (!await IsFileReady(entry.Path))
-            {
-                _logger?.LogWarning("File {Path} is still locked after 5s", entry.Path);
-                return;
-            }
+            const int maxAttempts = 4;
 
-            try
+            for (var i = 0; i < maxAttempts; i++)
             {
-                await GetTypeAsync(path);
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "Failed to re-compile control {Path}", entry.Path);
+                try
+                {
+                    await GetTypeAsync(path, allowBackgroundCompile: false);
+                }
+                catch (IOException)
+                {
+                    _logger?.LogWarning("Could not read file {Path}, attempt {Attempt}/{MaxAttempts}", entry.Path, i, maxAttempts);
+                    await Task.Delay(500);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Failed to re-compile control {Path}", entry.Path);
+                }
             }
         });
-    }
-
-    private static async Task<bool> IsFileReady(string filename, int timeOut = 5000)
-    {
-        var sw = Stopwatch.StartNew();
-
-        while (sw.ElapsedMilliseconds < timeOut)
-        {
-            try
-            {
-                using var fs = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None);
-                return fs.Length > 0;
-            }
-            catch (IOException)
-            {
-                await Task.Delay(100);
-            }
-        }
-
-        return false;
     }
 
     public bool TryGetPath(string fullPath, [NotNullWhen(true)] out string? path)
@@ -149,12 +135,17 @@ public class ControlManager : IDisposable, IControlManager
         return _compiledViews.ContainsKey(path) || File.Exists(fullPath);
     }
 
-    public async ValueTask<Type> GetTypeAsync(string path)
+    public ValueTask<Type> GetTypeAsync(string path)
+    {
+        return GetTypeAsync(path, allowBackgroundCompile: true);
+    }
+
+    public async ValueTask<Type> GetTypeAsync(string path, bool allowBackgroundCompile)
     {
         var normalizedPath = DefaultControlManager.NormalizePath(path);
         var entry = _controls.GetOrAdd(normalizedPath, p => new ControlEntry(p));
 
-        if (entry.Type != null)
+        if (entry.Type != null && (!entry.IsCompiling || _environment.CompileInBackground && allowBackgroundCompile))
         {
             return entry.Type;
         }
@@ -176,7 +167,10 @@ public class ControlManager : IDisposable, IControlManager
         var normalizedPath = DefaultControlManager.NormalizePath(path);
         var entry = _controls.GetOrAdd(normalizedPath, p => new ControlEntry(p));
 
-        if (entry.Type != null) return entry.Type;
+        if (entry.Type != null && (!entry.IsCompiling || _environment.CompileInBackground))
+        {
+            return entry.Type;
+        }
 
         entry.Lock.Wait();
 
@@ -192,12 +186,13 @@ public class ControlManager : IDisposable, IControlManager
 
     private Type UpdateType(string path, ControlEntry entry)
     {
-        if (entry.Type != null)
+        if (entry is { Type: not null, IsCompiling: false })
         {
             return entry.Type;
         }
 
         CompileControl(path, entry);
+        entry.IsCompiling = false;
 
         if (entry.Type == null)
         {
@@ -331,6 +326,8 @@ public class ControlManager : IDisposable, IControlManager
         public string Path { get; }
 
         public Type? Type { get; set; }
+
+        public bool IsCompiling { get; set; }
 
         public DateTimeOffset LastModified { get; set; }
 
