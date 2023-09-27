@@ -1338,21 +1338,24 @@
             setTimeout(() => postBackElement(e.target, eventTarget, 'CHANGE'), 10);
         }
     });
-    const WebFormsCore = {
+    const wfc = {
         hiddenClass: '',
         postBackChange,
         postBack,
+        init: function (arg) {
+            arg();
+        },
         show: function (element) {
-            if (WebFormsCore.hiddenClass) {
-                element.classList.remove(WebFormsCore.hiddenClass);
+            if (wfc.hiddenClass) {
+                element.classList.remove(wfc.hiddenClass);
             }
             else {
                 element.style.display = '';
             }
         },
         hide: function (element) {
-            if (WebFormsCore.hiddenClass) {
-                element.classList.add(WebFormsCore.hiddenClass);
+            if (wfc.hiddenClass) {
+                element.classList.add(wfc.hiddenClass);
             }
             else {
                 element.style.display = 'none';
@@ -1360,10 +1363,10 @@
         },
         toggle: function (element, value) {
             if (value) {
-                WebFormsCore.show(element);
+                wfc.show(element);
             }
             else {
-                WebFormsCore.hide(element);
+                wfc.hide(element);
             }
         },
         validate: function (validationGroup = "") {
@@ -1434,7 +1437,7 @@
             }
         },
         bindValidator: function (selectors, validate) {
-            WebFormsCore.bind(selectors, {
+            wfc.bind(selectors, {
                 init: function (element) {
                     element._isValid = true;
                 },
@@ -1445,7 +1448,7 @@
                         element._isValid = isValidStr === 'true';
                     }
                     else {
-                        WebFormsCore.toggle(element, !element._isValid);
+                        wfc.toggle(element, !element._isValid);
                     }
                     // Bind to element
                     const idToValidate = element.getAttribute('data-wfc-validator');
@@ -1466,7 +1469,7 @@
                     element._callback = function (e) {
                         const isValid = validate(elementToValidate, element);
                         element._isValid = isValid;
-                        WebFormsCore.toggle(element, !isValid);
+                        wfc.toggle(element, !isValid);
                         if (!isValid) {
                             e.detail.isValid = false;
                         }
@@ -1484,7 +1487,7 @@
         }
     };
     // Stream
-    WebFormsCore.bind('[data-wfc-stream]', {
+    wfc.bind('[data-wfc-stream]', {
         init: function (element) {
             const id = element.id;
             const baseElement = element.closest('[data-wfc-base]');
@@ -1527,25 +1530,28 @@
             return;
         }
         const validationGroup = (_b = element.getAttribute('data-wfc-validate')) !== null && _b !== void 0 ? _b : "";
-        const isValid = WebFormsCore.validate(validationGroup);
+        const isValid = wfc.validate(validationGroup);
         if (!isValid) {
             e.preventDefault();
         }
     });
-    if ('WebFormsCore' in window) {
-        const current = window.WebFormsCore;
+    if ('wfc' in window) {
+        const current = window.wfc;
         if ('hiddenClass' in current) {
-            WebFormsCore.hiddenClass = current.hiddenClass;
+            wfc.hiddenClass = current.hiddenClass;
         }
-        window.WebFormsCore = WebFormsCore;
+        window.wfc = wfc;
         if ('_' in current) {
             for (const bind of current._) {
                 const [type, selector, func] = bind;
                 if (type === 0) {
-                    WebFormsCore.bind(selector, func);
+                    wfc.bind(selector, func);
                 }
                 else if (type === 1) {
-                    WebFormsCore.bindValidator(selector, func);
+                    wfc.bindValidator(selector, func);
+                }
+                else if (type === 2) {
+                    wfc.init(func);
                 }
                 else {
                     console.warn('Unknown bind type', type);
@@ -1553,6 +1559,12 @@
             }
         }
     }
-    window.WebFormsCore = WebFormsCore;
+    wfc.bindValidator('[data-wfc-requiredvalidator]', function (elementToValidate, element) {
+        var _a, _b;
+        const initialValue = ((_a = element.getAttribute('data-wfc-requiredvalidator')) !== null && _a !== void 0 ? _a : "").trim();
+        const value = ((_b = elementToValidate.value) !== null && _b !== void 0 ? _b : "").trim();
+        return initialValue !== value;
+    });
+    window.wfc = wfc;
 
 })();

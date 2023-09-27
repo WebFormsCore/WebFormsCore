@@ -11,15 +11,6 @@ namespace WebFormsCore.UI.HtmlControls;
 
 public class HtmlBody : HtmlContainerControl
 {
-    public static readonly string Script;
-
-    static HtmlBody()
-    {
-        using var resource = typeof(HtmlBody).Assembly.GetManifestResourceStream("WebFormsCore.Scripts.form.min.js");
-        using var reader = new StreamReader(resource!);
-        Script = reader.ReadToEnd();
-    }
-
     protected override bool GenerateAutomaticID => false;
 
     public HtmlBody()
@@ -27,21 +18,31 @@ public class HtmlBody : HtmlContainerControl
     {
     }
 
+    protected override void FrameworkInitialize()
+    {
+        base.FrameworkInitialize();
+
+        Page.Body ??= this;
+    }
+
     protected override void OnInit(EventArgs args)
     {
         base.OnUnload(args);
 
-        if (Page.Body == null)
-        {
-            Page.Body = this;
-        }
+        RegisterScript();
+    }
 
+    private void RegisterScript()
+    {
         // TODO: Move this to a better place.
-        var options = Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>()?.Value?.AddWebFormsCoreScript;
+        var addScript = Context.RequestServices
+            .GetService<IOptions<WebFormsCoreOptions>>()
+            ?.Value
+            ?.AddWebFormsCoreScript ?? true;
 
-        if (options == true)
+        if (addScript)
         {
-            Page.ClientScript.RegisterStartupScript(typeof(Page), "FormPostback", Script);
+            Page.ClientScript.RegisterStartupDeferStaticScript(typeof(Page), "/js/form.min.js", Resources.Script);
         }
     }
 

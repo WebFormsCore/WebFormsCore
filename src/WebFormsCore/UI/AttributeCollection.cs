@@ -7,7 +7,14 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI;
 
-public sealed class AttributeCollection : IDictionary<string, string?>, IViewStateObject, IAttributeAccessor
+public interface IAttributeRenderer
+{
+    ValueTask RenderAsync(HtmlTextWriter writer);
+
+    void AddAttributes(HtmlTextWriter writer);
+}
+
+public sealed class AttributeCollection : IDictionary<string, string?>, IViewStateObject, IAttributeAccessor, IAttributeRenderer
 {
     private static readonly Dictionary<byte, string> IdToKey;
     private static readonly Dictionary<string, byte> KeyToId;

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
+using HttpStack;
 using JetBrains.Annotations;
 using WebFormsCore.Security;
 using ScriptDictionary = System.Collections.Generic.Dictionary<(System.Type, string), WebFormsCore.UI.RegisteredScript>;
 
 namespace WebFormsCore.UI;
 
-internal record struct RegisteredScript(string Script, string? Nonce, RegisterType Type, AttributeCollection? Attributes);
+internal record struct RegisteredScript(string Script, string? Nonce, RegisterType Type, IAttributeRenderer? Attributes);
 
 internal enum RegisterType
 {
@@ -51,32 +52,56 @@ public sealed class ClientScriptManager
                _startupBody.ContainsKey((type, key));
     }
 
-    public void RegisterHeadScript(Type type, string key, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true, AttributeCollection? attributes = null)
+    public void RegisterHeadScript(Type type, string key, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true, IAttributeRenderer? attributes = null)
     {
         RegisterBlock(type, key, script, ref _startupHead, addScriptTags ? RegisterType.InlineScript : RegisterType.Raw, attribute: attributes);
     }
 
-    public void RegisterStartupScript(Type type, string key, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true, AttributeCollection? attributes = null)
+    public void RegisterStartupScript(Type type, string key, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true, IAttributeRenderer? attributes = null)
     {
         RegisterBlock(type, key, script, ref _startupBody, addScriptTags ? RegisterType.InlineScript : RegisterType.Raw, attribute: attributes);
     }
 
-    public void RegisterStartupScriptLink(Type type, string key, string url, bool addScriptTags = true, AttributeCollection? attributes = null)
+    public void RegisterStartupStaticScript(Type type, PathString fileName, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true, IAttributeRenderer? linkAttributes = null)
+    {
+        if (StaticFiles.Files.TryGetValue(fileName, out var existingScript))
+        {
+            if (existingScript.GetHashCode() != script.GetHashCode() && existingScript != script)
+            {
+                throw new InvalidOperationException($"The file {fileName} is already registered.");
+            }
+        }
+        else
+        {
+            StaticFiles.Files[fileName] = script;
+        }
+
+        if (_page.Context.Items.ContainsKey("RegisteredWebFormsCore"))
+        {
+            RegisterStartupScriptLink(type, fileName, fileName, addScriptTags, linkAttributes);
+        }
+        else
+        {
+            RegisterStartupScript(type, fileName, script, addScriptTags);
+        }
+    }
+
+    public void RegisterStartupScriptLink(Type type, string key, string url, bool addScriptTags = true, IAttributeRenderer? attributes = null)
     {
         RegisterBlock(type, key, url, ref _startupBody, addScriptTags ? RegisterType.ExternalScript : RegisterType.Raw, attribute: attributes);
     }
 
-    public void RegisterStartupStyle(Type type, string key, string content, bool addStyleTags, AttributeCollection? attributes = null)
+    public void RegisterStartupStyle(Type type, string key, string content, bool addStyleTags, IAttributeRenderer? attributes = null)
     {
         RegisterBlock(type, key, content, ref _startupHead, addStyleTags ? RegisterType.InlineStyle : RegisterType.Raw, attribute: attributes);
     }
 
-    public void RegisterStartupStyleLink(Type type, string key, string url, bool addStyleTags = true, AttributeCollection? attributes = null)
+    public void RegisterStartupStyleLink(Type type, string key, string url, bool addStyleTags = true, IAttributeRenderer? attributes = null)
     {
         RegisterBlock(type, key, url, ref _startupHead, addStyleTags ? RegisterType.ExternalStyle : RegisterType.Raw, attribute: attributes);
     }
 
-    private void RegisterBlock(Type type, string key, string content, ref ScriptDictionary? dictionary, RegisterType registerType, AttributeCollection? attribute)
+    private void RegisterBlock(Type type, string key, string content, ref ScriptDictionary? dictionary, RegisterType registerType, IAttributeRenderer? attribute)
     {
         if (type == null)
         {

@@ -17,18 +17,20 @@ public class HtmlHead : HtmlContainerControl
     {
     }
 
+    protected override void FrameworkInitialize()
+    {
+        base.FrameworkInitialize();
+
+        Page.Header ??= this;
+    }
+
     protected override void OnInit(EventArgs args)
     {
         base.OnInit(args);
 
-        if (Page.Header == null)
-        {
-            Page.Header = this;
-        }
-
         var hiddenClass = Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>()?.Value?.HiddenClass ?? "";
 
-        Page.ClientScript.RegisterHeadScript(typeof(Page), "FormPostback", $$$"""WebFormsCore={hiddenClass:'{{{hiddenClass}}}',_:[],bind:function(a,b){this._.push([0,a,b])},bindValidator:function(a,b){this._.push([1,a,b])}};""");
+        Page.ClientScript.RegisterHeadScript(typeof(Page), "FormPostback", $$$"""window.wfc={hiddenClass:'{{{hiddenClass}}}',_:[],bind:function(a,b){this._.push([0,a,b])},bindValidator:function(a,b){this._.push([1,a,b])},init:function(a){this._.push([2,'',a])}};""");
     }
 
     protected override void OnUnload(EventArgs args)

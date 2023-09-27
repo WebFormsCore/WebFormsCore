@@ -23,20 +23,6 @@ public partial class RequiredFieldValidator : BaseValidator
         return new ValueTask<bool>(!controlValueSpan.Equals(initialValueSpan, StringComparison.CurrentCulture));
     }
 
-    protected override void OnPreRender(EventArgs args)
-    {
-        base.OnPreRender(args);
-
-        Page.ClientScript.RegisterStartupScript(GetType(), "RequiredFieldValidator", """
-            WebFormsCore.bindValidator('[data-wfc-requiredvalidator]', function(elementToValidate, element) {
-                const initialValue = (element.getAttribute('data-wfc-requiredvalidator') ?? "").trim();
-                const value = (elementToValidate.value ?? "").trim();
-            
-                return initialValue !== value
-            });
-            """);
-    }
-
     protected override ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
         writer.AddAttribute("data-wfc-requiredvalidator", InitialValue);

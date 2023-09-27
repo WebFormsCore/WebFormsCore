@@ -1,3 +1,4 @@
+import type { WebFormsCore } from "../../../typings";
 import morphAttrs from "morphdom/src/morphAttrs";
 import morphdomFactory from "morphdom/src/morphdom";
 import { Mutex } from 'async-mutex';
@@ -539,46 +540,26 @@ document.addEventListener('change', async function(e){
     }
 });
 
-interface WebFormsCore {
-    _?: [number, string, any][];
-    hiddenClass: string;
-
-    postBackChange: (target: Element, timeOut?: number, eventArgument?: string) => void;
-    postBack: (target: Element, eventArgument?: string) => Promise<void>;
-
-    show: (element: HTMLElement) => void;
-    hide: (element: HTMLElement) => void;
-    toggle: (element: HTMLElement, value: boolean) => void;
-
-    bind: <T = {}>(selectors: string, options: {
-        init?: (element: HTMLElement & T) => void;
-        update?: (element: HTMLElement & T, source: HTMLElement) => boolean;
-        afterUpdate?: (element: HTMLElement & T) => void;
-        submit?: (element: HTMLElement & T, formData: FormData) => void;
-        destroy?: (element: HTMLElement & T) => void;
-    }) => void;
-
-    bindValidator: (selectors: string, validate: (element: HTMLElement, source: HTMLElement) => boolean) => void;
-
-    validate: (validationGroup?: string) => boolean;
-}
-
-const WebFormsCore: WebFormsCore = {
+const wfc: WebFormsCore = {
     hiddenClass: '',
     postBackChange,
     postBack,
 
+    init: function (arg) {
+        arg();
+    },
+
     show: function(element: HTMLElement) {
-        if (WebFormsCore.hiddenClass) {
-            element.classList.remove(WebFormsCore.hiddenClass);
+        if (wfc.hiddenClass) {
+            element.classList.remove(wfc.hiddenClass);
         } else {
             element.style.display = '';
         }
     },
 
     hide: function(element: HTMLElement) {
-        if (WebFormsCore.hiddenClass) {
-            element.classList.add(WebFormsCore.hiddenClass);
+        if (wfc.hiddenClass) {
+            element.classList.add(wfc.hiddenClass);
         } else {
             element.style.display = 'none';
         }
@@ -586,9 +567,9 @@ const WebFormsCore: WebFormsCore = {
 
     toggle: function(element: HTMLElement, value: boolean) {
         if (value) {
-            WebFormsCore.show(element);
+            wfc.show(element);
         } else {
-            WebFormsCore.hide(element);
+            wfc.hide(element);
         }
     },
 
@@ -681,7 +662,7 @@ const WebFormsCore: WebFormsCore = {
             _callback: (e: CustomEvent) => void;
         }
 
-        WebFormsCore.bind<Props>(selectors, {
+        wfc.bind<Props>(selectors, {
             init: function(element) {
                 element._isValid = true;
             },
@@ -692,7 +673,7 @@ const WebFormsCore: WebFormsCore = {
                 if (isValidStr) {
                     element._isValid = isValidStr === 'true';
                 } else {
-                    WebFormsCore.toggle(element, !element._isValid);
+                    wfc.toggle(element, !element._isValid);
                 }
 
                 // Bind to element
@@ -721,7 +702,7 @@ const WebFormsCore: WebFormsCore = {
                     const isValid = validate(elementToValidate, element);
 
                     element._isValid = isValid;
-                    WebFormsCore.toggle(element, !isValid);
+                    wfc.toggle(element, !isValid);
 
                     if (!isValid) {
                         e.detail.isValid = false;
@@ -742,7 +723,7 @@ const WebFormsCore: WebFormsCore = {
 };
 
 // Stream
-WebFormsCore.bind('[data-wfc-stream]', {
+wfc.bind('[data-wfc-stream]', {
     init: function(element) {
         const id = element.id;
         const baseElement = element.closest('[data-wfc-base]') as HTMLElement;
@@ -796,30 +777,32 @@ document.addEventListener("wfc:beforeSubmit", function (e: CustomEvent) {
     }
 
     const validationGroup = element.getAttribute('data-wfc-validate') ?? "";
-    const isValid = WebFormsCore.validate(validationGroup);
+    const isValid = wfc.validate(validationGroup);
 
     if (!isValid) {
         e.preventDefault();
     }
 });
 
-if ('WebFormsCore' in window) {
-    const current = window.WebFormsCore;
+if ('wfc' in window) {
+    const current = window.wfc;
 
     if ('hiddenClass' in current) {
-        WebFormsCore.hiddenClass = current.hiddenClass;
+        wfc.hiddenClass = current.hiddenClass;
     }
 
-    window.WebFormsCore = WebFormsCore;
+    window.wfc = wfc;
 
     if ('_' in current) {
         for (const bind of current._) {
             const [type, selector, func] = bind;
 
             if (type === 0) {
-                WebFormsCore.bind(selector, func);
+                wfc.bind(selector, func);
             } else if (type === 1) {
-                WebFormsCore.bindValidator(selector, func);
+                wfc.bindValidator(selector, func);
+            } else if (type === 2) {
+                wfc.init(func);
             } else {
                 console.warn('Unknown bind type', type);
             }
@@ -827,15 +810,11 @@ if ('WebFormsCore' in window) {
     }
 }
 
-window.WebFormsCore = WebFormsCore;
+wfc.bindValidator('[data-wfc-requiredvalidator]', function(elementToValidate: HTMLInputElement, element) {
+    const initialValue = (element.getAttribute('data-wfc-requiredvalidator') ?? "").trim();
+    const value = (elementToValidate.value ?? "").trim();
 
-declare global {
-    interface Window {
-        WebFormsCore: WebFormsCore;
-    }
+    return initialValue !== value
+});
 
-    interface Element {
-        webSocket: WebSocket | undefined;
-        isUpdating: boolean;
-    }
-}
+window.wfc = wfc;

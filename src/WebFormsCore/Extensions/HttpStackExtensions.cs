@@ -9,6 +9,25 @@ namespace WebFormsCore;
 
 public static class HttpStackExtensions
 {
+    public static IHttpStackBuilder UseWebFormsCore(this IHttpStackBuilder builder)
+    {
+        builder.Use(async (context, next) =>
+        {
+            context.Items["RegisteredWebFormsCore"] = null;
+
+            if (StaticFiles.Files.TryGetValue(context.Request.Path, out var content))
+            {
+                context.Response.ContentType = "application/javascript";
+                await context.Response.WriteAsync(content);
+                return;
+            }
+
+            await next();
+        });
+
+        return builder;
+    }
+
     public static IHttpStackBuilder UsePage(this IHttpStackBuilder builder)
     {
         builder.Use((context, next) =>

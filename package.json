@@ -19,7 +19,9 @@
   },
   "homepage": "https://github.com/WebFormsCore/WebFormsCore#readme",
   "devDependencies": {
+    "@babel/core": "^7.23.0",
     "@chiogen/rollup-plugin-terser": "^7.0.2",
+    "@rollup/plugin-commonjs": "^25.0.4",
     "@rollup/plugin-node-resolve": "^15.2.0",
     "@rollup/plugin-typescript": "^11.1.2",
     "rollup": "^3.28.0",
@@ -27,7 +29,9 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@rollup/plugin-babel": "^6.0.3",
     "async-mutex": "^0.4.0",
+    "choices.js": "^10.2.0",
     "morphdom": "^2.7.0"
   }
 }
