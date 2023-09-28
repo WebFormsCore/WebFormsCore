@@ -9,13 +9,21 @@ type Props = {
 
 wfc.bind<Props>(".js-choice", {
     init: function(element) {
+        // Remove the temp element to prevent page shifting
+        element.classList.remove('choices__inner');
+
+        const tempInput = element.querySelector('.js-choice-temp');
+        if (tempInput) {
+            tempInput.remove();
+        }
+
+        // Initialize choices
         const input = element.querySelector('input,select');
         const choice = new Choices(input, {
             allowHTML: true,
             removeItemButton: true
         });
 
-        element.classList.remove('choices__inner');
         element.input = input as HTMLInputElement | HTMLSelectElement;
         element.choice = choice;
         element.autoPostBack = false;

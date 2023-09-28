@@ -10,7 +10,7 @@ namespace WebFormsCore.UI.WebControls;
 
 public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBackAsyncDataHandler, IValidateableControl, ICausesValidationControl
 {
-    [ViewState(nameof(SaveTextViewState))] private string? _text;
+    [ViewState(nameof(SaveTextViewState))] private string _text = "";
     private bool _changedText;
     [ViewState] private string? _validationGroup;
 
@@ -48,11 +48,16 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
     [ViewState(nameof(IsMultiLine))] public int Rows { get; set; }
 
-    public string? Text
+    public string Text
     {
         get => _text;
         set
         {
+            if (string.Equals(_text, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
             _text = value;
             _changedText = true;
         }
@@ -64,9 +69,9 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
     private bool IsMultiLine => TextMode == TextBoxMode.MultiLine;
 
-    protected virtual bool SaveTextViewState => TextMode != TextBoxMode.Password && (TextChanged != null || !IsEnabled || GetType() != typeof (TextBox));
+    protected virtual bool SaveTextViewState => TextMode != TextBoxMode.Password && (TextChanged != null || !IsEnabled);
 
-    protected virtual bool WriteValue => !Page.IsPostBack || _changedText;
+    protected virtual bool  WriteValue=> !Page.IsPostBack || _changedText;
 
     protected override async ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
@@ -123,7 +128,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
         if (TextMode == TextBoxMode.MultiLine && WriteValue)
         {
-            await writer.WriteEncodedTextAsync(_text ?? string.Empty);
+            await writer.WriteEncodedTextAsync(_text);
         }
     }
 
@@ -135,7 +140,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
         }
         else if (name.Equals("value", StringComparison.OrdinalIgnoreCase))
         {
-            Text = value;
+            Text = value ?? "";
         }
         else
         {
@@ -198,7 +203,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
         }
 
         var isChanged = !string.Equals(_text, value, StringComparison.Ordinal);
-        _text = value;
+        _text = value.ToString() ?? "";
 
         return new ValueTask<bool>(TextChanged != null && isChanged);
     }

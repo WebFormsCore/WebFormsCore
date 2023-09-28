@@ -3,10 +3,12 @@ import { terser } from "@chiogen/rollup-plugin-terser";
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { babel } from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
+import css from "rollup-plugin-import-css";
 
 export default [
     transformTypeScript('./src/WebFormsCore/Scripts/form.ts'),
-    transformTypeScript('./src/WebFormsCore.Extensions.Choices/Scripts/choices.ts')
+    transformTypeScript('./src/WebFormsCore.Extensions.Choices/Scripts/choices.ts'),
+    transformTypeScript('./src/WebFormsCore.Extensions.TinyMCE/Scripts/tiny.ts')
 ]
 
 function transformTypeScript(path) {
@@ -17,6 +19,7 @@ function transformTypeScript(path) {
             { file: path.replace('.ts', '.min.js'), format: 'iife', plugins: [terser()] }
         ],
         plugins: [
+            css(),
             typescript({
                 allowJs: true,
                 allowSyntheticDefaultImports: true

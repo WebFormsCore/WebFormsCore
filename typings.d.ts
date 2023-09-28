@@ -12,8 +12,8 @@ export interface WebFormsCore {
     init: (arg: Function) => void;
 
     bind: <T = {}>(selectors: string, options: {
-        init?: (element: HTMLElement & T) => void;
-        update?: (element: HTMLElement & T, source: HTMLElement) => boolean;
+        init?: (element: HTMLElement & T) => void | Promise<void>;
+        update?: (element: HTMLElement & T, source: HTMLElement) => boolean | void;
         afterUpdate?: (element: HTMLElement & T) => void;
         submit?: (element: HTMLElement & T, formData: FormData) => void;
         destroy?: (element: HTMLElement & T) => void;

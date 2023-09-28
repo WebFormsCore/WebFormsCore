@@ -37,6 +37,8 @@ public partial class Default : Page
     protected override void OnLoad(EventArgs args)
     {
         title.InnerText = (PostbackCount++).ToString();
+
+        editor.Text = editor.Text.ToUpper();
     }
 
     protected Task choices_OnValuesChanged(Choices sender, EventArgs e)

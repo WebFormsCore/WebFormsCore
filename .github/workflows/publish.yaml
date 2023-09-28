@@ -43,3 +43,4 @@ jobs:
             src/WebFormsCore.Extensions.ClientResourceManagement/WebFormsCore.Extensions.ClientResourceManagement.csproj
             src/WebFormsCore.Extensions.EntityFrameworkCore/WebFormsCore.Extensions.EntityFrameworkCore.csproj
             src/WebFormsCore.Extensions.Grid/WebFormsCore.Extensions.Grid.csproj
+            src/WebFormsCore.Extensions.TinyMCE/WebFormsCore.Extensions.TinyMCE.csproj

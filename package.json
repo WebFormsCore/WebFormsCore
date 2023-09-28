@@ -25,6 +25,7 @@
     "@rollup/plugin-node-resolve": "^15.2.0",
     "@rollup/plugin-typescript": "^11.1.2",
     "rollup": "^3.28.0",
+    "rollup-plugin-import-css": "^3.3.4",
     "tslib": "^2.6.1",
     "typescript": "^5.1.6"
   },
@@ -32,6 +33,7 @@
     "@rollup/plugin-babel": "^6.0.3",
     "async-mutex": "^0.4.0",
     "choices.js": "^10.2.0",
-    "morphdom": "^2.7.0"
+    "morphdom": "^2.7.0",
+    "tinymce": "^6.7.0"
   }
 }

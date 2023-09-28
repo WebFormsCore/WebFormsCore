@@ -85,6 +85,9 @@ public partial class Choices : ChoicesBase, IPostBackAsyncDataHandler, IPostBack
                     await writer.RenderEndTagAsync();
                 }
             }
+
+            await writer.WriteAsync("<input class=\"choices__input js-choice-temp\">");
+
             await writer.RenderEndTagAsync();
         }
         await writer.RenderEndTagAsync();

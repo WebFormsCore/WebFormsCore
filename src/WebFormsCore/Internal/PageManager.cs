@@ -194,6 +194,16 @@ public class PageManager : IPageManager
             await pageService.BeforeLoadAsync(page, token);
         }
 
+        if (page.IsPostBack)
+        {
+            foreach (var service in pageServices)
+            {
+                await service.BeforePostbackAsync(page, token);
+            }
+
+            await target.InvokePostbackAsync(token, form);
+        }
+
         await target.InvokeLoadAsync(token, form);
 
         foreach (var service in pageServices)
@@ -203,18 +213,11 @@ public class PageManager : IPageManager
 
         if (page.IsPostBack)
         {
-            foreach (var service in pageServices)
-            {
-                await service.BeforePostbackAsync(page, token);
-            }
-
             if (context.Request.Form.TryGetValue("wfcTarget", out var eventTarget))
             {
                 var eventArgument = context.Request.Form.TryGetValue("wfcArgument", out var eventArgumentValue)
                     ? eventArgumentValue.ToString() ?? string.Empty
                     : string.Empty;
-
-                await target.InvokePostbackAsync(token, form);
 
                 var postbackControl = page.FindControl(eventTarget.ToString());
 

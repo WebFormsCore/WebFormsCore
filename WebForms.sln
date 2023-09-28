@@ -68,6 +68,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library", "tests\smoke\Inhe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "tests\smoke\InheritDesignerControls\Application\Application.csproj", "{8A710484-78BC-42E9-9A93-EEBA96A613FD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.Extensions.TinyMCE", "src\WebFormsCore.Extensions.TinyMCE\WebFormsCore.Extensions.TinyMCE.csproj", "{174B5089-4D8D-4948-83D6-F107E1603962}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -158,6 +160,10 @@ Global
 		{8A710484-78BC-42E9-9A93-EEBA96A613FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A710484-78BC-42E9-9A93-EEBA96A613FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A710484-78BC-42E9-9A93-EEBA96A613FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{174B5089-4D8D-4948-83D6-F107E1603962}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{174B5089-4D8D-4948-83D6-F107E1603962}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{174B5089-4D8D-4948-83D6-F107E1603962}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{174B5089-4D8D-4948-83D6-F107E1603962}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -182,6 +188,7 @@ Global
 		{6676E971-745C-4821-996E-C98AF3BD8669} = {E33BEFF2-A3C5-4095-9FE5-4D213CF8AC39}
 		{6B683F1B-6AC7-4423-8D65-170A0C9F1B30} = {6676E971-745C-4821-996E-C98AF3BD8669}
 		{8A710484-78BC-42E9-9A93-EEBA96A613FD} = {6676E971-745C-4821-996E-C98AF3BD8669}
+		{174B5089-4D8D-4948-83D6-F107E1603962} = {6BD7E14E-80F4-4849-9959-86FD034114D9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {022403F7-A5A6-4639-8579-D9B56627AE73}

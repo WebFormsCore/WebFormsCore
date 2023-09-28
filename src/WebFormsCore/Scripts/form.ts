@@ -592,7 +592,7 @@ const wfc: WebFormsCore = {
         return detail.isValid;
     },
 
-    bind: function(selectors, options) {
+    bind: async function(selectors, options) {
         const init = (options.init ?? function() {}).bind(options);
         const update = (options.update ?? function() {}).bind(options)
         const afterUpdate = (options.afterUpdate ?? function() {}).bind(options);
@@ -600,16 +600,16 @@ const wfc: WebFormsCore = {
         const destroy = options.destroy?.bind(options);
 
         for (const element of document.querySelectorAll(selectors)) {
-            init(element);
+            await init(element);
             update(element, element);
             afterUpdate(element);
         }
 
-        document.addEventListener('wfc:addElement', function (e: CustomEvent) {
+        document.addEventListener('wfc:addElement', async function (e: CustomEvent) {
             const { element } = e.detail;
 
             if (element.matches(selectors)) {
-                init(element);
+                await init(element);
                 update(element, element);
                 afterUpdate(element);
             }

@@ -106,6 +106,8 @@ public partial class TextChoices : ChoicesBase, IPostBackAsyncDataHandler, IPost
 
             writer.AddAttribute(HtmlTextWriterAttribute.Type, "text");
             await writer.RenderSelfClosingTagAsync(HtmlTextWriterTag.Input);
+
+            await writer.WriteAsync("<input class=\"choices__input js-choice-temp\">");
         }
         await writer.RenderEndTagAsync();
     }

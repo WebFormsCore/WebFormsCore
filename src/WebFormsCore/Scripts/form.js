@@ -1384,7 +1384,7 @@
             }
             return detail.isValid;
         },
-        bind: function (selectors, options) {
+        bind: async function (selectors, options) {
             var _a, _b, _c, _d, _e;
             const init = ((_a = options.init) !== null && _a !== void 0 ? _a : function () { }).bind(options);
             const update = ((_b = options.update) !== null && _b !== void 0 ? _b : function () { }).bind(options);
@@ -1392,14 +1392,14 @@
             const submit = (_d = options.submit) === null || _d === void 0 ? void 0 : _d.bind(options);
             const destroy = (_e = options.destroy) === null || _e === void 0 ? void 0 : _e.bind(options);
             for (const element of document.querySelectorAll(selectors)) {
-                init(element);
+                await init(element);
                 update(element, element);
                 afterUpdate(element);
             }
-            document.addEventListener('wfc:addElement', function (e) {
+            document.addEventListener('wfc:addElement', async function (e) {
                 const { element } = e.detail;
                 if (element.matches(selectors)) {
-                    init(element);
+                    await init(element);
                     update(element, element);
                     afterUpdate(element);
                 }

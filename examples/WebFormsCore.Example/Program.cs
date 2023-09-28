@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore;
 using WebFormsCore.Example;
+using WebFormsCore.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,11 @@ builder.Services.Configure<WebFormsCoreOptions>(options =>
 builder.Services.Configure<ViewStateOptions>(options =>
 {
     options.EncryptionKey = builder.Configuration.GetValue<string>("ViewState:EncryptionKey");
+});
+
+builder.Services.Configure<TinyOptions>(options =>
+{
+    options.Branding = false;
 });
 
 builder.Services.AddDistributedMemoryCache();
