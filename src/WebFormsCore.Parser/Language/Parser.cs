@@ -411,11 +411,17 @@ public class Parser
 
         if (!File.Exists(fullPath))
         {
+            if (TryResolveAssemblyControl(path, key))
+            {
+                return;
+            }
+
             Diagnostics.Add(
                 Diagnostic.Create(
                     new DiagnosticDescriptor("ASP0005", "Could not find control",
                         $"Could not find control '{lexer.File}'", "ASP", DiagnosticSeverity.Warning, true), src.Range));
 
+            _controlTypes.Add(key, ("WebFormsCore.UI.Control", path));
             return;
         }
 
@@ -433,6 +439,48 @@ public class Parser
         }
 
         _controlTypes.Add(key, (typeName, path));
+    }
+
+    private bool TryResolveAssemblyControl(string path, ControlKey key)
+    {
+        foreach (var referencedAssembly in _compilation.SourceModule.ReferencedAssemblySymbols)
+        {
+            foreach (var attribute in referencedAssembly.GetAttributes())
+            {
+                if (attribute.AttributeClass is not { Name: "AssemblyViewAttribute" })
+                {
+                    continue;
+                }
+
+                if (attribute.ConstructorArguments.Length >= 2 &&
+                    attribute.ConstructorArguments[0].Value?.ToString() == path &&
+                    attribute.ConstructorArguments[1].Value is INamedTypeSymbol type)
+                {
+                    var displayName = type.ToDisplayString(NullableFlowState.None);
+
+                    if (type.BaseType is not null)
+                    {
+                        foreach (var typeAttribute in type.GetAttributes())
+                        {
+                            if (typeAttribute.AttributeClass is not { Name: "CompiledViewAttribute" })
+                            {
+                                continue;
+                            }
+
+                            displayName = type.BaseType?.ToDisplayString(NullableFlowState.None);
+                        }
+                    }
+
+                    if (displayName is not null)
+                    {
+                        _controlTypes.Add(key, (displayName, path));
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     public void AddNamespace(string tagPrefix, string ns)
