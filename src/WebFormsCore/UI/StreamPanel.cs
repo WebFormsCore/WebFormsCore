@@ -121,13 +121,13 @@ public class StreamPanel : Control, INamingContainer
                 }
                 else
                 {
-                    await UpdateControlAsync();
-
 #if NET
                     _stateHasChangedTcs = new TaskCompletionSource();
 #else
                     _stateHasChangedTcs = new TaskCompletionSource<bool>();
 #endif
+
+                    await UpdateControlAsync();
                 }
             }
         }
