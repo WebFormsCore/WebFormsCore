@@ -10,7 +10,7 @@
 
     <!-- NuGet references -->
     <ItemGroup>
-        <PackageReference Include="HttpStack.AspNet" Version="0.0.1-alpha.12" />
+        <PackageReference Include="HttpStack.AspNet" Version="0.0.1-alpha.13" />
     </ItemGroup>
 
     <Import Project="Sdk.targets" Sdk="MSBuild.SDK.SystemWeb" Version="4.0.88" />

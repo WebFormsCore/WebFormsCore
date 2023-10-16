@@ -1,12 +1,18 @@
 ﻿using System;
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net.WebSockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using HttpStack;
+using HttpStack.Collections;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+using WebFormsCore.Collections;
 using WebFormsCore.Events;
 using WebFormsCore.UI;
 using WebFormsCore.UI.HtmlControls;
@@ -19,14 +25,17 @@ public class PageManager : IPageManager
     private readonly IViewStateManager _viewStateManager;
     private readonly IControlManager _controlManager;
     private readonly IOptions<WebFormsCoreOptions> _options;
+    private readonly IOptions<ViewStateOptions> _viewStateOptions;
 
     public PageManager(
         IControlManager controlManager,
         IViewStateManager viewStateManager,
-        IOptions<WebFormsCoreOptions>? options = null)
+        IOptions<WebFormsCoreOptions>? options = null,
+        IOptions<ViewStateOptions>? viewStateOptions = null)
     {
         _controlManager = controlManager;
         _options = options ?? Options.Create(new WebFormsCoreOptions());
+        _viewStateOptions = viewStateOptions ?? Options.Create(new ViewStateOptions());
         _viewStateManager = viewStateManager;
     }
 
@@ -56,10 +65,6 @@ public class PageManager : IPageManager
         Page page,
         CancellationToken token)
     {
-        page.SetContext(context);
-
-        await InitPageAsync(page, token);
-
         if (context.Request.Query.TryGetValue("__panel", out var panel) &&
             panel.ToString() is { Length: > 0 } panelStr &&
             context.WebSockets.IsWebSocketRequest)
@@ -68,7 +73,10 @@ public class PageManager : IPageManager
             return;
         }
 
-        var control = await ProcessRequestAsync(context, page, token);
+        page.SetContext(context);
+        await InitPageAsync(page, token);
+
+        var control = await ProcessRequestAsync(context, page, render: true, token);
 
         if (control is null)
         {
@@ -178,11 +186,18 @@ public class PageManager : IPageManager
     /// </summary>
     /// <param name="context">Context of the request.</param>
     /// <param name="page">Page to process the request for.</param>
+    /// <param name="render">Whether the page should be rendered.</param>
     /// <param name="token">Cancellation token.</param>
     /// <returns>The control that is loaded and should be rendered.</returns>
-    private async Task<Control?> ProcessRequestAsync(IHttpContext context, Page page, CancellationToken token)
+    private async Task<Control?> ProcessRequestAsync(IHttpContext context, Page page, bool render, CancellationToken token)
     {
         var form = await LoadViewStateAsync(context, page);
+
+        return await ProcessRequestAsync(context, page, form, render, token);
+    }
+
+    private async Task<Control?> ProcessRequestAsync(IHttpContext context, Page page, HtmlForm? form, bool render, CancellationToken token)
+    {
         var serviceProvider = context.RequestServices;
         var target = form is null or { UpdatePage: true } ? (Control)page : form;
         var pageServices = serviceProvider.GetServices<IPageService>() as IPageService[] ?? Array.Empty<IPageService>();
@@ -248,6 +263,11 @@ public class PageManager : IPageManager
             }
         }
 
+        if (!render)
+        {
+            return null;
+        }
+
         if (context.Response.StatusCode is 301 or 302)
         {
             if (context.Request.Headers.ContainsKey("X-IsPostback"))
@@ -304,26 +324,76 @@ public class PageManager : IPageManager
 
     private async Task RenderStreamPanelAsync(Page page, string panel, IHttpContext context, CancellationToken token)
     {
+        await Task.CompletedTask;
+
         if (!_options.Value.AllowExternal)
         {
             throw new InvalidOperationException("Stream panels are not allowed.");
         }
 
-        var streamControl = page.FindControl(panel);
-
-        if (streamControl is not StreamPanel streamPanel)
+        context.WebSockets.AcceptWebSocketRequest(async (httpContext, socket) =>
         {
-            throw new InvalidOperationException($"Panel '{panel}' is not a StreamPanel.");
-        }
+            // Wait for the viewstate to be loaded
+            using (var stream = StreamPanel.MemoryStreamManager.GetStream())
+            using (var owner = MemoryPool<byte>.Shared.Rent(4096))
+            {
+                while (true)
+                {
+                    if (stream.Length > _viewStateOptions.Value.MaxBytes)
+                    {
+                        throw new InvalidOperationException("ViewState is too large.");
+                    }
 
-        page.ActiveStreamPanel = streamPanel;
-        streamPanel.IsConnected = true;
+                    var socketResult = await socket.ReceiveAsync(owner.Memory, token);
 
-        streamPanel.InvokeFrameworkInit(token);
-        await streamPanel.InvokeInitAsync(token);
-        await ProcessRequestAsync(context, page, token);
+                    stream.Write(owner.Memory.Span.Slice(0, socketResult.Count));
 
-        context.WebSockets.AcceptWebSocketRequest(streamPanel.StartAsync);
+                    if (socketResult.MessageType == WebSocketMessageType.Close)
+                    {
+                        return;
+                    }
+
+                    if (socketResult.EndOfMessage)
+                    {
+                        break;
+                    }
+                }
+
+                stream.Position = 0;
+
+                var formData = stream.TryGetBuffer(out var buffer)
+                    ? Encoding.UTF8.GetString(buffer.Array!, buffer.Offset, buffer.Count)
+                    : Encoding.UTF8.GetString(stream.ToArray());
+
+                httpContext.Request.Method = "POST";
+                httpContext.Request.Form = new NameValueFormCollection(
+                    HttpUtility.ParseQueryString(formData),
+                    httpContext.Request.Form.Files
+                );
+            }
+
+            // Initialize the page
+            page.SetContext(httpContext);
+            await InitPageAsync(page, token);
+            var form = await LoadViewStateAsync(httpContext, page);
+
+            // Find the control and start the stream
+            var streamControl = page.FindControl(panel);
+
+            if (streamControl is not StreamPanel streamPanel)
+            {
+                return;
+            }
+
+            page.ActiveStreamPanel = streamPanel;
+            streamPanel.IsConnected = true;
+
+            streamPanel.InvokeFrameworkInit(token);
+            await streamPanel.InvokeInitAsync(token);
+            await ProcessRequestAsync(httpContext, page, form, render: true, token);
+
+            await streamPanel.StartAsync(httpContext, socket);
+        });
     }
 
     private async Task RenderExternalPageAsync(IHttpContext context, HtmlTextWriter writer, Page page, CancellationToken token)

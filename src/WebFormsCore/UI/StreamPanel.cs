@@ -26,7 +26,7 @@ internal record WebSocketCommand(
 
 public class StreamPanel : Control, INamingContainer
 {
-    private static readonly RecyclableMemoryStreamManager MemoryStreamManager = new();
+    internal static readonly RecyclableMemoryStreamManager MemoryStreamManager = new();
 
     private WebSocket _webSocket = null!;
     private Task<WebSocketReceiveResult>? _receiveTask;
@@ -57,7 +57,7 @@ public class StreamPanel : Control, INamingContainer
         }
     }
 
-    protected override bool ProcessControl => IsConnected || _prerender;
+    protected override bool ProcessControl => Page.IsStreaming || _prerender;
 
     public override bool EnableViewState => false;
 
@@ -94,7 +94,7 @@ public class StreamPanel : Control, INamingContainer
         await Connected.InvokeAsync(this, EventArgs.Empty);
         await UpdateControlAsync();
 
-        var incoming = new byte[1024];
+        var incoming = new byte[1024]; // TODO: Use a buffer pool
 
         var status = WebSocketCloseStatus.NormalClosure;
         var message = "Done";
@@ -212,8 +212,19 @@ public class StreamPanel : Control, INamingContainer
 
     public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
+        if (!Visible)
+        {
+            return;
+        }
+
         writer.AddAttribute("id", UniqueID);
-        writer.AddAttribute("data-wfc-stream", null);
+
+        // Ensure we're not nesting stream panels
+        if (Page.ActiveStreamPanel is null || Page.ActiveStreamPanel == this)
+        {
+            writer.AddAttribute("data-wfc-stream", null);
+        }
+
         await writer.RenderBeginTagAsync("div");
 
         if (ProcessControl)

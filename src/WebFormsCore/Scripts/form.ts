@@ -754,6 +754,11 @@ wfc.bind('[data-wfc-stream]', {
             morphdom(element, htmlDoc.getElementById(id), getMorpdomSettings());
             element.isUpdating = false;
         });
+
+        webSocket.addEventListener('open', function() {
+            const formData = getFormData(element);
+            webSocket.send(new URLSearchParams(formData as any).toString());
+        });
     },
     update: function(element, source) {
         if (!element.isUpdating) {

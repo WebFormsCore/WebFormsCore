@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Buffers;
 using System.IO;
+using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,6 +28,24 @@ internal static class StreamExtensions
         {
             using var stream = new UnmanagedMemoryStream(pDestination, span.Length);
             stream.CopyTo(destinationStream);
+        }
+    }
+
+    public static async ValueTask<WebSocketReceiveResult> ReceiveAsync(this WebSocket socket, Memory<byte> buffer, CancellationToken cancellationToken)
+    {
+        if (MemoryMarshal.TryGetArray(buffer, out ArraySegment<byte> arraySegment))
+        {
+            return await socket.ReceiveAsync(arraySegment, cancellationToken).ConfigureAwait(false);
+        }
+
+        var array = ArrayPool<byte>.Shared.Rent(buffer.Length);
+        try
+        {
+            return await socket.ReceiveAsync(new ArraySegment<byte>(array, 0, buffer.Length), cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(array);
         }
     }
 
