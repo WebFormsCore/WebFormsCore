@@ -36,6 +36,7 @@ public partial class Control : System.Web.UI.Control
     private Control? _namingContainer;
     private string? _id;
     private bool _hasGeneratedId;
+    private bool _forceClientIdAttribute;
     private bool _generatedIdChanged;
     private string? _cachedUniqueID;
     private string? _cachedPredictableID;
@@ -79,7 +80,7 @@ public partial class Control : System.Web.UI.Control
 
     protected virtual bool EnableViewStateBag => EnableViewState;
 
-    protected bool HasUserId => _id is not null && !_hasGeneratedId;
+    protected bool AddClientIdToAttributes => (_id is not null && !_hasGeneratedId) || _forceClientIdAttribute;
 
     protected virtual bool ProcessControl => true;
 
@@ -353,6 +354,7 @@ public partial class Control : System.Web.UI.Control
         _visible = true;
         _trackViewState = false;
         _enableViewState = null;
+        _forceClientIdAttribute = false;
         _state = ControlState.Constructed;
     }
 
@@ -889,6 +891,11 @@ public partial class Control : System.Web.UI.Control
     public virtual void StateHasChanged()
     {
         Page.ActiveStreamPanel?.StateHasChanged();
+    }
+
+    public void EnsureIdAttribute()
+    {
+        _forceClientIdAttribute = true;
     }
 
     public Control LoadControl(string path) => (Control) WebActivator.CreateControl(path);

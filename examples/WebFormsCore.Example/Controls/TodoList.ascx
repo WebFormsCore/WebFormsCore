@@ -1,5 +1,6 @@
 <%@ Control language="C#" Inherits="WebFormsCore.Example.Controls.TodoList" %>
 
+<wfc:Label runat="server" AssociatedControlID="tbItem" Text="Text:" /><br />
 <wfc:TextBox runat="server" ID="tbItem" class="form-control" OnEnterPressed="tbItem_OnEnterPressed" />
 <wfc:RequiredFieldValidator runat="server" ControlToValidate="tbItem" Text="Required!" ValidationGroup="NewTodoItem" />
 

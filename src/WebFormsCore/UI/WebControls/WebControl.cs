@@ -75,7 +75,7 @@ public partial class WebControl : Control, IAttributeAccessor
 
     protected virtual ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
-        if (HasUserId)
+        if (AddClientIdToAttributes)
         {
             writer.AddAttribute(HtmlTextWriterAttribute.Id, ClientID);
         }
