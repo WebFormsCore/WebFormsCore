@@ -24,7 +24,7 @@
     </PropertyGroup>
 
     <PropertyGroup Condition="$(TargetFramework) == 'net8.0'">
-        <ExtensionsVersion>8.0.0-preview.7.23375.6</ExtensionsVersion>
+        <ExtensionsVersion>8.0.0-rc.2.23479.6</ExtensionsVersion>
     </PropertyGroup>
 
 </Project>
