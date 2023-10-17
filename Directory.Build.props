@@ -16,7 +16,7 @@
     <PropertyGroup>
         <DotNetVersions>net6.0;net7.0;net8.0</DotNetVersions>
         <ExtensionsVersion>6.0.0</ExtensionsVersion>
-        <HttpStackVersion>0.0.1-alpha.13</HttpStackVersion>
+        <HttpStackVersion>0.0.1-alpha.14</HttpStackVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="$(TargetFramework) == 'net7.0'">

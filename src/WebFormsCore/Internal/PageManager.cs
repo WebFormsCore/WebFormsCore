@@ -12,7 +12,6 @@ using HttpStack.Collections;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-using WebFormsCore.Collections;
 using WebFormsCore.Events;
 using WebFormsCore.UI;
 using WebFormsCore.UI.HtmlControls;
