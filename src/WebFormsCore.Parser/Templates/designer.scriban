@@ -115,20 +115,16 @@
         }
         {{- end }}
 {{- end }}
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8601 // Possible null reference assignment.
 
-{{- if RootNamespace }}
-[assembly:WebFormsCore.RootNamespaceAttribute("{{ RootNamespace }}")]
-{{- end }}
-{{- for type in Types }}
+{{ for type in Types -}}
 [assembly:WebFormsCore.AssemblyViewAttribute(@"{{ type.RelativePath }}", typeof({{ type.Namespace ? (type.Namespace + ".") : ""  }}CompiledViews.{{ type.ClassName }}))]
-{{- end }}
-
-{{ for type in Types }}
-{{- if type.Namespace }}
+{{ if type.Namespace }}
 namespace {{ type.Namespace }}
 {
-{{- end }}
-
+{{ end }}
 {{- for ns in type.Namespaces }}
 using {{ ns }};
 {{- end }}
@@ -241,6 +237,7 @@ public partial class CompiledViews
     }
 }
 {{- if type.Namespace }}
+
 }
 {{- end }}
 {{- end }}

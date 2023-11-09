@@ -356,6 +356,7 @@ public partial class Control : System.Web.UI.Control
         _enableViewState = null;
         _forceClientIdAttribute = false;
         _state = ControlState.Constructed;
+        _didInit = false;
     }
 
     protected virtual string GetUniqueIDPrefix()
@@ -373,7 +374,18 @@ public partial class Control : System.Web.UI.Control
     /// <returns>The collection of child controls for the specified server control.</returns>
     [Browsable(false)]
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public virtual ControlCollection Controls => _controls ??= CreateControlCollection();
+    public virtual ControlCollection Controls
+    {
+        get
+        {
+            if (!_didInit)
+            {
+                InvokeFrameworkInit(default);
+            }
+
+            return _controls ??= CreateControlCollection();
+        }
+    }
 
     public virtual bool HasControls() => _controls is { Count: > 0 };
 
@@ -548,6 +560,11 @@ public partial class Control : System.Web.UI.Control
 
     private void UpdateNamingContainer(Control namingContainer)
     {
+        if (IsInPage && this is IDisposable or IAsyncDisposable)
+        {
+            Page.RegisterDisposable(this);
+        }
+
         if (_namingContainer == null || _namingContainer != null && _namingContainer != namingContainer)
         {
             ClearCachedUniqueIDRecursive();
@@ -729,6 +746,11 @@ public partial class Control : System.Web.UI.Control
     /// <returns>The specified control, or <see langword="null" /> if the specified control does not exist.</returns>
     public virtual Control? FindControl(string id)
     {
+        if (!_didInit)
+        {
+            InvokeFrameworkInit(default);
+        }
+
         if (this is not INamingContainer)
         {
             return NamingContainer?.FindControl(id);

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -342,14 +343,14 @@ public class RootNode : ContainerNode
         }
     }
 
-    public static List<KeyValuePair<string, string>> GetNamespaces(string webConfigText)
+    public static ImmutableArray<KeyValuePair<string, string>> GetNamespaces(string? webConfigText)
     {
-        var namespaces = new List<KeyValuePair<string, string>>();
-
         if (string.IsNullOrEmpty(webConfigText))
         {
-            return namespaces;
+            return default;
         }
+
+        var namespaces = new List<KeyValuePair<string, string>>();
 
         try
         {
@@ -377,7 +378,7 @@ public class RootNode : ContainerNode
             // TODO: Diagnostic
         }
 
-        return namespaces;
+        return namespaces.ToImmutableArray();
     }
 }
 

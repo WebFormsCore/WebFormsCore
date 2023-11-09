@@ -103,15 +103,19 @@ public partial class Control : IInternalControl
         OnWriteViewState(ref writer);
     }
 
+    private bool _didInit;
+
     internal void InvokeFrameworkInit(CancellationToken token)
     {
-        if (this is IDisposable or IAsyncDisposable)
-        {
-            Page.RegisterDisposable(this);
-        }
-
         if (ProcessControl)
         {
+            if (_didInit)
+            {
+                return;
+            }
+
+            _didInit = true;
+
             FrameworkInitialize();
             FrameworkInitialized();
 

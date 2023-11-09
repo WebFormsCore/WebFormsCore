@@ -16,7 +16,7 @@ builder.Services.AddWebForms(b =>
     b.AddGridCellRenderers();
     b.AddClientResourceManagement();
 });
-
+// a B
 builder.Services.Configure<WebFormsCoreOptions>(options =>
 {
     options.HiddenClass = "d-none";
