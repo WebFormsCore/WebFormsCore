@@ -107,27 +107,21 @@ public partial class Control : IInternalControl
 
     internal void InvokeFrameworkInit(CancellationToken token)
     {
-        if (ProcessControl)
+        if (_didInit)
         {
-            if (_didInit)
-            {
-                return;
-            }
-
-            _didInit = true;
-
-            FrameworkInitialize();
-            FrameworkInitialized();
-
-            _state = ControlState.FrameworkInitialized;
+            return;
         }
 
-        if (ProcessChildren)
+        _didInit = true;
+
+        FrameworkInitialize();
+        FrameworkInitialized();
+
+        _state = ControlState.FrameworkInitialized;
+
+        foreach (var control in Controls)
         {
-            foreach (var control in Controls)
-            {
-                control.InvokeFrameworkInit(token);
-            }
+            control.InvokeFrameworkInit(token);
         }
     }
 

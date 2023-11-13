@@ -378,12 +378,17 @@ public partial class Control : System.Web.UI.Control
     {
         get
         {
-            if (!_didInit)
+            if (_controls == null)
             {
-                InvokeFrameworkInit(default);
+                _controls = CreateControlCollection();
+
+                if (!_didInit)
+                {
+                    InvokeFrameworkInit(default);
+                }
             }
 
-            return _controls ??= CreateControlCollection();
+            return _controls;
         }
     }
 
