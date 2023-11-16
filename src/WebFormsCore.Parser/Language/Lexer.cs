@@ -258,7 +258,7 @@ public ref struct Lexer
         var start = Position;
         var name = ReadTagName();
         var isInvalid = name.Value.Length == 0 ||
-                        (!isServerTag && !isClosingTag && !ShouldParse(name.Value) && Current != ':');
+                        (!isServerTag && !isClosingTag && !ShouldParse(name.Value, isClosingTag) && Current != ':');
 
         if (isInvalid || isClosingTag)
         {
@@ -382,10 +382,9 @@ public ref struct Lexer
         return true;
     }
 
-    private static bool ShouldParse(string name)
+    private bool ShouldParse(string name, bool isClosingTag)
     {
-        return
-            // Properties
+        var isSpecialTag = // Properties
             char.IsUpper(name[0]) ||
 
             // Special elements
@@ -399,6 +398,29 @@ public ref struct Lexer
             name.Equals("style", StringComparison.OrdinalIgnoreCase) ||
             name.Equals("link", StringComparison.OrdinalIgnoreCase) ||
             name.Equals("img", StringComparison.OrdinalIgnoreCase);
+
+        if (!isSpecialTag)
+        {
+            return false;
+        }
+
+        // It's possible there is a expression in the attribute list.
+        // If this it the case, we should not parse the tag since we need to render the expression.
+        var slice = _input.Slice(_offset);
+        var last = slice.IndexOf('>');
+
+        if (last == -1)
+        {
+            return true;
+        }
+
+        // Check for '<%'
+        if (slice.Slice(0, last).Contains(_startStatement, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private bool ConsumeInline()
@@ -521,7 +543,7 @@ public ref struct Lexer
 
                 var current = _input[_offset];
 
-                if (current is '\n' or '\r' || current == token)
+                if (current == token)
                 {
                     break;
                 }

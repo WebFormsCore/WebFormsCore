@@ -1,0 +1,84 @@
+﻿[
+  {
+    Type: Text,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      End: {
+        Offset: 10,
+        Column: 10
+      }
+    },
+    Text: {
+      Value: <img src=",
+      CodeString: "<img src=\"",
+      VbCodeString: "<img src=""",
+      Range: {
+        File: {CurrentDirectory}Tests.aspx,
+        End: {
+          Offset: 10,
+          Column: 10
+        }
+      }
+    }
+  },
+  {
+    Type: Expression,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 10,
+        Column: 10
+      },
+      End: {
+        Offset: 18,
+        Column: 18
+      }
+    },
+    Text: {
+      Value:  Var ,
+      CodeString: " Var ",
+      VbCodeString: " Var ",
+      Range: {
+        File: {CurrentDirectory}Tests.aspx,
+        Start: {
+          Offset: 13,
+          Column: 13
+        },
+        End: {
+          Offset: 18,
+          Column: 18
+        }
+      }
+    }
+  },
+  {
+    Type: Text,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 20,
+        Column: 20
+      },
+      End: {
+        Offset: 24,
+        Column: 24
+      }
+    },
+    Text: {
+      Value: " />,
+      CodeString: "\" />",
+      VbCodeString: """ />",
+      Range: {
+        File: {CurrentDirectory}Tests.aspx,
+        Start: {
+          Offset: 20,
+          Column: 20
+        },
+        End: {
+          Offset: 24,
+          Column: 24
+        }
+      }
+    }
+  }
+]

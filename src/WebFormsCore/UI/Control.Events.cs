@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HttpStack;
 using WebFormsCore.UI.HtmlControls;
+using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI;
 
@@ -38,7 +42,6 @@ public static class ControlExtensions
     }
 
     public static T? FindParent<T>(this Control control)
-        where T : Control
     {
         var parent = control.ParentInternal;
 
@@ -52,41 +55,110 @@ public static class ControlExtensions
             parent = parent.ParentInternal;
         }
 
-        return null;
+        return default;
     }
 
-    public static IEnumerable<Control> EnumerateControls(this Control control)
+    public static ControlEnumerable EnumerateControls(this Control control, Func<Control, bool> filter, int depth = 512)
     {
-        yield return control;
+        if (depth <= 0) throw new ArgumentOutOfRangeException(nameof(depth));
 
-        if (!control.HasControls()) yield break;
+        return new ControlEnumerable(control, filter, depth);
+    }
 
-        foreach (var child in control.Controls)
+    public static ControlEnumerable EnumerateControls(this Control control, int depth = 512)
+    {
+        if (depth <= 0) throw new ArgumentOutOfRangeException(nameof(depth));
+
+        return new ControlEnumerable(control, null, depth);
+    }
+
+    public readonly struct ControlEnumerable(Control control, Func<Control, bool>? filter, int depth) : IEnumerable<Control>
+    {
+        public ControlEnumerator GetEnumerator()
         {
-            foreach (var descendant in EnumerateControls(child))
-            {
-                yield return descendant;
-            }
+            return new ControlEnumerator(control, filter, depth);
+        }
+
+        IEnumerator<Control> IEnumerable<Control>.GetEnumerator()
+        {
+            return new ControlEnumerator(control, filter, depth);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 
-    public static IEnumerable<Control> EnumerateControls(this Control control, Func<Control, bool> filter)
+    public struct ControlEnumerator : IEnumerator<Control>
     {
-        yield return control;
+        private readonly (Control Control, int Index)[] _array;
+        private readonly Func<Control, bool>? _filter;
+        private int _currentIndex = -1;
 
-        if (!control.HasControls()) yield break;
-
-        foreach (var child in control.Controls)
+        public ControlEnumerator(Control root, Func<Control, bool>? filter, int depth = 512)
         {
-            if (!filter(child))
+            if (root == null)
             {
-                continue;
+                throw new ArgumentNullException(nameof(root));
             }
 
-            foreach (var descendant in EnumerateControls(child, filter))
+            _filter = filter;
+
+            _array = ArrayPool<(Control, int)>.Shared.Rent(depth);
+            Push(root, -2);
+        }
+
+        public void Reset()
+        {
+            _currentIndex = -1;
+        }
+
+        object IEnumerator.Current => Current;
+
+        public Control Current => _array[_currentIndex].Control;
+
+        public bool MoveNext()
+        {
+            while (_currentIndex >= 0)
             {
-                yield return descendant;
+                var (currentControl, index) = _array[_currentIndex--];
+
+                index++;
+
+                if (index >= (currentControl.HasControls() ? currentControl.Controls.Count : 0))
+                {
+                    continue;
+                }
+
+                Push(currentControl, index);
+
+                if (index < 0)
+                {
+                    return true;
+                }
+
+                var nextControl = currentControl.Controls[index];
+                Push(nextControl, -1);
+
+                if (_filter == null || _filter(nextControl))
+                {
+                    return true;
+                }
             }
+
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void Push(Control control, int index)
+        {
+            _array[++_currentIndex] = (control, index);
+        }
+
+        public void Dispose()
+        {
+            ArrayPool<(Control, int)>.Shared.Return(_array, true);
         }
     }
 }

@@ -1,0 +1,338 @@
+﻿[
+  {
+    Type: TagOpen,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      End: {
+        Offset: 1,
+        Column: 1
+      }
+    }
+  },
+  {
+    Type: ElementNamespace,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 1,
+        Column: 1
+      },
+      End: {
+        Offset: 13,
+        Column: 13
+      }
+    },
+    Text: {
+      Value: fortyfingers,
+      CodeString: "fortyfingers",
+      VbCodeString: "fortyfingers",
+      Range: {
+        File: {CurrentDirectory}Tests.aspx,
+        Start: {
+          Offset: 1,
+          Column: 1
+        },
+        End: {
+          Offset: 13,
+          Column: 13
+        }
+      }
+    }
+  },
+  {
+    Type: ElementName,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 13,
+        Column: 13
+      },
+      End: {
+        Offset: 25,
+        Column: 25
+      }
+    },
+    Text: {
+      Value: STYLEHELPER,
+      CodeString: "STYLEHELPER",
+      VbCodeString: "STYLEHELPER",
+      Range: {
+        File: {CurrentDirectory}Tests.aspx,
+        Start: {
+          Offset: 14,
+          Column: 14
+        },
+        End: {
+          Offset: 25,
+          Column: 25
+        }
+      }
+    }
+  },
+  {
+    Type: Attribute,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 26,
+        Column: 26
+      },
+      End: {
+        Offset: 28,
+        Column: 28
+      }
+    },
+    Text: {
+      Value: ID,
+      CodeString: "ID",
+      VbCodeString: "ID",
+      Range: {
+        File: {CurrentDirectory}Tests.aspx,
+        Start: {
+          Offset: 26,
+          Column: 26
+        },
+        End: {
+          Offset: 28,
+          Column: 28
+        }
+      }
+    }
+  },
+  {
+    Type: AttributeValue,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 30,
+        Column: 30
+      },
+      End: {
+        Offset: 37,
+        Column: 37
+      }
+    },
+    Text: {
+      Value: favicon,
+      CodeString: "favicon",
+      VbCodeString: "favicon",
+      Range: {
+        File: {CurrentDirectory}Tests.aspx,
+        Start: {
+          Offset: 30,
+          Column: 30
+        },
+        End: {
+          Offset: 37,
+          Column: 37
+        }
+      }
+    }
+  },
+  {
+    Type: Attribute,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 39,
+        Column: 39
+      },
+      End: {
+        Offset: 44,
+        Column: 44
+      }
+    },
+    Text: {
+      Value: runat,
+      CodeString: "runat",
+      VbCodeString: "runat",
+      Range: {
+        File: {CurrentDirectory}Tests.aspx,
+        Start: {
+          Offset: 39,
+          Column: 39
+        },
+        End: {
+          Offset: 44,
+          Column: 44
+        }
+      }
+    }
+  },
+  {
+    Type: AttributeValue,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 46,
+        Column: 46
+      },
+      End: {
+        Offset: 52,
+        Column: 52
+      }
+    },
+    Text: {
+      Value: server,
+      CodeString: "server",
+      VbCodeString: "server",
+      Range: {
+        File: {CurrentDirectory}Tests.aspx,
+        Start: {
+          Offset: 46,
+          Column: 46
+        },
+        End: {
+          Offset: 52,
+          Column: 52
+        }
+      }
+    }
+  },
+  {
+    Type: Attribute,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 54,
+        Column: 54
+      },
+      End: {
+        Offset: 63,
+        Column: 63
+      }
+    },
+    Text: {
+      Value: AddToHead,
+      CodeString: "AddToHead",
+      VbCodeString: "AddToHead",
+      Range: {
+        File: {CurrentDirectory}Tests.aspx,
+        Start: {
+          Offset: 54,
+          Column: 54
+        },
+        End: {
+          Offset: 63,
+          Column: 63
+        }
+      }
+    }
+  },
+  {
+    Type: AttributeValue,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 65,
+        Column: 65
+      },
+      End: {
+        Offset: 134,
+        Line: 2
+      }
+    },
+    Text: {
+      Value:
+   <link rel="icon" type="image/ico" href="[S]img/favicon.ico" />
+,
+      CodeString: "\r\n   <link rel=\"icon\" type=\"image/ico\" href=\"[S]img/favicon.ico\" />\r\n",
+      VbCodeString: "" + vbCrLf + "   <link rel=""icon"" type=""image/ico"" href=""[S]img/favicon.ico"" />" + vbCrLf + "",
+      Range: {
+        File: {CurrentDirectory}Tests.aspx,
+        Start: {
+          Offset: 65,
+          Column: 65
+        },
+        End: {
+          Offset: 134,
+          Line: 2
+        }
+      }
+    }
+  },
+  {
+    Type: Attribute,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 136,
+        Line: 2,
+        Column: 2
+      },
+      End: {
+        Offset: 144,
+        Line: 2,
+        Column: 10
+      }
+    },
+    Text: {
+      Value: AddAtEnd,
+      CodeString: "AddAtEnd",
+      VbCodeString: "AddAtEnd",
+      Range: {
+        File: {CurrentDirectory}Tests.aspx,
+        Start: {
+          Offset: 136,
+          Line: 2,
+          Column: 2
+        },
+        End: {
+          Offset: 144,
+          Line: 2,
+          Column: 10
+        }
+      }
+    }
+  },
+  {
+    Type: AttributeValue,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 146,
+        Line: 2,
+        Column: 12
+      },
+      End: {
+        Offset: 151,
+        Line: 2,
+        Column: 17
+      }
+    },
+    Text: {
+      Value: False,
+      CodeString: "False",
+      VbCodeString: "False",
+      Range: {
+        File: {CurrentDirectory}Tests.aspx,
+        Start: {
+          Offset: 146,
+          Line: 2,
+          Column: 12
+        },
+        End: {
+          Offset: 151,
+          Line: 2,
+          Column: 17
+        }
+      }
+    }
+  },
+  {
+    Type: TagSlashClose,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 153,
+        Line: 2,
+        Column: 19
+      },
+      End: {
+        Offset: 155,
+        Line: 2,
+        Column: 21
+      }
+    }
+  }
+]

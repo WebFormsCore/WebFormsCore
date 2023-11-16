@@ -42,30 +42,28 @@ public class ControlCollection : IReadOnlyCollection<Control>
             : default;
     }
 
-    public virtual void Swap(int oldIndex, int newIndex)
-    {
-        (_list[oldIndex], _list[newIndex]) = (_list[newIndex], _list[oldIndex]);
-        Owner.NamingContainer?.UpdateGeneratedIds();
-    }
-
     public void Swap(Control control, int newIndex)
     {
-        Swap(IndexOf(control), newIndex);
-    }
-
-    public void Swap(Control control1, Control control2)
-    {
-        Swap(IndexOf(control1), IndexOf(control2));
-    }
-
-    public void MoveToLast(int oldIndex)
-    {
-        Swap(oldIndex, Count - 1);
+        if (!_list.Remove(control)) return;
+        
+        _list.Insert(newIndex, control);
+        Owner.NamingContainer?.UpdateGeneratedIds();
     }
 
     public void MoveToLast(Control control)
     {
-        MoveToLast(IndexOf(control));
+        if (!_list.Remove(control)) return;
+
+        _list.Add(control);
+        Owner.NamingContainer?.UpdateGeneratedIds();
+    }
+
+    public void MoveToFront(Control control)
+    {
+        if (!_list.Remove(control)) return;
+
+        _list.Insert(0, control);
+        Owner.NamingContainer?.UpdateGeneratedIds();
     }
 
     public virtual void Clear()

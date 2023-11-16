@@ -84,18 +84,6 @@ public abstract class DesignerGenerator : IIncrementalGenerator
             if (type.ClassName is { } className)
             {
                 context.AddSource(className, output);
-
-                var counterPath = @$"C:\Temp\{className}.txt";
-
-                if (File.Exists(counterPath))
-                {
-                    var counter = int.Parse(File.ReadAllText(counterPath));
-                    File.WriteAllText(counterPath, (counter + 1).ToString());
-                }
-                else
-                {
-                    File.WriteAllText(counterPath, "1");
-                }
             }
         }
         catch(Exception ex)

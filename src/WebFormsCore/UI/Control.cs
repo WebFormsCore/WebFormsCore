@@ -641,7 +641,10 @@ public partial class Control : System.Web.UI.Control
         {
             if (control is not INamingContainer)
             {
-                UpdateGeneratedIds(ref index, control.Controls);
+                if (control.HasControls())
+                {
+                    UpdateGeneratedIds(ref index, control.Controls);
+                }
             }
             else if (control._generatedIdChanged)
             {
