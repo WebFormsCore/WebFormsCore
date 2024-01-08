@@ -80,14 +80,6 @@ public partial class WebControl : Control, IAttributeAccessor
             writer.AddAttribute(HtmlTextWriterAttribute.Id, ClientID);
         }
 
-        if (!Enabled)
-        {
-            if (SupportsDisabledAttribute)
-            {
-                writer.AddAttribute(HtmlTextWriterAttribute.Disabled, "disabled");
-            }
-        }
-
         if (TabIndex > 0)
         {
             writer.AddAttribute(HtmlTextWriterAttribute.Tabindex, TabIndex.ToString(NumberFormatInfo.InvariantInfo));
@@ -106,13 +98,16 @@ public partial class WebControl : Control, IAttributeAccessor
             {
                 writer.AddAttribute(HtmlTextWriterAttribute.Disabled, "disabled");
             }
+            else
+            {
+                writer.AddAttribute("aria-disabled", "true");
+            }
 
             if (!string.IsNullOrEmpty(DisabledCssClass))
             {
                 writer.MergeAttribute(HtmlTextWriterAttribute.Class, DisabledCssClass);
             }
 
-            writer.AddAttribute("aria-disabled", "true");
             writer.AddAttribute("data-wfc-disabled", "true");
         }
 

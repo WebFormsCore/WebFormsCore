@@ -17,7 +17,7 @@ internal sealed class ControlFactory<[DynamicallyAccessedMembers(DynamicallyAcce
     public ControlFactory(IControlManager manager, IEnumerable<IControlInterceptor<T>> interceptors)
     {
         _manager = manager;
-        _interceptors = interceptors.ToArray();
+        _interceptors = interceptors as IControlInterceptor<T>[] ?? interceptors.ToArray();
 
         _viewPaths = _manager.ViewTypes
             .Where(i => typeof(T).IsAssignableFrom(i.Value))

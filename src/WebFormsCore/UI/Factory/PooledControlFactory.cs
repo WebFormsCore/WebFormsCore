@@ -17,7 +17,7 @@ internal sealed class PooledControlFactory<[DynamicallyAccessedMembers(Dynamical
     public PooledControlFactory(ObjectPool<T> pool, IEnumerable<IControlInterceptor<T>> interceptors)
     {
         _pool = pool;
-        _interceptors = interceptors.ToArray();
+        _interceptors = interceptors as IControlInterceptor<T>[] ?? interceptors.ToArray();
     }
 
     public T CreateControl(IServiceProvider provider)

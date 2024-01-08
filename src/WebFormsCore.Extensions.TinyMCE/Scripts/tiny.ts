@@ -62,7 +62,6 @@ wfc.bind<Props>(".js-tinymce", {
     },
     submit: function(element, data) {
         const textArea = element.querySelector('textarea');
-        console.log(textArea.name, element._editor.getContent());
         data.set(textArea.name, element._editor.getContent());
     },
     destroy: function(element) {

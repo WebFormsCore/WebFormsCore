@@ -232,7 +232,22 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
 
         request.body = hasElementFile(document.body) ? formData : new URLSearchParams(formData as any);
 
-        const response = await fetch(url, request)
+        let response: Response;
+
+        try {
+            response = await fetch(url, request);
+        } catch(e) {
+            target.dispatchEvent(new CustomEvent("wfc:submitError", {
+                bubbles: true,
+                detail: {
+                    form,
+                    eventTarget,
+                    response: undefined,
+                    error: e
+                }
+            }));
+            throw e;
+        }
 
         if (!response.ok) {
             target.dispatchEvent(new CustomEvent("wfc:submitError", {
@@ -240,7 +255,8 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
                 detail: {
                     form,
                     eventTarget,
-                    response: response
+                    response: response,
+                    error: undefined
                 }
             }));
             throw new Error(response.statusText);

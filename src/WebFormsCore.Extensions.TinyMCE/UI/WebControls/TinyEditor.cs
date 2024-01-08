@@ -8,6 +8,8 @@ namespace WebFormsCore.UI.WebControls;
 
 public class TinyEditor : TextBox
 {
+    public TinyOptions? Options { get; set; }
+
     public TinyEditor()
     {
         TextMode = TextBoxMode.MultiLine;
@@ -24,11 +26,11 @@ public class TinyEditor : TextBox
 
     public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        var options = Context.RequestServices.GetService<IOptions<TinyOptions>>()?.Value ?? TinyOptions.Default;
+        var options = Options ?? Context.RequestServices.GetService<IOptions<TinyOptions>>()?.Value ?? TinyOptions.Default;
         var optionsJson = JsonSerializer.Serialize(options, JsonContext.Default.TinyOptions);
 
         writer.AddAttribute(HtmlTextWriterAttribute.Class, "js-tinymce");
-        writer.AddAttribute(HtmlTextWriterAttribute.Style, "visibility:hidden;height:400px;");
+        writer.AddAttribute(HtmlTextWriterAttribute.Style, $"visibility:hidden;height:{options.Height ?? 400}px;");
         if (!string.Equals(optionsJson, "{}", StringComparison.Ordinal))
         {
             writer.AddAttribute("data-options", optionsJson);

@@ -30,4 +30,11 @@ public class TinyOptions
     [JsonPropertyName("toolbar")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Toolbar { get; set; }
+
+    /// <summary>
+    /// The height of the editor. Defaults to 400.
+    /// </summary>
+    [JsonPropertyName("height")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? Height { get; set; }
 }
