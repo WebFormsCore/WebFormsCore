@@ -1,7 +1,7 @@
 <Project>
 
     <PropertyGroup>
-        <Version>0.0.1-alpha.34</Version>
+        <Version>0.0.1-alpha.38</Version>
         <PackageVersion>$(Version)</PackageVersion>
         <Authors>WebFormsCore</Authors>
         <RepositoryUrl>https://github.com/WebFormsCore/WebFormsCore</RepositoryUrl>
@@ -23,8 +23,8 @@
         <ExtensionsVersion>7.0.0</ExtensionsVersion>
     </PropertyGroup>
 
-    <PropertyGroup Condition="$(TargetFramework) == 'net8.0' or $(SdkTargetFramework) == 'net8.0'">
-        <ExtensionsVersion>8.0.0-rc.2.23479.6</ExtensionsVersion>
+    <PropertyGroup Condition="$(TargetFramework) == 'net8.0'">
+        <ExtensionsVersion>8.0.0</ExtensionsVersion>
     </PropertyGroup>
 
 </Project>

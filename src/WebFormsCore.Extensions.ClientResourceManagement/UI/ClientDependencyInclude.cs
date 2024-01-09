@@ -32,20 +32,20 @@ public abstract partial class ClientDependencyInclude : Control, IClientDependen
     {
         base.OnInit(args);
 
-        var service = Context.RequestServices.GetService<ClientDependencyCollection>();
+        var service = Context.RequestServices.GetService<IClientDependencyCollection>();
 
         if (service is null)
         {
             throw new NullReferenceException($"Client dependency services are not registered. Please call builder.{nameof(ClientResourceManagementExtensions.AddClientResourceManagement)}() in your Startup.cs");
         }
 
-        service.Files.Add(this);
+        service.Add(this);
     }
 
     protected override void OnUnload(EventArgs args)
     {
-        var service = Context.RequestServices.GetService<ClientDependencyCollection>();
-        service?.Files.Remove(this);
+        var service = Context.RequestServices.GetService<IClientDependencyCollection>();
+        service?.Remove(this);
     }
 
     public ClientDependencyType DependencyType { get; internal set; }

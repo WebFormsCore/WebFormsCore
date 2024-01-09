@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -28,7 +29,7 @@ public class RootNode : ContainerNode
     {
     }
 
-    public string? DesignerFullTypeName => GetClassName(Inherits?.ContainingNamespace.ToDisplayString(), ClassName);
+    public string DesignerFullTypeName => GetClassName(Inherits?.ContainingNamespace.ToDisplayString(), ClassName);
 
     public string GetClassName(string? ns, string? inherits)
     {
@@ -167,18 +168,22 @@ public class RootNode : ContainerNode
 
     [return: NotNullIfNotNull("text")]
     public static RootNode? Parse(
+        out IEnumerable<Diagnostic> diagnostics,
         Compilation compilation,
         string fullPath,
         string? text,
         string? rootNamespace = null,
         IEnumerable<KeyValuePair<string, string>>? namespaces = null,
         bool addFields = true,
-        SourceProductionContext? context = null,
         string? relativePath = null,
         string? rootDirectory = null,
         bool generateHash = true)
     {
-        if (text == null) return null;
+        if (text == null)
+        {
+            diagnostics = Enumerable.Empty<Diagnostic>();
+            return null;
+        }
 
         var lexer = new Lexer(fullPath, text.AsSpan());
         var parser = new Parser(compilation, rootNamespace, addFields, rootDirectory);
@@ -193,13 +198,7 @@ public class RootNode : ContainerNode
 
         parser.Parse(ref lexer);
 
-        if (context != null)
-        {
-            foreach (var diagnostic in parser.Diagnostics)
-            {
-                context.Value.ReportDiagnostic(diagnostic);
-            }
-        }
+        diagnostics = parser.Diagnostics;
 
         if (relativePath == null)
         {
@@ -223,6 +222,8 @@ public class RootNode : ContainerNode
 
         return parser.Root;
     }
+
+    public List<Diagnostic> Diagnostics { get; } = new();
 
     public static string NormalizePath(string path)
     {
@@ -346,14 +347,14 @@ public class RootNode : ContainerNode
         }
     }
 
-    public static List<KeyValuePair<string, string>> GetNamespaces(string webConfigText)
+    public static ImmutableArray<KeyValuePair<string, string>> GetNamespaces(string? webConfigText)
     {
-        var namespaces = new List<KeyValuePair<string, string>>();
-
         if (string.IsNullOrEmpty(webConfigText))
         {
-            return namespaces;
+            return default;
         }
+
+        var namespaces = new List<KeyValuePair<string, string>>();
 
         try
         {
@@ -381,7 +382,7 @@ public class RootNode : ContainerNode
             // TODO: Diagnostic
         }
 
-        return namespaces;
+        return namespaces.ToImmutableArray();
     }
 }
 

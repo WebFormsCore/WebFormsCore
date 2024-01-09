@@ -115,40 +115,16 @@
         }
         {{- end }}
 {{- end }}
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8601 // Possible null reference assignment.
+#pragma warning disable IL2072 // DynamicallyAccessedMemberTypes
 
-{{- if RootNamespace }}
-[assembly:WebFormsCore.RootNamespaceAttribute("{{ RootNamespace }}")]
-{{- end }}
-{{- for type in Types }}
+{{ for type in Types -}}
 [assembly:WebFormsCore.AssemblyViewAttribute(@"{{ type.RelativePath }}", typeof({{ type.Namespace ? (type.Namespace + ".") : ""  }}CompiledViews.{{ type.ClassName }}))]
-{{- end }}
-
-{{ if RootNamespace }}
-namespace {{ RootNamespace }}
-{
-{{- end }}
-internal class AssemblyControlTypeProvider : WebFormsCore.IControlTypeProvider
-{
-    public System.Collections.Generic.Dictionary<string, System.Type> GetTypes()
-    {
-        return new System.Collections.Generic.Dictionary<string, System.Type>
-        {
-            {{- for type in Types }}
-            { @"{{ type.RelativePath }}", typeof({{ type.Namespace ? (type.Namespace + ".") : ""  }}CompiledViews.{{ type.ClassName }}) },
-            {{- end }}
-        };
-    }
-}
-{{- if RootNamespace }}
-}
-{{- end }}
-
-{{ for type in Types }}
-{{- if type.Namespace }}
+{{ if type.Namespace }}
 namespace {{ type.Namespace }}
 {
-{{- end }}
-
+{{ end }}
 {{- for ns in type.Namespaces }}
 using {{ ns }};
 {{- end }}
@@ -159,7 +135,7 @@ partial class {{ type.InheritsClassName }}
 {
 {{- for prop in type.Ids }}
 {{- if !prop.Designer }}
-    protected {{ prop.DisplayType }} {{ prop.Name }};
+    protected {{ prop.DisplayType }} {{ prop.Name }} = default!;
 {{- end }}
 {{- end }}
 
@@ -169,13 +145,13 @@ partial class {{ type.InheritsClassName }}
     public class {{ template.ControlsType }} : WebFormsCore.UI.ITemplateControls
     {
     {{- for prop in template.Ids }}
-        public {{ prop.DisplayType }} {{ prop.Name }};
+        public {{ prop.DisplayType }} {{ prop.Name }} = default!;
     {{- end }}
 
         public void Load(WebFormsCore.UI.Control container)
         {
         {{- for prop in template.Ids }}
-            {{ prop.Name }} = ({{ prop.DisplayType }})container.FindControl("{{ prop.Name }}");
+            {{~ "            " }}{{ prop.Name }} = ({{ prop.DisplayType }})container.FindControl("{{ prop.Name }}")!;
         {{- end }}
         }
     }
@@ -201,7 +177,7 @@ public partial class CompiledViews
 
         {{- for prop in type.Ids }}
         {{- if prop.Designer }}
-        protected {{ prop.Member ? "new " : "" }}{{ prop.DisplayType }} {{ prop.Name }};
+        protected {{ prop.Member ? "new " : "" }}{{ prop.DisplayType }} {{ prop.Name }} = default!;
         {{- end }}
         {{- end }}
 
@@ -261,6 +237,7 @@ public partial class CompiledViews
     }
 }
 {{- if type.Namespace }}
+
 }
 {{- end }}
 {{- end }}

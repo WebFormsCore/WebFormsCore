@@ -14,13 +14,11 @@ public partial class ClientDependencyExclude : Control
 	{
 		base.OnInit(args);
 
-		var service = Context.RequestServices.GetService<ClientDependencyCollection>();
-		var item = service?.Files.FirstOrDefault(x => x.DependencyType == DependencyType &&
-		                                              string.Equals(x.Name, Name, StringComparison.OrdinalIgnoreCase));
-
-		if (item != null && service != null)
+		if (Name is not null)
 		{
-			service.Files.Remove(item);
+			var service = Context.RequestServices.GetService<IClientDependencyCollection>();
+
+			service?.Remove(DependencyType, Name);
 		}
 	}
 }

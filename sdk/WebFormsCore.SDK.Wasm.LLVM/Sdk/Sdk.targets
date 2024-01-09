@@ -15,11 +15,17 @@
 
     <ItemGroup>
         <PackageReference Include="HttpStack.Wasm.LLVM" Version="0.0.1-alpha.17" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0-rc.2.23479.6" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     </ItemGroup>
 
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true'">
-        <PackageReference Include="WebFormsCore.SDK.Wasm.LLVM" Version="0.0.1-alpha.34" OutputItemType="Analyzer" />
+        <PackageReference Include="WebFormsCore.SDK.Wasm.LLVM" Version="0.0.1-alpha.38" OutputItemType="Analyzer" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="$(MSBuildThisFileDirectory)\index.js" Link="index.js" Visible="False">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.Web" />

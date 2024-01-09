@@ -24,7 +24,7 @@ public static class ClientResourceManagementExtensions
     public static ClientResourceManagementBuilder AddClientResourceManagement(this IWebFormsCoreBuilder builder)
     {
         builder.Services.TryAddSingleton<IPageService, ClientResourceManagementService>();
-        builder.Services.TryAddScoped<ClientDependencyCollection>();
+        builder.Services.TryAddScoped<IClientDependencyCollection, ClientDependencyCollection>();
         builder.TryAddEnumAttributeParser<CssMediaType>();
         return new ClientResourceManagementBuilder(builder.Services);
     }

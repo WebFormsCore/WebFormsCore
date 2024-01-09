@@ -23,19 +23,7 @@ internal class WebFormsApplications : IWebFormsApplication
 
     public string? GetPath(string path)
     {
-        if (string.IsNullOrEmpty(path))
-        {
-            return null;
-        }
-
-        if (_environment.ContentRootPath is null)
-        {
-            return null;
-        }
-
-        var fullPath = Path.Combine(_environment.ContentRootPath, path.TrimStart('/'));
-
-        if (!_controlManager.TryGetPath(fullPath, out var result))
+        if (string.IsNullOrEmpty(path) || !_controlManager.TryGetPath(path, out var result))
         {
             return null;
         }

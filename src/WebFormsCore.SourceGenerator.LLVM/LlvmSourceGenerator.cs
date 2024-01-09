@@ -1,7 +1,5 @@
-﻿using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Scriban;
 
 namespace WebFormsCore.SourceGenerator.LLVM;
@@ -14,10 +12,21 @@ public class LlvmSourceGenerator : IIncrementalGenerator
 		var typeDeclaration = context.SyntaxProvider
 			.CreateSyntaxProvider(
 				predicate: Predicate,
-				transform: static (ctx, _) => (TypeDeclarationSyntax)ctx.Node);
+				transform: static (ctx, _) => Execute(ctx));
 
-		context.RegisterSourceOutput(typeDeclaration.Combine(context.AnalyzerConfigOptionsProvider).Combine(context.CompilationProvider),
-			static (spc, source) => Execute(source, spc));
+		var currentNamespace = context.AnalyzerConfigOptionsProvider
+			.Select((options, _) => options.GlobalOptions.TryGetValue("build_property.RootNamespace", out var ns) ? ns : null);
+
+		var result = typeDeclaration.Combine(currentNamespace)
+			.Select((i, _) => i.Right is not null ? i.Left with { Namespace = i.Right } : i.Left);
+
+		context.RegisterSourceOutput(result,
+			static (spc, source) =>
+			{
+				const string templateFile = "Templates/llvm.scriban";
+				var template = Template.Parse(EmbeddedResource.GetContent(templateFile), templateFile);
+				spc.AddSource("Startup", template.Render(source, member => member.Name));
+			});
 	}
 
 	private static bool Predicate(SyntaxNode s, CancellationToken token)
@@ -25,18 +34,10 @@ public class LlvmSourceGenerator : IIncrementalGenerator
 		return s is TypeDeclarationSyntax { Identifier.Text: "Startup" };
 	}
 
-	private static void Execute(((TypeDeclarationSyntax Left, AnalyzerConfigOptionsProvider Right) Left, Compilation Right) source, SourceProductionContext spc)
+	private static SourceInformation Execute(GeneratorSyntaxContext ctx)
 	{
-		const string templateFile = "Templates/llvm.scriban";
-		var template = Template.Parse(EmbeddedResource.GetContent(templateFile), templateFile);
-
-		var (type, analyzer) = source.Left;
-		var compilation = source.Right;
-
-		if (!analyzer.GlobalOptions.TryGetValue("build_property.RootNamespace", out var ns))
-		{
-			ns = compilation.AssemblyName;
-		}
+		var type = (TypeDeclarationSyntax)ctx.Node;
+		var compilation = ctx.SemanticModel.Compilation;
 
 		const string configureServices = "ConfigureServices";
 		const string configure = "Configure";
@@ -62,12 +63,13 @@ public class LlvmSourceGenerator : IIncrementalGenerator
 			}
 		}
 
-		spc.AddSource("Startup", template.Render(new
-		{
-			Type = model.GetDeclaredSymbol(type)?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-			Namespace = ns,
-			ConfigureServices = hasConfigureServices,
-			ConfigureParameters = configureParameters
-		}, member => member.Name));
+		return new SourceInformation(
+			Type: model.GetDeclaredSymbol(type)?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)!,
+			Namespace: compilation.AssemblyName,
+			ConfigureServices: hasConfigureServices,
+			ConfigureParameters: configureParameters
+		);
 	}
+
+	public record SourceInformation(string Type, string? Namespace, bool ConfigureServices, List<string>? ConfigureParameters);
 }

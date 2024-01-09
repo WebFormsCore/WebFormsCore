@@ -16,13 +16,53 @@ namespace WebFormsCore.SourceGenerator
             var typeDeclaration = context.SyntaxProvider
                 .CreateSyntaxProvider(
                     predicate: Predicate,
-                    transform: static (ctx, _) => (TypeDeclarationSyntax)ctx.Node);
+                    transform: static (ctx, _) =>
+                    {
+                        var items = GetItems((TypeDeclarationSyntax)ctx.Node, ctx.SemanticModel.Compilation.GetSemanticModel(ctx.Node.SyntaxTree));
+                        var (ns, name) = ctx.Node switch
+                        {
+                            ClassDeclarationSyntax classDeclaration => (GetNamespace(classDeclaration), classDeclaration.Identifier.Text),
+                            StructDeclarationSyntax structDeclaration => (GetNamespace(structDeclaration), structDeclaration.Identifier.Text),
+                            _ => (null, "ViewState")
+                        };
 
-            IncrementalValueProvider<(Compilation, ImmutableArray<TypeDeclarationSyntax>)> compilationAndClasses
-                = context.CompilationProvider.Combine(typeDeclaration.Collect());
+                        return string.IsNullOrEmpty(ns)
+                            ? (name, items)
+                            : ($"{ns}.{name}", items);
+                    });
 
-            context.RegisterSourceOutput(compilationAndClasses,
-                static (spc, source) => Execute(source.Item1, source.Item2, spc));
+            context.RegisterSourceOutput(typeDeclaration, Execute);
+        }
+
+        public static string GetNamespace(BaseTypeDeclarationSyntax syntax)
+        {
+            string nameSpace = string.Empty;
+            SyntaxNode? potentialNamespaceParent = syntax.Parent;
+
+            while (potentialNamespaceParent != null &&
+                   potentialNamespaceParent is not NamespaceDeclarationSyntax
+                   && potentialNamespaceParent is not FileScopedNamespaceDeclarationSyntax)
+            {
+                potentialNamespaceParent = potentialNamespaceParent.Parent;
+            }
+
+            if (potentialNamespaceParent is BaseNamespaceDeclarationSyntax namespaceParent)
+            {
+                nameSpace = namespaceParent.Name.ToString();
+
+                while (true)
+                {
+                    if (namespaceParent.Parent is not NamespaceDeclarationSyntax parent)
+                    {
+                        break;
+                    }
+
+                    nameSpace = $"{namespaceParent.Name}.{nameSpace}";
+                    namespaceParent = parent;
+                }
+            }
+
+            return nameSpace;
         }
 
         private static bool Predicate(SyntaxNode s, CancellationToken token)
@@ -110,7 +150,7 @@ namespace WebFormsCore.SourceGenerator
         public record ClassItem(
             string? Namespace,
             string Type,
-            List<PropertyItem> Properties,
+            ImmutableArray<PropertyItem> Properties,
             string FlagType,
             bool IsControl
         );
@@ -127,64 +167,50 @@ namespace WebFormsCore.SourceGenerator
         );
 
         public record Model(
-            List<ClassItem> Items
+            IEnumerable<ClassItem> Items
         );
 
-        public static void Execute(Compilation compilation, ImmutableArray<TypeDeclarationSyntax> typeDeclarations, SourceProductionContext context)
+
+        private void Execute(SourceProductionContext context, (string, ImmutableArray<ClassItem>) tuple)
         {
             const string file = "Templates/viewstate.scriban";
 
-            var items = new List<ClassItem>();
+            var (name, items) = tuple;
+            var templateModel = new Model(items);
 
-            foreach (var typeDeclaration in typeDeclarations)
+            var template = Template.Parse(EmbeddedResource.GetContent(file), file);
+            var output = template.Render(templateModel, member => member.Name);
+
+            context.AddSource(name.Replace('.', '_'), SourceText.From(output, Encoding.UTF8));
+        }
+
+        private static ImmutableArray<ClassItem> GetItems(TypeDeclarationSyntax typeDeclaration, SemanticModel model)
+        {
+            var properties = new List<PropertyItem>();
+            var id = 0;
+            var flag = 1;
+
+            foreach (var member in typeDeclaration.Members)
             {
-                var model = compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
-
-                var properties = new List<PropertyItem>();
-                var id = 0;
-                var flag = 1;
-
-                foreach (var member in typeDeclaration.Members)
+                if (!HasViewStateAttribute(member, out var validateProperty, out var trackDefault))
                 {
-                    if (!HasViewStateAttribute(member, out var validateProperty, out var trackDefault))
+                    continue;
+                }
+
+                if (member is FieldDeclarationSyntax field)
+                {
+                    var type = model.GetTypeInfo(field.Declaration.Type).Type;
+
+                    if (type == null) continue;
+
+                    foreach (var variable in field.Declaration.Variables)
                     {
-                        continue;
-                    }
-
-                    if (member is FieldDeclarationSyntax field)
-                    {
-                        var type = model.GetTypeInfo(field.Declaration.Type).Type;
-
-                        if (type == null) continue;
-
-                        foreach (var variable in field.Declaration.Variables)
-                        {
-                            properties.Add(new PropertyItem(
-                                id++,
-                                variable.Identifier.Text,
-                                type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                                validateProperty,
-                                variable.Initializer?.Value.ToString(),
-                                flag,
-                                type.AllInterfaces.Any(x => x.Name == "IViewStateObject"),
-                                trackDefault
-                            ));
-
-                            flag *= 2;
-                        }
-                    }
-                    else if (member is PropertyDeclarationSyntax property)
-                    {
-                        var type = model.GetTypeInfo(property.Type).Type;
-
-                        if (type == null) continue;
-
                         properties.Add(new PropertyItem(
                             id++,
-                            property.Identifier.Text,
+                            variable.Identifier.Text,
                             type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                             validateProperty,
-                            property.Initializer?.Value.ToString(),
+                            variable.Initializer?.Value.ToString(),
                             flag,
                             type.AllInterfaces.Any(x => x.Name == "IViewStateObject"),
                             trackDefault
@@ -193,60 +219,83 @@ namespace WebFormsCore.SourceGenerator
                         flag *= 2;
                     }
                 }
-
-                var ns = typeDeclaration.GetNamespace();
-
-                if (string.IsNullOrEmpty(ns))
+                else if (member is PropertyDeclarationSyntax property)
                 {
-                    ns = null;
+                    var type = model.GetTypeInfo(property.Type).Type;
+
+                    if (type == null) continue;
+
+                    properties.Add(new PropertyItem(
+                        id++,
+                        property.Identifier.Text,
+                        type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                        validateProperty,
+                        property.Initializer?.Value.ToString(),
+                        flag,
+                        type.AllInterfaces.Any(x => x.Name == "IViewStateObject"),
+                        trackDefault
+                    ));
+
+                    flag *= 2;
                 }
-
-                var typeName = typeDeclaration.Identifier.Text;
-
-                if (typeDeclaration.TypeParameterList is { } typeParameterList)
-                {
-                    typeName += typeParameterList.ToString();
-                }
-
-                var symbol = model.GetDeclaredSymbol(typeDeclaration) as ITypeSymbol;
-                var isControl = false;
-
-                var baseType = symbol?.BaseType;
-
-                while (baseType != null)
-                {
-                    if (baseType.Name == "Control")
-                    {
-                        isControl = true;
-                        break;
-                    }
-
-                    baseType = baseType.BaseType;
-                }
-
-                items.Add(new ClassItem(
-                    ns,
-                    typeName,
-                    properties,
-                    properties.Count switch
-                    {
-                        <= 8 => "byte",
-                        <= 16 => "ushort",
-                        <= 32 => "uint",
-                        _ => "ulong"
-                    },
-                    isControl
-                ));
             }
 
-            var templateModel = new Model(
-                items
-            );
-            
-            var template = Template.Parse(EmbeddedResource.GetContent(file), file);
-            var output = template.Render(templateModel, member => member.Name);
+            var ns = typeDeclaration.GetNamespace();
 
-            context.AddSource("WebForms.ViewState.cs", SourceText.From(output, Encoding.UTF8));
+            if (string.IsNullOrEmpty(ns))
+            {
+                ns = null;
+            }
+
+            var typeName = typeDeclaration.Identifier.Text;
+
+            if (typeDeclaration.TypeParameterList is { } typeParameterList)
+            {
+                typeName += typeParameterList.ToString();
+            }
+
+            var symbol = model.GetDeclaredSymbol(typeDeclaration) as ITypeSymbol;
+            var isControl = false;
+
+            var baseType = symbol?.BaseType;
+
+            while (baseType != null)
+            {
+                if (baseType.Name == "Control")
+                {
+                    isControl = true;
+                    break;
+                }
+
+                baseType = baseType.BaseType;
+            }
+
+            return ImmutableArray.Create(new ClassItem(
+                ns,
+                typeName,
+                properties.ToImmutableArray(),
+                properties.Count switch
+                {
+                    <= 8 => "byte",
+                    <= 16 => "ushort",
+                    <= 32 => "uint",
+                    _ => "ulong"
+                },
+                isControl
+            ));
+        }
+
+        public static void Execute(Compilation compilation, ImmutableArray<TypeDeclarationSyntax> typeDeclarations, SourceProductionContext context)
+        {
+
+            var items = new List<ClassItem>();
+
+            foreach (var typeDeclaration in typeDeclarations)
+            {
+                var model = compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
+
+
+            }
         }
     }
 

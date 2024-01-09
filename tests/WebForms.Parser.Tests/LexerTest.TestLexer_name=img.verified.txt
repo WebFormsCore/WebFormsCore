@@ -1,0 +1,116 @@
+﻿[
+  {
+    Type: TagOpen,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      End: {
+        Offset: 1,
+        Column: 1
+      }
+    }
+  },
+  {
+    Type: ElementName,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 1,
+        Column: 1
+      },
+      End: {
+        Offset: 4,
+        Column: 4
+      }
+    },
+    Text: {
+      Value: img,
+      CodeString: "img",
+      VbCodeString: "img",
+      Range: {
+        File: {CurrentDirectory}Tests.aspx,
+        Start: {
+          Offset: 1,
+          Column: 1
+        },
+        End: {
+          Offset: 4,
+          Column: 4
+        }
+      }
+    }
+  },
+  {
+    Type: Attribute,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 5,
+        Column: 5
+      },
+      End: {
+        Offset: 8,
+        Column: 8
+      }
+    },
+    Text: {
+      Value: src,
+      CodeString: "src",
+      VbCodeString: "src",
+      Range: {
+        File: {CurrentDirectory}Tests.aspx,
+        Start: {
+          Offset: 5,
+          Column: 5
+        },
+        End: {
+          Offset: 8,
+          Column: 8
+        }
+      }
+    }
+  },
+  {
+    Type: AttributeValue,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 10,
+        Column: 10
+      },
+      End: {
+        Offset: 18,
+        Column: 18
+      }
+    },
+    Text: {
+      Value: test.png,
+      CodeString: "test.png",
+      VbCodeString: "test.png",
+      Range: {
+        File: {CurrentDirectory}Tests.aspx,
+        Start: {
+          Offset: 10,
+          Column: 10
+        },
+        End: {
+          Offset: 18,
+          Column: 18
+        }
+      }
+    }
+  },
+  {
+    Type: TagSlashClose,
+    Range: {
+      File: {CurrentDirectory}Tests.aspx,
+      Start: {
+        Offset: 20,
+        Column: 20
+      },
+      End: {
+        Offset: 22,
+        Column: 22
+      }
+    }
+  }
+]

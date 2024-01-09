@@ -10,7 +10,7 @@ internal class ClientResourceManagementService : PageService
 {
     public override async ValueTask BeforePreRenderAsync(Page page, CancellationToken token)
     {
-        var service = page.Context.RequestServices.GetService<ClientDependencyCollection>();
+        var service = page.Context.RequestServices.GetService<IClientDependencyCollection>();
 
         if (service is null or { Files.Count: 0 })
         {

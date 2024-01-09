@@ -1,10 +1,8 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis;
-using Scriban;
 using System.Collections.Immutable;
 using System.Text;
-using WebFormsCore;
 
 namespace WebFormsCore.SourceGenerator
 {
@@ -16,58 +14,70 @@ namespace WebFormsCore.SourceGenerator
             var typeDeclaration = context.SyntaxProvider
                 .CreateSyntaxProvider(
                     predicate: (node, _) => node is TypeDeclarationSyntax { BaseList.Types.Count: > 0 },
-                    transform: static (ctx, _) => (TypeDeclarationSyntax)ctx.Node);
+                    transform: static (ctx, token) =>
+                    {
+                        var typeDeclaration = (TypeDeclarationSyntax)ctx.Node;
 
-            IncrementalValueProvider<(Compilation, ImmutableArray<TypeDeclarationSyntax>)> compilationAndClasses
-                = context.CompilationProvider.Combine(typeDeclaration.Collect());
+                        if (ctx.SemanticModel.GetDeclaredSymbol(typeDeclaration, token) is not INamedTypeSymbol type ||
+                            type is { IsAbstract: true } or { IsGenericType: true } or { DeclaredAccessibility: Accessibility.Private})
+                        {
+                            return null;
+                        }
+
+                        // Check if the base type is a control
+                        var baseType = type.BaseType;
+
+                        while (baseType is not null)
+                        {
+                            if (baseType.Name == "Control" && baseType.ContainingNamespace.ToString() == "WebFormsCore.UI")
+                            {
+                                var name = typeDeclaration.Identifier.Text;
+                                var ns = type!.ContainingNamespace.ToString();
+                                return $"{ns}.{name}";
+                            }
+
+                            baseType = baseType.BaseType;
+                        }
+
+                        return null;
+                    });
+
+            var rootNamespace = context.AnalyzerConfigOptionsProvider
+                .Select((options, _) => options.GlobalOptions.TryGetValue("build_property.RootNamespace", out var ns) ? ns : null);
+
+            var assemblyName = context.CompilationProvider
+                .Select((compilation, _) => compilation.AssemblyName);
+
+            var compilationAndClasses
+                = typeDeclaration.Collect()
+                    .Combine(rootNamespace.Combine(assemblyName))
+                    .Select((i, _) => (Types: i.Left, RootNamespace: i.Right.Left ?? i.Right.Right));
 
             context.RegisterSourceOutput(compilationAndClasses,
-                static (spc, source) => Execute(source.Item1, source.Item2, spc));
+                static (spc, source) => Execute(source.Types, source.RootNamespace, spc));
         }
 
-        public static void Execute(Compilation compilation, ImmutableArray<TypeDeclarationSyntax> typeDeclarations, SourceProductionContext context)
+        private static void Execute(ImmutableArray<string?> namespaces, string? rootNamespace, SourceProductionContext spc)
         {
             var sb = new StringBuilder();
 
-            foreach (var typeDeclaration in typeDeclarations)
+            if (rootNamespace is not null)
             {
-                var model = compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
-                var baseType = model.GetTypeInfo(typeDeclaration.BaseList!.Types[0].Type, context.CancellationToken).Type;
-                var isControl = false;
+                sb.AppendLine($"[assembly: WebFormsCore.RootNamespaceAttribute(\"{rootNamespace}\")]");
+            }
 
-                while (baseType is not null)
+            foreach (var ns in namespaces)
+            {
+                if (ns is not null)
                 {
-                    if (baseType.Name == "Control" && baseType.ContainingNamespace.ToString() == "WebFormsCore.UI")
-                    {
-                        isControl = true;
-                        break;
-                    }
-
-                    baseType = baseType.BaseType;
-                }
-
-                if (isControl)
-                {
-                    var type = model.GetDeclaredSymbol(typeDeclaration, context.CancellationToken);
-
-                    if (type == null || type.IsAbstract || type is INamedTypeSymbol { IsGenericType: true } or { DeclaredAccessibility: Accessibility.Private})
-                    {
-                        continue;
-                    }
-
-                    var name = typeDeclaration.Identifier.Text;
-                    var ns = type!.ContainingNamespace.ToString();
-                    var fullName = $"{ns}.{name}";
-
-                    sb.AppendLine($@"[assembly: WebFormsCore.AssemblyControlAttribute(typeof({fullName}))]");
+                    sb.AppendLine($"[assembly: WebFormsCore.AssemblyControlAttribute(typeof({ns}))]");
                 }
             }
 
             if (sb.Length > 0)
             {
-                context.AddSource("WebForms.Controls.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
+                spc.AddSource("WebForms.Controls.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
             }
         }
     }
-
 }

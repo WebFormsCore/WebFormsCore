@@ -59,6 +59,7 @@ public static class ViewCompiler
         }
 
         var type = RootNode.Parse(
+            out _,
             compilation,
             path,
             text,

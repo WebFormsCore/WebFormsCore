@@ -329,7 +329,7 @@ public class ViewStateManager : IViewStateManager
                     continue;
                 }
 
-                if (index >= currentControl.Controls.Count)
+                if (index >= (currentControl.HasControls() ? currentControl.Controls.Count : 0))
                 {
                     continue;
                 }
@@ -367,7 +367,7 @@ public class ViewStateManager : IViewStateManager
 
         public void Dispose()
         {
-            ArrayPool<(Control, int)>.Shared.Return(_array);
+            ArrayPool<(Control, int)>.Shared.Return(_array, true);
         }
     }
 }

@@ -25,5 +25,6 @@
         <IlcTrimMetadata>true</IlcTrimMetadata>
         <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
         <EmccExtraArgs>-s EXPORTED_RUNTIME_METHODS=cwrap -s ENVIRONMENT=webview -s EXPORT_ES6=1 -s ASSERTIONS=0</EmccExtraArgs>
+        <WebFormsCoreUseCompiler>false</WebFormsCoreUseCompiler>
     </PropertyGroup>
 </Project>
