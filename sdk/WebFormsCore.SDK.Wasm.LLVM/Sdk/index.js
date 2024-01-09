@@ -1,8 +1,10 @@
 import worker from './Project.wasm';
 import start from './Project.js';
 
+let cachedModule;
+
 function load() {
-    return new Promise(resolve => {
+    return cachedModule ??= new Promise(resolve => {
         const Module = {};
 
         Module.locateFile = () => './Project.wasm';
@@ -40,22 +42,27 @@ function load() {
                 const responseLength = getInt32(offset);
                 offset += 4;
 
-                const responseBody = memory.subarray(offset, offset + responseBodyLength);
-                offset += responseBodyLength;
+                let body = null;
+
+                if (responseBodyLength > 0) {
+                    const responseBody = memory.subarray(offset, offset + responseBodyLength);
+                    offset += responseBodyLength;
+
+                    body = new ReadableStream({
+                        start(controller) {
+                            controller.enqueue(responseBody);
+                        },
+                        pull(controller) {
+                            controller.close();
+                            endRequest(ptr);
+                        },
+                        cancel() {
+                            endRequest(ptr);
+                        }
+                    });
+                }
 
                 const response = JSON.parse(decoder.decode(memory.subarray(offset, offset + responseLength)));
-                const body = new ReadableStream({
-                    start(controller) {
-                        controller.enqueue(responseBody);
-                    },
-                    pull(controller) {
-                        controller.close();
-                        endRequest(ptr);
-                    },
-                    cancel() {
-                        endRequest(ptr);
-                    }
-                });
 
                 return { body, response };
             });
@@ -65,10 +72,9 @@ function load() {
     })
 }
 
-const processRequest = await load();
-
 export default {
     async fetch(request, env, ctx) {
+        const processRequest = await load();
         const arrayBuffer = await request.arrayBuffer()
         const requestBody = new Uint8Array(arrayBuffer)
         const headers = {}

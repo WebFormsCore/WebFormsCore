@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true'">
-        <PackageReference Include="WebFormsCore.SourceGenerator.LLVM" Version="0.0.1-alpha.39" OutputItemType="Analyzer" />
+        <PackageReference Include="WebFormsCore.SourceGenerator.LLVM" Version="0.0.1-alpha.41" OutputItemType="Analyzer" />
     </ItemGroup>
 
     <ItemGroup>
