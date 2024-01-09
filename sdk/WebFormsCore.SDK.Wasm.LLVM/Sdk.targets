@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true'">
-        <PackageReference Include="WebFormsCore.SDK.Wasm.LLVM" Version="$version$" OutputItemType="Analyzer" />
+        <PackageReference Include="WebFormsCore.SourceGenerator.LLVM" Version="$version$" OutputItemType="Analyzer" />
     </ItemGroup>
 
     <ItemGroup>
