@@ -18,7 +18,7 @@ namespace WebFormsCore;
 
 public static class ServiceExtensions
 {
-    public static IServiceCollection AddWebForms(this IServiceCollection services, Action<IWebFormsCoreBuilder>? configure = null)
+    public static IServiceCollection AddWebFormsCore(this IServiceCollection services, Action<IWebFormsCoreBuilder>? configure)
     {
         var builder = services.AddWebFormsCore();
         configure?.Invoke(builder);
@@ -29,17 +29,57 @@ public static class ServiceExtensions
     {
         var builder = new WebFormsCoreBuilder(services);
 
-        services.TryAddSingleton<IViewStateManager, ViewStateManager>();
+        services.TryAddSingleton<IViewStateManager, CompressedViewStateManager>();
         services.TryAddSingleton<IWebFormsEnvironment, DefaultWebFormsEnvironment>();
-        services.TryAddSingleton<IQueryableCountProvider, DefaultQueryableCountProvider>();
+        services.TryAddSingleton<IControlTypeProvider, AppDomainControlTypeProvider>();
 
+        AddCommonServices(services);
+
+        builder.TryAddDefaultPooledControls();
+        builder.TryAddDefaultViewStateSerializers();
+        builder.TryAddDefaultAttributeParsers();
+
+        return builder;
+    }
+
+    public static IServiceCollection AddMinimalWebFormsCore<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TControlProvider>(this IServiceCollection services, Action<IWebFormsCoreBuilder>? configure)
+        where TControlProvider : class, IControlTypeProvider
+    {
+        var builder = services.AddMinimalWebFormsCore<TControlProvider>();
+        configure?.Invoke(builder);
+        return services;
+    }
+
+    public static IWebFormsCoreBuilder AddMinimalWebFormsCore<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TControlProvider>(this IServiceCollection services)
+        where TControlProvider : class, IControlTypeProvider
+    {
+        var builder = new WebFormsCoreBuilder(services);
+
+        services.TryAddSingleton<IViewStateManager, ViewStateManager>();
+        services.TryAddSingleton<IWebFormsEnvironment, MinimalWebFormsEnvironment>();
+        services.TryAddSingleton<IControlTypeProvider, TControlProvider>();
+
+        AddCommonServices(services);
+
+        builder.TryAddDefaultViewStateSerializers();
+        builder.TryAddDefaultAttributeParsers();
+
+        return builder;
+    }
+
+    private static void AddCommonServices(IServiceCollection services)
+    {
         services.TryAddScoped<ScopedControlContainer>();
+        services.TryAddSingleton<IQueryableCountProvider, DefaultQueryableCountProvider>();
         services.TryAddSingleton(typeof(IControlFactory<>), typeof(ControlFactory<>));
         services.TryAddSingleton<IPageManager, PageManager>();
         services.TryAddSingleton<IWebFormsApplication, WebFormsApplications>();
         services.TryAddScoped<IWebObjectActivator, WebObjectActivator>();
         services.TryAddSingleton<IControlManager, DefaultControlManager>();
+    }
 
+    public static IWebFormsCoreBuilder TryAddDefaultPooledControls(this IWebFormsCoreBuilder builder)
+    {
         builder.TryAddPooledControl<LiteralControl>();
         builder.TryAddPooledControl<LiteralHtmlControl>();
         builder.TryAddPooledControl<Literal>();
@@ -55,7 +95,12 @@ public static class ServiceExtensions
         builder.TryAddPooledControl<LinkButton>();
         builder.TryAddPooledControl<Button>();
 
-        services.TryAddSingleton<IDefaultViewStateSerializer, DefaultViewStateSerializer>();
+        return builder;
+    }
+
+    public static IWebFormsCoreBuilder TryAddDefaultViewStateSerializers(this IWebFormsCoreBuilder builder)
+    {
+        builder.Services.TryAddSingleton<IDefaultViewStateSerializer, DefaultViewStateSerializer>();
         builder.TryAddViewStateSerializer<ArrayViewStateSerializer>();
         builder.TryAddViewStateSerializer<ListViewStateSerializer>();
         builder.TryAddViewStateSerializer<ViewStateObjectSerializer>();
@@ -77,18 +122,21 @@ public static class ServiceExtensions
         builder.TryAddMarshalViewStateSerializer<decimal>();
         builder.TryAddMarshalViewStateSerializer<bool>();
         builder.TryAddMarshalViewStateSerializer<char>();
+        return builder;
+    }
 
-        services.TryAddSingleton<IAttributeParser<string>, StringAttributeParser>();
-        services.TryAddSingleton<IAttributeParser<Type>, TypeAttributeParser>();
-        services.TryAddSingleton<IAttributeParser<int>, Int32AttributeParser>();
-        services.TryAddSingleton<IAttributeParser<int?>, NullableAttributeParser<int>>();
-        services.TryAddSingleton<IAttributeParser<bool>, BoolAttributeParser>();
-        services.TryAddSingleton<IAttributeParser<Unit>, UnitAttributeParser>();
-        services.TryAddSingleton<IAttributeParser<string[]>, ArrayAttributeParser<string>>();
-        services.TryAddSingleton<IAttributeParser<IReadOnlyList<string>>, ArrayAttributeParser<string>>();
-        services.TryAddSingleton<IAttributeParser<List<string>>, ListAttributeParser<string>>();
-        services.TryAddSingleton<IAttributeParser<IList<string>>, ListAttributeParser<string>>();
-
+    public static IWebFormsCoreBuilder TryAddDefaultAttributeParsers(this IWebFormsCoreBuilder builder)
+    {
+        builder.Services.TryAddSingleton<IAttributeParser<string>, StringAttributeParser>();
+        builder.Services.TryAddSingleton<IAttributeParser<Type>, TypeAttributeParser>();
+        builder.Services.TryAddSingleton<IAttributeParser<int>, Int32AttributeParser>();
+        builder.Services.TryAddSingleton<IAttributeParser<int?>, NullableAttributeParser<int>>();
+        builder.Services.TryAddSingleton<IAttributeParser<bool>, BoolAttributeParser>();
+        builder.Services.TryAddSingleton<IAttributeParser<Unit>, UnitAttributeParser>();
+        builder.Services.TryAddSingleton<IAttributeParser<string[]>, ArrayAttributeParser<string>>();
+        builder.Services.TryAddSingleton<IAttributeParser<IReadOnlyList<string>>, ArrayAttributeParser<string>>();
+        builder.Services.TryAddSingleton<IAttributeParser<List<string>>, ListAttributeParser<string>>();
+        builder.Services.TryAddSingleton<IAttributeParser<IList<string>>, ListAttributeParser<string>>();
         return builder;
     }
 

@@ -175,7 +175,8 @@ public class RootNode : ContainerNode
         bool addFields = true,
         SourceProductionContext? context = null,
         string? relativePath = null,
-        string? rootDirectory = null)
+        string? rootDirectory = null,
+        bool generateHash = true)
     {
         if (text == null) return null;
 
@@ -215,7 +216,10 @@ public class RootNode : ContainerNode
         parser.Root.Path = fullPath;
         parser.Root.RelativePath = relativePath;
         parser.Root.ClassName = Regex.Replace(relativePath, "[^a-zA-Z0-9_]+", "_");
-        parser.Root.Hash = GenerateHash(text);
+        if (generateHash)
+        {
+            parser.Root.Hash = GenerateHash(text);
+        }
 
         return parser.Root;
     }

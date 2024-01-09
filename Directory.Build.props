@@ -1,7 +1,7 @@
 <Project>
 
     <PropertyGroup>
-        <Version>0.0.1-alpha.33</Version>
+        <Version>0.0.1-alpha.34</Version>
         <PackageVersion>$(Version)</PackageVersion>
         <Authors>WebFormsCore</Authors>
         <RepositoryUrl>https://github.com/WebFormsCore/WebFormsCore</RepositoryUrl>
@@ -9,21 +9,21 @@
         <PackageTags>webformscore</PackageTags>
         <PackageProjectUrl>https://github.com/WebFormsCore/WebFormsCore</PackageProjectUrl>
         <PackageLicense>https://github.com/WebFormsCore/WebFormsCore/blob/main/LICENSE</PackageLicense>
-        <NoWarn>$(NoWarn);CS0436;CS9057;NU5128;CS1620;CS9191</NoWarn>
+        <NoWarn>$(NoWarn);CS0436;CS9057;NU5128;CS1620;CS9191;IL2066</NoWarn>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
 
     <PropertyGroup>
         <DotNetVersions>net6.0;net7.0;net8.0</DotNetVersions>
         <ExtensionsVersion>6.0.0</ExtensionsVersion>
-        <HttpStackVersion>0.0.1-alpha.14</HttpStackVersion>
+        <HttpStackVersion>0.0.1-alpha.17</HttpStackVersion>
     </PropertyGroup>
 
-    <PropertyGroup Condition="$(TargetFramework) == 'net7.0'">
+    <PropertyGroup Condition="$(TargetFramework) == 'net7.0' or $(SdkTargetFramework) == 'net7.0'">
         <ExtensionsVersion>7.0.0</ExtensionsVersion>
     </PropertyGroup>
 
-    <PropertyGroup Condition="$(TargetFramework) == 'net8.0'">
+    <PropertyGroup Condition="$(TargetFramework) == 'net8.0' or $(SdkTargetFramework) == 'net8.0'">
         <ExtensionsVersion>8.0.0-rc.2.23479.6</ExtensionsVersion>
     </PropertyGroup>
 

@@ -42,6 +42,7 @@ namespace WebFormsCore.SourceGenerator
 
             return false;
         }
+
         private static bool HasViewStateAttribute(MemberDeclarationSyntax member)
         {
             foreach (var attributeList in member.AttributeLists)

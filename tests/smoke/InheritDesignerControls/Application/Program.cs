@@ -8,7 +8,7 @@ using Default = Library.Default;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddWebForms(config =>
+builder.Services.AddWebFormsCore(config =>
 {
     config.AddControlCompiler();
 });

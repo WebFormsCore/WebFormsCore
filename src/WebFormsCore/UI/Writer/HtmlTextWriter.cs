@@ -36,6 +36,8 @@ public abstract class HtmlTextWriter : IAsyncDisposable
     private int _charPos;
     private char[] _charBuffer = ArrayPool<char>.Shared.Rent(DefaultBufferSize);
 
+    public int Position => _charPos;
+
     protected abstract bool ForceAsync { get; }
 
     internal bool HasPendingCharacters => _charPos > 0;

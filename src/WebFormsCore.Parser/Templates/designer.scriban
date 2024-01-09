@@ -123,6 +123,26 @@
 [assembly:WebFormsCore.AssemblyViewAttribute(@"{{ type.RelativePath }}", typeof({{ type.Namespace ? (type.Namespace + ".") : ""  }}CompiledViews.{{ type.ClassName }}))]
 {{- end }}
 
+{{ if RootNamespace }}
+namespace {{ RootNamespace }}
+{
+{{- end }}
+internal class AssemblyControlTypeProvider : WebFormsCore.IControlTypeProvider
+{
+    public System.Collections.Generic.Dictionary<string, System.Type> GetTypes()
+    {
+        return new System.Collections.Generic.Dictionary<string, System.Type>
+        {
+            {{- for type in Types }}
+            { @"{{ type.RelativePath }}", typeof({{ type.Namespace ? (type.Namespace + ".") : ""  }}CompiledViews.{{ type.ClassName }}) },
+            {{- end }}
+        };
+    }
+}
+{{- if RootNamespace }}
+}
+{{- end }}
+
 {{ for type in Types }}
 {{- if type.Namespace }}
 namespace {{ type.Namespace }}

@@ -1,0 +1,19 @@
+<Project>
+    <Import Project="Core.targets" />
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.DotNet.ILCompiler.LLVM" Version="8.0.0-*" />
+        <PackageReference Include="runtime.win-x64.Microsoft.DotNet.ILCompiler.LLVM" Version="8.0.0-*" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="HttpStack.Wasm.LLVM" Version="$httpStackVersion$" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0-rc.2.23479.6" />
+    </ItemGroup>
+
+    <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true'">
+        <PackageReference Include="WebFormsCore.SDK.Wasm.LLVM" Version="$version$" OutputItemType="Analyzer" />
+    </ItemGroup>
+
+    <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.Web" />
+</Project>

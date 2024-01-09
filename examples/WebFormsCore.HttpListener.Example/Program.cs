@@ -9,7 +9,7 @@ using var listener = new System.Net.HttpListener();
 listener.Prefixes.Add("http://localhost:5000/");
 
 var builder = new HttpApplicationBuilder();
-builder.Services.AddWebForms();
+builder.Services.AddWebFormsCore();
 
 var app = builder.Build();
 app.Run(context => context.ExecutePageAsync<Default>());

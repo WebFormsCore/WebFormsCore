@@ -30,13 +30,13 @@ public class ControlManager : IDisposable, IControlManager
     private readonly Dictionary<string, Type> _compiledViews;
     private readonly string? _contentRoot;
 
-    public ControlManager(IWebFormsEnvironment environment, ILogger<ControlManager>? logger = null)
+    public ControlManager(IControlTypeProvider provider, IWebFormsEnvironment environment, ILogger<ControlManager>? logger = null)
     {
         _environment = environment;
         _contentRoot = environment.ContentRootPath ?? AppContext.BaseDirectory;
         _logger = logger;
         _watchers = new List<FileSystemWatcher>();
-        _compiledViews = DefaultControlManager.GetAndWatchTypes();
+        _compiledViews = provider.GetTypes();
         _controls = new ConcurrentDictionary<string, ControlEntry>();
         ViewTypes = new ControlsDictionary(_controls, _compiledViews);
 

@@ -11,3 +11,12 @@ public class DefaultWebFormsEnvironment : IWebFormsEnvironment
 
     public bool CompileInBackground => true; // TODO: Make this configurable
 }
+
+internal class MinimalWebFormsEnvironment : IWebFormsEnvironment
+{
+    public string? ContentRootPath => null;
+
+    public bool EnableControlWatcher => false;
+
+    public bool CompileInBackground => false;
+}

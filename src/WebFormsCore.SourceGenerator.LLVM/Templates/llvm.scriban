@@ -1,0 +1,61 @@
+using System;
+using System.Runtime.InteropServices;
+using HttpStack;
+using HttpStack.Wasm;
+using WebFormsCore;
+using Microsoft.Extensions.DependencyInjection;
+
+{{ if Namespace -}}
+namespace {{ Namespace }}
+{
+{{ end -}}
+
+public static class Interop
+{
+    [UnmanagedCallersOnly(EntryPoint = "Initialize")]
+    public static void Initialize()
+    {
+        var serviceCollection = new ServiceCollection();
+
+        {{ if ConfigureServices -}}
+        {{- Type + ".ConfigureServices(serviceCollection);" -}}
+        {{- end }}
+
+        serviceCollection.AddMinimalWebFormsCore<AssemblyControlTypeProvider>();
+
+        var provider = serviceCollection.BuildServiceProvider();
+        var app = new HttpStackBuilder(provider);
+
+        {{ if ConfigureParameters -}}
+        {{ Type + ".Configure(" }}
+        {{ for prop in ConfigureParameters ~}}
+        {{- if prop == "global::HttpStack.IHttpStackBuilder" -}}
+        app
+        {{- else -}}
+        provider.GetRequiredService<{{ prop }}>()
+        {{- end }}
+        {{- if !for.last }},
+                {{ end }}
+        {{- end -}}
+        );
+        {{- end }}
+
+        app.RegisterWasmStack();
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "BeginRequest")]
+    public static unsafe IntPtr BeginRequest(int contextLength, byte* contextPtr, int bodyLength, byte* bodyPtr)
+    {
+        return WasmInterop.BeginRequest(contextLength, contextPtr, bodyLength, bodyPtr);
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "EndRequest")]
+    public static void EndRequest(IntPtr ptr)
+    {
+        WasmInterop.EndRequest(ptr);
+    }
+}
+
+{{- if Namespace }}
+}
+{{ end }}

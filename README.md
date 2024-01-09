@@ -9,7 +9,7 @@ It is heavily inspired by WebForms but is not a direct port. There are many brea
 In comparison to WebForms, there are a few changes:
 
 - **Targets .NET Framework 4.7.2 and NET 6.0**  
-  You can use WebForms Core on .NET (ASP.NET Core) and .NET Framework (ASP.NET and OWIN) 🎉
+  You can use WebForms Core on .NET and .NET Framework 🎉
 - **NativeAOT support**  
   WebForms Core supports Native AOT compilation for .NET 8.0 (preview 2 or higher).
 - **Rendering is asynchronous**  
@@ -24,13 +24,25 @@ In comparison to WebForms, there are a few changes:
   WebForms Core pre-compiles views to improve the startup time of your application.
 - **Content Security Policy (CSP) support**  
   Experimental support for Content Security Policy.
+- **Streaming support**  
+  Like Blazor Server-Side, it's possible to stream the HTML (without ViewState) with WebSockets.
 
-## Getting started
+## Platforms
+This project uses [HttpStack](https://github.com/WebFormsCore/HttpStack), which means you can use WebFormsCore in:
+- ASP.NET Core
+- ASP.NET
+- HttpListener
+- OWIN _(no support for WebSockets/StreamPanel)_
+- Azure Functions _(no support for WebSockets/StreamPanel)_
+- CefSharp _(no support for WebSockets/StreamPanel)_
+- WebView2 _(no support for WebSockets/StreamPanel)_
+- FastCGI _(experimental, no support for WebSockets/StreamPanel)_
+
 ### ASP.NET Core (.NET 6.0)
 Create a new .csproj that uses the SDK `WebFormsCore.SDK`:
 
 ```xml
-<Project Sdk="WebFormsCore.SDK/0.0.1-alpha.13">
+<Project Sdk="WebFormsCore.SDK.AspNetCore/0.0.1-alpha.33">
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
@@ -49,13 +61,18 @@ builder.Services.AddWebForms();
 var app = builder.Build();
 
 // Map '/' to 'Default.aspx'
-app.MapAspx("/", "Default.aspx");
+app.UseStack(stack =>
+{
+  // Registers static files middleware
+  stack.UseWebFormsCore();
 
-// Map all .aspx files
-// For example, if you have a file named 'About.aspx' you can access it by going to '/About.aspx'
-app.MapFallbackToAspx();
+  // Handles .aspx files
+  // For example, if the url is "/Page.aspx", it will render "Pages/Page.aspx" if it exists
+  stack.UsePage();
 
-app.Run();
+  // Render the page 'Default'.
+  stack.RunPage<Default>();
+});
 ```
 
 ### ASP.NET (.NET Framework)

@@ -10,14 +10,14 @@ using WebFormsCore.Nodes;
 
 namespace WebFormsCore.Compiler;
 
-internal record struct ViewCompileResult(Compilation Compilation, RootNode Type);
+public record struct ViewCompileResult(Compilation Compilation, RootNode Type);
 
-internal static class ViewCompiler
+public static class ViewCompiler
 {
     private static IReadOnlyList<MetadataReference>? _references;
     private static readonly object ReferencesLock = new();
 
-    public static ViewCompileResult Compile(string path, string? text = null, string? rootDirectory = null)
+    public static ViewCompileResult Compile(string path, string? text = null, string? rootDirectory = null, bool generateHash = true, bool concurrentBuild = true, IReadOnlyList<MetadataReference>? references = null)
     {
         var tempAssemblyName = path
             .Replace('/', '_')
@@ -35,12 +35,12 @@ internal static class ViewCompiler
         {
             compilation = CSharpCompilation.Create(
                 $"WebForms_{tempAssemblyName}",
-                references: References,
+                references: references ?? References,
                 options: new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
                     optimizationLevel: OptimizationLevel.Debug,
                     checkOverflow: true,
-                    platform: Platform.AnyCpu
+                    concurrentBuild: concurrentBuild
                 )
             );
         }
@@ -48,12 +48,12 @@ internal static class ViewCompiler
         {
             compilation = VisualBasicCompilation.Create(
                 $"WebForms_{tempAssemblyName}",
-                references: References,
+                references: references ?? References,
                 options: new VisualBasicCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
                     optimizationLevel: OptimizationLevel.Debug,
                     checkOverflow: true,
-                    platform: Platform.AnyCpu
+                    concurrentBuild: concurrentBuild
                 )
             );
         }
@@ -64,9 +64,9 @@ internal static class ViewCompiler
             text,
             namespaces: GetNamespaces(path),
             addFields: false,
-            rootDirectory: rootDirectory
+            rootDirectory: rootDirectory,
+            generateHash: generateHash
         );
-
 
         string? rootNamespace = null;
 

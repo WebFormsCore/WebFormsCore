@@ -2,18 +2,11 @@
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Buffers.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using HttpStack;
 using Microsoft.Extensions.Options;
 using WebFormsCore.UI;
 using WebFormsCore.UI.HtmlControls;
@@ -37,12 +30,6 @@ public class ViewStateManager : IViewStateManager
             : SHA256.Create();
         _hashLength = _hashAlgorithm.HashSize / 8;
     }
-
-#if NET
-    public ViewStateCompression Compression { get; set; } = ViewStateCompression.Brotoli;
-#else
-    public ViewStateCompression Compression { get; set; } = ViewStateCompression.GZip;
-#endif
 
     /// <summary>
     /// Header length: compression + length + control count
@@ -83,21 +70,13 @@ public class ViewStateManager : IViewStateManager
             var data = result.Slice(HeaderLength + _hashLength);
 
             // ReSharper disable once InlineOutVariableDeclaration
-            int dataLength;
-#if NET
-            if (Compression == ViewStateCompression.Brotoli && BrotliEncoder.TryCompress(state, data, out dataLength) && dataLength <= state.Length)
+            if (TryCompress(state, data, out var compressionByte, out var dataLength))
             {
-                header[0] = (byte)ViewStateCompression.Brotoli;
-            }
-            else
-#endif
-            if (Compression == ViewStateCompression.GZip && TryCompress(state, data, out dataLength) && dataLength <= state.Length)
-            {
-                header[0] = (byte)ViewStateCompression.GZip;
+                header[0] = compressionByte;
             }
             else
             {
-                header[0] = (byte)ViewStateCompression.Raw;
+                header[0] = 0;
                 state.CopyTo(data);
                 dataLength = state.Length;
             }
@@ -168,7 +147,6 @@ public class ViewStateManager : IViewStateManager
         }
 
         IMemoryOwner<byte> owner = arrayOwner;
-        var compression = (ViewStateCompression) header[0];
         var controlCount = BinaryPrimitives.ReadUInt16BigEndian(header.Slice(3, 2));
 
         var offset = HeaderLength + _hashLength;
@@ -176,36 +154,12 @@ public class ViewStateManager : IViewStateManager
         int actualLength;
         var length = (int)BinaryPrimitives.ReadUInt16BigEndian(header.Slice(1, 2));
 
-        if (compression == ViewStateCompression.GZip)
+        if (TryDecompress(header[0], length, data, out var decodedOwner, out actualLength))
         {
-            var decodedOwner = MemoryPool<byte>.Shared.Rent(length);
-            var decoded = decodedOwner.Memory.Span;
-
-            if (!TryDecompress(data, decoded, out actualLength))
-            {
-                throw new ViewStateException("Could not decompress the viewstate");
-            }
-
             owner.Dispose();
             owner = decodedOwner;
             offset = 0;
         }
-#if NET
-        else if (compression == ViewStateCompression.Brotoli)
-        {
-            var decodedOwner = MemoryPool<byte>.Shared.Rent(length);
-            var decoded = decodedOwner.Memory.Span;
-
-            if (!BrotliDecoder.TryDecompress(data, decoded, out actualLength))
-            {
-                throw new ViewStateException("Could not decompress the viewstate");
-            }
-
-            owner.Dispose();
-            owner = decodedOwner;
-            offset = 0;
-        }
-#endif
         else
         {
             actualLength = data.Length;
@@ -217,6 +171,20 @@ public class ViewStateManager : IViewStateManager
         }
 
         return new ViewStateReaderOwner(owner.Memory, _serviceProvider, offset, controlCount, owner);
+    }
+
+    protected virtual bool TryDecompress(byte compressionByte, int length, Span<byte> data, [NotNullWhen(true)] out IMemoryOwner<byte>? newOwner, out int actualLength)
+    {
+        newOwner = null;
+        actualLength = 0;
+        return false;
+    }
+
+    protected virtual bool TryCompress(ReadOnlySpan<byte> source, Span<byte> destination, out byte compressionByte, out int length)
+    {
+        compressionByte = 0;
+        length = 0;
+        return false;
     }
 
     private ViewStateReaderOwner CreateReader(string base64)
@@ -303,46 +271,6 @@ public class ViewStateManager : IViewStateManager
         finally
         {
             reader.Dispose();
-        }
-    }
-
-    private static unsafe bool TryCompress(ReadOnlySpan<byte> source, Span<byte> destination, out int length)
-    {
-        fixed (byte* pBuffer = &destination[0])
-        {
-            using var destinationStream = new UnmanagedMemoryStream(pBuffer, destination.Length, destination.Length, FileAccess.Write);
-            using var deflateStream = new DeflateStream(destinationStream, CompressionMode.Compress, true);
-            try
-            {
-                deflateStream.Write(source);
-                deflateStream.Close();
-                length = (int)destinationStream.Position;
-                return true;
-            }
-            catch
-            {
-                length = 0;
-                return false;
-            }
-        }
-    }
-
-    private static unsafe bool TryDecompress(ReadOnlySpan<byte> source, Span<byte> destination, out int length)
-    {
-        fixed (byte* pBuffer = &source[0])
-        {
-            using var stream = new UnmanagedMemoryStream(pBuffer, source.Length);
-            using var deflateStream = new DeflateStream(stream, CompressionMode.Decompress);
-            try
-            {
-                length = deflateStream.Read(destination);
-                return true;
-            }
-            catch
-            {
-                length = 0;
-                return false;
-            }
         }
     }
 

@@ -13,7 +13,7 @@ public partial class PageTest
     {
         var services = new ServiceCollection();
 
-        services.AddWebForms(b =>
+        services.AddWebFormsCore(b =>
         {
             b.AddControlCompiler();
         });

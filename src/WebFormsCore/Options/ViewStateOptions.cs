@@ -7,4 +7,6 @@ public class ViewStateOptions
     public string? EncryptionKey { get; set; }
 
     public int MaxBytes { get; set; } = 102400;
+
+    public ViewStateCompression? DefaultCompression { get; set; }
 }

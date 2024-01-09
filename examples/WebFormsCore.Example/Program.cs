@@ -10,7 +10,7 @@ using WebFormsCore.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddWebForms(b =>
+builder.Services.AddWebFormsCore(b =>
 {
     b.AddControlCompiler();
     b.AddGridCellRenderers();

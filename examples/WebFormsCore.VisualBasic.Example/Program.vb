@@ -4,7 +4,7 @@ Imports Microsoft.AspNetCore.Builder
 Module Program
     Sub Main(args As String())
         Dim builder = WebApplication.CreateBuilder(args)
-        builder.Services.AddWebForms()
+        builder.Services.AddWebFormsCore()
 
         Dim app = builder.Build()
 
