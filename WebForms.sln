@@ -78,6 +78,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source Generators", "Source
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.SourceGenerator.LLVM", "src\WebFormsCore.SourceGenerator.LLVM\WebFormsCore.SourceGenerator.LLVM.csproj", "{BFC318B5-A4F4-4145-B896-0F5D4AA354A9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFormsCore.Example.Controls", "examples\WebFormsCore.Example.Controls\WebFormsCore.Example.Controls.csproj", "{EEE24372-4365-4A37-93DC-94737328A883}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -184,6 +186,10 @@ Global
 		{BFC318B5-A4F4-4145-B896-0F5D4AA354A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BFC318B5-A4F4-4145-B896-0F5D4AA354A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BFC318B5-A4F4-4145-B896-0F5D4AA354A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEE24372-4365-4A37-93DC-94737328A883}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEE24372-4365-4A37-93DC-94737328A883}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEE24372-4365-4A37-93DC-94737328A883}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEE24372-4365-4A37-93DC-94737328A883}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -213,6 +219,7 @@ Global
 		{05E03DFE-D054-4AE3-8836-59F23A2E7681} = {63EBE3DD-1F7B-41D8-9687-BCCA33B81324}
 		{CFDDED25-A251-4FFD-A09D-D02C31E60AB3} = {DFA6049C-4CB4-4E39-ABAF-BBB42B5D6FFC}
 		{BFC318B5-A4F4-4145-B896-0F5D4AA354A9} = {DFA6049C-4CB4-4E39-ABAF-BBB42B5D6FFC}
+		{EEE24372-4365-4A37-93DC-94737328A883} = {210D9008-25A9-4ABE-8C8C-A7FDDC3381F6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {022403F7-A5A6-4639-8579-D9B56627AE73}

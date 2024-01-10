@@ -72,17 +72,68 @@ public abstract class DesignerGenerator : IIncrementalGenerator
             .Where(i => i is not null)
             .Select((i, _) => new ControlType(
                 RootNamespace: i!.RootNamespace,
-                Namespace: i.Namespace,
-                ClassName: i.ClassName,
-                Content: i.Content,
                 RelativePath: i.RelativePath,
                 CompiledViewType: i.CompiledViewType
             ))
             .Collect();
 
-        context.RegisterSourceOutput(types, (spc, source) =>
+        var referencedControls = context.CompilationProvider
+            .Select((compilation, _) =>
+            {
+                var builder = ImmutableArray.CreateBuilder<ControlType>();
+
+                foreach (var assembly in compilation.SourceModule.ReferencedAssemblySymbols)
+                {
+                    foreach (var attribute in assembly.GetAttributes())
+                    {
+                        if (attribute is not
+                            {
+                                AttributeClass.Name: "AssemblyViewAttribute",
+                                ConstructorArguments:
+                                [
+                                    { Value: string path },
+                                    { Value: INamedTypeSymbol type }
+                                ]
+                            })
+                        {
+                            continue;
+                        }
+
+                        builder.Add(new ControlType(
+                            RootNamespace: null,
+                            RelativePath: path,
+                            CompiledViewType: type.ToDisplayString()
+                        ));
+                    }
+                }
+
+                return builder.ToImmutable();
+            });
+
+        var allTypes = types.Combine(referencedControls);
+
+        context.RegisterSourceOutput(allTypes, (spc, source) =>
         {
-            var code = GetGenerateAssemblyTypeProvider(source);
+            var addedPaths = new HashSet<string>();
+            var builder = ImmutableArray.CreateBuilder<ControlType>();
+
+            foreach (var type in source.Left)
+            {
+                if (addedPaths.Add(type.RelativePath))
+                {
+                    builder.Add(type);
+                }
+            }
+
+            foreach (var type in source.Right)
+            {
+                if (addedPaths.Add(type.RelativePath))
+                {
+                    builder.Add(type);
+                }
+            }
+
+            var code = GetGenerateAssemblyTypeProvider(builder.ToImmutable());
 
             if (code != null)
             {

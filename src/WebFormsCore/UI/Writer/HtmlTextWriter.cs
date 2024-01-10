@@ -6,6 +6,7 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace WebFormsCore.UI;
 
@@ -203,12 +204,63 @@ public abstract class HtmlTextWriter : IAsyncDisposable
         Write(span.Slice(0, count));
     }
 
-    public virtual ValueTask WriteObjectAsync<T>(T value, bool encode = true)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ValueTask WriteObjectAsync<T>(T value, bool encode = true)
     {
+#if NET6_0_OR_GREATER
+        // TODO: Span-based encoding
+        if (value is ISpanFormattable formattable && !encode)
+        {
+            if (formattable.TryFormat(_charBuffer.AsSpan(_charPos), out var charsWritten, default, default))
+            {
+                _charPos += charsWritten;
+                return default;
+            }
+
+            if (WriteFormattableSlow(formattable))
+            {
+                return default;
+            }
+        }
+#endif
+
         var str = value?.ToString();
         if (encode) str = WebUtility.HtmlEncode(str);
         return WriteAsync(str.AsMemory());
     }
+
+#if NET6_0_OR_GREATER
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private bool WriteFormattableSlow(ISpanFormattable formattable)
+    {
+        var owner = MemoryPool<char>.Shared.Rent(64);
+        var attempt = 0;
+
+        while (true)
+        {
+            var span = owner.Memory.Span;
+            var written = formattable.TryFormat(span, out var charsWritten, default, default);
+
+            if (written)
+            {
+                Write(span.Slice(0, charsWritten));
+                owner.Dispose();
+                return true;
+            }
+
+            owner.Dispose();
+
+            if (++attempt > 10)
+            {
+                break;
+            }
+
+            owner = MemoryPool<char>.Shared.Rent(span.Length * 2);
+        }
+
+        return false;
+    }
+#endif
 
     public virtual void WriteObject<T>(T value, bool encode = true)
     {

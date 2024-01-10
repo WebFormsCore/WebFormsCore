@@ -1,5 +1,7 @@
 <%@ Page language="C#" Inherits="WebFormsCore.Example.Default" EnableViewState="False" EnableCsp="True" %>
 <%@ Register TagPrefix="app" Namespace="WebFormsCore.Example" %>
+<%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI.HtmlControls" Assembly="WebFormsCore" %>
+<%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI.WebControls" Assembly="WebFormsCore" %>
 
 <!DOCTYPE html>
 <html lang="en">

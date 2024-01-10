@@ -17,7 +17,7 @@ public class CSharpDesignGenerator : DesignerGenerator
             return null;
         }
 
-        var rootNamespace = source[0].RootNamespace;
+        var rootNamespace = source.FirstOrDefault(i => i.RootNamespace != null)?.RootNamespace;
 
         var builder = new StringBuilder();
 
@@ -39,7 +39,7 @@ public class CSharpDesignGenerator : DesignerGenerator
 
         foreach (var controlType in source)
         {
-            builder.Append("            { \"").Append(controlType.RelativePath).Append("\", typeof(").Append(controlType.CompiledViewType.Replace('+', '.')).AppendLine(") },");
+            builder.Append("            { \"").Append(controlType.RelativePath).Append("\", typeof(global::").Append(controlType.CompiledViewType.Replace('+', '.')).AppendLine(") },");
         }
 
         builder.AppendLine("        };");

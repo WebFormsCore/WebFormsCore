@@ -17,9 +17,6 @@ public record ControlResultContext(
 
 public record ControlType(
     string? RootNamespace,
-    string? Namespace,
-    string ClassName,
-    string Content,
     string RelativePath,
     string CompiledViewType
 );

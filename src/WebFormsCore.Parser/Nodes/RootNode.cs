@@ -34,8 +34,8 @@ public class RootNode : ContainerNode
     public string GetClassName(string? ns, string? inherits)
     {
         return !string.IsNullOrEmpty(ns)
-            ? $"{ns}.CompiledViews+{ClassName}"
-            : $"CompiledViews+{inherits}";
+            ? $"{ns}.CompiledViews_{AssemblyName}+{ClassName}"
+            : $"CompiledViews_{AssemblyName}+{inherits}";
     }
 
     public List<DirectiveNode> Directives { get; set; } = new();
@@ -98,6 +98,8 @@ public class RootNode : ContainerNode
     );
 
     public string? ClassName { get; set; }
+
+    public string? AssemblyName { get; set; }
 
     public string? Path
     {
@@ -215,6 +217,7 @@ public class RootNode : ContainerNode
         parser.Root.Path = fullPath;
         parser.Root.RelativePath = relativePath;
         parser.Root.ClassName = Regex.Replace(relativePath, "[^a-zA-Z0-9_]+", "_");
+        parser.Root.AssemblyName = Regex.Replace(compilation.AssemblyName ?? "", "[^a-zA-Z0-9_]+", "_");
         if (generateHash)
         {
             parser.Root.Hash = GenerateHash(text);

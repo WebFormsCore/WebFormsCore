@@ -113,7 +113,7 @@ Imports Microsoft.VisualBasic
 <Assembly:WebFormsCore.RootNamespaceAttribute("{{ RootNamespace }}")>
 {{- end }}
 {{- for type in Types }}
-<Assembly:WebFormsCore.AssemblyViewAttribute("{{ type.Path }}", GetType({{ type.Namespace ? (type.Namespace + ".") : "" }}CompiledViews.{{ type.ClassName }}))>
+<Assembly:WebFormsCore.AssemblyViewAttribute("{{ type.Path }}", GetType({{ type.Namespace ? (type.Namespace + ".") : "" }}CompiledViews_{{ type.AssemblyName }}.{{ type.ClassName }}))>
 {{- end }}
 
 {{- for type in Types }}
@@ -154,7 +154,7 @@ Partial Class {{ type.InheritsClassName }}
 End Class
 {{- end }}
 
-Public Partial Class CompiledViews
+Public Partial Class CompiledViews_{{ type.AssemblyName }}
     
 
      <WebFormsCore.CompiledView("{{ type.Path }}", "{{ type.Hash }}")>

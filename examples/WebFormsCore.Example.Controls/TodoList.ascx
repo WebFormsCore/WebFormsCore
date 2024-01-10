@@ -1,4 +1,5 @@
 <%@ Control language="C#" Inherits="WebFormsCore.Example.Controls.TodoList" %>
+<%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI.WebControls" Assembly="WebFormsCore" %>
 
 <wfc:Label runat="server" AssociatedControlID="tbItem" Text="Text:" /><br />
 <wfc:TextBox runat="server" ID="tbItem" class="form-control" OnEnterPressed="tbItem_OnEnterPressed" />

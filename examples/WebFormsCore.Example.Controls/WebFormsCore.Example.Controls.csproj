@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
     <Import Project="..\..\sdk\WebFormsCore.SDK.AspNetCore\Sdk\Sdk.props" />
 
     <PropertyGroup>
@@ -6,6 +6,7 @@
         <Nullable>enable</Nullable>
         <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
         <WebFormsCoreUseNuget>false</WebFormsCoreUseNuget>
+        <OutputType>Library</OutputType>
         <WebFormsCoreUseCompiler Condition="$(PublishAot) != 'true'">true</WebFormsCoreUseCompiler>
     </PropertyGroup>
 
@@ -17,14 +18,7 @@
         <ProjectReference Include="..\..\src\WebFormsCore\WebFormsCore.csproj" />
         <ProjectReference Include="..\..\src\WebFormsCore.SourceGenerator\WebFormsCore.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
         <ProjectReference Condition="$(WebFormsCoreUseCompiler) == 'true'" Include="..\..\src\WebFormsCore.Compiler\WebFormsCore.Compiler.csproj" />
-        <ProjectReference Include="..\WebFormsCore.Example.Controls\WebFormsCore.Example.Controls.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Controls\" />
-    </ItemGroup>
-
-
 
     <Import Project="..\..\sdk\WebFormsCore.SDK.AspNetCore\Sdk\Sdk.targets" />
 </Project>

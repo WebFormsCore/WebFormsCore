@@ -3,7 +3,7 @@
   "profiles": {
     "Generators": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "../../tests/smoke/InheritDesignerControls/Application/Application.csproj"
+      "targetProject": "../../examples/WebFormsCore.Example.LLVM/WebFormsCore.Example.LLVM.csproj"
     }
   }
 }

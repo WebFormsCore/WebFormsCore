@@ -25,7 +25,7 @@ public partial class Default : Page
         // EnablePageViewState = false;
 
         await phTodoContainer.Controls.AddAsync(
-            LoadControl("Controls/TodoList.ascx")
+            LoadControl("TodoList.ascx")
         );
 
         if (!IsPostBack)

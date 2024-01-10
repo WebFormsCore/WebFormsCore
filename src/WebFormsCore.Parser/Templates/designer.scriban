@@ -120,7 +120,7 @@
 #pragma warning disable IL2072 // DynamicallyAccessedMemberTypes
 
 {{ for type in Types -}}
-[assembly:WebFormsCore.AssemblyViewAttribute(@"{{ type.RelativePath }}", typeof({{ type.Namespace ? (type.Namespace + ".") : ""  }}CompiledViews.{{ type.ClassName }}))]
+[assembly:WebFormsCore.AssemblyViewAttribute(@"{{ type.RelativePath }}", typeof({{ type.Namespace ? (type.Namespace + ".") : ""  }}CompiledViews_{{ type.AssemblyName }}.{{ type.ClassName }}))]
 {{ if type.Namespace }}
 namespace {{ type.Namespace }}
 {
@@ -160,7 +160,7 @@ partial class {{ type.InheritsClassName }}
 }
 {{- end }}
 
-public partial class CompiledViews
+public partial class CompiledViews_{{ type.AssemblyName }}
 {
     [WebFormsCore.CompiledView(@"{{ type.RelativePath }}", "{{ type.Hash }}")]
     {{- for file in type.IncludeFiles }}
