@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using WebFormsCore.Serializer;
 
 namespace WebFormsCore;
@@ -31,7 +32,10 @@ public ref struct ViewStateReader
         _span = span;
         Provider = provider;
         _owner = owner;
+        Compact = provider.GetRequiredService<IOptions<ViewStateOptions>>().Value.Compact;
     }
+
+    public bool Compact { get; }
 
     public int Offset => _offset;
 

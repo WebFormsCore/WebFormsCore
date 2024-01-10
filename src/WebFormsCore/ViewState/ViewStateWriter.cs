@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using WebFormsCore.Serializer;
 
 namespace WebFormsCore;
@@ -22,7 +23,10 @@ public ref struct ViewStateWriter
         _owner = MemoryPool<byte>.Shared.Rent(1024);
         _span = _owner.Memory.Span;
         _isDisposed = false;
+        Compact = provider.GetRequiredService<IOptions<ViewStateOptions>>().Value.Compact;
     }
+
+    public bool Compact { get; }
 
     public Span<byte> Span => _owner.Memory.Span.Slice(0, _length);
 

@@ -44,26 +44,49 @@ namespace {{ item.Namespace }}
 
             var defaultValues = _defaultViewStateValues;
 
-            {{ item.FlagType }} flag = 0;
-        {{- for prop in item.Properties }}
+            if (writer.Compact)
+            {
+                {{ item.FlagType }} flag = 0;
+            {{- for prop in item.Properties }}
 
-            // {{ prop.Name }}
-        {{- if prop.Type == "bool" }}
-            if ({{ prop.Name }}) flag |= {{ prop.Flag }};
-        {{- else }}
-            var write{{ prop.Name }} = {{ if prop.TrackDefault }}true{{ else }}(defaultValues == null || writer.StoreInViewState<{{ prop.Type }}>({{ prop.Name }}, defaultValues.{{ prop.Name }})){{ end }}
-            {{- if prop.ValidateProperty }} && {{ prop.ValidateProperty }}{{ end -}};
-            if (write{{ prop.Name }}) flag |= {{ prop.Flag }};
-        {{- end }}
-        {{- end }}
+                // {{ prop.Name }}
+            {{- if prop.Type == "bool" }}
+                if ({{ prop.Name }}) flag |= {{ prop.Flag }};
+            {{- else }}
+                var write{{ prop.Name }} = {{ if prop.TrackDefault }}true{{ else }}(defaultValues == null || writer.StoreInViewState<{{ prop.Type }}>({{ prop.Name }}, defaultValues.{{ prop.Name }})){{ end }}
+                {{- if prop.ValidateProperty }} && {{ prop.ValidateProperty }}{{ end -}};
+                if (write{{ prop.Name }}) flag |= {{ prop.Flag }};
+            {{- end }}
+            {{- end }}
 
-            writer.Write(flag);
+                writer.Write(flag);
 
-        {{- for prop in item.Properties }}
-        {{- if prop.Type != "bool" }}
-            if (write{{ prop.Name }}) writer.Write<{{ prop.Type }}>({{ prop.Name }}, defaultValues == null ? default : defaultValues.{{ prop.Name }});
-        {{- end }}
-        {{- end }}
+            {{- for prop in item.Properties }}
+            {{- if prop.Type != "bool" }}
+                if (write{{ prop.Name }}) writer.Write<{{ prop.Type }}>({{ prop.Name }}, defaultValues == null ? default : defaultValues.{{ prop.Name }});
+            {{- end }}
+            {{- end }}
+            }
+            else
+            {
+                var length = 0;
+            {{- for prop in item.Properties }}
+
+                var write{{ prop.Name }} = {{ if prop.TrackDefault }}true{{ else }}(defaultValues == null || writer.StoreInViewState<{{ prop.Type }}>({{ prop.Name }}, defaultValues.{{ prop.Name }})){{ end }}
+                {{- if prop.ValidateProperty }} && {{ prop.ValidateProperty }}{{ end -}};
+                if (write{{ prop.Name }}) length++;
+            {{- end }}
+
+                writer.Write(length);
+            {{- for prop in item.Properties }}
+
+                if (write{{ prop.Name }})
+                {
+                    writer.Write("{{ prop.Name }}");
+                    writer.Write<{{ prop.Type }}>({{ prop.Name }}, defaultValues == null ? default : defaultValues.{{ prop.Name }});
+                }
+            {{- end }}
+            }
         }
 
 		{{ item.IsControl ? "protected override" : "private" }} void OnLoadViewState(ref ViewStateReader reader)
@@ -72,14 +95,28 @@ namespace {{ item.Namespace }}
             base.OnLoadViewState(ref reader);
             {{- end }}
 
-            var flag = reader.Read<{{ item.FlagType }}>();
-        {{- for prop in item.Properties }}
-        {{- if prop.Type == "bool" }}
-            {{ prop.Name }} = (flag & {{ prop.Flag }}) != 0;
-        {{- else }}
-            if ((flag & {{ prop.Flag }}) != 0) {{ prop.Name }} = reader.Read<{{ prop.Type }}>({{ prop.Name }});
-        {{- end }}
-        {{- end }}
+            if (reader.Compact)
+            {
+                var flag = reader.Read<{{ item.FlagType }}>();
+            {{- for prop in item.Properties }}
+            {{- if prop.Type == "bool" }}
+                {{ prop.Name }} = (flag & {{ prop.Flag }}) != 0;
+            {{- else }}
+                if ((flag & {{ prop.Flag }}) != 0) {{ prop.Name }} = reader.Read<{{ prop.Type }}>({{ prop.Name }})!;
+            {{- end }}
+            {{- end }}
+            }
+            else
+            {
+                for (var length = reader.Read<int>(); length > 0; length--)
+                {
+                    var name = reader.Read<string>()!;
+
+                {{- for prop in item.Properties }}
+                    if (name.Equals("{{ prop.Name }}", StringComparison.Ordinal)) {{ prop.Name }} = reader.Read<{{ prop.Type }}>({{ prop.Name }})!;
+                {{- end }}
+                }
+            }
         }
 
         bool IViewStateObject.WriteToViewState => true;
