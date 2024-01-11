@@ -175,21 +175,17 @@ public partial class Control : IInternalControl
         OnWriteViewState(ref writer);
     }
 
-    private bool _didInit;
-
     internal void InvokeFrameworkInit(CancellationToken token)
     {
-        if (_didInit)
+        if (_state >= ControlState.FrameworkInitialized)
         {
             return;
         }
 
-        _didInit = true;
+        _state = ControlState.FrameworkInitialized;
 
         FrameworkInitialize();
         FrameworkInitialized();
-
-        _state = ControlState.FrameworkInitialized;
 
         foreach (var control in Controls)
         {

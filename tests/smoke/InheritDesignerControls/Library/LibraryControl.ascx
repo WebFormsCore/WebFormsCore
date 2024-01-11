@@ -1,2 +1,2 @@
 ﻿<%@ Control Language="C#" Inherits="Library.LibraryControl" %>
-Hello world!
+<%= Message ?? "Hello world!" %>

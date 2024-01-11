@@ -356,7 +356,6 @@ public partial class Control : System.Web.UI.Control
         _enableViewState = null;
         _forceClientIdAttribute = false;
         _state = ControlState.Constructed;
-        _didInit = false;
     }
 
     protected virtual string GetUniqueIDPrefix()

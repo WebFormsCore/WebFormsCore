@@ -48,7 +48,7 @@ public class StreamPanel : Control, INamingContainer
         get => _prerender;
         set
         {
-            if (_state >= ControlState.FrameworkInitialized)
+            if (_state >= ControlState.Initialized)
             {
                 throw new InvalidOperationException("Cannot change prerender after framework initialization.");
             }
