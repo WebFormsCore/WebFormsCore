@@ -453,6 +453,7 @@ public class PageManager : IPageManager
             }
 
             await page.ClientScript.RenderHeadStart(writer);
+            await page.ClientScript.RenderHeadEnd(writer);
         }
 
         var request = context.Request;
