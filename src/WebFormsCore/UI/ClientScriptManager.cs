@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HttpStack;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Options;
 using WebFormsCore.Security;
-using ScriptDictionary = System.Collections.Generic.Dictionary<(System.Type, string), WebFormsCore.UI.RegisteredScript>;
+using ScriptList = System.Collections.Generic.List<WebFormsCore.UI.RegisteredScript>;
 
 namespace WebFormsCore.UI;
 
@@ -18,7 +20,36 @@ internal enum RegisterType
     ExternalStyle
 }
 
-public sealed class ClientScriptManager
+internal enum ScriptType
+{
+    Script,
+    Style
+}
+
+public enum ScriptPosition
+{
+    /// <summary>
+    /// The script is registered right after the opening &lt;head&gt; tag.
+    /// </summary>
+    HeadStart,
+
+    /// <summary>
+    /// The script is registered right before the closing &lt;/head&gt; tag.
+    /// </summary>
+    HeadEnd,
+
+    /// <summary>
+    /// The script is registered right after the opening &lt;body&gt; tag.
+    /// </summary>
+    BodyStart,
+
+    /// <summary>
+    /// The script is registered right before the closing &lt;/body&gt; tag.
+    /// </summary>
+    BodyEnd
+}
+
+public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>? options = null)
 {
     private const string ScriptStart = "<script";
     private const string ScriptEnd = "</script>\n";
@@ -27,13 +58,29 @@ public sealed class ClientScriptManager
     private const string LinkStart = "<link rel=\"stylesheet\"";
     private const string LinkEnd = " />\n";
 
-    private readonly Page _page;
-    private ScriptDictionary? _startupBody;
-    private ScriptDictionary? _startupHead;
+    private readonly Dictionary<(ScriptType, Type, string), (ScriptList, RegisteredScript)> _registeredScripts = new();
+    private ScriptList? _headStart;
+    private ScriptList? _headEnd;
+    private ScriptList? _bodyEnd;
+    private ScriptList? _bodyStart;
+    private readonly ScriptPosition _defaultScriptPosition = options?.Value.DefaultScriptPosition ?? ScriptPosition.BodyEnd;
+    private readonly ScriptPosition _defaultStylePosition = options?.Value.DefaultStylePosition ?? ScriptPosition.HeadEnd;
 
-    public ClientScriptManager(Page page)
+    private ref ScriptList? GetList(ScriptPosition position)
     {
-        _page = page;
+        switch (position)
+        {
+            case ScriptPosition.HeadStart:
+                return ref _headStart;
+            case ScriptPosition.HeadEnd:
+                return ref _headEnd;
+            case ScriptPosition.BodyStart:
+                return ref _bodyStart;
+            case ScriptPosition.BodyEnd:
+                return ref _bodyEnd;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(position), position, null);
+        }
     }
 
     public bool IsStartupScriptRegistered(string key)
@@ -48,21 +95,15 @@ public sealed class ClientScriptManager
             throw new ArgumentNullException(nameof(type));
         }
 
-        return _startupBody != null &&
-               _startupBody.ContainsKey((type, key));
+        return _registeredScripts.ContainsKey((ScriptType.Script, type, key));
     }
 
-    public void RegisterHeadScript(Type type, string key, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true, IAttributeRenderer? attributes = null)
+    public void RegisterStartupScript(Type type, string key, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true, IAttributeRenderer? attributes = null, ScriptPosition? position = null)
     {
-        RegisterBlock(type, key, script, ref _startupHead, addScriptTags ? RegisterType.InlineScript : RegisterType.Raw, attribute: attributes);
+        RegisterBlock(ScriptType.Script, type, key, script, ref GetList(position ?? _defaultScriptPosition), addScriptTags ? RegisterType.InlineScript : RegisterType.Raw, attribute: attributes);
     }
 
-    public void RegisterStartupScript(Type type, string key, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true, IAttributeRenderer? attributes = null)
-    {
-        RegisterBlock(type, key, script, ref _startupBody, addScriptTags ? RegisterType.InlineScript : RegisterType.Raw, attribute: attributes);
-    }
-
-    public void RegisterStartupStaticScript(Type type, PathString fileName, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true, IAttributeRenderer? linkAttributes = null)
+    public void RegisterStartupStaticScript(Type type, PathString fileName, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true, IAttributeRenderer? linkAttributes = null, ScriptPosition? position = null)
     {
         if (StaticFiles.Files.TryGetValue(fileName, out var existingScript))
         {
@@ -76,52 +117,52 @@ public sealed class ClientScriptManager
             StaticFiles.Files[fileName] = script;
         }
 
-        if (_page.Context.Items.ContainsKey("RegisteredWebFormsCore"))
+        if (page.Context.Items.ContainsKey("RegisteredWebFormsCore"))
         {
-            RegisterStartupScriptLink(type, fileName, fileName, addScriptTags, linkAttributes);
+            RegisterStartupScriptLink(type, fileName, fileName, addScriptTags, linkAttributes, position);
         }
         else
         {
-            RegisterStartupScript(type, fileName, script, addScriptTags);
+            RegisterStartupScript(type, fileName, script, addScriptTags, position: position);
         }
     }
 
-    public void RegisterStartupScriptLink(Type type, string key, string url, bool addScriptTags = true, IAttributeRenderer? attributes = null)
+    public void RegisterStartupScriptLink(Type type, string key, string url, bool addScriptTags = true, IAttributeRenderer? attributes = null, ScriptPosition? position = null)
     {
-        RegisterBlock(type, key, url, ref _startupBody, addScriptTags ? RegisterType.ExternalScript : RegisterType.Raw, attribute: attributes);
+        RegisterBlock(ScriptType.Style, type, key, url, ref GetList(position ?? _defaultStylePosition), addScriptTags ? RegisterType.ExternalScript : RegisterType.Raw, attribute: attributes);
     }
 
-    public void RegisterStartupStyle(Type type, string key, string content, bool addStyleTags, IAttributeRenderer? attributes = null)
+    public void RegisterStartupStyle(Type type, string key, string content, bool addStyleTags, IAttributeRenderer? attributes = null, ScriptPosition? position = null)
     {
-        RegisterBlock(type, key, content, ref _startupHead, addStyleTags ? RegisterType.InlineStyle : RegisterType.Raw, attribute: attributes);
+        RegisterBlock(ScriptType.Style, type, key, content, ref GetList(position ?? _defaultStylePosition), addStyleTags ? RegisterType.InlineStyle : RegisterType.Raw, attribute: attributes);
     }
 
-    public void RegisterStartupStyleLink(Type type, string key, string url, bool addStyleTags = true, IAttributeRenderer? attributes = null)
+    public void RegisterStartupStyleLink(Type type, string key, string url, bool addStyleTags = true, IAttributeRenderer? attributes = null, ScriptPosition? position = null)
     {
-        RegisterBlock(type, key, url, ref _startupHead, addStyleTags ? RegisterType.ExternalStyle : RegisterType.Raw, attribute: attributes);
+        RegisterBlock(ScriptType.Style, type, key, url, ref GetList(position ?? _defaultStylePosition), addStyleTags ? RegisterType.ExternalStyle : RegisterType.Raw, attribute: attributes);
     }
 
-    private void RegisterBlock(Type type, string key, string content, ref ScriptDictionary? dictionary, RegisterType registerType, IAttributeRenderer? attribute)
+    private void RegisterBlock(ScriptType scriptType, Type type, string key, string content, ref ScriptList? list, RegisterType registerType, IAttributeRenderer? attribute)
     {
         if (type == null)
         {
             throw new ArgumentNullException(nameof(type));
         }
 
-        var dictionaryKey = (type, key);
+        var dictionaryKey = (scriptType, type, key);
 
-        if (dictionary != null && dictionary.ContainsKey(dictionaryKey))
+        if (list != null && _registeredScripts.ContainsKey(dictionaryKey))
         {
             return;
         }
 
         string? nonce = null;
 
-        if (_page.Csp.Enabled && registerType is not RegisterType.Raw)
+        if (page.Csp.Enabled && registerType is not RegisterType.Raw)
         {
             var cspTarget = registerType is RegisterType.ExternalScript or RegisterType.InlineScript
-                ? _page.Csp.ScriptSrc
-                : _page.Csp.StyleSrc;
+                ? page.Csp.ScriptSrc
+                : page.Csp.StyleSrc;
 
             if (registerType is RegisterType.ExternalScript or RegisterType.ExternalStyle)
             {
@@ -141,27 +182,26 @@ public sealed class ClientScriptManager
                     content = content.ReplaceLineEndings("\n");
                 }
 
-                _page.Csp.ScriptSrc.AddInlineHash(content);
+                page.Csp.ScriptSrc.AddInlineHash(content);
             }
         }
 
-        dictionary ??= new ScriptDictionary();
-        dictionary[dictionaryKey] = new RegisteredScript(content, nonce, registerType, attribute);
+        var registration = new RegisteredScript(content, nonce, registerType, attribute);
+
+        list ??= new ScriptList();
+        list.Add(registration);
+
+        _registeredScripts[dictionaryKey] = (list, registration);
     }
 
-    private async ValueTask Render(HtmlTextWriter writer, ScriptDictionary? scripts)
+    private async ValueTask Render(HtmlTextWriter writer, ScriptList scripts)
     {
-        if (scripts == null)
-        {
-            return;
-        }
-
         await writer.WriteLineAsync();
         var current = RegisterType.Raw;
 
         foreach (var kv in scripts)
         {
-            var (script, cspNonce, type, attributes) = kv.Value;
+            var (script, cspNonce, type, attributes) = kv;
             var attr = type switch
             {
                 RegisterType.ExternalScript => "src",
@@ -208,7 +248,7 @@ public sealed class ClientScriptManager
                 await writer.WriteAsync(script);
             }
 
-            if (attr != null || _page.Csp.Enabled)
+            if (attr != null || page.Csp.Enabled)
             {
                 await WriteEndTag(writer, current);
                 current = RegisterType.Raw;
@@ -220,43 +260,47 @@ public sealed class ClientScriptManager
 
     private static ValueTask WriteEndTag(HtmlTextWriter writer, RegisterType current)
     {
-        switch (current)
+        return current switch
         {
-            case RegisterType.InlineScript:
-            case RegisterType.ExternalScript:
-                return writer.WriteAsync(ScriptEnd);
-            case RegisterType.InlineStyle:
-                return writer.WriteAsync(StyleEnd);
-            case RegisterType.ExternalStyle:
-                return writer.WriteAsync(LinkEnd);
-            default:
-                return default;
-        }
+            RegisterType.InlineScript => writer.WriteAsync(ScriptEnd),
+            RegisterType.ExternalScript => writer.WriteAsync(ScriptEnd),
+            RegisterType.InlineStyle => writer.WriteAsync(StyleEnd),
+            RegisterType.ExternalStyle => writer.WriteAsync(LinkEnd),
+            RegisterType.Raw => default,
+            _ => throw new ArgumentOutOfRangeException(nameof(current), current, null)
+        };
     }
 
     private static ValueTask WriteBeginTag(HtmlTextWriter writer, RegisterType current)
     {
-        switch (current)
+        return current switch
         {
-            case RegisterType.InlineScript:
-            case RegisterType.ExternalScript:
-                return writer.WriteAsync(ScriptStart);
-            case RegisterType.InlineStyle:
-                return writer.WriteAsync(StyleStart);
-            case RegisterType.ExternalStyle:
-                return writer.WriteAsync(LinkStart);
-            default:
-                return default;
-        }
+            RegisterType.InlineScript => writer.WriteAsync(ScriptStart),
+            RegisterType.ExternalScript => writer.WriteAsync(ScriptStart),
+            RegisterType.InlineStyle => writer.WriteAsync(StyleStart),
+            RegisterType.ExternalStyle => writer.WriteAsync(LinkStart),
+            RegisterType.Raw => default,
+            _ => throw new ArgumentOutOfRangeException(nameof(current), current, null)
+        };
     }
 
-    internal ValueTask RenderStartupHead(HtmlTextWriter writer)
+    public ValueTask RenderHeadStart(HtmlTextWriter writer)
     {
-        return Render(writer, _startupHead);
+        return _headStart is null ? default : Render(writer, _headStart);
     }
 
-    internal ValueTask RenderStartupBody(HtmlTextWriter writer)
+    public ValueTask RenderHeadEnd(HtmlTextWriter writer)
     {
-        return Render(writer, _startupBody);
+        return _headEnd is null ? default : Render(writer, _headEnd);
+    }
+
+    public ValueTask RenderBodyStart(HtmlTextWriter writer)
+    {
+        return _bodyStart is null ? default : Render(writer, _bodyStart);
+    }
+
+    public ValueTask RenderBodyEnd(HtmlTextWriter writer)
+    {
+        return _bodyEnd is null ? default : Render(writer, _bodyEnd);
     }
 }

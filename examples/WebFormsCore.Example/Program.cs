@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore;
 using WebFormsCore.Example;
 using WebFormsCore.Options;
+using WebFormsCore.UI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,7 @@ builder.Services.Configure<WebFormsCoreOptions>(options =>
 {
     options.HiddenClass = "d-none";
     options.DisabledClass = "disabled";
+    options.DefaultScriptPosition = ScriptPosition.HeadEnd;
 });
 
 builder.Services.Configure<ViewStateOptions>(options =>

@@ -9,14 +9,9 @@ using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI.HtmlControls;
 
-public class HtmlBody : HtmlContainerControl
+public class HtmlBody() : HtmlContainerControl("body")
 {
     protected override bool GenerateAutomaticID => false;
-
-    public HtmlBody()
-        : base("body")
-    {
-    }
 
     protected override void FrameworkInitialize()
     {
@@ -35,14 +30,16 @@ public class HtmlBody : HtmlContainerControl
     private void RegisterScript()
     {
         // TODO: Move this to a better place.
-        var addScript = Context.RequestServices
+        var options = Context.RequestServices
             .GetService<IOptions<WebFormsCoreOptions>>()
-            ?.Value
-            ?.AddWebFormsCoreScript ?? true;
+            ?.Value;
 
-        if (addScript)
+        if (options?.AddWebFormsCoreScript ?? true)
         {
-            Page.ClientScript.RegisterStartupDeferStaticScript(typeof(Page), "/js/form.min.js", Resources.Script);
+            Page.ClientScript.RegisterStartupDeferStaticScript(
+                typeof(Page),
+                "/js/form.min.js",
+                Resources.Script);
         }
     }
 
@@ -60,6 +57,11 @@ public class HtmlBody : HtmlContainerControl
     {
         var viewStateManager = ServiceProvider.GetRequiredService<IViewStateManager>();
 
+        if (!Page.IsPostBack)
+        {
+            await Page.ClientScript.RenderBodyStart(writer);
+        }
+
         await base.RenderChildrenAsync(writer, token);
 
         foreach (var renderer in Context.RequestServices.GetServices<IPageService>())
@@ -69,7 +71,7 @@ public class HtmlBody : HtmlContainerControl
 
         if (!Page.IsPostBack)
         {
-            await Page.ClientScript.RenderStartupBody(writer);
+            await Page.ClientScript.RenderBodyEnd(writer);
         }
 
         if (viewStateManager.EnableViewState && Page is { EnableViewState: true, IsStreaming: false })

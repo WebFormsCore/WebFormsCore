@@ -8,14 +8,9 @@ using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI.HtmlControls;
 
-public class HtmlHead : HtmlContainerControl
+public class HtmlHead() : HtmlContainerControl("head")
 {
     protected override bool GenerateAutomaticID => false;
-
-    public HtmlHead()
-        : base("head")
-    {
-    }
 
     protected override void FrameworkInitialize()
     {
@@ -30,7 +25,11 @@ public class HtmlHead : HtmlContainerControl
 
         var hiddenClass = Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>()?.Value?.HiddenClass ?? "";
 
-        Page.ClientScript.RegisterHeadScript(typeof(Page), "FormPostback", $$$"""window.wfc={hiddenClass:'{{{hiddenClass}}}',_:[],bind:function(a,b){this._.push([0,a,b])},bindValidator:function(a,b){this._.push([1,a,b])},init:function(a){this._.push([2,'',a])}};""");
+        Page.ClientScript.RegisterStartupScript(
+            typeof(Page),
+            "FormPostback",
+            $$$"""window.wfc={hiddenClass:'{{{hiddenClass}}}',_:[],bind:function(a,b){this._.push([0,a,b])},bindValidator:function(a,b){this._.push([1,a,b])},init:function(a){this._.push([2,'',a])}};""",
+            position: ScriptPosition.HeadStart);
     }
 
     protected override void OnUnload(EventArgs args)
@@ -45,6 +44,11 @@ public class HtmlHead : HtmlContainerControl
 
     protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
+        if (!Page.IsPostBack)
+        {
+            await Page.ClientScript.RenderHeadStart(writer);
+        }
+
         await base.RenderChildrenAsync(writer, token);
 
         foreach (var renderer in Context.RequestServices.GetServices<IPageService>())
@@ -54,7 +58,7 @@ public class HtmlHead : HtmlContainerControl
 
         if (!Page.IsPostBack)
         {
-            await Page.ClientScript.RenderStartupHead(writer);
+            await Page.ClientScript.RenderHeadEnd(writer);
         }
     }
 }

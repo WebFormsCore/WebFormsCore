@@ -325,7 +325,7 @@ public class PageManager : IPageManager
     {
         await Task.CompletedTask;
 
-        if (!_options.Value.AllowExternal)
+        if (!_options.Value.AllowStreamPanel)
         {
             throw new InvalidOperationException("Stream panels are not allowed.");
         }
@@ -452,7 +452,7 @@ public class PageManager : IPageManager
                 }
             }
 
-            await page.ClientScript.RenderStartupHead(writer);
+            await page.ClientScript.RenderHeadStart(writer);
         }
 
         var request = context.Request;
