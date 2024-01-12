@@ -203,6 +203,11 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
     const url = baseElement?.getAttribute('data-wfc-base') ?? location.toString();
     const formData = getFormData(form, eventTarget, eventArgument);
     const container = new ViewStateContainer(form, formData);
+
+    if (!wfc.validate(element)) {
+        return;
+    }
+
     const release = await postbackMutex.acquire();
 
     try {
@@ -590,6 +595,14 @@ const wfc: WebFormsCore = {
     },
 
     validate: function (validationGroup = "") {
+        if (typeof validationGroup === "object") {
+            if (!validationGroup.hasAttribute('data-wfc-validate')) {
+                return true;
+            }
+
+            validationGroup = validationGroup.getAttribute('data-wfc-validate') ?? "";
+        }
+
         const detail = { isValid: true };
 
         for (const element of document.querySelectorAll('[data-wfc-validate]')) {
@@ -789,21 +802,6 @@ wfc.bind('[data-wfc-stream]', {
         }
     }
 })
-
-document.addEventListener("wfc:beforeSubmit", function (e: CustomEvent) {
-    const element = e.detail?.element;
-
-    if (!element || !element.hasAttribute('data-wfc-validate')) {
-        return;
-    }
-
-    const validationGroup = element.getAttribute('data-wfc-validate') ?? "";
-    const isValid = wfc.validate(validationGroup);
-
-    if (!isValid) {
-        e.preventDefault();
-    }
-});
 
 if ('wfc' in window) {
     const current = window.wfc;

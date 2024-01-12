@@ -21,7 +21,7 @@ export interface WebFormsCore {
 
     bindValidator: (selectors: string, validate: (element: HTMLElement, source: HTMLElement) => boolean) => void;
 
-    validate: (validationGroup?: string) => boolean;
+    validate: (validationGroup?: string | Element) => boolean;
 }
 
 declare global {

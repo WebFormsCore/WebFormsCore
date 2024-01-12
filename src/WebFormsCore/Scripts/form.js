@@ -1062,6 +1062,9 @@
         const url = (_a = baseElement === null || baseElement === void 0 ? void 0 : baseElement.getAttribute('data-wfc-base')) !== null && _a !== void 0 ? _a : location.toString();
         const formData = getFormData(form, eventTarget, eventArgument);
         const container = new ViewStateContainer(form, formData);
+        if (!wfc.validate(element)) {
+            return;
+        }
         const release = await postbackMutex.acquire();
         try {
             const cancelled = !target.dispatchEvent(new CustomEvent("wfc:beforeSubmit", {
@@ -1086,14 +1089,30 @@
                 }
             };
             request.body = hasElementFile(document.body) ? formData : new URLSearchParams(formData);
-            const response = await fetch(url, request);
+            let response;
+            try {
+                response = await fetch(url, request);
+            }
+            catch (e) {
+                target.dispatchEvent(new CustomEvent("wfc:submitError", {
+                    bubbles: true,
+                    detail: {
+                        form,
+                        eventTarget,
+                        response: undefined,
+                        error: e
+                    }
+                }));
+                throw e;
+            }
             if (!response.ok) {
                 target.dispatchEvent(new CustomEvent("wfc:submitError", {
                     bubbles: true,
                     detail: {
                         form,
                         eventTarget,
-                        response: response
+                        response: response,
+                        error: undefined
                     }
                 }));
                 throw new Error(response.statusText);
@@ -1370,10 +1389,16 @@
             }
         },
         validate: function (validationGroup = "") {
-            var _a;
+            var _a, _b;
+            if (typeof validationGroup === "object") {
+                if (!validationGroup.hasAttribute('data-wfc-validate')) {
+                    return true;
+                }
+                validationGroup = (_a = validationGroup.getAttribute('data-wfc-validate')) !== null && _a !== void 0 ? _a : "";
+            }
             const detail = { isValid: true };
             for (const element of document.querySelectorAll('[data-wfc-validate]')) {
-                const elementValidationGroup = (_a = element.getAttribute('data-wfc-validate')) !== null && _a !== void 0 ? _a : "";
+                const elementValidationGroup = (_b = element.getAttribute('data-wfc-validate')) !== null && _b !== void 0 ? _b : "";
                 if (elementValidationGroup !== validationGroup) {
                     continue;
                 }
@@ -1525,18 +1550,6 @@
             if (webSocket) {
                 webSocket.close();
             }
-        }
-    });
-    document.addEventListener("wfc:beforeSubmit", function (e) {
-        var _a, _b;
-        const element = (_a = e.detail) === null || _a === void 0 ? void 0 : _a.element;
-        if (!element || !element.hasAttribute('data-wfc-validate')) {
-            return;
-        }
-        const validationGroup = (_b = element.getAttribute('data-wfc-validate')) !== null && _b !== void 0 ? _b : "";
-        const isValid = wfc.validate(validationGroup);
-        if (!isValid) {
-            e.preventDefault();
         }
     });
     if ('wfc' in window) {
