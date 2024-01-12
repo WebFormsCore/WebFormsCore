@@ -801,7 +801,14 @@ public partial class Control : System.Web.UI.Control
         {
             if (control.ID != null)
             {
-                namedControls.Add(control.ID, control);
+#if NET6_0_OR_GREATER
+                namedControls.TryAdd(control.ID, control);
+#else
+                if (!namedControls.ContainsKey(control.ID))
+                {
+                    namedControls.Add(control.ID, control);
+                }
+#endif
             }
 
             if (control is not INamingContainer)
