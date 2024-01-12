@@ -22,8 +22,9 @@
 
     <!--#include file="Common/Include.ascx" -->
     <div class="my-2">
-        <wfc:CheckBox runat="server" ID="cb" OnCheckedChanged="cb_OnCheckedChanged" AutoPostBack="True" />
-        <wfc:Literal runat="server" ID="litCb" />
+        <div class="form-check">
+            <wfc:CheckBox runat="server" ID="cb" OnCheckedChanged="cb_OnCheckedChanged" AutoPostBack="True" CssClass="form-check-input" LabelAttributes-CssClass="form-check-label" />
+        </div>
     </div>
 
     <wfc:TinyEditor runat="server" ID="editor" />

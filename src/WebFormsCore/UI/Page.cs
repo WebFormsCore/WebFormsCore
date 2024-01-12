@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HttpStack;
@@ -167,5 +168,13 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
         }
 
         return isValid;
+    }
+
+    public string GetDefaultValidationGroup(Control control)
+    {
+        return Page.Validators
+            .OfType<BaseValidator>()
+            .FirstOrDefault(v => v.GetControlToValidate() == control)
+            ?.ValidationGroup ?? "";
     }
 }

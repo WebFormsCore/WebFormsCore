@@ -55,7 +55,7 @@ public partial class Default : Page
 
     protected Task cb_OnCheckedChanged(CheckBox sender, EventArgs e)
     {
-        litCb.Text = cb.Checked.ToString(CultureInfo.InvariantCulture);
+        cb.Text = cb.Checked.ToString(CultureInfo.InvariantCulture);
         return Task.CompletedTask;
     }
 

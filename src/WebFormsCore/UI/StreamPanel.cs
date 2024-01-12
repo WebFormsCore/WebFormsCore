@@ -174,8 +174,6 @@ public class StreamPanel : Control, INamingContainer
             await Form.OnSubmitAsync(default);
         }
 
-        await InvokePreRenderAsync(default, null);
-
         await UpdateControlAsync();
 
         Page.IsPostBack = false;
@@ -195,6 +193,7 @@ public class StreamPanel : Control, INamingContainer
 
         Context.Response.Body = new FlushHtmlStream(memory, writer);
 
+        await InvokePreRenderAsync(default, null);
         await RenderAsync(writer, token);
         await writer.FlushAsync();
 

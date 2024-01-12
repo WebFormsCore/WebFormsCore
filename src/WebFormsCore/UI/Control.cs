@@ -80,7 +80,7 @@ public partial class Control : System.Web.UI.Control
 
     protected virtual bool EnableViewStateBag => EnableViewState;
 
-    protected bool AddClientIdToAttributes => (_id is not null && !_hasGeneratedId) || _forceClientIdAttribute;
+    protected virtual bool AddClientIdToAttributes => (_id is not null && !_hasGeneratedId) || _forceClientIdAttribute;
 
     protected virtual bool ProcessControl => true;
 

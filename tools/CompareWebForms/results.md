@@ -1,8 +1,8 @@
 This issue lists controls in WebForms, with their status what is implemented in WebFormsCore.
 
-Controls: 12/209
-Properties: 23/1544
-Events: 3/199
+Controls: 22/209
+Properties: 79/1544
+Events: 8/199
 
 | Control | Status | Properties | Events |
 | ------- | ------ | ---------- | ------ |
@@ -16,18 +16,18 @@ Events: 3/199
 | <a href="#user-content-basedatalist">BaseDataList</a> | ❌ | 0/14 | 0/1 |
 | BaseNavigationTemplateContainer | ❌ | 0/0 | 0/0 |
 | <a href="#user-content-basepartialcachingcontrol">BasePartialCachingControl</a> | ❌ | 0/2 | 0/0 |
-| <a href="#user-content-basevalidator">BaseValidator</a> | ❌ | 0/11 | 0/0 |
+| <a href="#user-content-basevalidator">BaseValidator</a> | ⚠ | 8/11 | 0/0 |
 | <a href="#user-content-behavioreditorpart">BehaviorEditorPart</a> | ❌ | 0/3 | 0/0 |
 | BlockControl | ❌ | 0/0 | 0/0 |
 | <a href="#user-content-bulletedlist">BulletedList</a> | ❌ | 0/12 | 0/1 |
-| <a href="#user-content-button">Button</a> | ⚠ | 0/8 | 1/2 |
+| <a href="#user-content-button">Button</a> | ⚠ | 5/8 | 2/2 |
 | <a href="#user-content-calendar">Calendar</a> | ❌ | 0/32 | 0/3 |
 | <a href="#user-content-catalogpart">CatalogPart</a> | ❌ | 0/1 | 0/0 |
 | <a href="#user-content-catalogzone">CatalogZone</a> | ❌ | 0/1 | 0/0 |
 | <a href="#user-content-catalogzonebase">CatalogZoneBase</a> | ❌ | 0/12 | 0/0 |
 | <a href="#user-content-changepassword">ChangePassword</a> | ❌ | 0/66 | 0/7 |
 | ChangePasswordContainer | ❌ | 0/0 | 0/0 |
-| <a href="#user-content-checkbox">CheckBox</a> | ❌ | 0/8 | 0/1 |
+| <a href="#user-content-checkbox">CheckBox</a> | ⚠ | 7/8 | 1/1 |
 | <a href="#user-content-checkboxlist">CheckBoxList</a> | ❌ | 0/7 | 0/0 |
 | ChildTable | ❌ | 0/0 | 0/0 |
 | <a href="#user-content-comparevalidator">CompareValidator</a> | ❌ | 0/3 | 0/0 |
@@ -89,11 +89,11 @@ Events: 3/199
 | <a href="#user-content-htmlcontrol">HtmlControl</a> | ❌ | 0/4 | 0/0 |
 | <a href="#user-content-htmlelement">HtmlElement</a> | ❌ | 0/1 | 0/0 |
 | <a href="#user-content-htmlembed">HtmlEmbed</a> | ❌ | 0/1 | 0/0 |
-| <a href="#user-content-htmlform">HtmlForm</a> | ⚠ | 2/10 | 0/0 |
+| <a href="#user-content-htmlform">HtmlForm</a> | ⚠ | 6/10 | 0/0 |
 | <a href="#user-content-htmlgenericcontrol">HtmlGenericControl</a> | ✅ | 1/1 | 0/0 |
-| <a href="#user-content-htmlhead">HtmlHead</a> | ❌ | 0/4 | 0/0 |
+| <a href="#user-content-htmlhead">HtmlHead</a> | ⚠ | 0/4 | 0/0 |
 | <a href="#user-content-htmliframe">HtmlIframe</a> | ❌ | 0/1 | 0/0 |
-| <a href="#user-content-htmlimage">HtmlImage</a> | ❌ | 0/6 | 0/0 |
+| <a href="#user-content-htmlimage">HtmlImage</a> | ⚠ | 0/6 | 0/0 |
 | <a href="#user-content-htmlinputbutton">HtmlInputButton</a> | ❌ | 0/2 | 0/1 |
 | <a href="#user-content-htmlinputcheckbox">HtmlInputCheckBox</a> | ❌ | 0/1 | 0/1 |
 | <a href="#user-content-htmlinputcontrol">HtmlInputControl</a> | ❌ | 0/3 | 0/0 |
@@ -106,7 +106,7 @@ Events: 3/199
 | <a href="#user-content-htmlinputreset">HtmlInputReset</a> | ❌ | 0/2 | 0/1 |
 | HtmlInputSubmit | ❌ | 0/0 | 0/0 |
 | <a href="#user-content-htmlinputtext">HtmlInputText</a> | ❌ | 0/3 | 0/1 |
-| <a href="#user-content-htmllink">HtmlLink</a> | ❌ | 0/1 | 0/0 |
+| <a href="#user-content-htmllink">HtmlLink</a> | ⚠ | 0/1 | 0/0 |
 | <a href="#user-content-htmlmeta">HtmlMeta</a> | ❌ | 0/4 | 0/0 |
 | <a href="#user-content-htmlselect">HtmlSelect</a> | ❌ | 0/13 | 0/1 |
 | <a href="#user-content-htmlsource">HtmlSource</a> | ❌ | 0/1 | 0/0 |
@@ -114,7 +114,7 @@ Events: 3/199
 | <a href="#user-content-htmltablecell">HtmlTableCell</a> | ❌ | 0/9 | 0/0 |
 | <a href="#user-content-htmltablerow">HtmlTableRow</a> | ❌ | 0/8 | 0/0 |
 | <a href="#user-content-htmltextarea">HtmlTextArea</a> | ❌ | 0/4 | 0/1 |
-| <a href="#user-content-htmltitle">HtmlTitle</a> | ❌ | 0/1 | 0/0 |
+| <a href="#user-content-htmltitle">HtmlTitle</a> | ✅ | 1/1 | 0/0 |
 | <a href="#user-content-htmltrack">HtmlTrack</a> | ❌ | 0/1 | 0/0 |
 | <a href="#user-content-htmlvideo">HtmlVideo</a> | ❌ | 0/2 | 0/0 |
 | <a href="#user-content-hyperlink">HyperLink</a> | ❌ | 0/7 | 0/0 |
@@ -123,15 +123,15 @@ Events: 3/199
 | <a href="#user-content-imagemap">ImageMap</a> | ❌ | 0/4 | 0/1 |
 | <a href="#user-content-importcatalogpart">ImportCatalogPart</a> | ❌ | 0/7 | 0/0 |
 | InternalTableCell | ❌ | 0/0 | 0/0 |
-| <a href="#user-content-label">Label</a> | ⚠ | 0/3 | 0/0 |
+| <a href="#user-content-label">Label</a> | ✅ | 3/3 | 0/0 |
 | LabelLiteral | ❌ | 0/0 | 0/0 |
 | <a href="#user-content-layouteditorpart">LayoutEditorPart</a> | ❌ | 0/3 | 0/0 |
 | <a href="#user-content-layouttable">LayoutTable</a> | ❌ | 0/1 | 0/0 |
 | LayoutTableCell | ❌ | 0/0 | 0/0 |
-| <a href="#user-content-linkbutton">LinkButton</a> | ❌ | 0/8 | 0/2 |
+| <a href="#user-content-linkbutton">LinkButton</a> | ⚠ | 6/8 | 2/2 |
 | <a href="#user-content-listbox">ListBox</a> | ❌ | 0/5 | 0/0 |
 | <a href="#user-content-listcontrol">ListControl</a> | ❌ | 0/12 | 0/2 |
-| <a href="#user-content-literal">Literal</a> | ⚠ | 1/2 | 0/0 |
+| <a href="#user-content-literal">Literal</a> | ✅ | 2/2 | 0/0 |
 | <a href="#user-content-literalcontrol">LiteralControl</a> | ✅ | 1/1 | 0/0 |
 | Localize | ❌ | 0/0 | 0/0 |
 | <a href="#user-content-login">Login</a> | ❌ | 0/42 | 0/4 |
@@ -146,10 +146,10 @@ Events: 3/199
 | <a href="#user-content-multiview">MultiView</a> | ❌ | 0/3 | 0/1 |
 | NonParentingControl | ❌ | 0/0 | 0/0 |
 | <a href="#user-content-objectdatasource">ObjectDataSource</a> | ❌ | 0/26 | 0/12 |
-| <a href="#user-content-page">Page</a> | ⚠ | 4/60 | 0/6 |
+| <a href="#user-content-page">Page</a> | ⚠ | 9/60 | 0/6 |
 | <a href="#user-content-pagecatalogpart">PageCatalogPart</a> | ❌ | 0/24 | 0/0 |
 | PagerTable | ❌ | 0/0 | 0/0 |
-| <a href="#user-content-panel">Panel</a> | ❌ | 0/8 | 0/0 |
+| <a href="#user-content-panel">Panel</a> | ⚠ | 1/8 | 0/0 |
 | <a href="#user-content-part">Part</a> | ❌ | 0/5 | 0/0 |
 | <a href="#user-content-partialcachingcontrol">PartialCachingControl</a> | ❌ | 0/1 | 0/0 |
 | <a href="#user-content-passwordrecovery">PasswordRecovery</a> | ❌ | 0/43 | 0/6 |
@@ -165,7 +165,7 @@ Events: 3/199
 | <a href="#user-content-regularexpressionvalidator">RegularExpressionValidator</a> | ❌ | 0/2 | 0/0 |
 | <a href="#user-content-repeater">Repeater</a> | ⚠ | 9/13 | 2/5 |
 | <a href="#user-content-repeateritem">RepeaterItem</a> | ✅ | 3/3 | 0/0 |
-| <a href="#user-content-requiredfieldvalidator">RequiredFieldValidator</a> | ❌ | 0/1 | 0/0 |
+| <a href="#user-content-requiredfieldvalidator">RequiredFieldValidator</a> | ✅ | 1/1 | 0/0 |
 | <a href="#user-content-resourcebasedliteralcontrol">ResourceBasedLiteralControl</a> | ❌ | 0/1 | 0/0 |
 | RowToFieldConfigurationWizard | ❌ | 0/0 | 0/0 |
 | RowToParametersConfigurationWizard | ❌ | 0/0 | 0/0 |
@@ -189,7 +189,7 @@ Events: 3/199
 | <a href="#user-content-tablerow">TableRow</a> | ❌ | 0/5 | 0/0 |
 | <a href="#user-content-templatecontrol">TemplateControl</a> | ❌ | 0/2 | 0/3 |
 | <a href="#user-content-templatedwizardstep">TemplatedWizardStep</a> | ❌ | 0/5 | 0/0 |
-| <a href="#user-content-textbox">TextBox</a> | ⚠ | 2/11 | 0/1 |
+| <a href="#user-content-textbox">TextBox</a> | ⚠ | 10/11 | 1/1 |
 | <a href="#user-content-toolzone">ToolZone</a> | ❌ | 0/8 | 0/0 |
 | TransformerConfigurationWizardBase | ❌ | 0/0 | 0/2 |
 | <a href="#user-content-treeview">TreeView</a> | ❌ | 0/33 | 0/6 |
@@ -199,7 +199,7 @@ Events: 3/199
 | <a href="#user-content-usernamecontainer">UserNameContainer</a> | ❌ | 0/11 | 0/0 |
 | <a href="#user-content-validationsummary">ValidationSummary</a> | ❌ | 0/10 | 0/0 |
 | <a href="#user-content-view">View</a> | ❌ | 0/2 | 0/2 |
-| <a href="#user-content-webcontrol">WebControl</a> | ❌ | 0/21 | 0/0 |
+| <a href="#user-content-webcontrol">WebControl</a> | ⚠ | 6/21 | 0/0 |
 | <a href="#user-content-webpart">WebPart</a> | ❌ | 0/35 | 0/0 |
 | <a href="#user-content-webpartmanager">WebPartManager</a> | ❌ | 0/18 | 0/19 |
 | <a href="#user-content-webpartzone">WebPartZone</a> | ❌ | 0/1 | 0/0 |
@@ -329,17 +329,17 @@ Events: 3/199
 ### Properties
 | Property | Type | Status |
 | -------- | ---- | ------ |
-| AssociatedControlID | System.String | ❌ |
-| ControlToValidate | System.String | ❌ |
+| AssociatedControlID | System.String | ✅ |
+| ControlToValidate | System.String | ✅ |
 | Display | System.Web.UI.WebControls.ValidatorDisplay | ❌ |
 | EnableClientScript | System.Boolean | ❌ |
-| Enabled | System.Boolean | ❌ |
-| ErrorMessage | System.String | ❌ |
+| Enabled | System.Boolean | ✅ |
+| ErrorMessage | System.String | ✅ |
 | ForeColor | System.Drawing.Color | ❌ |
-| IsValid | System.Boolean | ❌ |
-| SetFocusOnError | System.Boolean | ❌ |
-| Text | System.String | ❌ |
-| ValidationGroup | System.String | ❌ |
+| IsValid | System.Boolean | ✅ |
+| SetFocusOnError | System.Boolean | ✅ |
+| Text | System.String | ✅ |
+| ValidationGroup | System.String | ✅ |
 
 <h2 id="user-content-behavioreditorpart">BehaviorEditorPart</h2>
 
@@ -384,20 +384,20 @@ Events: 3/199
 ### Properties
 | Property | Type | Status |
 | -------- | ---- | ------ |
-| CausesValidation | System.Boolean | ❌ |
-| CommandArgument | System.String | ❌ |
-| CommandName | System.String | ❌ |
+| CausesValidation | System.Boolean | ✅ |
+| CommandArgument | System.String | ✅ |
+| CommandName | System.String | ✅ |
 | OnClientClick | System.String | ❌ |
 | PostBackUrl | System.String | ❌ |
-| Text | System.String | ❌ |
+| Text | System.String | ✅ |
 | UseSubmitBehavior | System.Boolean | ❌ |
-| ValidationGroup | System.String | ❌ |
+| ValidationGroup | System.String | ✅ |
 
 ### Events
 | Event | Status |
 | ----- | ------ |
 | Click | ✅ |
-| Command | ❌ |
+| Command | ✅ |
 
 <h2 id="user-content-calendar">Calendar</h2>
 
@@ -576,19 +576,19 @@ Events: 3/199
 ### Properties
 | Property | Type | Status |
 | -------- | ---- | ------ |
-| AutoPostBack | System.Boolean | ❌ |
-| CausesValidation | System.Boolean | ❌ |
-| Checked | System.Boolean | ❌ |
-| InputAttributes | System.Web.UI.AttributeCollection | ❌ |
-| LabelAttributes | System.Web.UI.AttributeCollection | ❌ |
-| Text | System.String | ❌ |
+| AutoPostBack | System.Boolean | ✅ |
+| CausesValidation | System.Boolean | ✅ |
+| Checked | System.Boolean | ✅ |
+| InputAttributes | System.Web.UI.AttributeCollection | ✅ |
+| LabelAttributes | System.Web.UI.AttributeCollection | ✅ |
+| Text | System.String | ✅ |
 | TextAlign | System.Web.UI.WebControls.TextAlign | ❌ |
-| ValidationGroup | System.String | ❌ |
+| ValidationGroup | System.String | ✅ |
 
 ### Events
 | Event | Status |
 | ----- | ------ |
-| CheckedChanged | ❌ |
+| CheckedChanged | ✅ |
 
 <h2 id="user-content-checkboxlist">CheckBoxList</h2>
 
@@ -1583,15 +1583,15 @@ Events: 3/199
 ### Properties
 | Property | Type | Status |
 | -------- | ---- | ------ |
-| Action | System.String | ❌ |
+| Action | System.String | ✅ |
 | ClientID | System.String | ✅ |
 | DefaultButton | System.String | ❌ |
 | DefaultFocus | System.String | ❌ |
-| Enctype | System.String | ❌ |
-| Method | System.String | ❌ |
+| Enctype | System.String | ✅ |
+| Method | System.String | ✅ |
 | Name | System.String | ❌ |
 | SubmitDisabledControls | System.Boolean | ❌ |
-| Target | System.String | ❌ |
+| Target | System.String | ✅ |
 | UniqueID | System.String | ✅ |
 
 <h2 id="user-content-htmlgenericcontrol">HtmlGenericControl</h2>
@@ -1889,7 +1889,7 @@ Events: 3/199
 ### Properties
 | Property | Type | Status |
 | -------- | ---- | ------ |
-| Text | System.String | ❌ |
+| Text | System.String | ✅ |
 
 <h2 id="user-content-htmltrack">HtmlTrack</h2>
 
@@ -2003,9 +2003,9 @@ Events: 3/199
 ### Properties
 | Property | Type | Status |
 | -------- | ---- | ------ |
-| AssociatedControlID | System.String | ❌ |
-| SupportsDisabledAttribute | System.Boolean | ❌ |
-| Text | System.String | ❌ |
+| AssociatedControlID | System.String | ✅ |
+| SupportsDisabledAttribute | System.Boolean | ✅ |
+| Text | System.String | ✅ |
 
 <h2 id="user-content-layouteditorpart">LayoutEditorPart</h2>
 
@@ -2034,20 +2034,20 @@ Events: 3/199
 ### Properties
 | Property | Type | Status |
 | -------- | ---- | ------ |
-| CausesValidation | System.Boolean | ❌ |
-| CommandArgument | System.String | ❌ |
-| CommandName | System.String | ❌ |
+| CausesValidation | System.Boolean | ✅ |
+| CommandArgument | System.String | ✅ |
+| CommandName | System.String | ✅ |
 | OnClientClick | System.String | ❌ |
 | PostBackUrl | System.String | ❌ |
-| SupportsDisabledAttribute | System.Boolean | ❌ |
-| Text | System.String | ❌ |
-| ValidationGroup | System.String | ❌ |
+| SupportsDisabledAttribute | System.Boolean | ✅ |
+| Text | System.String | ✅ |
+| ValidationGroup | System.String | ✅ |
 
 ### Events
 | Event | Status |
 | ----- | ------ |
-| Click | ❌ |
-| Command | ❌ |
+| Click | ✅ |
+| Command | ✅ |
 
 <h2 id="user-content-listbox">ListBox</h2>
 
@@ -2095,7 +2095,7 @@ Events: 3/199
 ### Properties
 | Property | Type | Status |
 | -------- | ---- | ------ |
-| Mode | System.Web.UI.WebControls.LiteralMode | ❌ |
+| Mode | System.Web.UI.WebControls.LiteralMode | ✅ |
 | Text | System.String | ✅ |
 
 <h2 id="user-content-literalcontrol">LiteralControl</h2>
@@ -2387,7 +2387,7 @@ Events: 3/199
 | Buffer | System.Boolean | ❌ |
 | Cache | System.Web.Caching.Cache | ❌ |
 | ClientQueryString | System.String | ❌ |
-| ClientScript | System.Web.UI.ClientScriptManager | ❌ |
+| ClientScript | System.Web.UI.ClientScriptManager | ✅ |
 | ClientTarget | System.String | ❌ |
 | CodePage | System.Int32 | ❌ |
 | ContentType | System.String | ❌ |
@@ -2397,7 +2397,7 @@ Events: 3/199
 | EnableViewStateMac | System.Boolean | ❌ |
 | ErrorPage | System.String | ❌ |
 | Form | System.Web.UI.HtmlControls.HtmlForm | ✅ |
-| Header | System.Web.UI.HtmlControls.HtmlHead | ❌ |
+| Header | System.Web.UI.HtmlControls.HtmlHead | ✅ |
 | ID | System.String | ✅ |
 | IdSeparator | System.Char | ❌ |
 | IsAsync | System.Boolean | ❌ |
@@ -2406,7 +2406,7 @@ Events: 3/199
 | IsPostBack | System.Boolean | ✅ |
 | IsPostBackEventControlRegistered | System.Boolean | ❌ |
 | IsReusable | System.Boolean | ❌ |
-| IsValid | System.Boolean | ❌ |
+| IsValid | System.Boolean | ✅ |
 | Items | System.Collections.IDictionary | ❌ |
 | LCID | System.Int32 | ❌ |
 | MaintainScrollPositionOnPostBack | System.Boolean | ❌ |
@@ -2437,10 +2437,10 @@ Events: 3/199
 | UnobtrusiveValidationMode | System.Web.UI.UnobtrusiveValidationMode | ❌ |
 | User | System.Security.Principal.IPrincipal | ❌ |
 | ValidateRequestMode | System.Web.UI.ValidateRequestMode | ❌ |
-| Validators | System.Web.UI.ValidatorCollection | ❌ |
+| Validators | System.Web.UI.ValidatorCollection **`INCORRECT`** | ⚠ |
 | ViewStateEncryptionMode | System.Web.UI.ViewStateEncryptionMode | ❌ |
 | ViewStateUserKey | System.String | ❌ |
-| Visible | System.Boolean | ❌ |
+| Visible | System.Boolean | ✅ |
 
 ### Events
 | Event | Status |
@@ -2497,7 +2497,7 @@ Events: 3/199
 | GroupingText | System.String | ❌ |
 | HorizontalAlign | System.Web.UI.WebControls.HorizontalAlign | ❌ |
 | ScrollBars | System.Web.UI.WebControls.ScrollBars | ❌ |
-| SupportsDisabledAttribute | System.Boolean | ❌ |
+| SupportsDisabledAttribute | System.Boolean | ✅ |
 | Wrap | System.Boolean | ❌ |
 
 <h2 id="user-content-part">Part</h2>
@@ -2723,7 +2723,7 @@ Events: 3/199
 | HeaderTemplate | System.Web.UI.ITemplate | ✅ |
 | Items | System.Web.UI.WebControls.RepeaterItemCollection **`INCORRECT`** | ⚠ |
 | ItemTemplate | System.Web.UI.ITemplate | ✅ |
-| ItemType | System.String | ✅ |
+| ItemType | System.String **`INCORRECT`** | ⚠ |
 | SelectMethod | System.String | ❌ |
 | SeparatorTemplate | System.Web.UI.ITemplate | ✅ |
 
@@ -2754,7 +2754,7 @@ Events: 3/199
 ### Properties
 | Property | Type | Status |
 | -------- | ---- | ------ |
-| InitialValue | System.String | ❌ |
+| InitialValue | System.String | ✅ |
 
 <h2 id="user-content-resourcebasedliteralcontrol">ResourceBasedLiteralControl</h2>
 
@@ -2989,22 +2989,22 @@ Events: 3/199
 ### Properties
 | Property | Type | Status |
 | -------- | ---- | ------ |
-| AutoCompleteType | System.Web.UI.WebControls.AutoCompleteType | ❌ |
+| AutoCompleteType | System.Web.UI.WebControls.AutoCompleteType | ✅ |
 | AutoPostBack | System.Boolean | ✅ |
-| CausesValidation | System.Boolean | ❌ |
-| Columns | System.Int32 | ❌ |
-| MaxLength | System.Int32 | ❌ |
+| CausesValidation | System.Boolean | ✅ |
+| Columns | System.Int32 | ✅ |
+| MaxLength | System.Int32 | ✅ |
 | ReadOnly | System.Boolean | ❌ |
-| Rows | System.Int32 | ❌ |
+| Rows | System.Int32 | ✅ |
 | Text | System.String | ✅ |
-| TextMode | System.Web.UI.WebControls.TextBoxMode | ❌ |
-| ValidationGroup | System.String | ❌ |
-| Wrap | System.Boolean | ❌ |
+| TextMode | System.Web.UI.WebControls.TextBoxMode | ✅ |
+| ValidationGroup | System.String | ✅ |
+| Wrap | System.Boolean | ✅ |
 
 ### Events
 | Event | Status |
 | ----- | ------ |
-| TextChanged | ❌ |
+| TextChanged | ✅ |
 
 <h2 id="user-content-toolzone">ToolZone</h2>
 
@@ -3163,15 +3163,15 @@ Events: 3/199
 | Property | Type | Status |
 | -------- | ---- | ------ |
 | AccessKey | System.String | ❌ |
-| Attributes | System.Web.UI.AttributeCollection | ❌ |
+| Attributes | System.Web.UI.AttributeCollection | ✅ |
 | BackColor | System.Drawing.Color | ❌ |
 | BorderColor | System.Drawing.Color | ❌ |
 | BorderStyle | System.Web.UI.WebControls.BorderStyle | ❌ |
 | BorderWidth | System.Web.UI.WebControls.Unit | ❌ |
 | ControlStyle | System.Web.UI.WebControls.Style | ❌ |
 | ControlStyleCreated | System.Boolean | ❌ |
-| CssClass | System.String | ❌ |
-| Enabled | System.Boolean | ❌ |
+| CssClass | System.String | ✅ |
+| Enabled | System.Boolean | ✅ |
 | EnableTheming | System.Boolean | ❌ |
 | Font | System.Web.UI.WebControls.FontInfo | ❌ |
 | ForeColor | System.Drawing.Color | ❌ |
@@ -3179,9 +3179,9 @@ Events: 3/199
 | Height | System.Web.UI.WebControls.Unit | ❌ |
 | SkinID | System.String | ❌ |
 | Style | System.Web.UI.CssStyleCollection | ❌ |
-| SupportsDisabledAttribute | System.Boolean | ❌ |
-| TabIndex | System.Int16 | ❌ |
-| ToolTip | System.String | ❌ |
+| SupportsDisabledAttribute | System.Boolean | ✅ |
+| TabIndex | System.Int16 | ✅ |
+| ToolTip | System.String | ✅ |
 | Width | System.Web.UI.WebControls.Unit | ❌ |
 
 <h2 id="user-content-webpart">WebPart</h2>

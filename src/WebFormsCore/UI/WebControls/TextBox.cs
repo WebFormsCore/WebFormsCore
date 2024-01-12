@@ -22,17 +22,11 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
     [ViewState] public bool CausesValidation { get; set; } = true;
 
-
     public string ValidationGroup
     {
-        get => _validationGroup ?? DefaultValidationGroup;
+        get => _validationGroup ?? Page.GetDefaultValidationGroup(this);
         set => _validationGroup = value;
     }
-
-    public string DefaultValidationGroup => Page.Validators
-        .OfType<BaseValidator>()
-        .FirstOrDefault(v => v.GetControlToValidate() == this)
-        ?.ValidationGroup ?? "";
 
     [ViewState] public bool AutoPostBack { get; set; }
 
@@ -118,7 +112,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
         if (CausesValidation)
         {
-            writer.AddAttribute("data-wfc-validate", ValidationGroup ?? "");
+            writer.AddAttribute("data-wfc-validate", ValidationGroup);
         }
     }
 
