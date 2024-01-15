@@ -107,7 +107,7 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
     {
         if (StaticFiles.Files.TryGetValue(fileName, out var existingScript))
         {
-            if (existingScript.GetHashCode() != script.GetHashCode() && existingScript != script)
+            if (!string.Equals(existingScript, script, StringComparison.Ordinal))
             {
                 throw new InvalidOperationException($"The file {fileName} is already registered.");
             }

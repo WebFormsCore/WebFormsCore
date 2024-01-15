@@ -48,4 +48,9 @@ public class WebFormsCoreOptions
     /// Default positions for &lt;style&gt; and &lt;link&gt; tags in <see cref="ClientScriptManager"/>.
     /// </summary>
     public ScriptPosition DefaultStylePosition { get; set; } = ScriptPosition.HeadEnd;
+
+    /// <summary>
+    /// <c>true</c> to enable the WebForms polyfill; otherwise, <c>false</c>.
+    /// </summary>
+    public bool EnableWebFormsPolyfill { get; set; } = true;
 }

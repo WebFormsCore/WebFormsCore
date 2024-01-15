@@ -1,4 +1,4 @@
-import {PageRequestManager, WebFormsCore} from "../../../typings";
+import {WebFormsCore} from "../../../typings";
 import morphAttrs from "morphdom/src/morphAttrs";
 import morphdomFactory from "morphdom/src/morphdom";
 import { Mutex } from 'async-mutex';
@@ -837,28 +837,3 @@ wfc.bindValidator('[data-wfc-requiredvalidator]', function(elementToValidate: HT
 });
 
 window.wfc = wfc;
-
-if (window.Sys === undefined) {
-    const pageRequestManager: PageRequestManager = {
-        add_beginRequest: function (func) {
-            document.addEventListener("wfc:beforeSubmit", func, false)
-        },
-        remove_beginRequest: function (func) {
-            document.removeEventListener("wfc:beforeSubmit", func, false)
-        },
-        add_endRequest: function (func) {
-            document.addEventListener("wfc:afterSubmit", func, false)
-        },
-        remove_endRequest: function (func) {
-            document.removeEventListener("wfc:afterSubmit", func, false)
-        }
-    };
-
-    window.Sys = {
-        WebForms: {
-            PageRequestManager: {
-                getInstance: () => pageRequestManager
-            }
-        }
-    }
-}

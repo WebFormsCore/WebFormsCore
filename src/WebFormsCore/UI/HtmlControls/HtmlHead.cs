@@ -23,13 +23,23 @@ public class HtmlHead() : HtmlContainerControl("head")
     {
         base.OnInit(args);
 
-        var hiddenClass = Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>()?.Value?.HiddenClass ?? "";
+        var options = Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>()?.Value;
 
         Page.ClientScript.RegisterStartupScript(
             typeof(Page),
             "FormPostback",
-            $$$"""window.wfc={hiddenClass:'{{{hiddenClass}}}',_:[],bind:function(a,b){this._.push([0,a,b])},bindValidator:function(a,b){this._.push([1,a,b])},init:function(a){this._.push([2,'',a])}};""",
+            $$$"""window.wfc={hiddenClass:'{{{options?.HiddenClass ?? ""}}}',_:[],bind:function(a,b){this._.push([0,a,b])},bindValidator:function(a,b){this._.push([1,a,b])},init:function(a){this._.push([2,'',a])}};""",
             position: ScriptPosition.HeadStart);
+
+
+        if (options?.EnableWebFormsPolyfill ?? true)
+        {
+            Page.ClientScript.RegisterStartupStaticScript(
+                typeof(Page),
+                "/js/webforms-polyfill.min.js",
+                Resources.Polyfill,
+                position: ScriptPosition.HeadStart);
+        }
     }
 
     protected override void OnUnload(EventArgs args)
