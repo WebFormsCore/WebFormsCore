@@ -24,11 +24,28 @@ export interface WebFormsCore {
     validate: (validationGroup?: string | Element) => boolean;
 }
 
+export interface PageRequestManager {
+    add_beginRequest(handler: () => void): void;
+    remove_beginRequest(handler: () => void): void;
+    add_endRequest(handler: () => void): void;
+    remove_endRequest(handler: () => void): void;
+}
+
+export interface Sys {
+    WebForms: {
+        PageRequestManager: {
+            getInstance: () => PageRequestManager;
+        }
+    }
+}
+
 declare global {
     var wfc: WebFormsCore
+    var Sys: Sys
 
     interface Window {
         wfc: WebFormsCore;
+        Sys: Sys;
     }
 
     interface Element {

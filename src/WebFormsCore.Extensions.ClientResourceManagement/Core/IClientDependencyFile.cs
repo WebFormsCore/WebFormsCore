@@ -15,4 +15,5 @@ public interface IClientDependencyFile
     string? Version { get; set; }
     bool ForceVersion { get; set; }
     AttributeCollection Attributes { get; }
+    ScriptPosition? Position { get; set; }
 }

@@ -137,6 +137,7 @@ public static class ServiceExtensions
         builder.Services.TryAddSingleton<IAttributeParser<IReadOnlyList<string>>, ArrayAttributeParser<string>>();
         builder.Services.TryAddSingleton<IAttributeParser<List<string>>, ListAttributeParser<string>>();
         builder.Services.TryAddSingleton<IAttributeParser<IList<string>>, ListAttributeParser<string>>();
+        builder.Services.TryAddSingleton<IAttributeParser<ScriptPosition>, EnumAttributeParser<ScriptPosition>>();
         return builder;
     }
 

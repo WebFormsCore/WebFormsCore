@@ -83,6 +83,11 @@ public abstract partial class ClientDependencyInclude : Control, IClientDependen
     /// </remarks>
     [ViewState] public AttributeCollection Attributes { get; set; }
 
+    /// <summary>
+    /// Position of the item in the page.
+    /// </summary>
+    [ViewState] public ScriptPosition? Position { get; set; }
+
     /// <see cref="Attributes"/>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public AttributeCollection HtmlAttributes => Attributes;

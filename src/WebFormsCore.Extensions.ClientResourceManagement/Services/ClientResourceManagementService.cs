@@ -75,10 +75,10 @@ internal class ClientResourceManagementService : PageService
             switch (file.DependencyType)
             {
                 case ClientDependencyType.Css:
-                    clientScript.RegisterStartupStyleLink(type, file.Name ?? path, path, attributes: file.Attributes);
+                    clientScript.RegisterStartupStyleLink(type, file.Name ?? path, path, attributes: file.Attributes, position: file.Position);
                     break;
                 case ClientDependencyType.Javascript:
-                    clientScript.RegisterStartupScriptLink(type, file.Name ?? path, path, attributes: file.Attributes);
+                    clientScript.RegisterStartupScriptLink(type, file.Name ?? path, path, attributes: file.Attributes, position: file.Position);
                     break;
                 default:
                     throw new InvalidOperationException();
