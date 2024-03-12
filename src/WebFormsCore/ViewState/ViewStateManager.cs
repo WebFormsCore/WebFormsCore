@@ -103,10 +103,43 @@ public class ViewStateManager : IViewStateManager
         var offset = HeaderLength + _hashLength;
 
 #if NETSTANDARD2_0 || NETFRAMEWORK
-        _hashAlgorithm.ComputeHash(data, offset, dataLength).CopyTo(hash);
+        var result = _hashAlgorithm.ComputeHash(data, offset, dataLength);
+
+        CopyToHash(ref hash, result);
 #else
-        _hashAlgorithm.TryComputeHash(data.AsSpan(offset, dataLength), hash, out _);
+        var success = _hashAlgorithm.TryComputeHash(data.AsSpan(offset, dataLength), hash, out var bytesWritten);
+
+        if (success)
+        {
+            if (bytesWritten != hash.Length)
+            {
+                hash.Slice(bytesWritten).Fill(0);
+            }
+        }
+        else
+        {
+            var result = _hashAlgorithm.ComputeHash(data, offset, dataLength);
+
+            CopyToHash(ref hash, result);
+        }
 #endif
+    }
+
+    private static void CopyToHash(ref Span<byte> hash, byte[] result)
+    {
+        if (hash.Length == result.Length)
+        {
+            result.CopyTo(hash);
+        }
+        else if (hash.Length > result.Length)
+        {
+            result.CopyTo(hash);
+            hash.Slice(result.Length).Fill(0);
+        }
+        else
+        {
+            result.AsSpan(0, hash.Length).CopyTo(hash);
+        }
     }
 
     public async ValueTask LoadAsync(Control control, string viewState)
