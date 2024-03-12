@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HttpStack;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IO;
 using WebFormsCore.UI.HtmlControls;
 
@@ -99,11 +100,13 @@ public class StreamPanel : Control, INamingContainer
         var status = WebSocketCloseStatus.NormalClosure;
         var message = "Done";
 
+        var cancellationToken = context.RequestServices.GetService<IHostApplicationLifetime>()?.ApplicationStopping ?? default;
+
         try
         {
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                _receiveTask ??= _webSocket.ReceiveAsync(new ArraySegment<byte>(incoming), default);
+                _receiveTask ??= _webSocket.ReceiveAsync(new ArraySegment<byte>(incoming), cancellationToken);
 
                 var task = await Task.WhenAny(_receiveTask, _stateHasChangedTcs.Task);
 
@@ -127,7 +130,7 @@ public class StreamPanel : Control, INamingContainer
                     _stateHasChangedTcs = new TaskCompletionSource<bool>();
 #endif
 
-                    await UpdateControlAsync();
+                    await UpdateControlAsync(cancellationToken);
                 }
             }
         }
