@@ -15,4 +15,8 @@
     </ItemGroup>
     
     <Import Project="..\..\sdk\WebFormsCore.SDK.Wasm.LLVM\Sdk\Sdk.targets" />
+
+    <PropertyGroup>
+        <StackTraceSupport>false</StackTraceSupport>
+    </PropertyGroup>
 </Project>

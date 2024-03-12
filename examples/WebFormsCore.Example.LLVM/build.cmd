@@ -1,4 +1,6 @@
 set EMSDK=C:\Sources\emsdk
 
-call %EMSDK%\emsdk activate 3.1.23
+copy /b Startup.cs +,,
+call %EMSDK%\emsdk activate 3.1.47
 dotnet publish -c Release
+pause

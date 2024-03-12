@@ -9,8 +9,8 @@
     <Import Project="Core.targets" />
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.DotNet.ILCompiler.LLVM" Version="8.0.0-*" />
-        <PackageReference Include="runtime.win-x64.Microsoft.DotNet.ILCompiler.LLVM" Version="8.0.0-*" />
+        <PackageReference Include="Microsoft.DotNet.ILCompiler.LLVM" Version="9.0.0-*" />
+        <PackageReference Include="runtime.win-x64.Microsoft.DotNet.ILCompiler.LLVM" Version="9.0.0-*" />
     </ItemGroup>
 
     <ItemGroup>
@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true'">
-        <PackageReference Include="WebFormsCore.SourceGenerator.LLVM" Version="0.0.1-alpha.43" OutputItemType="Analyzer" />
+        <PackageReference Include="WebFormsCore.SourceGenerator.LLVM" Version="0.0.1-alpha.46" OutputItemType="Analyzer" />
     </ItemGroup>
 
     <ItemGroup>
