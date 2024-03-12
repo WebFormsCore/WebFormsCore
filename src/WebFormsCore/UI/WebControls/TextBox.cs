@@ -36,6 +36,8 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
     [ViewState] public AutoCompleteType AutoCompleteType { get; set; }
 
+    [ViewState] public virtual bool ReadOnly { get; set; }
+
     [ViewState(nameof(IsMultiLine))] public virtual bool Wrap { get; set; } = true;
 
     [ViewState(nameof(IsMultiLine))] public int Columns { get; set; }
@@ -63,7 +65,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
     private bool IsMultiLine => TextMode == TextBoxMode.MultiLine;
 
-    protected virtual bool SaveTextViewState => TextMode != TextBoxMode.Password && (TextChanged != null || !IsEnabled);
+    protected virtual bool SaveTextViewState => TextMode != TextBoxMode.Password && (TextChanged != null || !IsEnabled || ReadOnly);
 
     protected virtual bool  WriteValue=> !Page.IsPostBack || _changedText;
 
@@ -94,6 +96,8 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
                 break;
         }
 
+        if (ReadOnly) writer.AddAttribute(HtmlTextWriterAttribute.ReadOnly, "readonly");
+
         switch (TextMode)
         {
             case TextBoxMode.MultiLine:
@@ -103,7 +107,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
                 break;
             default:
                 writer.AddAttribute(HtmlTextWriterAttribute.Type, GetTypeAttributeValue(TextMode));
-                if (WriteValue) writer.AddAttribute(HtmlTextWriterAttribute.Value, _text ?? string.Empty);
+                if (WriteValue) writer.AddAttribute(HtmlTextWriterAttribute.Value, _text);
 
                 break;
         }
@@ -191,7 +195,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
     protected virtual ValueTask<bool> LoadPostDataAsync(string postDataKey, IFormCollection postCollection, CancellationToken cancellationToken)
     {
-        if (!IsEnabled || !postCollection.TryGetValue(postDataKey, out var value))
+        if (!IsEnabled || ReadOnly || !postCollection.TryGetValue(postDataKey, out var value))
         {
             return new ValueTask<bool>(false);
         }
