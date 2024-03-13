@@ -13,14 +13,20 @@ public interface IPageManager
     Task<Page> RenderPageAsync(
         IHttpContext context,
         string path,
-        CancellationToken token);
+        CancellationToken token = default);
 
     Task<Page> RenderPageAsync(
         IHttpContext context,
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type pageType,
-        CancellationToken token);
+        CancellationToken token = default);
 
     Task RenderPageAsync(IHttpContext context,
         Page page,
-        CancellationToken token);
+        CancellationToken token = default);
+
+    Task TriggerPostBackAsync(
+        Page page,
+        string? target,
+        string? argument,
+        CancellationToken token = default);
 }

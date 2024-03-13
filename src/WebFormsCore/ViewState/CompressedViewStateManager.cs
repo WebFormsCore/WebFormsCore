@@ -10,17 +10,22 @@ namespace WebFormsCore;
 
 public class CompressedViewStateManager : ViewStateManager
 {
+#if NET
+	private const ViewStateCompression DefaultCompression = ViewStateCompression.Brotoli;
+#else
+	private const ViewStateCompression DefaultCompression = ViewStateCompression.GZip;
+#endif
+
 	public CompressedViewStateManager(IServiceProvider serviceProvider, IOptions<ViewStateOptions>? options = null)
 		: base(serviceProvider, options)
 	{
-		Compression = options?.Value.DefaultCompression ?? Compression;
+		Compression = options?.Value.DefaultCompression ?? DefaultCompression;
+		CompressionLevel = options?.Value.CompressionLevel ?? CompressionLevel.Fastest;
 	}
 
-#if NET
-	public ViewStateCompression Compression { get; set; } = ViewStateCompression.Brotoli;
-#else
-    public ViewStateCompression Compression { get; set; } = ViewStateCompression.GZip;
-#endif
+	public CompressionLevel CompressionLevel { get; set; }
+
+	public ViewStateCompression Compression { get; set; }
 
 	protected override bool TryDecompress(byte compressionByte, int length, Span<byte> data, [NotNullWhen(true)] out IMemoryOwner<byte>? newOwner, out int actualLength)
 	{
@@ -80,10 +85,21 @@ public class CompressedViewStateManager : ViewStateManager
 		}
 	}
 
+#if NET
+	internal static int GetBrotliQualityFromCompressionLevel(CompressionLevel compressionLevel) => compressionLevel switch
+	{
+		CompressionLevel.NoCompression => 0,
+		CompressionLevel.Fastest => 1,
+		CompressionLevel.Optimal => 4,
+		CompressionLevel.SmallestSize => 1,
+		_ => throw new ArgumentException("Invalid compression level", nameof(compressionLevel))
+	};
+#endif
+
 	protected override bool TryCompress(ReadOnlySpan<byte> source, Span<byte> destination, out byte compressionByte, out int length)
 	{
 #if NET
-		if (Compression == ViewStateCompression.Brotoli && BrotliEncoder.TryCompress(source, destination, out length) && length <= source.Length)
+		if (Compression == ViewStateCompression.Brotoli && BrotliEncoder.TryCompress(source, destination, out length, GetBrotliQualityFromCompressionLevel(CompressionLevel), 22) && length <= source.Length)
 		{
 			compressionByte = (byte)ViewStateCompression.Brotoli;
 			return true;
@@ -101,12 +117,12 @@ public class CompressedViewStateManager : ViewStateManager
 		return false;
 	}
 
-	private static unsafe bool TryCompressGzip(ReadOnlySpan<byte> source, Span<byte> destination, out int length)
+	private unsafe bool TryCompressGzip(ReadOnlySpan<byte> source, Span<byte> destination, out int length)
 	{
 		fixed (byte* pBuffer = &destination[0])
 		{
 			using var destinationStream = new UnmanagedMemoryStream(pBuffer, destination.Length, destination.Length, FileAccess.Write);
-			using var deflateStream = new DeflateStream(destinationStream, CompressionMode.Compress, true);
+			using var deflateStream = new DeflateStream(destinationStream, CompressionLevel, leaveOpen: true);
 			try
 			{
 				deflateStream.Write(source);

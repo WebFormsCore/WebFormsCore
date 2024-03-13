@@ -227,39 +227,15 @@ public class PageManager : IPageManager
 
         if (page.IsPostBack)
         {
-            if (context.Request.Form.TryGetValue("wfcTarget", out var eventTarget))
-            {
-                var eventArgument = context.Request.Form.TryGetValue("wfcArgument", out var eventArgumentValue)
-                    ? eventArgumentValue.ToString() ?? string.Empty
-                    : string.Empty;
+            var targetName = context.Request.Form.TryGetValue("wfcTarget", out var eventTarget)
+                ? eventTarget.ToString()
+                : string.Empty;
 
-                var postbackControl = page.FindControl(eventTarget.ToString());
+            var argument = context.Request.Form.TryGetValue("wfcArgument", out var eventArgument)
+                ? eventArgument.ToString()
+                : string.Empty;
 
-                if (postbackControl is IPostBackAsyncEventHandler asyncEventHandler)
-                {
-                    await asyncEventHandler.RaisePostBackEventAsync(eventArgument);
-                }
-                else if (postbackControl is IPostBackEventHandler eventHandler)
-                {
-                    eventHandler.RaisePostBackEvent(eventArgument);
-                }
-            }
-            else
-            {
-                await page.ValidateAsync();
-            }
-
-            await page.RaiseChangedEventsAsync(token);
-
-            if (form != null)
-            {
-                await form.OnSubmitAsync(token);
-            }
-
-            foreach (var service in pageServices)
-            {
-                await service.AfterPostbackAsync(page, token);
-            }
+            await TriggerPostBackAsync(page, targetName, argument, token, pageServices);
         }
 
         if (!render)
@@ -292,6 +268,46 @@ public class PageManager : IPageManager
         }
 
         return target;
+    }
+
+    public Task TriggerPostBackAsync(Page page, string? target, string? argument, CancellationToken token)
+    {
+        var pageServices = page.Context.RequestServices.GetServices<IPageService>() as IPageService[] ?? [];
+
+        return TriggerPostBackAsync(page, target, argument, token, pageServices);
+    }
+
+    private static async Task TriggerPostBackAsync(Page page, string? target, string? argument, CancellationToken token, IPageService[] pageServices)
+    {
+        if (!string.IsNullOrEmpty(target))
+        {
+            var postbackControl = page.FindControl(target!);
+
+            if (postbackControl is IPostBackAsyncEventHandler asyncEventHandler)
+            {
+                await asyncEventHandler.RaisePostBackEventAsync(argument);
+            }
+            else if (postbackControl is IPostBackEventHandler eventHandler)
+            {
+                eventHandler.RaisePostBackEvent(argument);
+            }
+        }
+        else
+        {
+            await page.ValidateAsync();
+        }
+
+        await page.RaiseChangedEventsAsync(token);
+
+        if (page.ActiveForm is {} form)
+        {
+            await form.OnSubmitAsync(token);
+        }
+
+        foreach (var service in pageServices)
+        {
+            await service.AfterPostbackAsync(page, token);
+        }
     }
 
     /// <summary>

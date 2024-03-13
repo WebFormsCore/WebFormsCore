@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Net.WebSockets;
@@ -11,7 +10,6 @@ using HttpStack;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IO;
-using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI.WebControls;
 
@@ -168,8 +166,9 @@ public class StreamPanel : Control, INamingContainer
 
         Page.IsPostBack = true;
 
+        var pageManager = Context.RequestServices.GetRequiredService<IPageManager>();
         await InvokePostbackAsync(default, null);
-        await Page.RaiseChangedEventsAsync(default);
+        await pageManager.TriggerPostBackAsync(Page, command.EventTarget, command.EventArgument);
         Page.ClearChangedPostDataConsumers();
 
         if (Form != null)

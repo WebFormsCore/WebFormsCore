@@ -37,23 +37,29 @@ public class AppDomainControlTypeProvider : IControlTypeProvider
     private static void AddCompiledControls(Dictionary<string, Type> types, Assembly? entry)
     {
         var loaded = AppDomain.CurrentDomain.GetAssemblies().ToDictionary(i => i.GetName().FullName);
+        var visited = new HashSet<Assembly>();
 
         if (entry != null)
         {
-            AddAssemblies(entry, types, loaded);
+            AddAssemblies(entry, types, loaded, visited);
         }
 
         return;
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "")]
-        static void AddAssemblies(Assembly current, IDictionary<string, Type> types, IDictionary<string, Assembly> assemblies)
+        static void AddAssemblies(Assembly current, IDictionary<string, Type> types, IDictionary<string, Assembly> assemblies, HashSet<Assembly> visited)
         {
+            if (!visited.Add(current))
+            {
+                return;
+            }
+
             AddAssembly(current, types);
 
             foreach (var assemblyName in current.GetReferencedAssemblies())
             {
                 if (assemblies.TryGetValue(assemblyName.FullName, out var assembly))
                 {
-                    AddAssemblies(assembly, types, assemblies);
+                    AddAssemblies(assembly, types, assemblies, visited);
                 }
             }
         }

@@ -1,4 +1,6 @@
-﻿namespace WebFormsCore;
+﻿using System.IO.Compression;
+
+namespace WebFormsCore;
 
 public class ViewStateOptions
 {
@@ -11,4 +13,6 @@ public class ViewStateOptions
     public int MaxBytes { get; set; } = 102400;
 
     public ViewStateCompression? DefaultCompression { get; set; }
+
+    public CompressionLevel CompressionLevel { get; set; } = CompressionLevel.Fastest;
 }

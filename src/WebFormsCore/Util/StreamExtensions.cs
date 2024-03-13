@@ -14,6 +14,11 @@ internal static class StreamExtensions
 {
     public static unsafe int Read(this Stream sourceStream, Span<byte> span)
     {
+        if (span.IsEmpty)
+        {
+            return 0;
+        }
+
         fixed (byte* pSource = span)
         {
             using var stream = new UnmanagedMemoryStream(pSource, span.Length, span.Length, FileAccess.Write);
@@ -24,6 +29,11 @@ internal static class StreamExtensions
 
     public static unsafe void Write(this Stream destinationStream, ReadOnlySpan<byte> span)
     {
+        if (span.IsEmpty)
+        {
+            return;
+        }
+
         fixed (byte* pDestination = span)
         {
             using var stream = new UnmanagedMemoryStream(pDestination, span.Length);
@@ -51,6 +61,11 @@ internal static class StreamExtensions
 
     public static async ValueTask WriteAsync(this Stream stream, ReadOnlyMemory<byte> buffer, CancellationToken token = default)
     {
+        if (buffer.IsEmpty)
+        {
+            return;
+        }
+
         using var pointer = buffer.Pin();
         using var destinationStream = CreateMemoryStream(buffer, pointer);
 
