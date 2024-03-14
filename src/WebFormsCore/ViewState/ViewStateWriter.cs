@@ -23,7 +23,7 @@ public ref struct ViewStateWriter
         _owner = MemoryPool<byte>.Shared.Rent(1024);
         _span = _owner.Memory.Span;
         _isDisposed = false;
-        Compact = provider.GetRequiredService<IOptions<ViewStateOptions>>().Value.Compact;
+        Compact = provider.GetService<IOptions<ViewStateOptions>>()?.Value.Compact ?? true;
     }
 
     public bool Compact { get; }

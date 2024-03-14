@@ -184,31 +184,6 @@ public static class ViewCompiler
             }
         }
 
-#if NETFRAMEWORK
-        if (System.Web.HttpRuntime.BinDirectory is { } binDirectory)
-        {
-            foreach (var dllFile in Directory.GetFiles(binDirectory, "*.dll"))
-            {
-                var assemblyName = AssemblyName.GetAssemblyName(dllFile);
-
-                if (loadedAssemblies.Contains(assemblyName.FullName))
-                {
-                    continue;
-                }
-
-                var assembly = TryLoad(assemblyName);
-
-                if (assembly == null)
-                {
-                    continue;
-                }
-
-                loadedAssemblies.Add(assemblyName.FullName);
-                returnAssemblies.Add(assembly);
-            }
-        }
-#endif
-
         return returnAssemblies;
     }
 

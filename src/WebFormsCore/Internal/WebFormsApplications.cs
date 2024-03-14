@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using HttpStack;
+using Microsoft.AspNetCore.Http;
 using WebFormsCore.UI;
 
 namespace WebFormsCore.Internal;
@@ -31,7 +31,7 @@ internal class WebFormsApplications : IWebFormsApplication
         return result;
     }
 
-    public Task<Page> ProcessAsync(IHttpContext context, string path, CancellationToken token)
+    public Task<Page> ProcessAsync(HttpContext context, string path, CancellationToken token)
     {
         return _pageManager.RenderPageAsync(context, path, token);
     }

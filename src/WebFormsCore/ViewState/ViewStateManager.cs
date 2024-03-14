@@ -101,12 +101,6 @@ public class ViewStateManager : IViewStateManager
     private void ComputeHash(byte[] data, int dataLength, Span<byte> hash)
     {
         var offset = HeaderLength + _hashLength;
-
-#if NETSTANDARD2_0 || NETFRAMEWORK
-        var result = _hashAlgorithm.ComputeHash(data, offset, dataLength);
-
-        CopyToHash(ref hash, result);
-#else
         var success = _hashAlgorithm.TryComputeHash(data.AsSpan(offset, dataLength), hash, out var bytesWritten);
 
         if (success)
@@ -122,7 +116,6 @@ public class ViewStateManager : IViewStateManager
 
             CopyToHash(ref hash, result);
         }
-#endif
     }
 
     private static void CopyToHash(ref Span<byte> hash, byte[] result)

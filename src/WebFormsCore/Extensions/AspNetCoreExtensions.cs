@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using HttpStack;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.UI;
 
 namespace WebFormsCore;
 
-public static class HttpStackExtensions
+public static class AspNetCoreExtensions
 {
-    public static IHttpStackBuilder UseWebFormsCore(this IHttpStackBuilder builder)
+    public static IApplicationBuilder UseWebFormsCore(this IApplicationBuilder builder)
     {
         builder.Use(async (context, next) =>
         {
@@ -28,7 +29,7 @@ public static class HttpStackExtensions
         return builder;
     }
 
-    public static IHttpStackBuilder UsePage(this IHttpStackBuilder builder)
+    public static IApplicationBuilder UsePage(this IApplicationBuilder builder)
     {
         builder.Use((context, next) =>
         {
@@ -43,7 +44,7 @@ public static class HttpStackExtensions
         return builder;
     }
 
-    public static async Task<Page?> ExecutePageAsync(this IHttpContext context, string? path = null, bool throwOnError = false)
+    public static async Task<Page?> ExecutePageAsync(this HttpContext context, string? path = null, bool throwOnError = false)
     {
         var application = context.RequestServices.GetRequiredService<IWebFormsApplication>();
 
@@ -64,7 +65,7 @@ public static class HttpStackExtensions
         return await application.ProcessAsync(context, pagePath, context.RequestAborted);
     }
 
-    public static async Task<T> ExecutePageAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IHttpContext context)
+    public static async Task<T> ExecutePageAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this HttpContext context)
         where T : Page
     {
         var application = context.RequestServices.GetRequiredService<IPageManager>();
@@ -72,33 +73,42 @@ public static class HttpStackExtensions
         return (T) await application.RenderPageAsync(context, typeof(T), context.RequestAborted);
     }
 
-    public static async Task<Page> ExecutePageAsync(this IHttpContext context, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type page)
+    public static async Task<Page> ExecutePageAsync(this HttpContext context, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type page)
     {
         var application = context.RequestServices.GetRequiredService<IPageManager>();
 
         return await application.RenderPageAsync(context, page, context.RequestAborted);
     }
 
-    public static async Task ExecutePageAsync(this IHttpContext context, Page page)
+    public static async Task ExecutePageAsync(this HttpContext context, Page page)
     {
         var application = context.RequestServices.GetRequiredService<IPageManager>();
 
         await application.RenderPageAsync(context, page, context.RequestAborted);
     }
 
-    public static void RunPage(this IHttpStackBuilder builder, string path)
+    public static void RunPage(this IApplicationBuilder builder, string path)
     {
-        builder.Run(context => ExecutePageAsync(context, path, true));
+        builder.Run(async context =>
+        {
+            await ExecutePageAsync(context, path, true);
+        });
     }
 
-    public static void RunPage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IHttpStackBuilder builder)
+    public static void RunPage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IApplicationBuilder builder)
         where T : Page
     {
-        builder.Run(ExecutePageAsync<T>);
+        builder.Run(async context =>
+        {
+            await ExecutePageAsync<T>(context);
+        });
     }
 
-    public static void RunPage(this IHttpStackBuilder builder, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type page)
+    public static void RunPage(this IApplicationBuilder builder, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type page)
     {
-        builder.Run(context => ExecutePageAsync(context, page));
+        builder.Run(async context =>
+        {
+            await ExecutePageAsync(context, page);
+        });
     }
 }

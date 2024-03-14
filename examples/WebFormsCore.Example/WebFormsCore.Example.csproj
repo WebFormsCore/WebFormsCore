@@ -20,10 +20,6 @@
         <ProjectReference Include="..\WebFormsCore.Example.Controls\WebFormsCore.Example.Controls.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Controls\" />
-    </ItemGroup>
-
 
 
     <Import Project="..\..\sdk\WebFormsCore.SDK.AspNetCore\Sdk\Sdk.targets" />

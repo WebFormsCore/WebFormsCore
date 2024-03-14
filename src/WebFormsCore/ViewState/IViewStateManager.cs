@@ -1,6 +1,6 @@
 ﻿using System.Buffers;
 using System.Threading.Tasks;
-using HttpStack;
+using Microsoft.AspNetCore.Http;
 using WebFormsCore.UI;
 using WebFormsCore.UI.HtmlControls;
 

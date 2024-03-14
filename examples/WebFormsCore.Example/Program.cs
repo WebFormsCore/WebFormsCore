@@ -1,6 +1,3 @@
-using System.Threading.Tasks;
-using HttpStack;
-using HttpStack.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,18 +40,9 @@ var app = builder.Build();
 app.UseSession();
 app.UseWebSockets();
 
-app.UseStack(stack =>
-{
-    stack.RunPath("/favicon.ico", context =>
-    {
-        context.Response.StatusCode = 404;
-        return Task.CompletedTask;
-    });
+app.UseWebFormsCore();
 
-    stack.UseWebFormsCore();
-
-    stack.UsePage();
-    stack.RunPage<Default>();
-});
+app.UsePage();
+app.RunPage<Default>();
 
 app.Run();

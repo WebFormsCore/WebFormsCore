@@ -2,14 +2,14 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using HttpStack;
+using Microsoft.AspNetCore.Http;
 
 namespace WebFormsCore.UI;
 
 /// <summary>
 /// Flushes the HtmlTextWriter before writing to the stream.
 /// </summary>
-internal class FlushHtmlStream : Stream, IStringStream
+internal class FlushHtmlStream : Stream
 {
     private readonly Stream _stream;
     private readonly HtmlTextWriter _writer;

@@ -1,8 +1,8 @@
-using HttpStack;
+using Microsoft.AspNetCore.Http;
 
 namespace WebFormsCore.UI;
 
 public interface IInternalPage : IInternalControl
 {
-    void SetContext(IHttpContext context);
+    void SetContext(HttpContext context);
 }

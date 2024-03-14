@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using HttpStack;
+using Microsoft.AspNetCore.Http;
 using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI;
@@ -12,7 +12,7 @@ public interface IInternalControl
 {
     Control Control { get; }
 
-    IHttpContext Context { get; }
+    HttpContext Context { get; }
 
     IInternalPage Page { get; set; }
 

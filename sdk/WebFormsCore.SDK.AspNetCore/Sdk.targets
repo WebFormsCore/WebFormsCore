@@ -1,9 +1,4 @@
 <Project>
     <Import Project="Core.targets" />
-
-    <ItemGroup>
-        <PackageReference Include="HttpStack.AspNetCore" Version="$httpStackVersion$" />
-    </ItemGroup>
-
     <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.Web" />
 </Project>

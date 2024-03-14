@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using HttpStack;
+using Microsoft.AspNetCore.Http;
 
 namespace WebFormsCore;
 

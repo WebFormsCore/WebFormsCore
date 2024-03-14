@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using HttpStack;
+using Microsoft.AspNetCore.Http;
 using WebFormsCore.UI;
 
 namespace WebFormsCore;
@@ -11,16 +11,16 @@ namespace WebFormsCore;
 public interface IPageManager
 {
     Task<Page> RenderPageAsync(
-        IHttpContext context,
+        HttpContext context,
         string path,
         CancellationToken token = default);
 
     Task<Page> RenderPageAsync(
-        IHttpContext context,
+        HttpContext context,
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type pageType,
         CancellationToken token = default);
 
-    Task RenderPageAsync(IHttpContext context,
+    Task RenderPageAsync(HttpContext context,
         Page page,
         CancellationToken token = default);
 

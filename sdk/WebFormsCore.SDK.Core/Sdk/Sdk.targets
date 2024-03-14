@@ -15,7 +15,6 @@
     <ItemGroup Condition="$(ImplicitUsings) == 'enable'">
         <Using Include="WebFormsCore" />
         <Using Include="WebFormsCore.UI" />
-        <Using Include="HttpStack" />
     </ItemGroup>
 
     <!-- .NET Framework -->

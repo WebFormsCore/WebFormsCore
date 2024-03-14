@@ -32,7 +32,7 @@ public ref struct ViewStateReader
         _span = span;
         Provider = provider;
         _owner = owner;
-        Compact = provider.GetRequiredService<IOptions<ViewStateOptions>>().Value.Compact;
+        Compact = provider.GetService<IOptions<ViewStateOptions>>()?.Value.Compact ?? true;
     }
 
     public bool Compact { get; }

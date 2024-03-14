@@ -40,6 +40,11 @@ public class WebFormsCoreOptions
     public bool AddWebFormsCoreScript { get; set; } = true;
 
     /// <summary>
+    /// <c>true</c> to add the WebFormsCore head script to the page; otherwise, <c>false</c>.
+    /// </summary>
+    public bool AddWebFormsCoreHeadScript { get; set; } = true;
+
+    /// <summary>
     /// Default positions for &lt;script&gt; tags in <see cref="ClientScriptManager"/>.
     /// </summary>
     public ScriptPosition DefaultScriptPosition { get; set; } = ScriptPosition.BodyEnd;

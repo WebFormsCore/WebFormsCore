@@ -7,7 +7,7 @@ using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using HttpStack;
+using Microsoft.AspNetCore.Http;
 using WebFormsCore.Example.Controls;
 using WebFormsCore.UI;
 using WebFormsCore.UI.WebControls;

@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using HttpStack;
+using Microsoft.AspNetCore.Http;
 using WebFormsCore.UI;
 
 namespace WebFormsCore;
 
 public static class ControlManagerExtensions
 {
-    public static Task<Page> RenderPageAsync(this IPageManager controlManager, IHttpContext context, string path)
+    public static Task<Page> RenderPageAsync(this IPageManager controlManager, HttpContext context, string path)
     {
         return controlManager.RenderPageAsync(
             context,
@@ -17,7 +17,7 @@ public static class ControlManagerExtensions
         );
     }
 
-    public static Task<Page> RenderPageAsync(this IPageManager controlManager, IHttpContext context, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type)
+    public static Task<Page> RenderPageAsync(this IPageManager controlManager, HttpContext context, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type)
     {
         return controlManager.RenderPageAsync(
             context,
@@ -26,7 +26,7 @@ public static class ControlManagerExtensions
         );
     }
 
-    public static Task RenderPageAsync(this IPageManager controlManager, IHttpContext context, Page page)
+    public static Task RenderPageAsync(this IPageManager controlManager, HttpContext context, Page page)
     {
         return controlManager.RenderPageAsync(
             context,

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HttpStack;
+using Microsoft.AspNetCore.Http;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Options;
 using WebFormsCore.Security;

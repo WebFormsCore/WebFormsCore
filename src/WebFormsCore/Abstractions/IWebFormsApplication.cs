@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using HttpStack;
+using Microsoft.AspNetCore.Http;
 using WebFormsCore.UI;
 
 namespace WebFormsCore
@@ -11,6 +11,6 @@ namespace WebFormsCore
     {
         string? GetPath(string path);
 
-        Task<Page> ProcessAsync(IHttpContext context, string path, CancellationToken token);
+        Task<Page> ProcessAsync(HttpContext context, string path, CancellationToken token);
     }
 }

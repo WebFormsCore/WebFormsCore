@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using HttpStack;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.Security;
 using WebFormsCore.UI.Attributes;
@@ -15,7 +15,7 @@ namespace WebFormsCore.UI;
 [ParseChildren(false)]
 public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Page, IInternalPage
 {
-    private IHttpContext? _context;
+    private HttpContext? _context;
     private ScopedControlContainer? _scopedContainer;
 
     internal List<object>? ChangedPostDataConsumers;
@@ -43,7 +43,7 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     public StreamPanel? ActiveStreamPanel { get; set; }
 
-    public override IHttpContext Context => _context ?? throw new InvalidOperationException("No HttpContext available.");
+    public override HttpContext Context => _context ?? throw new InvalidOperationException("No HttpContext available.");
 
     public bool IsPostBack { get; internal set; }
 
@@ -120,13 +120,13 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
         ChangedPostDataConsumers?.Clear();
     }
 
-    protected internal virtual void SetContext(IHttpContext context)
+    protected internal virtual void SetContext(HttpContext context)
     {
         _context = context;
         IsPostBack = string.Equals(context.Request.Method, "POST", StringComparison.OrdinalIgnoreCase);
     }
 
-    void IInternalPage.SetContext(IHttpContext context) => SetContext(context);
+    void IInternalPage.SetContext(HttpContext context) => SetContext(context);
 
     protected internal virtual void RegisterDisposable(Control control)
     {

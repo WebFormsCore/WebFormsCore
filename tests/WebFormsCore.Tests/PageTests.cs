@@ -1,6 +1,5 @@
 ﻿using System.Text;
-using HttpStack;
-using HttpStack.Collections;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using WebFormsCore.UI;
@@ -25,23 +24,27 @@ public partial class PageTest
             .Configure(options => options.Enabled = false);
 
         services.AddOptions<WebFormsCoreOptions>()
-            .Configure(options => options.AddWebFormsCoreScript = false);
+            .Configure(options =>
+            {
+                options.AddWebFormsCoreScript = false;
+                options.AddWebFormsCoreHeadScript = false;
+                options.EnableWebFormsPolyfill = false;
+            });
 
         var serviceProvider = services.BuildServiceProvider();
         await using var stream = new MemoryStream();
 
         var pageManager = serviceProvider.GetRequiredService<IPageManager>();
 
-        var coreRequest = Substitute.For<IHttpRequest>();
+        var coreRequest = Substitute.For<HttpRequest>();
         coreRequest.Method.Returns("GET");
 
-        var coreResponse = Substitute.For<IHttpResponse>();
-        var headers = new HeaderDictionary();
-        var responseHeaders = new ResponseHeaderDictionary(headers);
+        var coreResponse = Substitute.For<HttpResponse>();
+        var responseHeaders = new HeaderDictionary();
         coreResponse.Headers.Returns(responseHeaders);
         coreResponse.Body.Returns(stream);
 
-        var coreContext = Substitute.For<IHttpContext>();
+        var coreContext = Substitute.For<HttpContext>();
         coreContext.Request.Returns(coreRequest);
         coreContext.Response.Returns(coreResponse);
         coreContext.RequestServices.Returns(serviceProvider);

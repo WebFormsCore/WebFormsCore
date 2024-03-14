@@ -25,12 +25,14 @@ public class HtmlHead() : HtmlContainerControl("head")
 
         var options = Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>()?.Value;
 
-        Page.ClientScript.RegisterStartupScript(
-            typeof(Page),
-            "FormPostback",
-            $$$"""window.wfc={hiddenClass:'{{{options?.HiddenClass ?? ""}}}',_:[],bind:function(a,b){this._.push([0,a,b])},bindValidator:function(a,b){this._.push([1,a,b])},init:function(a){this._.push([2,'',a])}};""",
-            position: ScriptPosition.HeadStart);
-
+        if (options?.AddWebFormsCoreHeadScript ?? true)
+        {
+            Page.ClientScript.RegisterStartupScript(
+                typeof(Page),
+                "FormPostback",
+                $$$"""window.wfc={hiddenClass:'{{{options?.HiddenClass ?? ""}}}',_:[],bind:function(a,b){this._.push([0,a,b])},bindValidator:function(a,b){this._.push([1,a,b])},init:function(a){this._.push([2,'',a])}};""",
+                position: ScriptPosition.HeadStart);
+        }
 
         if (options?.EnableWebFormsPolyfill ?? true)
         {

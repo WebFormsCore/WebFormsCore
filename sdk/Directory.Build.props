@@ -2,8 +2,8 @@
   <Import Project="../Directory.Build.props" />
 
   <Target Name="ReplaceVersion" BeforeTargets="BeforeBuild">
-    <ReplaceFileText InputFilename="Sdk.props" OutputFilename="Sdk\Sdk.props" MatchExpression="\$version\$|\$httpStackVersion\$" ReplacementText="$(Version)|$(HttpStackVersion)" />
-    <ReplaceFileText InputFilename="Sdk.targets" OutputFilename="Sdk\Sdk.targets" MatchExpression="\$version\$|\$httpStackVersion\$" ReplacementText="$(Version)|$(HttpStackVersion)" />
+    <ReplaceFileText InputFilename="Sdk.props" OutputFilename="Sdk\Sdk.props" MatchExpression="\$version\$" ReplacementText="$(Version)" />
+    <ReplaceFileText InputFilename="Sdk.targets" OutputFilename="Sdk\Sdk.targets" MatchExpression="\$version\$" ReplacementText="$(Version)" />
   </Target>
 
   <UsingTask TaskName="ReplaceFileText" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildBinPath)\Microsoft.Build.Tasks.Core.dll">

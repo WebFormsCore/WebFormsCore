@@ -5,7 +5,7 @@
         <PackageVersion>$(Version)</PackageVersion>
         <Authors>WebFormsCore</Authors>
         <RepositoryUrl>https://github.com/WebFormsCore/WebFormsCore</RepositoryUrl>
-        <Copyright>Copyright © 2023 WebFormsCore</Copyright>
+        <Copyright>Copyright © 2024 WebFormsCore</Copyright>
         <PackageTags>webformscore</PackageTags>
         <PackageProjectUrl>https://github.com/WebFormsCore/WebFormsCore</PackageProjectUrl>
         <PackageLicense>https://github.com/WebFormsCore/WebFormsCore/blob/main/LICENSE</PackageLicense>
@@ -17,7 +17,6 @@
     <PropertyGroup>
         <DotNetVersions>net6.0;net7.0;net8.0</DotNetVersions>
         <ExtensionsVersion>6.0.0</ExtensionsVersion>
-        <HttpStackVersion>0.0.1-alpha.18</HttpStackVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="$(TargetFramework) == 'net7.0' or $(SdkTargetFramework) == 'net7.0'">

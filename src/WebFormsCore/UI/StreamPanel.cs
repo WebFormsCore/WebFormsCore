@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using HttpStack;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IO;
@@ -84,7 +84,7 @@ public class StreamPanel : Control, INamingContainer
 #endif
     }
 
-    internal async Task StartAsync(IHttpContext context, WebSocket websocket)
+    internal async Task StartAsync(HttpContext context, WebSocket websocket)
     {
         context.Response.Body = Stream.Null;
 

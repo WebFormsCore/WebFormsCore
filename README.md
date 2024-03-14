@@ -1,5 +1,5 @@
 ## What is WebForms Core?
-WebForms Core is a framework for ASP.NET Core and ASP.NET.
+WebForms Core is a framework for ASP.NET Core.
 
 It is heavily inspired by WebForms but is not a direct port. There are many breaking changes. The goal is to provide a framework that is easy to use and provides a familiar experience for developers who are used to WebForms.
 
@@ -8,8 +8,6 @@ It is heavily inspired by WebForms but is not a direct port. There are many brea
 ## Changes
 In comparison to WebForms, there are a few changes:
 
-- **Targets .NET Framework 4.7.2 and NET 6.0**  
-  You can use WebForms Core on .NET and .NET Framework 🎉
 - **NativeAOT support**  
   WebForms Core supports Native AOT compilation for .NET 8.0 (preview 2 or higher).
 - **Rendering is asynchronous**  
@@ -45,7 +43,7 @@ Create a new .csproj that uses the SDK `WebFormsCore.SDK`:
 <Project Sdk="WebFormsCore.SDK.AspNetCore/0.0.1-alpha.33">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
     </PropertyGroup>
 
 </Project>
@@ -60,99 +58,16 @@ builder.Services.AddWebForms();
 
 var app = builder.Build();
 
-// Map '/' to 'Default.aspx'
-app.UseStack(stack =>
-{
-  // Registers static files middleware
-  stack.UseWebFormsCore();
+// Registers static files middleware
+app.UseWebFormsCore();
 
-  // Handles .aspx files
-  // For example, if the url is "/Page.aspx", it will render "Pages/Page.aspx" if it exists
-  stack.UsePage();
+// Handles .aspx files
+// For example, if the url is "/Page.aspx", it will render "Pages/Page.aspx" if it exists
+app.UsePage();
 
-  // Render the page 'Default'.
-  stack.RunPage<Default>();
-});
+// Render the page 'Default'.
+app.RunPage<Default>();
 ```
-
-### ASP.NET (.NET Framework)
-> **Note:** [Rider and Visual Studio 2022 17.5 (17.4 and 17.6 or higher are **supported**) does not support debugging .NET Framework applications with the new project system.](https://github.com/CZEMacLeod/MSBuild.SDK.SystemWeb/issues/51#issuecomment-1444781463)
-
-Create a new .csproj that uses the SDK `WebFormsCore.SDK.NetFramework`:
-
-```xml
-<Project Sdk="WebFormsCore.SDK.NetFramework/0.0.1-alpha.13">
-
-    <PropertyGroup>
-        <TargetFramework>net472</TargetFramework>
-        <LangVersion>10</LangVersion>
-    </PropertyGroup>
-
-</Project>
-```
-
-Add the following to your web.config:
-
-> **Note:** This example will remove all the HTTP handlers that are registered by default so it does not conflict with .NET Framework WebForms.
-
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<configuration>
-  <system.webServer>
-    <handlers>
-      <clear />
-      <add verb="*" path="*.aspx" name="WebFormsCore-ASPX" type="WebFormsCore.PageHandlerFactory" />
-    </handlers>
-  </system.webServer>
-</configuration>	
-```	
-
-Currently, it is not supported to map custom routes to .aspx files in ASP.NET.
-
-### OWIN (.NET Framework)
-> **Note:** [Rider and Visual Studio 2022 17.5 (17.4 and 17.6 or higher are **supported**) does not support debugging .NET Framework applications with the new project system.](https://github.com/CZEMacLeod/MSBuild.SDK.SystemWeb/issues/51#issuecomment-1444781463)
-
-Create a new .csproj that uses the SDK `WebFormsCore.SDK.NetFramework` and add `<UseOwin>true</UseOwin>` to the PropertyGroup:
-
-```xml
-<Project Sdk="WebFormsCore.SDK.NetFramework/0.0.1-alpha.13">
-
-    <PropertyGroup>
-        <TargetFramework>net472</TargetFramework>
-        <LangVersion>10</LangVersion>
-        <UseOwin>true</UseOwin>
-    </PropertyGroup>
-
-</Project>
-```
-
-Create the file `Startup.cs` and add the following:
-
-```cs
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Owin;
-using Owin;
-using Application;
-
-[assembly: OwinStartup(typeof(Startup))]
-
-namespace Application
-{
-    public class Startup
-    {
-        public void Configuration(IAppBuilder app)
-        {
-            var services = new ServiceCollection();
-
-            services.UseOwinWebForms();
-
-            app.Use<WebFormsCoreMiddleware>(services);
-        }
-    }
-}
-```
-
-It is currently not supported to map custom routes to .aspx files in OWIN.
 
 ## Global controls
 In the `web.config` you can register the controls that can be used without registering them in the page or control:

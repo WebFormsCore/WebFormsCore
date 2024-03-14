@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using HttpStack;
+using Microsoft.AspNetCore.Http;
 using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
 
@@ -361,7 +361,7 @@ public partial class Control : IInternalControl
 
     Control IInternalControl.Control => this;
 
-    IHttpContext IInternalControl.Context => Context;
+    HttpContext IInternalControl.Context => Context;
 
     void IInternalControl.InvokeFrameworkInit(CancellationToken token)
     {
