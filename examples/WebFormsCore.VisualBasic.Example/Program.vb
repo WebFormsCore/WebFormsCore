@@ -1,4 +1,3 @@
-Imports HttpStack.AspNetCore
 Imports Microsoft.AspNetCore.Builder
 
 Module Program
@@ -8,9 +7,7 @@ Module Program
 
         Dim app = builder.Build()
 
-        app.UseStack(sub(stack)
-            stack.UsePage()
-        End Sub)
+        app.UsePage()
 
         app.Run()
     End Sub
