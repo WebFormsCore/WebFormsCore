@@ -9,7 +9,7 @@
         <PackageTags>webformscore</PackageTags>
         <PackageProjectUrl>https://github.com/WebFormsCore/WebFormsCore</PackageProjectUrl>
         <PackageLicense>https://github.com/WebFormsCore/WebFormsCore/blob/main/LICENSE</PackageLicense>
-        <NoWarn>$(NoWarn);CS9191;IL2066</NoWarn>
+        <NoWarn>$(NoWarn);CS9191;IL2066;NU5128</NoWarn>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
     </PropertyGroup>
