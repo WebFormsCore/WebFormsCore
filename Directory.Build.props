@@ -9,22 +9,13 @@
         <PackageTags>webformscore</PackageTags>
         <PackageProjectUrl>https://github.com/WebFormsCore/WebFormsCore</PackageProjectUrl>
         <PackageLicense>https://github.com/WebFormsCore/WebFormsCore/blob/main/LICENSE</PackageLicense>
-        <NoWarn>$(NoWarn);CS0436;CS9057;NU5128;CS1620;CS9191;IL2066</NoWarn>
+        <NoWarn>$(NoWarn);CS9191;IL2066</NoWarn>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
     </PropertyGroup>
 
     <PropertyGroup>
         <DotNetVersions>net6.0;net7.0;net8.0</DotNetVersions>
-        <ExtensionsVersion>6.0.0</ExtensionsVersion>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="$(TargetFramework) == 'net7.0' or $(SdkTargetFramework) == 'net7.0'">
-        <ExtensionsVersion>7.0.0</ExtensionsVersion>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="$(TargetFramework) == 'net8.0'">
-        <ExtensionsVersion>8.0.0</ExtensionsVersion>
     </PropertyGroup>
 
     <ItemGroup>
