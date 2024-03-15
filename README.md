@@ -25,18 +25,7 @@ In comparison to WebForms, there are a few changes:
 - **Streaming support**  
   Like Blazor Server-Side, it's possible to stream the HTML (without ViewState) with WebSockets.
 
-## Platforms
-This project uses [HttpStack](https://github.com/WebFormsCore/HttpStack), which means you can use WebFormsCore in:
-- ASP.NET Core
-- ASP.NET
-- HttpListener
-- OWIN _(no support for WebSockets/StreamPanel)_
-- Azure Functions _(no support for WebSockets/StreamPanel)_
-- CefSharp _(no support for WebSockets/StreamPanel)_
-- WebView2 _(no support for WebSockets/StreamPanel)_
-- FastCGI _(experimental, no support for WebSockets/StreamPanel)_
-
-### ASP.NET Core (.NET 6.0)
+## Installation
 Create a new .csproj that uses the SDK `WebFormsCore.SDK`:
 
 ```xml
