@@ -1,22 +1,22 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WebFormsCore.UI;
 
 public static class DataBinder
 {
-    public static object? Eval(object? item, string dataField)
+    public static object? Eval<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(T? item, string dataField)
     {
         if (item == null)
         {
             return null;
         }
 
-        var type = item.GetType();
-        var property = type.GetProperty(dataField);
+        var property = typeof(T).GetProperty(dataField);
 
         if (property == null)
         {
-            throw new InvalidOperationException($"Property {dataField} not found on type {type}");
+            throw new InvalidOperationException($"Property {dataField} not found on type {typeof(T)}");
         }
 
         return property.GetValue(item);

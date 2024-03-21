@@ -14,6 +14,33 @@ public delegate Task AsyncEventHandler<in TSender, in TArgs>(TSender sender, TAr
 [SuppressMessage("ReSharper", "ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract")]
 public static class AsyncEventHandlerHelper
 {
+#if NET9_0_OR_GREATER
+
+    public static async ValueTask InvokeAsync<TSender, TArgs>(this AsyncEventHandler<TSender, TArgs>? handler, TSender sender, TArgs e)
+        where TSender : class
+    {
+        if (handler == null) return;
+
+        foreach (var @delegate in Delegate.EnumerateInvocationList(handler))
+        {
+            var task = Unsafe.As<AsyncEventHandler<TSender, TArgs>>(@delegate)(sender, e);
+            if (task != null) await task;
+        }
+    }
+
+    public static async ValueTask InvokeAsync(this AsyncEventHandler? handler, object sender, EventArgs e)
+    {
+        if (handler == null) return;
+
+        foreach (var @delegate in Delegate.EnumerateInvocationList(handler))
+        {
+            var task = Unsafe.As<AsyncEventHandler>(@delegate)(sender, e);
+            if (task != null) await task;
+        }
+    }
+
+#else
+
 #if NET8_0_OR_GREATER
 
     private static bool SupportsUnsafeAccessors { get; set; }
@@ -115,4 +142,6 @@ public static class AsyncEventHandlerHelper
             if (task != null) await task;
         }
     }
+
+#endif
 }

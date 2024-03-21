@@ -29,6 +29,8 @@ public class DataSource : IDataSource
             }
 
             var type = Value.GetType();
+
+#pragma warning disable IL2075
             var elementType = type.GetInterfaces()
                 .Where(i => i.IsGenericType)
                 .FirstOrDefault(i =>
@@ -40,6 +42,8 @@ public class DataSource : IDataSource
                            genericType == typeof(IEnumerable<>);
                 })
                 ?.GetGenericArguments()[0];
+
+#pragma warning restore IL2075
 
             _elementType = elementType ?? throw new InvalidOperationException($"The type {type.FullName} does not implement IQueryable<T>, IAsyncEnumerable<T> or IEnumerable<T>.");
 

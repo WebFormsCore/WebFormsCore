@@ -19,6 +19,7 @@ jobs:
             6.0.x
             7.0.x
             8.0.x
+            9.0.100-preview.2.24157.14
 
       - name: Install dependencies
         run: dotnet restore
