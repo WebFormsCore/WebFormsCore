@@ -30,11 +30,7 @@ public class StreamPanel : Control, INamingContainer
     private WebSocket _webSocket = null!;
     private Task<WebSocketReceiveResult>? _receiveTask;
     private bool _prerender;
-#if NET
     private TaskCompletionSource _stateHasChangedTcs = new();
-#else
-    private TaskCompletionSource<bool> _stateHasChangedTcs = new();
-#endif
 
     public event AsyncEventHandler<StreamPanel, EventArgs>? Connected;
 
@@ -77,11 +73,7 @@ public class StreamPanel : Control, INamingContainer
     {
         if (!IsConnected) return;
 
-#if NET
         _stateHasChangedTcs.TrySetResult();
-#else
-        _stateHasChangedTcs.TrySetResult(true);
-#endif
     }
 
     internal async Task StartAsync(HttpContext context, WebSocket websocket)
@@ -122,11 +114,7 @@ public class StreamPanel : Control, INamingContainer
                 }
                 else
                 {
-#if NET
                     _stateHasChangedTcs = new TaskCompletionSource();
-#else
-                    _stateHasChangedTcs = new TaskCompletionSource<bool>();
-#endif
 
                     await UpdateControlAsync(cancellationToken);
                 }
@@ -202,11 +190,7 @@ public class StreamPanel : Control, INamingContainer
         var length = (int) memory.Length;
         var buffer = memory.GetBuffer();
 
-#if NET
         await _webSocket.SendAsync(buffer.AsMemory(0, length), WebSocketMessageType.Text, true, token);
-#else
-        await _webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, length), WebSocketMessageType.Text, true, token);
-#endif
 
         Context.Response.Body = Stream.Null;
     }

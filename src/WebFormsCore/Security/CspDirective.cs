@@ -100,11 +100,7 @@ public class CspDirective : ICollection<string>
         }
 
         if (item.StartsWith("http", StringComparison.OrdinalIgnoreCase) &&
-#if NET
             !item.Contains('*') &&
-#else
-            !item.Contains("*") &&
-#endif
             Uri.TryCreate(item, UriKind.Absolute, out var uri))
         {
             Add(uri);

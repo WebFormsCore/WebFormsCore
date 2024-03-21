@@ -67,12 +67,7 @@ public class DefaultControlManager : IControlManager
         }
 
         var span = path.AsSpan();
-
-#if NET
         var hasInvalidPathSeparator = span.Contains('\\');
-#else
-        var hasInvalidPathSeparator = span.IndexOf('\\') != -1;
-#endif
 
         if (!hasInvalidPathSeparator && span[0] != '/')
         {

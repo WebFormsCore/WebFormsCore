@@ -10,16 +10,10 @@ namespace WebFormsCore;
 
 public class CompressedViewStateManager : ViewStateManager
 {
-#if NET
-	private const ViewStateCompression DefaultCompression = ViewStateCompression.Brotoli;
-#else
-	private const ViewStateCompression DefaultCompression = ViewStateCompression.GZip;
-#endif
-
 	public CompressedViewStateManager(IServiceProvider serviceProvider, IOptions<ViewStateOptions>? options = null)
 		: base(serviceProvider, options)
 	{
-		Compression = options?.Value.DefaultCompression ?? DefaultCompression;
+		Compression = options?.Value.DefaultCompression ?? ViewStateCompression.Brotoli;
 		CompressionLevel = options?.Value.CompressionLevel ?? CompressionLevel.Fastest;
 	}
 
@@ -45,7 +39,6 @@ public class CompressedViewStateManager : ViewStateManager
 			return true;
 		}
 
-#if NET
 		if (compression == ViewStateCompression.Brotoli)
 		{
 			var decodedOwner = MemoryPool<byte>.Shared.Rent(length);
@@ -59,7 +52,6 @@ public class CompressedViewStateManager : ViewStateManager
 			newOwner = decodedOwner;
 			return true;
 		}
-#endif
 
 		newOwner = null;
 		actualLength = 0;
@@ -85,7 +77,6 @@ public class CompressedViewStateManager : ViewStateManager
 		}
 	}
 
-#if NET
 	internal static int GetBrotliQualityFromCompressionLevel(CompressionLevel compressionLevel) => compressionLevel switch
 	{
 		CompressionLevel.NoCompression => 0,
@@ -94,17 +85,14 @@ public class CompressedViewStateManager : ViewStateManager
 		CompressionLevel.SmallestSize => 1,
 		_ => throw new ArgumentException("Invalid compression level", nameof(compressionLevel))
 	};
-#endif
 
 	protected override bool TryCompress(ReadOnlySpan<byte> source, Span<byte> destination, out byte compressionByte, out int length)
 	{
-#if NET
 		if (Compression == ViewStateCompression.Brotoli && BrotliEncoder.TryCompress(source, destination, out length, GetBrotliQualityFromCompressionLevel(CompressionLevel), 22) && length <= source.Length)
 		{
 			compressionByte = (byte)ViewStateCompression.Brotoli;
 			return true;
 		}
-#endif
 
 		if (Compression == ViewStateCompression.GZip && TryCompressGzip(source, destination, out length) && length <= source.Length)
 		{

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 
-#if NET
 // ReSharper disable once CheckNamespace
 namespace System.Web.UI;
 
@@ -102,4 +101,3 @@ public sealed class TemplateContainerAttribute : Attribute
         BindingDirection = bindingDirection;
     }
 }
-#endif

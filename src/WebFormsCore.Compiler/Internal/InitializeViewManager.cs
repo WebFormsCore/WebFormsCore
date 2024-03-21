@@ -32,13 +32,8 @@ internal class InitializeViewManager : BackgroundService
         var files = Directory.GetFiles(_environment.ContentRootPath, "*.*", SearchOption.AllDirectories)
             .Where(i => Path.GetExtension(i) is ".aspx" or ".ascx");
 
-#if NET
         await Parallel.ForEachAsync(files, stoppingToken, async (fullPath, _) =>
         {
-#else
-        foreach (var fullPath in files)
-        {
-#endif
             if (_controlManager.TryGetPath(fullPath, out var path) &&
                 !path.StartsWith("bin/") &&
                 !path.StartsWith("obj/"))
@@ -52,10 +47,6 @@ internal class InitializeViewManager : BackgroundService
                     _logger?.LogError(ex, "Failed to re-compile page {Path}", path);
                 }
             }
-#if NET
         });
-#else
-        }
-#endif
     }
 }

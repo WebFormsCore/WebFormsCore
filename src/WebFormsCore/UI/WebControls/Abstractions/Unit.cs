@@ -107,11 +107,8 @@ public struct Unit
             var text = span.Slice(0, num + 1);
             try
             {
-#if NET
                 _value = float.Parse(text, NumberStyles.Float, culture);
-#else
-                _value = float.Parse(text.ToString(), NumberStyles.Float, culture);
-#endif
+
                 if (_type == UnitType.Pixel)
                     _value = (int)_value;
             }

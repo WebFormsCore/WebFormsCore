@@ -80,12 +80,10 @@ public class ListViewStateSerializer : EnumerableViewStateSerializer<IList>
         {
             var genericType = typeof(List<>).MakeGenericType(type);
 
-#if NET6_0_OR_GREATER
             if (!RuntimeFeature.IsDynamicCodeSupported)
             {
                 return c => (IList)Activator.CreateInstance(genericType, c)!;
             }
-#endif
 
             var parameter = Expression.Parameter(typeof(int));
             var ctor = genericType.GetConstructor(new[] { typeof(int) });

@@ -1,5 +1,4 @@
-﻿#if NET
-// ReSharper disable once CheckNamespace
+﻿// ReSharper disable once CheckNamespace
 namespace System.Web.UI;
 
 /// <summary>Defines an attribute that is used by ASP.NET server controls to indicate at design time whether nested content that is contained within a server control corresponds to controls or to properties of the server control. This class cannot be inherited.</summary>
@@ -58,5 +57,3 @@ public sealed class PersistChildrenAttribute : Attribute
     /// <returns>true if the value of the current instance of the <see cref="T:System.Web.UI.PersistChildrenAttribute" /> is the default instance; otherwise, false. </returns>
     public override bool IsDefaultAttribute() => Equals(Default);
 }
-
-#endif

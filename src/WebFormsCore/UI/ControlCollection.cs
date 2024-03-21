@@ -175,7 +175,6 @@ public class ControlCollection : IReadOnlyCollection<Control>
 
         public bool MoveNext()
         {
-#if NET
             var items = CollectionsMarshal.AsSpan(_list);
 
             if ((uint)_index < (uint)items.Length)
@@ -184,17 +183,6 @@ public class ControlCollection : IReadOnlyCollection<Control>
                 _index++;
                 return true;
             }
-#else
-            var localList = _list;
-
-            if ((uint)_index < (uint)localList.Count)
-            {
-                _current = localList[_index];
-                _index++;
-                return true;
-            }
-#endif
-
 
             return MoveNextRare();
         }
