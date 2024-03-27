@@ -11,13 +11,13 @@ using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore;
 
-internal sealed class WebObjectActivator : IWebObjectActivator
+public sealed class DefaultWebObjectActivator : IWebObjectActivator
 {
     private readonly IControlManager _controlManager;
     private readonly IServiceProvider _serviceProvider;
     private readonly Dictionary<Type, object> _cache = new();
 
-    public WebObjectActivator(IServiceProvider serviceProvider, IControlManager controlManager)
+    public DefaultWebObjectActivator(IServiceProvider serviceProvider, IControlManager controlManager)
     {
         _serviceProvider = serviceProvider;
         _controlManager = controlManager;

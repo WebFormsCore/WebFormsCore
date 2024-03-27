@@ -74,7 +74,7 @@ public static class ServiceExtensions
         services.TryAddSingleton(typeof(IControlFactory<>), typeof(ControlFactory<>));
         services.TryAddSingleton<IPageManager, PageManager>();
         services.TryAddSingleton<IWebFormsApplication, WebFormsApplications>();
-        services.TryAddScoped<IWebObjectActivator, WebObjectActivator>();
+        services.TryAddScoped<IWebObjectActivator, DefaultWebObjectActivator>();
         services.TryAddSingleton<IControlManager, DefaultControlManager>();
     }
 
