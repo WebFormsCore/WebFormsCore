@@ -6,7 +6,7 @@ using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI.WebControls;
 
-public partial class Button : WebControl, IButtonControl, IPostBackAsyncEventHandler, ICausesValidationControl
+public partial class Button : WebControl, IButtonControl, IPostBackAsyncEventHandler
 {
     private AsyncEventHandler? _click;
     private AttributeCollection? _style;
