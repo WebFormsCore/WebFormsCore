@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI.WebControls;
 
-public partial class HyperLink : WebControl
+public partial class HyperLink() : WebControl(HtmlTextWriterTag.A)
 {
     [ViewState] public string? Text { get; set; }
 
@@ -12,10 +12,6 @@ public partial class HyperLink : WebControl
     [ViewState] public string? Target { get; set; }
 
     public override bool SupportsDisabledAttribute => false;
-
-    protected HyperLink() : base(HtmlTextWriterTag.A)
-    {
-    }
 
     protected override async ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
