@@ -256,6 +256,11 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
         {
             await writer.WriteAttributeAsync(kv.Key, kv.Value);
         }
+
+        if (_styleColl != null)
+        {
+            await _styleColl.RenderAsync(writer);
+        }
     }
 
     public void AddAttributes(HtmlTextWriter writer)
@@ -263,6 +268,11 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
         foreach (var kv in _bag)
         {
             writer.AddAttribute(kv.Key, kv.Value);
+        }
+
+        if (_styleColl != null)
+        {
+            _styleColl.AddAttributes(writer);
         }
     }
 

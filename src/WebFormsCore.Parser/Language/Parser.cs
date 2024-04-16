@@ -527,6 +527,9 @@ public class Parser
                     ControlsType = attributes.TryGetValue("ControlsType", out var controlsType)
                         ? controlsType.Value
                         : null,
+                    ItemType = parentControl is ControlNode collectionNode
+                        ? collectionNode.ItemType
+                        : null
                 };
 
                 parentControl.Templates.Add(templateNode);
@@ -572,6 +575,10 @@ public class Parser
             INamedTypeSymbol? controlType = null;
             string? controlPath = null;
 
+            var itemType = attributes.TryGetValue("itemtype", out var itemTypeStr)
+                ? _compilation.GetType(itemTypeStr.Value)
+                : null;
+
             if (ns.HasValue && _controlTypes.TryGetValue(new ControlKey(ns.Value.Text, name.Text), out var controlTypeName))
             {
                 controlType = _compilation.GetType(controlTypeName.Type);
@@ -579,8 +586,7 @@ public class Parser
             }
             else
             {
-                if (attributes.TryGetValue("itemtype", out var itemTypeStr) &&
-                    _compilation.GetType(itemTypeStr.Value) is { } itemType)
+                if (itemType != null)
                 {
                     var type = GetControlType(ns?.Text, name.Text + "`1", true);
 
@@ -600,7 +606,10 @@ public class Parser
                 return;
             }
 
-            var controlNode = new ControlNode(controlType, controlPath);
+            var controlNode = new ControlNode(controlType, controlPath)
+            {
+                ItemType = itemType
+            };
 
             if (attributes.TryGetValue("id", out var id))
             {

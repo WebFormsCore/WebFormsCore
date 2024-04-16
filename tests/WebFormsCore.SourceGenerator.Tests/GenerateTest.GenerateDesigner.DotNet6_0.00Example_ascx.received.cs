@@ -37,7 +37,6 @@ public partial class CompiledViews_Tests
         {
             base.FrameworkInitialize();
             
-            this.AddParsedSubObject(WebActivator.CreateLiteral("\r\n\r\n"));
             var ctrl0 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.Literal>();
             ctrl0.ID = "litTest";
             this.AddParsedSubObject(ctrl0);

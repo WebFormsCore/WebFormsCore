@@ -29,4 +29,19 @@ public partial class PageTest
         Assert.True(controls[1].IsDisposed, "Dynamic control should be disposed");
     }
 
+    [Fact]
+    public async Task PageWithControlAndAttributes()
+    {
+        await using var result = await RenderAsync("Pages/DivAttributes.aspx");
+
+        await Verify(result.Html);
+    }
+
+    [Fact]
+    public async Task TypedRepeater()
+    {
+        await using var result = await RenderAsync("Pages/TypedRepeater.aspx");
+
+        await Verify(result.Html);
+    }
 }

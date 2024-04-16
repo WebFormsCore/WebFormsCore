@@ -49,4 +49,6 @@ public class ControlNode : ElementNode, ITypedNode
     public string DisplayControlType => ControlType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
     INamedTypeSymbol ITypedNode.Type => ControlType;
+
+    public INamedTypeSymbol? ItemType { get; set; }
 }

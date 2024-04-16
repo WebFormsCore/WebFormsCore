@@ -1,4 +1,5 @@
-﻿using WebFormsCore.Models;
+﻿using Microsoft.CodeAnalysis;
+using WebFormsCore.Models;
 
 namespace WebFormsCore.Nodes;
 
@@ -22,4 +23,6 @@ public class TemplateNode : ElementNode
             // ignore.
         }
     }
+
+    public INamedTypeSymbol? ItemType { get; set; }
 }

@@ -230,7 +230,14 @@ public partial class CompiledViews_{{ type.AssemblyName }}
 
             public void InstantiateIn(WebFormsCore.UI.Control container)
             {
+{{- if template.RenderName }}
+                var control = new global::WebFormsCore.UI.Control();
+                control.SetRenderMethodDelegate({{ template.RenderName }});
+                {{ write_children template.AllChildren "control" "_parent." }}
+                container.AddParsedSubObject(control);
+{{- else }}
                 {{ write_children template.AllChildren "container" "_parent." }}
+{{- end }}
             }
         }
         {{- end }}

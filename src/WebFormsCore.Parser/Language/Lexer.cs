@@ -35,6 +35,7 @@ public ref struct Lexer
     private int _column;
     private int _nodeOffset;
     private bool _ignoreNewLine;
+    private bool _isStart;
 
     public Lexer(string file, ReadOnlySpan<char> input)
     {
@@ -58,6 +59,7 @@ public ref struct Lexer
         _textStart = default;
         _textEnd = default;
         _tags = new Stack<string>();
+        _isStart = true;
     }
 
     public string File { get; }
@@ -594,6 +596,17 @@ public ref struct Lexer
 
     private void TrackText(TokenRange range, TokenString value)
     {
+        if (_isStart)
+        {
+            if (string.IsNullOrWhiteSpace(value.Value))
+            {
+                return;
+            }
+
+            value = new TokenString(value.Value.TrimStart(), value.Range);
+            _isStart = false;
+        }
+
         if (_textBuilder.Length == 0)
         {
             _textStart = range.Start;
@@ -623,6 +636,21 @@ public ref struct Lexer
 
     private void AddNode(TokenType type, TokenRange range, TokenString value = default)
     {
+        if (_isStart && type is TokenType.Text or TokenType.Comment or TokenType.TagOpen or TokenType.Expression or TokenType.Statement or TokenType.EncodeExpression or TokenType.EvalExpression or TokenType.DocType)
+        {
+            if (type is TokenType.Text)
+            {
+                if (string.IsNullOrWhiteSpace(value.Value))
+                {
+                    return;
+                }
+
+                value = new TokenString(value.Value.TrimStart(), value.Range);
+            }
+
+            _isStart = false;
+        }
+
         if (type == TokenType.Text)
         {
             TrackText(range, value);

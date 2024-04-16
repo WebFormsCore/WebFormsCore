@@ -45,8 +45,6 @@ Public Partial Class CompiledViews_Tests
         Protected Overrides Sub FrameworkInitialize()
             MyBase.FrameworkInitialize()
             
-            Me.AddParsedSubObject(WebActivator.CreateLiteral("" + vbCrLf + ""))
-            Me.AddParsedSubObject(WebActivator.CreateLiteral("" + vbCrLf + "" + vbCrLf + ""))
             Me.AddParsedSubObject(WebActivator.CreateLiteral("<!DOCTYPE html>"))
             Me.AddParsedSubObject(WebActivator.CreateLiteral("" + vbCrLf + ""))
             Dim ctrl0 = WebActivator.CreateElement("html")

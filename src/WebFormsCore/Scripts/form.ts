@@ -3,7 +3,17 @@ import morphAttrs from "morphdom/src/morphAttrs";
 import morphdomFactory from "morphdom/src/morphdom";
 import { Mutex } from 'async-mutex';
 
-const morphdom = morphdomFactory(morphAttrs);
+const morphdom = morphdomFactory((fromEl, toEl) => {
+    if (!fromEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateAttributes", {cancelable: true, bubbles: true, detail: {node: fromEl, source: toEl}}))) {
+        return;
+    }
+
+    morphAttrs(fromEl, toEl);
+
+    if (!fromEl.dispatchEvent(new CustomEvent("wfc:updateAttributes", {bubbles: true, detail: {node: fromEl, source: toEl}}))) {
+        return;
+    }
+});
 
 const postbackMutex = new Mutex();
 

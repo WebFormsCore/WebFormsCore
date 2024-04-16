@@ -52,8 +52,6 @@ public partial class CompiledViews_Tests
             base.FrameworkInitialize();
             
             this.EnableViewState = WebActivator.ParseAttribute<bool>("false");
-            this.AddParsedSubObject(WebActivator.CreateLiteral("\r\n"));
-            this.AddParsedSubObject(WebActivator.CreateLiteral("\r\n"));
             this.AddParsedSubObject(WebActivator.CreateLiteral("<!DOCTYPE htm>"));
             this.AddParsedSubObject(WebActivator.CreateLiteral("\r\n"));
             var ctrl0 = WebActivator.CreateElement("html");

@@ -92,7 +92,7 @@ public class ControlCollection : IReadOnlyCollection<Control>
 
     public virtual int Count => _list.Count;
 
-    protected Control Owner { get; }
+    public Control Owner { get; }
 
     public virtual int IndexOf(Control value)
     {

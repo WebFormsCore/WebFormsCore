@@ -2,7 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace WebFormsCore.UI;
 
@@ -386,5 +388,73 @@ public sealed class CssStyleCollection
                 writer.AddStyleAttribute(entry.Key, entry.Value);
             }
         }
+    }
+
+    public async Task RenderAsync(HtmlTextWriter writer)
+    {
+        if (_table is { Count: 0} && _intTable is { Count: 0 })
+        {
+            return;
+        }
+
+        await writer.WriteAsync(" style=\"");
+
+        if (_table is { Count: > 0 })
+        {
+            foreach (var entry in _table)
+            {
+                await writer.WriteAsync(entry.Key);
+                await writer.WriteAsync(':');
+                await writer.WriteAsync(entry.Value);
+                await writer.WriteAsync(';');
+            }
+        }
+
+        if (_intTable is { Count: > 0 })
+        {
+            foreach (var entry in _intTable)
+            {
+                await writer.WriteAsync(CssTextWriter.GetStyleName(entry.Key));
+                await writer.WriteAsync(':');
+                await writer.WriteAsync(entry.Value);
+                await writer.WriteAsync(';');
+            }
+        }
+
+        await writer.WriteAsync('"');
+    }
+
+    public void AddAttributes(HtmlTextWriter writer)
+    {
+        if (_table is { Count: 0 } && _intTable is { Count: 0 })
+        {
+            return;
+        }
+
+        var sb = new StringBuilder();
+
+        if (_table is { Count: > 0 })
+        {
+            foreach (var entry in _table)
+            {
+                sb.Append(entry.Key);
+                sb.Append(':');
+                sb.Append(entry.Value);
+                sb.Append(';');
+            }
+        }
+
+        if (_intTable is { Count: > 0 })
+        {
+            foreach (var entry in _intTable)
+            {
+                sb.Append(CssTextWriter.GetStyleName(entry.Key));
+                sb.Append(':');
+                sb.Append(entry.Value);
+                sb.Append(';');
+            }
+        }
+
+        writer.AddAttribute("style", sb.ToString());
     }
 }
