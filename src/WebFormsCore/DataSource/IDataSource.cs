@@ -10,5 +10,5 @@ public interface IDataSource
 
     Type ElementType { get; }
 
-    ValueTask LoadAsync(IDataSourceConsumer consumer);
+    ValueTask LoadAsync(IDataSourceConsumer consumer, bool dataBinding, bool filterByKeys);
 }

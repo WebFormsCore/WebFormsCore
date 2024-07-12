@@ -149,9 +149,9 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
         }
     }
 
-    public async ValueTask LoadDataSourceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(object source)
+    public async ValueTask LoadDataSourceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]  T>(object value, bool dataBinding, bool filterByKeys)
     {
-        await LoadDataSourceCoreAsync<T>(source);
+        await LoadDataSourceCoreAsync<T>(value);
         Keys.Store();
     }
 
@@ -178,7 +178,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
             throw new InvalidOperationException("The DataSource property must be set on the grid.");
         }
 
-        await _dataSource.LoadAsync(this);
+        await _dataSource.LoadAsync(this, dataBinding: true, filterByKeys: false);
         await InvokeDataBindingAsync(token);
     }
 

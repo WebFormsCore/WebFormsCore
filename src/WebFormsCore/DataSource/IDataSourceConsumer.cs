@@ -10,5 +10,5 @@ public interface IDataSourceConsumer
 
     ValueTask DataBindAsync(CancellationToken token = default);
 
-    ValueTask LoadDataSourceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(object source);
+    ValueTask LoadDataSourceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(object value, bool dataBinding, bool filterByKeys);
 }

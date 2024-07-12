@@ -77,6 +77,27 @@ public sealed class KeyCollection : IViewStateObject, IDisposable
         return keys;
     }
 
+    public List<object?> GetAll(string name)
+    {
+        var index = GetIndex(name);
+        var keys = new List<object?>();
+
+        if (_keys is null)
+        {
+            return keys;
+        }
+
+        var length = _dataKeyProvider.DataKeys.Length;
+        var span = _keys.AsSpan();
+
+        for (var i = 0; i < _keyCount; i++)
+        {
+            keys.Add(span[i * length + index]!);
+        }
+
+        return keys;
+    }
+
     public object Get(string name, int itemIndex)
     {
         var index = GetIndex(name);
@@ -241,6 +262,46 @@ public sealed class KeyCollection : IViewStateObject, IDisposable
             }
 
             index++;
+        }
+    }
+
+    public void TrySort<T>(List<T> list)
+    {
+        var properties = GetProperties();
+
+        if (properties.Length == 0 || _keys is null || properties.Length > 1)
+        {
+            return;
+        }
+
+        var property = properties[0];
+        var keys = GetAll(property.Name);
+
+        if (keys.Count != list.Count)
+        {
+            return;
+        }
+
+        var isValid = true;
+
+        for (var i = 0; i < keys.Count; i++)
+        {
+            if (!Equals(property.GetValue(list[i]), keys[i]))
+            {
+                isValid = false;
+                break;
+            }
+        }
+
+        if (!isValid)
+        {
+            list.Sort((a, b) =>
+            {
+                var aIndex = keys.IndexOf(property.GetValue(a));
+                var bIndex = keys.IndexOf(property.GetValue(b));
+
+                return aIndex.CompareTo(bIndex);
+            });
         }
     }
 

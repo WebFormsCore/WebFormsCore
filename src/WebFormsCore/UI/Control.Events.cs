@@ -2,6 +2,8 @@
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,6 +50,23 @@ public static class ControlExtensions
         while (parent != null)
         {
             if (parent is T t)
+            {
+                return t;
+            }
+
+            parent = parent.ParentInternal;
+        }
+
+        return default;
+    }
+
+    public static T? FindDataItem<T>(this Control control)
+    {
+        var parent = control.ParentInternal;
+
+        while (parent != null)
+        {
+            if (parent is IDataItemContainer { DataItem: T t })
             {
                 return t;
             }

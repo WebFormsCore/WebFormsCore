@@ -15,8 +15,8 @@ public class DataSource<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
 
     public Type ElementType => typeof(T);
 
-    public ValueTask LoadAsync(IDataSourceConsumer consumer)
+    public ValueTask LoadAsync(IDataSourceConsumer consumer, bool dataBinding, bool filterByKeys)
     {
-        return consumer.LoadDataSourceAsync<T>(Value);
+        return consumer.LoadDataSourceAsync<T>(Value, dataBinding, filterByKeys);
     }
 }

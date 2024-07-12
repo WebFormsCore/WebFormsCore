@@ -78,45 +78,59 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
         }
     }
 
-    public virtual async ValueTask LoadDataSourceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(object source)
+    protected virtual async ValueTask LoadDataSourceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(object value, bool dataBinding, bool filterByKeys)
     {
-        await LoadDataSourceCoreAsync<T>(source);
-        Keys.Store();
+        await LoadDataSourceCoreAsync<T>(value, dataBinding, filterByKeys);
+
+        if (dataBinding)
+        {
+            Keys.Store();
+        }
     }
 
-    private ValueTask LoadDataSourceCoreAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(object source)
+    ValueTask IDataSourceConsumer.LoadDataSourceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(object value, bool dataBinding, bool filterByKeys)
+    {
+        return LoadDataSourceAsync<T>(value, dataBinding, filterByKeys);
+    }
+
+    private ValueTask LoadDataSourceCoreAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(object source, bool dataBinding, bool filterByKeys)
     {
         return source switch
         {
-            IQueryable<T> queryable => LoadDataSourceQueryable(queryable),
-            IAsyncEnumerable<T> asyncEnumerable => LoadDataSourceAsyncEnumerable(asyncEnumerable),
-            IEnumerable<T> enumerable => LoadDataSourceEnumerable(enumerable),
+            IQueryable<T> queryable => LoadDataSourceQueryable(queryable, dataBinding, filterByKeys),
+            IAsyncEnumerable<T> asyncEnumerable => LoadDataSourceAsyncEnumerable(asyncEnumerable, dataBinding, filterByKeys),
+            IEnumerable<T> enumerable => LoadDataSourceEnumerable(enumerable, dataBinding, filterByKeys),
             _ => throw new InvalidOperationException($"The type {source.GetType().FullName} does not implement IQueryable<T>, IAsyncEnumerable<T> or IEnumerable<T>.")
         };
     }
 
-    protected virtual ValueTask InvokeNeedDataSource()
+    protected virtual ValueTask InvokeNeedDataSource(bool filterByKeys)
     {
         throw new InvalidOperationException("The NeedDataSource event must be handled.");
     }
 
     public override async ValueTask DataBindAsync(CancellationToken token = default)
     {
-        if (_dataSource is null)
-        {
-            await InvokeNeedDataSource();
-        }
-
-        if (_dataSource is null)
-        {
-            throw new InvalidOperationException("The DataSource property must be set on the grid.");
-        }
-
-        await _dataSource.LoadAsync(this);
+        await LoadAsync(dataBinding: true, filterByKeys: false, token);
         await InvokeDataBindingAsync(token);
     }
 
-    private async ValueTask LoadDataSourceQueryable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(IQueryable<T> dataSource)
+    protected async ValueTask LoadAsync(bool dataBinding, bool filterByKeys, CancellationToken token = default)
+    {
+        if (_dataSource is null)
+        {
+            await InvokeNeedDataSource(filterByKeys);
+        }
+
+        if (_dataSource is null)
+        {
+            throw new InvalidOperationException("The DataSource property must be set.");
+        }
+
+        await _dataSource.LoadAsync(this, dataBinding, filterByKeys);
+    }
+
+    private async ValueTask LoadDataSourceQueryable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(IQueryable<T> dataSource, bool dataBinding, bool filterByKeys)
     {
         var queryableProvider = Context.RequestServices.GetRequiredService<IQueryableProvider>();
 
@@ -126,34 +140,70 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
 
         var list = await queryableProvider.ToListAsync(dataSource);
 
+        if (filterByKeys)
+        {
+            Keys.TrySort(list);
+        }
+
         foreach (var dataItem in list)
         {
-            await CreateItemAsync(true, dataItem);
+            await CreateItemAsync(dataBinding, dataItem);
         }
+
+        _itemCount = list.Count;
     }
 
-    private async ValueTask LoadDataSourceEnumerable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(IEnumerable<T> dataSource)
+    private async ValueTask LoadDataSourceEnumerable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(IEnumerable<T> dataSource, bool dataBinding, bool filterByKeys)
     {
         _itemType = typeof(T);
 
         Clear();
 
-        foreach (var dataItem in dataSource)
+        var i = 0;
+
+        var list = dataSource.ToList();
+
+        if (filterByKeys)
         {
-            await CreateItemAsync(true, dataItem);
+            Keys.TrySort(list);
         }
+
+        foreach (var dataItem in list)
+        {
+            await CreateItemAsync(dataBinding, dataItem);
+            i++;
+        }
+
+        _itemCount = i;
     }
 
-    private async ValueTask LoadDataSourceAsyncEnumerable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(IAsyncEnumerable<T> dataSource)
+    private async ValueTask LoadDataSourceAsyncEnumerable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(IAsyncEnumerable<T> dataSource, bool dataBinding, bool filterByKeys)
     {
         _itemType = typeof(T);
 
         Clear();
+
+        var i = 0;
+
+        var list = new List<T>();
 
         await foreach (var dataItem in dataSource)
         {
-            await CreateItemAsync(true, dataItem);
+            list.Add(dataItem);
         }
+
+        if (filterByKeys)
+        {
+            Keys.TrySort(list);
+        }
+
+        foreach (var dataItem in list)
+        {
+            await CreateItemAsync(dataBinding, dataItem);
+            i++;
+        }
+
+        _itemCount = i;
     }
 
     [Obsolete("Use DataBindAsync instead.")]
@@ -303,7 +353,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
         contentTemplate?.InstantiateIn(item);
     }
 
-    protected virtual async ValueTask<TItem> CreateItemAsync(bool useDataSource = false, object? dataItem = default)
+    protected virtual async ValueTask<TItem> CreateItemAsync(bool dataBinding = false, object? dataItem = default)
     {
         if (_header == null && HeaderTemplate != null)
         {
@@ -322,7 +372,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
         }
 
         var itemType = (index % 2 == 0) ? ListItemType.Item : ListItemType.AlternatingItem;
-        var item = await CreateItemAsync(itemType, useDataSource, dataItem);
+        var item = await CreateItemAsync(itemType, dataBinding, dataItem);
 
         item.ID = $"i{index}";
         _items.Add((item, separator));
@@ -336,7 +386,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
         return item;
     }
 
-    private async ValueTask<TItem> CreateItemAsync(ListItemType itemType, bool dataBind = false, object? dataItem = default)
+    private async ValueTask<TItem> CreateItemAsync(ListItemType itemType, bool dataBinding = false, object? dataItem = default)
     {
         var itemIndex = itemType is ListItemType.Item or ListItemType.AlternatingItem ? _itemCount++ : -1;
         var item = await CreateItemAsync(itemIndex, itemType);
@@ -344,12 +394,12 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
         Controls.AddWithoutPageEvents(item);
         InitializeItem(item);
 
-        if (dataBind)
+        if (dataItem != null)
         {
             SetDataItem(item, dataItem!);
         }
 
-        await item.DataBindAsync(default);
+        await item.DataBindAsync();
 
         await InvokeItemCreated(item);
 
@@ -359,7 +409,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
             await AddedControlAsync(state, item);
         }
 
-        if (dataBind)
+        if (dataBinding)
         {
             await item.DataBindAsync();
             await InvokeItemDataBound(item);

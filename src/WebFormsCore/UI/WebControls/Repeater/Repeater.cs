@@ -36,24 +36,21 @@ public class Repeater : RepeaterBase<RepeaterItem>, INeedDataSourceProvider
 
     public event AsyncEventHandler<Repeater, NeedDataSourceEventArgs>? NeedDataSource;
 
-    protected override ValueTask InvokeNeedDataSource()
+    public bool LoadDataOnPostBack { get; set; }
+
+    protected override ValueTask InvokeNeedDataSource(bool filterByKeys)
     {
-        return NeedDataSource.InvokeAsync(this, new NeedDataSourceEventArgs(this, false));
+        return NeedDataSource.InvokeAsync(this, new NeedDataSourceEventArgs(this, filterByKeys));
     }
 
     public override async Task AfterPostBackLoadAsync()
     {
         var count = ItemCount;
 
-        if (NeedDataSource != null)
+        if (LoadDataOnPostBack && NeedDataSource != null && ItemsAndSeparators.Count != count)
         {
-            if (ItemsAndSeparators.Count != count)
-            {
-                var filterByKeys = DataKeys.Length > 0;
-
-                await NeedDataSource.InvokeAsync(this, new NeedDataSourceEventArgs(this, filterByKeys));
-                _ignorePaging = false;
-            }
+            await LoadAsync(dataBinding: false, filterByKeys: true);
+            _ignorePaging = true;
 
             if (ItemsAndSeparators.Count != count)
             {
@@ -111,14 +108,14 @@ public class Repeater<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes
         }
     }
 
-    public override ValueTask LoadDataSourceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T1>(object source)
+    protected override ValueTask LoadDataSourceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T1>(object value, bool dataBinding, bool filterByKeys)
     {
         if (typeof(T1) != typeof(T))
         {
             throw new InvalidOperationException("Cannot load data source of different type.");
         }
 
-        return base.LoadDataSourceAsync<T1>(source);
+        return base.LoadDataSourceAsync<T1>(value, dataBinding, filterByKeys);
     }
 
     protected override ValueTask<RepeaterItem> CreateItemAsync(int itemIndex, ListItemType itemType)

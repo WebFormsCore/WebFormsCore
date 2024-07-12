@@ -52,12 +52,12 @@ public class DataSource : IDataSource
     }
 
     [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2075:UnrecognizedReflectionPattern", Justification = "Requires dynamic code")]
-    public ValueTask LoadAsync(IDataSourceConsumer consumer)
+    public ValueTask LoadAsync(IDataSourceConsumer consumer, bool dataBinding, bool filterByKeys)
     {
         var genericMethod = typeof(IDataSourceConsumer)
             .GetMethod(nameof(IDataSourceConsumer.LoadDataSourceAsync), BindingFlags.Instance | BindingFlags.Public)!
             .MakeGenericMethod(ElementType);
 
-        return (ValueTask) genericMethod.Invoke(consumer, new[] {Value})!;
+        return (ValueTask) genericMethod.Invoke(consumer, [Value, dataBinding, filterByKeys])!;
     }
 }
