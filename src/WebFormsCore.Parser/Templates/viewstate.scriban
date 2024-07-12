@@ -14,7 +14,7 @@ namespace {{ item.Namespace }}
 {{- end }}
     public partial class {{ item.Type }} : IViewStateObject
     {
-        private DefaultViewStateValues _defaultViewStateValues = new DefaultViewStateValues();
+        private DefaultViewStateValues? _defaultViewStateValues;
 
         {{ item.IsControl ? "protected override" : "private" }} void TrackViewState(ViewStateProvider provider)
         {
@@ -27,10 +27,12 @@ namespace {{ item.Namespace }}
             {{- end }}
 
             #nullable disable
-            ref var defaultValues = ref _defaultViewStateValues;
-            {{- for prop in item.Properties }}
-            defaultValues.{{ prop.Name }} = {{ prop.Name }};
-            {{- end }}
+            _defaultViewStateValues = new DefaultViewStateValues
+            {
+                {{- for prop in item.Properties }}
+                {{ prop.Name }} = {{ prop.Name }},
+                {{- end }}
+            };
             #nullable restore
         }
 
@@ -40,62 +42,51 @@ namespace {{ item.Namespace }}
             base.OnWriteViewState(ref writer);
             {{- end }}
 
-            if (!writer.Compact)
+            var defaultValues = _defaultViewStateValues;
+
+            if (writer.Compact)
             {
-                WriteViewStateWithFlag(ref writer);
+                {{ item.FlagType }} flag = 0;
+            {{- for prop in item.Properties }}
+
+                // {{ prop.Name }}
+            {{- if prop.Type == "bool" }}
+                if ({{ prop.Name }}) flag |= {{ prop.Flag }};
+            {{- else }}
+                var write{{ prop.Name }} = {{ if prop.TrackDefault }}true{{ else }}(defaultValues == null || writer.StoreInViewState<{{ prop.Type }}>({{ prop.Name }}, defaultValues.{{ prop.Name }})){{ end }}
+                {{- if prop.ValidateProperty }} && {{ prop.ValidateProperty }}{{ end -}};
+                if (write{{ prop.Name }}) flag |= {{ prop.Flag }};
+            {{- end }}
+            {{- end }}
+
+                writer.Write(flag);
+
+            {{- for prop in item.Properties }}
+            {{- if prop.Type != "bool" }}
+                if (write{{ prop.Name }}) writer.Write<{{ prop.Type }}>({{ prop.Name }}, defaultValues == null ? default : defaultValues.{{ prop.Name }});
+            {{- end }}
+            {{- end }}
             }
             else
             {
-                WriteViewStateWithKeys(ref writer);
+                var length = 0;
+            {{- for prop in item.Properties }}
+
+                var write{{ prop.Name }} = {{ if prop.TrackDefault }}true{{ else }}(defaultValues == null || writer.StoreInViewState<{{ prop.Type }}>({{ prop.Name }}, defaultValues.{{ prop.Name }})){{ end }}
+                {{- if prop.ValidateProperty }} && {{ prop.ValidateProperty }}{{ end -}};
+                if (write{{ prop.Name }}) length++;
+            {{- end }}
+
+                writer.Write(length);
+            {{- for prop in item.Properties }}
+
+                if (write{{ prop.Name }})
+                {
+                    writer.Write("{{ prop.Name }}");
+                    writer.Write<{{ prop.Type }}>({{ prop.Name }}, defaultValues == null ? default : defaultValues.{{ prop.Name }});
+                }
+            {{- end }}
             }
-        }
-
-        private void WriteViewStateWithFlag(ref ViewStateWriter writer)
-        {
-            ref var defaultValues = ref _defaultViewStateValues;
-            {{ item.FlagType }} flag = 0;
-        {{- for prop in item.Properties }}
-
-            // {{ prop.Name }}
-        {{- if prop.Type == "bool" }}
-            if ({{ prop.Name }}) flag |= {{ prop.Flag }};
-        {{- else }}
-            var write{{ prop.Name }} = {{ if prop.TrackDefault }}true{{ else }}(writer.StoreInViewState<{{ prop.Type }}>({{ prop.Name }}, defaultValues.{{ prop.Name }})){{ end }}
-            {{- if prop.ValidateProperty }} && {{ prop.ValidateProperty }}{{ end -}};
-            if (write{{ prop.Name }}) flag |= {{ prop.Flag }};
-        {{- end }}
-        {{- end }}
-
-            writer.Write(flag);
-
-        {{- for prop in item.Properties }}
-        {{- if prop.Type != "bool" }}
-            if (write{{ prop.Name }}) writer.Write<{{ prop.Type }}>({{ prop.Name }}, defaultValues.{{ prop.Name }});
-        {{- end }}
-        {{- end }}
-        }
-
-        private void WriteViewStateWithKeys(ref ViewStateWriter writer)
-        {
-            ref var defaultValues = ref _defaultViewStateValues;
-
-            var length = 0;
-        {{- for prop in item.Properties }}
-
-            var write{{ prop.Name }} = {{ if prop.TrackDefault }}true{{ else }}(writer.StoreInViewState<{{ prop.Type }}>({{ prop.Name }}, defaultValues.{{ prop.Name }})){{ end }}
-            {{- if prop.ValidateProperty }} && {{ prop.ValidateProperty }}{{ end -}};
-            if (write{{ prop.Name }}) length++;
-        {{- end }}
-
-            writer.Write(length);
-        {{- for prop in item.Properties }}
-
-            if (write{{ prop.Name }})
-            {
-                writer.Write("{{ prop.Name }}");
-                writer.Write<{{ prop.Type }}>({{ prop.Name }}, defaultValues.{{ prop.Name }});
-            }
-        {{- end }}
         }
 
 		{{ item.IsControl ? "protected override" : "private" }} void OnLoadViewState(ref ViewStateReader reader)
@@ -133,17 +124,10 @@ namespace {{ item.Namespace }}
         void IViewStateObject.WriteViewState(ref ViewStateWriter writer) => OnWriteViewState(ref writer);
         void IViewStateObject.ReadViewState(ref ViewStateReader reader) => OnLoadViewState(ref reader);
 
-        private struct DefaultViewStateValues
+        private class DefaultViewStateValues
         {
-            public DefaultViewStateValues()
-            {
-                {{- for prop in item.Properties }}
-                {{ prop.Name }} = default!;
-                {{- end }}
-            }
-
         {{- for prop in item.Properties }}
-            public {{ prop.Type }} {{ prop.Name }} { get; set; }
+            public {{ prop.Type }} {{ prop.Name }} { get; set; } = default!;
         {{- end }}
         }
     }

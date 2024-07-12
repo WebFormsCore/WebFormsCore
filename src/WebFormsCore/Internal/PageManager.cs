@@ -397,7 +397,7 @@ public class PageManager : IPageManager
             context.Request.Method = "POST";
             context.Request.Form = new FormCollection(
                 values,
-                context.Request.Form.Files
+                context.Request.HasFormContentType ? context.Request.Form.Files : null
             );
         }
 
