@@ -6,7 +6,7 @@ namespace WebFormsCore.Serializer;
 
 public class TypeViewStateSerializer : ViewStateSerializer<Type>
 {
-    private ConcurrentDictionary<string, Type> _cachedTypes = new();
+    private readonly ConcurrentDictionary<string, Type> _cachedTypes = new();
 
     public override void Write(Type type, ref ViewStateWriter writer, Type? value, Type? defaultValue)
     {

@@ -5,10 +5,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using WebFormsCore.Providers;
 
 namespace WebFormsCore.UI.WebControls;
 
-public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandler, INamingContainer, IDataKeyProvider
+public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandler, INamingContainer, IDataKeyProvider, IDataSourceConsumer
     where TItem : Control, IRepeaterItem
 {
     private readonly List<(TItem Item, Control? Seperator)> _items = new();
@@ -22,6 +24,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
     [ViewState] private bool _loadFromViewState;
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties), ViewState(WriteAlways = true)] private Type? _itemType;
     [ViewState(WriteAlways = true)] private int _itemCount;
+    private IDataSource? _dataSource;
 
     [ViewState] public KeyCollection Keys { get; set; }
 
@@ -51,7 +54,12 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
 
     public ITemplate? AlternatingItemTemplate { get; set; }
 
-    public object? DataSource { get; set; }
+    public object? DataSource
+    {
+        get => _dataSource?.Value;
+        [RequiresDynamicCode("The element type of the data source is not known at compile time. Use SetDataSource<T>(source) instead.")]
+        set => _dataSource = value is not null ? new DataSource(value) : null;
+    }
 
     public virtual async Task AfterPostBackLoadAsync()
     {
@@ -70,11 +78,82 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
         }
     }
 
-    public virtual async Task DataBindAsync()
+    public virtual async ValueTask LoadDataSourceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(object source)
     {
-        Clear();
-        await LoadDataSource();
+        await LoadDataSourceCoreAsync<T>(source);
         Keys.Store();
+    }
+
+    private ValueTask LoadDataSourceCoreAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(object source)
+    {
+        return source switch
+        {
+            IQueryable<T> queryable => LoadDataSourceQueryable(queryable),
+            IAsyncEnumerable<T> asyncEnumerable => LoadDataSourceAsyncEnumerable(asyncEnumerable),
+            IEnumerable<T> enumerable => LoadDataSourceEnumerable(enumerable),
+            _ => throw new InvalidOperationException($"The type {source.GetType().FullName} does not implement IQueryable<T>, IAsyncEnumerable<T> or IEnumerable<T>.")
+        };
+    }
+
+    protected virtual ValueTask InvokeNeedDataSource()
+    {
+        throw new InvalidOperationException("The NeedDataSource event must be handled.");
+    }
+
+    public override async ValueTask DataBindAsync(CancellationToken token = default)
+    {
+        if (_dataSource is null)
+        {
+            await InvokeNeedDataSource();
+        }
+
+        if (_dataSource is null)
+        {
+            throw new InvalidOperationException("The DataSource property must be set on the grid.");
+        }
+
+        await _dataSource.LoadAsync(this);
+        await InvokeDataBindingAsync(token);
+    }
+
+    private async ValueTask LoadDataSourceQueryable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(IQueryable<T> dataSource)
+    {
+        var queryableProvider = Context.RequestServices.GetRequiredService<IQueryableProvider>();
+
+        _itemType = typeof(T);
+
+        Clear();
+
+        var list = await queryableProvider.ToListAsync(dataSource);
+
+        foreach (var dataItem in list)
+        {
+            await CreateItemAsync(true, dataItem);
+        }
+    }
+
+    private async ValueTask LoadDataSourceEnumerable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(IEnumerable<T> dataSource)
+    {
+        _itemType = typeof(T);
+
+        Clear();
+
+        foreach (var dataItem in dataSource)
+        {
+            await CreateItemAsync(true, dataItem);
+        }
+    }
+
+    private async ValueTask LoadDataSourceAsyncEnumerable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(IAsyncEnumerable<T> dataSource)
+    {
+        _itemType = typeof(T);
+
+        Clear();
+
+        await foreach (var dataItem in dataSource)
+        {
+            await CreateItemAsync(true, dataItem);
+        }
     }
 
     [Obsolete("Use DataBindAsync instead.")]
@@ -209,26 +288,6 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
 
     public TItem this[int index] => _items[index].Item;
 
-    protected virtual async Task LoadDataSource()
-    {
-        if (DataSource is null)
-        {
-            return;
-        }
-
-        if (DataSource is not IEnumerable dataSource)
-        {
-            throw new InvalidOperationException("DataSource is not an IEnumerable.");
-        }
-
-        _loadFromViewState = IsTrackingViewState;
-
-        foreach (var dataItem in dataSource)
-        {
-            await CreateItemAsync(true, dataItem);
-        }
-    }
-
     protected virtual void InitializeItem(TItem item)
     {
         var contentTemplate = item.ItemType switch
@@ -290,6 +349,8 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
             SetDataItem(item, dataItem!);
         }
 
+        await item.DataBindAsync(default);
+
         await InvokeItemCreated(item);
 
         var state = _state;
@@ -325,4 +386,10 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
     int IDataKeyProvider.ItemCount => _itemCount;
 
     IEnumerable<IDataItemContainer> IDataKeyProvider.Items => _items.Select(x => x.Item);
+
+    IDataSource? IDataSourceConsumer.DataSource
+    {
+        get => _dataSource;
+        set => _dataSource = value;
+    }
 }

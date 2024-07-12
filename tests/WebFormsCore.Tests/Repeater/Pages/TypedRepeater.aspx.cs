@@ -11,11 +11,11 @@ public partial class TypedRepeater : Page
 
         items.DataSource = new List<RepeaterItem>
         {
-            new() { Text = "Item 1" },
-            new() { Text = "Item 2" },
-            new() { Text = "Item 3" },
-            new() { Text = "Item 4" },
-            new() { Text = "Item 5" },
+            new() { Id = 1, Text = "Item 1" },
+            new() { Id = 2, Text = "Item 2" },
+            new() { Id = 3, Text = "Item 3" },
+            new() { Id = 4, Text = "Item 4" },
+            new() { Id = 5, Text = "Item 5" },
         };
 
         await items.DataBindAsync();
@@ -32,9 +32,4 @@ public partial class TypedRepeater : Page
 
         return Task.CompletedTask;
     }
-}
-
-public class RepeaterItem
-{
-    public string Text { get; set; } = "";
 }

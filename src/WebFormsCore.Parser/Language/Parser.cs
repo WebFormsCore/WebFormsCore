@@ -214,7 +214,8 @@ public class Parser
             Text = token.Text,
             IsEval = eval,
             IsEncode = encode,
-            ItemType = eval ? _itemType : null
+            ItemType = eval ? _itemType : null,
+            VariableName = $"expr{_container.ControlId++}"
         };
 
         _container.AddExpression(element);

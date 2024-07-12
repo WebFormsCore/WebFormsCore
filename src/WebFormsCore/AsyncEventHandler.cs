@@ -23,7 +23,7 @@ public static class AsyncEventHandlerHelper
 
         foreach (var @delegate in Delegate.EnumerateInvocationList(handler))
         {
-            var task = Unsafe.As<AsyncEventHandler<TSender, TArgs>>(@delegate)(sender, e);
+            var task = @delegate(sender, e);
             if (task != null) await task;
         }
     }
@@ -34,7 +34,7 @@ public static class AsyncEventHandlerHelper
 
         foreach (var @delegate in Delegate.EnumerateInvocationList(handler))
         {
-            var task = Unsafe.As<AsyncEventHandler>(@delegate)(sender, e);
+            var task = @delegate(sender, e);
             if (task != null) await task;
         }
     }
@@ -43,7 +43,7 @@ public static class AsyncEventHandlerHelper
 
 #if NET8_0_OR_GREATER
 
-    private static bool SupportsUnsafeAccessors { get; set; }
+    private static bool SupportsUnsafeAccessors { get; set; } = true;
 
     private static (int, object) GetInvocationList(MulticastDelegate d)
     {
@@ -87,7 +87,7 @@ public static class AsyncEventHandlerHelper
         var parameter = Expression.Parameter(typeof(MulticastDelegate), "d");
         var listAccess = Expression.Field(parameter, list);
         var countAccess = Expression.Field(parameter, count);
-        var tuple = Expression.New(typeof(ValueTuple<int, object>).GetConstructor(new[] { typeof(int), typeof(object) })!, Expression.Convert(countAccess, typeof(int)), listAccess);
+        var tuple = Expression.New(typeof(ValueTuple<int, object>).GetConstructor([typeof(int), typeof(object)])!, Expression.Convert(countAccess, typeof(int)), listAccess);
         var lambda = Expression.Lambda<Func<MulticastDelegate, (int, object)>>(tuple, parameter);
         return lambda.Compile();
     }

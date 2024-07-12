@@ -139,11 +139,6 @@ public partial class GridItem : TableRow, IDataItemContainer
 
     public virtual int ItemIndex { get; set; }
 
-    public virtual Task DataBindAsync()
-    {
-        return Task.CompletedTask;
-    }
-
     protected override ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
         Grid.RowAttributes.AddAttributes(writer);

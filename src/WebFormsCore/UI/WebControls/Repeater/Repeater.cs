@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -37,14 +36,9 @@ public class Repeater : RepeaterBase<RepeaterItem>, INeedDataSourceProvider
 
     public event AsyncEventHandler<Repeater, NeedDataSourceEventArgs>? NeedDataSource;
 
-    public override async Task DataBindAsync()
+    protected override ValueTask InvokeNeedDataSource()
     {
-        if (DataSource is null)
-        {
-            await NeedDataSource.InvokeAsync(this, new NeedDataSourceEventArgs(this, false));
-        }
-
-        await base.DataBindAsync();
+        return NeedDataSource.InvokeAsync(this, new NeedDataSourceEventArgs(this, false));
     }
 
     public override async Task AfterPostBackLoadAsync()
@@ -117,18 +111,14 @@ public class Repeater<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes
         }
     }
 
-    protected override async Task LoadDataSource()
+    public override ValueTask LoadDataSourceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T1>(object source)
     {
-        if (DataSource is not IAsyncEnumerable<T> asyncEnumerable)
+        if (typeof(T1) != typeof(T))
         {
-            await base.LoadDataSource();
-            return;
+            throw new InvalidOperationException("Cannot load data source of different type.");
         }
 
-        await foreach (var dataItem in asyncEnumerable)
-        {
-            await CreateItemAsync(true, dataItem);
-        }
+        return base.LoadDataSourceAsync<T1>(source);
     }
 
     protected override ValueTask<RepeaterItem> CreateItemAsync(int itemIndex, ListItemType itemType)

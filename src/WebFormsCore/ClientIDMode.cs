@@ -14,4 +14,7 @@ public enum ClientIDMode
 
     /// <summary>The <see cref="P:WebFormsCore.UI.Control.ClientID" /> value is set to the value of the <see cref="P:WebFormsCore.UI.Control.ID" /> property. If the control is a naming container, the control is used as the top of the hierarchy of naming containers for any controls that it contains.</summary>
     Static,
+
+    /// <summary>The <see cref="P:WebFormsCore.UI.Control.ClientID" /> value is not set. The control is not included in the client ID structure.</summary>
+    Hidden
 }

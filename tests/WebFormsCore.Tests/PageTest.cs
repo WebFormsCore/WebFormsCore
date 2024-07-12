@@ -3,7 +3,6 @@ using WebFormsCore.UI;
 
 namespace WebFormsCore.Tests;
 
-[UsesVerify]
 public partial class PageTest
 {
     [Fact]
@@ -33,14 +32,6 @@ public partial class PageTest
     public async Task PageWithControlAndAttributes()
     {
         await using var result = await RenderAsync("Pages/DivAttributes.aspx");
-
-        await Verify(result.Html);
-    }
-
-    [Fact]
-    public async Task TypedRepeater()
-    {
-        await using var result = await RenderAsync("Pages/TypedRepeater.aspx");
 
         await Verify(result.Html);
     }

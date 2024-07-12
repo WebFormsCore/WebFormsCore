@@ -345,6 +345,34 @@ public partial class Control : IInternalControl
         }
     }
 
+    public virtual async ValueTask DataBindAsync(CancellationToken token = default)
+    {
+        if (ProcessControl)
+        {
+            if (token.IsCancellationRequested) return;
+
+            await DataBinding.InvokeAsync(this, EventArgs.Empty);
+        }
+
+        if (ProcessChildren)
+        {
+            foreach (var control in Controls)
+            {
+                await control.DataBindAsync(token);
+            }
+        }
+    }
+
+    protected async ValueTask InvokeDataBindingAsync(CancellationToken token)
+    {
+        if (ProcessControl)
+        {
+            if (token.IsCancellationRequested) return;
+
+            await DataBinding.InvokeAsync(this, EventArgs.Empty);
+        }
+    }
+
     #region IInternalControl
 
     IInternalPage IInternalControl.Page

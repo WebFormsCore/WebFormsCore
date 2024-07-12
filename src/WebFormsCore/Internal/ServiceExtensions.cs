@@ -70,7 +70,7 @@ public static class ServiceExtensions
     private static void AddCommonServices(IServiceCollection services)
     {
         services.TryAddScoped<ScopedControlContainer>();
-        services.TryAddSingleton<IQueryableCountProvider, DefaultQueryableCountProvider>();
+        services.TryAddSingleton<IQueryableProvider, DefaultQueryableProvider>();
         services.TryAddSingleton(typeof(IControlFactory<>), typeof(ControlFactory<>));
         services.TryAddSingleton<IPageManager, PageManager>();
         services.TryAddSingleton<IWebFormsApplication, WebFormsApplications>();

@@ -2,9 +2,9 @@
 <%@ Register TagPrefix="asp" Namespace="WebFormsCore.UI.WebControls" Assembly="WebFormsCore" %>
 
 <ul>
-<asp:Repeater runat="server" ID="items" OnItemDataBound="items_OnItemDataBound">
+<asp:Repeater runat="server" ID="items" OnItemDataBound="items_OnItemDataBound" DataKeys="Id" ItemType="WebFormsCore.Tests.Pages.RepeaterItem">
     <ItemTemplate>
-        <li><asp:Literal runat="server" ID="item" /></li>
+        <li runat="server"><%# Item.Text %></li>
     </ItemTemplate>
 </asp:Repeater>
 </ul>

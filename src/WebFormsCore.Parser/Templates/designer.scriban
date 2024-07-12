@@ -37,6 +37,8 @@
 {{- end }}
 
 {{- func write_children }}
+        {{- expressions = [] }}
+        {{- i = 0 }}
         {{- for child in $0 }}
         {{- case child.Type }}
 
@@ -45,11 +47,12 @@
 
         {{- when "Collection" }}
             var {{ child.VariableName }} = {{ child.Parent?.VariableName ?? $1 }}.{{ child.Property }};
-            {{ write_attributes child $2 }}
+            {{ write_attributes child $2 expressions }}
 
         {{- when "Text" }}
             {{ if child.Parent?.Type != "Collection" -}}
             {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject(WebActivator.CreateLiteral({{ child.Text.CodeString }}));
+            {{- i = i + 1 }}
             {{- end }}
 
         {{- when "Control" }}
@@ -62,16 +65,27 @@
             {{ child.VariableName }}.ID = "{{ child.Id }}";
             {{- end }}
             {{ child.Parent?.VariableName ?? $1 }}.{{ child.Parent?.Type == "Collection" ? "Add" : "AddParsedSubObject" }}({{ child.VariableName }});
+            {{- i = i + 1 }}
 
-            {{ write_attributes child $2 }}
+            {{ write_attributes child $2 expressions }}
 
         {{- when "Element" }}
             var {{ child.VariableName }} = WebActivator.CreateElement({{ child.Name.CodeString }});
             {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject({{ child.VariableName }});
+            {{- i = i + 1 }}
 
             {{- for prop in child.Attributes }}
             {{ child.VariableName }}.Attributes.Add({{ prop.Key.CodeString }}, {{ prop.Value.CodeString }});
             {{- end }}
+
+        {{- when "Expression" }}
+            {{ if child.IsEval -}}
+            var {{ child.VariableName }} = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.Literal>();
+            {{ child.Parent?.VariableName ?? $1 }}.AddParsedSubObject({{ child.VariableName }}); // Expression: {{ child.Text.CodeString }}
+            {{- expressions = expressions | array.add ['expression', i, child.Text, child.VariableName] }}
+            {{- i = i + 1 }}
+            {{- end }}
+
         {{- else }}
             // Unhandled type: {{ child.Type }}
         {{- end }}
@@ -83,6 +97,33 @@
         {{- if child.FieldName }}
             {{ $1 }}.{{ child.FieldName }} = {{ child.VariableName }};
         {{- end }}
+        {{- end }}
+
+        {{- if (expressions | array.size) > 0 }}
+
+        {{ $1 }}.DataBinding += (sender, e) =>
+        {
+            global::WebFormsCore.UI.Control _control = (global::WebFormsCore.UI.Control)sender;
+            {{- if $3 }}
+
+            var Item = ({{ $3 }}?)global::WebFormsCore.UI.DataBinder.GetDataItem(_control);
+            if (Item == null)
+            {
+                return global::System.Threading.Tasks.Task.CompletedTask;
+            }
+
+            {{ end }}
+
+            {{- for i in expressions }}
+            {{- if i[0] == "attribute" }}
+            ((WebFormsCore.UI.IAttributeAccessor){{ i[1] }}).SetAttribute({{ i[2] }}, {{ i[3] }});
+            {{ else -}}
+            {{ i[3] }}.Text = ({{ i[2] }})?.ToString();
+            {{ end }}
+            {{- end }}
+            return global::System.Threading.Tasks.Task.CompletedTask;
+        };
+
         {{- end }}
 {{-end}}
 
@@ -99,11 +140,16 @@
 {{ child.Text.Range.Start.ColumnOffsetString }}{{ child.Text }}
 #line default
             {{- when "Expression" }}
+            {{ if child.IsEval -}}
+            await controls[{{ i }}].RenderAsync(writer, token); // Expression: {{ child.Text.CodeString }}
+            {{- i = i + 1 }}
+            {{- else -}}
             await writer.WriteObjectAsync(
 #line {{ child.Range.Start.Line + 1 }} "{{ child.Range.File }}"
 {{ child.Text.Range.Start.ColumnOffsetString }}{{ child.Text }}
 #line default
             , {{ child.IsEncode ? "true" : "false"}});
+            {{- end }}
             {{- when "Text" }}
             await controls[{{ i }}].RenderAsync(writer, token); // Text: {{ child.Text.CodeString }}
             {{- i = i + 1 }}
@@ -210,7 +256,7 @@ public partial class CompiledViews_{{ type.AssemblyName }}
             {{- if type.RenderName }}
             SetRenderMethodDelegate({{ type.RenderName }});
             {{- end }}
-            {{ write_children type.AllChildren "this" }}
+            {{ write_children type.AllChildren "this" null type.ItemType }}
         }
 
         {{- for template in type.Templates }}
@@ -233,10 +279,10 @@ public partial class CompiledViews_{{ type.AssemblyName }}
 {{- if template.RenderName }}
                 var control = new global::WebFormsCore.UI.Control();
                 control.SetRenderMethodDelegate({{ template.RenderName }});
-                {{ write_children template.AllChildren "control" "_parent." }}
+                {{ write_children template.AllChildren "control" "_parent." template.ItemType }}
                 container.AddParsedSubObject(control);
 {{- else }}
-                {{ write_children template.AllChildren "container" "_parent." }}
+                {{ write_children template.AllChildren "container" "_parent." template.ItemType }}
 {{- end }}
             }
         }

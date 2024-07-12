@@ -138,6 +138,7 @@ public abstract class HtmlTextWriter : IAsyncDisposable
 
     public ValueTask WriteAsync(char tagRightChar)
     {
+        if (_charPos == _charBuffer.Length) GrowBuffer();
         _charBuffer[_charPos++] = tagRightChar;
         return _charPos == _charBuffer.Length ? FlushAsync() : default;
     }
@@ -249,13 +250,12 @@ public abstract class HtmlTextWriter : IAsyncDisposable
 
             if (++attempt > 10)
             {
-                break;
+                // Fall back to string-based formatting
+                return false;
             }
 
             owner = MemoryPool<char>.Shared.Rent(span.Length * 2);
         }
-
-        return false;
     }
 
     public virtual void WriteObject<T>(T value, bool encode = true)

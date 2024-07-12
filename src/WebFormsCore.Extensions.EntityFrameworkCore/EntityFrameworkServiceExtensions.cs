@@ -7,7 +7,7 @@ public static class EntityFrameworkServiceExtensions
 {
     public static IWebFormsCoreBuilder AddEntityFrameworkCore(this IWebFormsCoreBuilder builder)
     {
-        builder.Services.AddSingleton<IQueryableCountProvider, EntityFrameworkCoreQueryableCountProvider>();
+        builder.Services.AddSingleton<IQueryableProvider, EntityFrameworkCoreQueryableProvider>();
         return builder;
     }
 }

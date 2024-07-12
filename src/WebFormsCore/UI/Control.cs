@@ -55,6 +55,8 @@ public partial class Control : System.Web.UI.Control
 
     public IWebObjectActivator WebActivator => _webObjectActivator ??= ServiceProvider.GetRequiredService<IWebObjectActivator>();
 
+    public event AsyncEventHandler? DataBinding;
+
     protected virtual IServiceProvider ServiceProvider => Page.ServiceProvider;
 
     public virtual bool EnableViewState
@@ -298,6 +300,7 @@ public partial class Control : System.Web.UI.Control
             {
                 ClientIDMode.Predictable => PredictableClientID,
                 ClientIDMode.Static => ID,
+                ClientIDMode.Hidden => null,
                 _ => UniqueClientID
             };
         }

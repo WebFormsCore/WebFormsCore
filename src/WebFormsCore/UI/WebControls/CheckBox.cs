@@ -63,19 +63,34 @@ public partial class CheckBox : WebControl, IPostBackAsyncDataHandler
 
     public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        await AddAttributesToRender(writer, token);
-        await writer.RenderSelfClosingTagAsync(TagKey);
-
-        if (string.IsNullOrEmpty(Text))
+        if (ClientID is null && !string.IsNullOrEmpty(Text))
         {
-            return;
-        }
+            LabelAttributes.AddAttributes(writer);
+            await writer.RenderBeginTagAsync(HtmlTextWriterTag.Label);
 
-        writer.AddAttribute(HtmlTextWriterAttribute.For, ClientID);
-        LabelAttributes.AddAttributes(writer);
-        await writer.RenderBeginTagAsync(HtmlTextWriterTag.Label);
-        await writer.WriteAsync(Text);
-        await writer.RenderEndTagAsync();
+            await AddAttributesToRender(writer, token);
+            await writer.RenderSelfClosingTagAsync(TagKey);
+
+            await writer.WriteAsync(Text);
+
+            await writer.RenderEndTagAsync();
+        }
+        else
+        {
+            await AddAttributesToRender(writer, token);
+            await writer.RenderSelfClosingTagAsync(TagKey);
+
+            if (string.IsNullOrEmpty(Text))
+            {
+                return;
+            }
+
+            writer.AddAttribute(HtmlTextWriterAttribute.For, ClientID);
+            LabelAttributes.AddAttributes(writer);
+            await writer.RenderBeginTagAsync(HtmlTextWriterTag.Label);
+            await writer.WriteAsync(Text);
+            await writer.RenderEndTagAsync();
+        }
     }
 
     protected virtual ValueTask<bool> LoadPostDataAsync(string postDataKey, IFormCollection postCollection, CancellationToken cancellationToken)

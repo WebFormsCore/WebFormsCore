@@ -15,5 +15,7 @@ public class ExpressionNode : Node
 
     public bool IsEncode { get; set; }
 
+    public string? VariableName { get; set; }
+
     public string? ItemType { get; set; }
 }

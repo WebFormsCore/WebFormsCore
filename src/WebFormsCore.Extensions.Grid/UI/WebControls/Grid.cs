@@ -49,7 +49,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
     {
         get => _dataSource?.Value;
         [RequiresDynamicCode("The element type of the data source is not known at compile time. Use SetDataSource<T>(source) instead.")]
-        set => _dataSource = new DataSource(value!);
+        set => _dataSource = value is not null ? new DataSource(value) : null;
     }
 
     public int? PageCount => PageSize.HasValue && _dataCount.HasValue ? (int)Math.Ceiling((double)_dataCount / PageSize.Value) : null;
@@ -166,7 +166,7 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
         };
     }
 
-    public virtual async ValueTask DataBindAsync()
+    public override async ValueTask DataBindAsync(CancellationToken token = default)
     {
         if (_dataSource is null)
         {
@@ -179,14 +179,17 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
         }
 
         await _dataSource.LoadAsync(this);
+        await InvokeDataBindingAsync(token);
     }
 
     protected async ValueTask LoadDataSourceQueryable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(IQueryable<T> dataSource)
     {
-        var countProvider = Context.RequestServices.GetRequiredService<IQueryableCountProvider>();
+        var queryableProvider = Context.RequestServices.GetRequiredService<IQueryableProvider>();
 
         _itemType = typeof(T);
-        _dataCount = await countProvider.CountAsync(dataSource);
+
+        var count = await queryableProvider.CountAsync(dataSource);
+        _dataCount = count;
 
         UpdatePaging();
 
@@ -202,19 +205,11 @@ public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsume
 
         await ClearAsync();
 
-        if (dataSource is IAsyncEnumerable<T> asyncEnumerable)
+        var list = await queryableProvider.ToListAsync(dataSource, count);
+
+        foreach (var dataItem in list)
         {
-            await foreach (var dataItem in asyncEnumerable)
-            {
-                await CreateAndBindItemAsync(dataItem);
-            }
-        }
-        else
-        {
-            foreach (var dataItem in dataSource)
-            {
-                await CreateAndBindItemAsync(dataItem);
-            }
+            await CreateAndBindItemAsync(dataItem);
         }
     }
 

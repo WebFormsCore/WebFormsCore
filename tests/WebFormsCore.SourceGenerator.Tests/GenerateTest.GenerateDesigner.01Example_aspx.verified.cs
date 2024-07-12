@@ -38,10 +38,10 @@ public partial class CompiledViews_Tests
         {
             await controls[0].RenderAsync(writer, token); // Text: "\r\n    "
             await writer.WriteObjectAsync(
-#line 9 "{CurrentDirectory}Example.aspx"
+            #line 9 "{CurrentDirectory}Example.aspx"
         Test 
-#line default
-            , false);
+            #line default
+                        , false);
             await controls[1].RenderAsync(writer, token); // Text: "\r\n\r\n    "
             await controls[2].RenderAsync(writer, token); // Element: form
             await controls[3].RenderAsync(writer, token); // Text: "\r\n"
@@ -70,39 +70,39 @@ public partial class CompiledViews_Tests
             ctrl0.AddParsedSubObject(ctrl3);
             ctrl3.SetRenderMethodDelegate(Render_0);
             ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("\r\n    "));
-            // Unhandled type: Expression
+            
             ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("\r\n\r\n    "));
-            var ctrl4 = WebActivator.CreateControl<global::WebFormsCore.UI.HtmlControls.HtmlForm>();
-            ctrl4.ID = "form1";
-            ctrl3.AddParsedSubObject(ctrl4);
+            var ctrl5 = WebActivator.CreateControl<global::WebFormsCore.UI.HtmlControls.HtmlForm>();
+            ctrl5.ID = "form1";
+            ctrl3.AddParsedSubObject(ctrl5);
 
             
-            this.form1 = ctrl4;
-            ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("\r\n        <div>\r\n            "));
-            var ctrl5 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.TextBox>();
-            ctrl5.ID = "tbUsername";
-            ctrl4.AddParsedSubObject(ctrl5);
-
-            
-            ctrl5.Text =  Test ;
-            this.tbUsername = ctrl5;
-            ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("<br />\r\n            "));
+            this.form1 = ctrl5;
+            ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("\r\n        <div>\r\n            "));
             var ctrl6 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.TextBox>();
-            ctrl6.ID = "tbPassword";
-            ctrl4.AddParsedSubObject(ctrl6);
+            ctrl6.ID = "tbUsername";
+            ctrl5.AddParsedSubObject(ctrl6);
 
             
-            this.tbPassword = ctrl6;
-            ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("<br />\r\n            "));
-            var ctrl7 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.Button>();
-            ctrl7.ID = "btnLogin";
-            ctrl4.AddParsedSubObject(ctrl7);
+            ctrl6.Text =  Test ;
+            this.tbUsername = ctrl6;
+            ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("<br />\r\n            "));
+            var ctrl7 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.TextBox>();
+            ctrl7.ID = "tbPassword";
+            ctrl5.AddParsedSubObject(ctrl7);
 
             
-            ctrl7.Text = "Login";
-            ((WebFormsCore.UI.IAttributeAccessor)ctrl7).SetAttribute("click", "btnLogin_Click");
-            this.btnLogin = ctrl7;
-            ctrl4.AddParsedSubObject(WebActivator.CreateLiteral("\r\n        </div>\r\n    "));
+            this.tbPassword = ctrl7;
+            ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("<br />\r\n            "));
+            var ctrl8 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.Button>();
+            ctrl8.ID = "btnLogin";
+            ctrl5.AddParsedSubObject(ctrl8);
+
+            
+            ctrl8.Text = "Login";
+            ((WebFormsCore.UI.IAttributeAccessor)ctrl8).SetAttribute("click", "btnLogin_Click");
+            this.btnLogin = ctrl8;
+            ctrl5.AddParsedSubObject(WebActivator.CreateLiteral("\r\n        </div>\r\n    "));
             ctrl3.AddParsedSubObject(WebActivator.CreateLiteral("\r\n"));
             ctrl0.AddParsedSubObject(WebActivator.CreateLiteral("\r\n"));
         }

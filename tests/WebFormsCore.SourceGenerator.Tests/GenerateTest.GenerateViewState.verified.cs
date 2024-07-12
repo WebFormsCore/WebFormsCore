@@ -13,7 +13,7 @@ namespace Tests
 {
     public partial class Example : IViewStateObject
     {
-        private DefaultViewStateValues? _defaultViewStateValues;
+        private DefaultViewStateValues _defaultViewStateValues = new DefaultViewStateValues();
 
         private void TrackViewState(ViewStateProvider provider)
         {
@@ -21,58 +21,67 @@ namespace Tests
             provider.TrackViewState<string>(test2);
 
             #nullable disable
-            _defaultViewStateValues = new DefaultViewStateValues
-            {
-                test = test,
-                test2 = test2,
-            };
+            ref var defaultValues = ref _defaultViewStateValues;
+            defaultValues.test = test;
+            defaultValues.test2 = test2;
             #nullable restore
         }
 
 		private void OnWriteViewState(ref ViewStateWriter writer)
         {
 
-            var defaultValues = _defaultViewStateValues;
-
-            if (writer.Compact)
+            if (!writer.Compact)
             {
-                byte flag = 0;
-
-                // test
-                var writetest = (defaultValues == null || writer.StoreInViewState<string>(test, defaultValues.test));
-                if (writetest) flag |= 1;
-
-                // test2
-                var writetest2 = (defaultValues == null || writer.StoreInViewState<string>(test2, defaultValues.test2)) && Validate;
-                if (writetest2) flag |= 2;
-
-                writer.Write(flag);
-                if (writetest) writer.Write<string>(test, defaultValues == null ? default : defaultValues.test);
-                if (writetest2) writer.Write<string>(test2, defaultValues == null ? default : defaultValues.test2);
+                WriteViewStateWithFlag(ref writer);
             }
             else
             {
-                var length = 0;
+                WriteViewStateWithKeys(ref writer);
+            }
+        }
 
-                var writetest = (defaultValues == null || writer.StoreInViewState<string>(test, defaultValues.test));
-                if (writetest) length++;
+        private void WriteViewStateWithFlag(ref ViewStateWriter writer)
+        {
+            ref var defaultValues = ref _defaultViewStateValues;
+            byte flag = 0;
 
-                var writetest2 = (defaultValues == null || writer.StoreInViewState<string>(test2, defaultValues.test2)) && Validate;
-                if (writetest2) length++;
+            // test
+            var writetest = (writer.StoreInViewState<string>(test, defaultValues.test));
+            if (writetest) flag |= 1;
 
-                writer.Write(length);
+            // test2
+            var writetest2 = (writer.StoreInViewState<string>(test2, defaultValues.test2)) && Validate;
+            if (writetest2) flag |= 2;
 
-                if (writetest)
-                {
-                    writer.Write("test");
-                    writer.Write<string>(test, defaultValues == null ? default : defaultValues.test);
-                }
+            writer.Write(flag);
+            if (writetest) writer.Write<string>(test, defaultValues.test);
+            if (writetest2) writer.Write<string>(test2, defaultValues.test2);
+        }
 
-                if (writetest2)
-                {
-                    writer.Write("test2");
-                    writer.Write<string>(test2, defaultValues == null ? default : defaultValues.test2);
-                }
+        private void WriteViewStateWithKeys(ref ViewStateWriter writer)
+        {
+            ref var defaultValues = ref _defaultViewStateValues;
+
+            var length = 0;
+
+            var writetest = (writer.StoreInViewState<string>(test, defaultValues.test));
+            if (writetest) length++;
+
+            var writetest2 = (writer.StoreInViewState<string>(test2, defaultValues.test2)) && Validate;
+            if (writetest2) length++;
+
+            writer.Write(length);
+
+            if (writetest)
+            {
+                writer.Write("test");
+                writer.Write<string>(test, defaultValues.test);
+            }
+
+            if (writetest2)
+            {
+                writer.Write("test2");
+                writer.Write<string>(test2, defaultValues.test2);
             }
         }
 
@@ -101,10 +110,15 @@ namespace Tests
         void IViewStateObject.WriteViewState(ref ViewStateWriter writer) => OnWriteViewState(ref writer);
         void IViewStateObject.ReadViewState(ref ViewStateReader reader) => OnLoadViewState(ref reader);
 
-        private class DefaultViewStateValues
+        private struct DefaultViewStateValues
         {
-            public string test { get; set; } = default!;
-            public string test2 { get; set; } = default!;
+            public DefaultViewStateValues()
+            {
+                test = default!;
+                test2 = default!;
+            }
+            public string test { get; set; }
+            public string test2 { get; set; }
         }
     }
 }
