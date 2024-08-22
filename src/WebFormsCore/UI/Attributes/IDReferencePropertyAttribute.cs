@@ -1,4 +1,6 @@
-﻿#if !NETFRAMEWORK
+﻿using System.Diagnostics.CodeAnalysis;
+
+#if !NETFRAMEWORK
 // ReSharper disable once CheckNamespace
 namespace System.Web.UI;
 
@@ -10,6 +12,7 @@ using System;
 /// This can be used to identify ID reference properties which allows design-time functionality
 /// to do interesting things with the property values.
 /// </summary>
+[ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.Property)]
 // ReSharper disable once InconsistentNaming
 public sealed class IDReferencePropertyAttribute : Attribute

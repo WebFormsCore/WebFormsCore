@@ -1,5 +1,6 @@
 ﻿#if !NETFRAMEWORK
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 // ReSharper disable once CheckNamespace
 namespace System.Web.UI;
@@ -7,6 +8,7 @@ namespace System.Web.UI;
 /// <summary>
 /// Identifies the validation property for a component.
 /// </summary>
+[ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class ValidationPropertyAttribute : Attribute
 {

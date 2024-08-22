@@ -1,7 +1,11 @@
 ﻿// ReSharper disable once CheckNamespace
+
+using System.Diagnostics.CodeAnalysis;
+
 namespace System.Web.UI;
 
 /// <summary>Defines an attribute that is used by ASP.NET server controls to indicate at design time whether nested content that is contained within a server control corresponds to controls or to properties of the server control. This class cannot be inherited.</summary>
+[ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class PersistChildrenAttribute : Attribute
 {

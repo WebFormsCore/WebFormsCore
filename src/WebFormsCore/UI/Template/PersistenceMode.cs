@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 // ReSharper disable once CheckNamespace
 namespace System.Web.UI;
@@ -21,6 +22,7 @@ public enum PersistenceMode
 }
 
 /// <summary>Defines the metadata attribute that specifies how an ASP.NET server control property or event is persisted to an ASP.NET page at design time. This class cannot be inherited.</summary>
+[ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.All)]
 public sealed class PersistenceModeAttribute : Attribute
 {
@@ -74,6 +76,7 @@ public sealed class PersistenceModeAttribute : Attribute
 }
 
 /// <summary>Declares the base type of the container control of a property that returns an <see cref="T:System.Web.UI.ITemplate" /> interface and is marked with the <see cref="T:System.Web.UI.TemplateContainerAttribute" /> attribute. The control with the <see cref="T:System.Web.UI.ITemplate" /> property must implement the <see cref="T:System.Web.UI.INamingContainer" /> interface. This class cannot be inherited.</summary>
+[ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class TemplateContainerAttribute : Attribute
 {

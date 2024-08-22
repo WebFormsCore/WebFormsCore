@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -30,7 +32,7 @@ public abstract class HtmlTextWriter : IAsyncDisposable
     public const char TagRightChar = '>';
     public const string StyleDeclaringString = "style";
 
-    protected readonly Encoding Encoding = Encoding.UTF8;
+    internal readonly Encoding Encoding = Encoding.UTF8;
     private readonly Stack<string> _openTags = new();
     private readonly List<KeyValuePair<string, string?>> _attributes = new();
     private readonly List<KeyValuePair<string, string?>> _styleAttributes = new();
@@ -224,7 +226,11 @@ public abstract class HtmlTextWriter : IAsyncDisposable
         }
 
         var str = value?.ToString();
-        if (encode) str = WebUtility.HtmlEncode(str);
+        if (encode)
+        {
+            return WriteEncodedTextAsync(str);
+        }
+
         return WriteAsync(str.AsMemory());
     }
 
@@ -261,8 +267,9 @@ public abstract class HtmlTextWriter : IAsyncDisposable
     public virtual void WriteObject<T>(T value, bool encode = true)
     {
         var str = value?.ToString();
-        if (encode) str = WebUtility.HtmlEncode(str);
-        Write(str.AsSpan());
+
+        if (encode) WriteEncodedText(str);
+        else Write(str);
     }
 
     public void RenderBeginTag(HtmlTextWriterTag tagKey) => RenderBeginTag(tagKey.ToName());
@@ -376,10 +383,10 @@ public abstract class HtmlTextWriter : IAsyncDisposable
         Write(name);
 
         if (value == null) return;
-        if (encode) value = WebUtility.HtmlEncode(value);
 
         Write(EqualsDoubleQuoteString);
-        Write(value);
+        if (encode) WriteEncodedText(value);
+        else Write(value);
         Write(DoubleQuoteChar);
     }
 
@@ -389,10 +396,10 @@ public abstract class HtmlTextWriter : IAsyncDisposable
         await WriteAsync(name);
 
         if (value == null) return;
-        if (encode) value = WebUtility.HtmlEncode(value);
 
         await WriteAsync(EqualsDoubleQuoteString);
-        await WriteAsync(value);
+        if (encode) await WriteEncodedTextAsync(value);
+        else await WriteAsync(value);
         await WriteAsync(DoubleQuoteChar);
     }
 
@@ -405,9 +412,8 @@ public abstract class HtmlTextWriter : IAsyncDisposable
 
         Write(name);
         Write(StyleEqualsChar);
-        if (encode) value = WebUtility.HtmlEncode(value);
-
-        Write(value);
+        if (encode) WriteEncodedText(value);
+        else Write(value);
         Write(SemicolonChar);
         Write(SpaceChar);
     }
@@ -421,8 +427,8 @@ public abstract class HtmlTextWriter : IAsyncDisposable
 
         await WriteAsync(name);
         await WriteAsync(StyleEqualsChar);
-        if (encode) value = WebUtility.HtmlEncode(value);
-
+        if (encode) await WriteEncodedTextAsync(value);
+        else await WriteAsync(value);
         await WriteAsync(value);
         await WriteAsync(SemicolonChar);
         await WriteAsync(SpaceChar);
@@ -459,14 +465,98 @@ public abstract class HtmlTextWriter : IAsyncDisposable
         await WriteAsync(SelfClosingTagEnd);
     }
 
-    public void WriteEncodedText(string text)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteEncodedText(string? text)
     {
-        Write(WebUtility.HtmlEncode(text));
+        var result = HtmlEncoder.Default.Encode(text, _charBuffer.AsSpan(_charPos), out var charsConsumed, out var charsWritten);
+        _charPos += charsWritten;
+
+        if (result != OperationStatus.Done)
+        {
+            WriteEncodedTextSlow(result, text.AsSpan(charsConsumed));
+        }
     }
 
-    public async ValueTask WriteEncodedTextAsync(string? text)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void WriteEncodedTextSlow(OperationStatus result, ReadOnlySpan<char> remaining)
     {
-        await WriteAsync(WebUtility.HtmlEncode(text));
+        if (result == OperationStatus.InvalidData)
+        {
+            throw new InvalidOperationException();
+        }
+
+        if (result == OperationStatus.DestinationTooSmall)
+        {
+            Flush();
+        }
+
+        while (true)
+        {
+            result = HtmlEncoder.Default.Encode(remaining, _charBuffer.AsSpan(_charPos), out var charsConsumed, out var charsWritten);
+            _charPos += charsWritten;
+
+            if (result == OperationStatus.Done)
+            {
+                return;
+            }
+
+            if (result == OperationStatus.InvalidData)
+            {
+                throw new InvalidOperationException();
+            }
+
+            remaining = remaining.Slice(charsConsumed);
+
+            if (_charPos == _charBuffer.Length)
+            {
+                Flush();
+            }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ValueTask WriteEncodedTextAsync(string? text)
+    {
+        var result = HtmlEncoder.Default.Encode(text, _charBuffer.AsSpan(_charPos), out var charsConsumed, out var charsWritten);
+        _charPos += charsWritten;
+        return result == OperationStatus.Done ? default : WriteEncodedTextSlowAsync(result, text.AsMemory(charsConsumed));
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private async ValueTask WriteEncodedTextSlowAsync(OperationStatus result, ReadOnlyMemory<char> remaining)
+    {
+        if (result == OperationStatus.InvalidData)
+        {
+            throw new InvalidOperationException();
+        }
+
+        if (result == OperationStatus.DestinationTooSmall)
+        {
+            await FlushAsync();
+        }
+
+        while (true)
+        {
+            result = HtmlEncoder.Default.Encode(remaining.Span, _charBuffer.AsSpan(_charPos), out var charsConsumed, out var charsWritten);
+            _charPos += charsWritten;
+
+            if (result == OperationStatus.Done)
+            {
+                return;
+            }
+
+            if (result == OperationStatus.InvalidData)
+            {
+                throw new InvalidOperationException();
+            }
+
+            remaining = remaining.Slice(charsConsumed);
+
+            if (_charPos == _charBuffer.Length)
+            {
+                await FlushAsync();
+            }
+        }
     }
 
     public void WriteEncodedUrl(string url)

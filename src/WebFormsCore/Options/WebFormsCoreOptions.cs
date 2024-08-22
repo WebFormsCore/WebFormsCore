@@ -1,4 +1,5 @@
 ﻿using WebFormsCore.UI;
+using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore;
 
@@ -58,4 +59,9 @@ public class WebFormsCoreOptions
     /// <c>true</c> to enable the WebForms polyfill; otherwise, <c>false</c>.
     /// </summary>
     public bool EnableWebFormsPolyfill { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the default literal mode.
+    /// </summary>
+    public LiteralMode DefaultLiteralMode { get; set; } = LiteralMode.Encode;
 }
