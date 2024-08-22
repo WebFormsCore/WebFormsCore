@@ -45,7 +45,9 @@ public class PageManager : IPageManager
     {
         var pageType = await _controlManager.GetTypeAsync(path);
 
+#pragma warning disable IL2062 // This will be set by the source generator
         return await RenderPageAsync(context, pageType, token);
+#pragma warning restore IL2062
     }
 
     public async Task<Page> RenderPageAsync(

@@ -6,24 +6,28 @@ using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI.WebControls;
 
-public partial class Button : WebControl, IButtonControl, IPostBackAsyncEventHandler
+public class Button : BaseButton<Button>
 {
-    private AsyncEventHandler? _click;
-    private AttributeCollection? _style;
-
     public Button()
         : base(HtmlTextWriterTag.Button)
     {
     }
+}
 
-    public Button(HtmlTextWriterTag tag)
+public partial class BaseButton<TSelf> : WebControl, IButtonControl, IPostBackAsyncEventHandler
+    where TSelf : BaseButton<TSelf>
+{
+    private AsyncEventHandler? _click;
+    private AttributeCollection? _style;
+
+    protected BaseButton(HtmlTextWriterTag tag)
         : base(tag)
     {
     }
 
-    public event AsyncEventHandler<Button, EventArgs>? Click;
+    public event AsyncEventHandler<TSelf, EventArgs>? Click;
 
-    public event AsyncEventHandler<Button, CommandEventArgs>? Command;
+    public event AsyncEventHandler<TSelf, CommandEventArgs>? Command;
 
     [ViewState]
     public AttributeCollection Style
@@ -54,11 +58,11 @@ public partial class Button : WebControl, IButtonControl, IPostBackAsyncEventHan
             return;
         }
 
-        await Click.InvokeAsync(this, EventArgs.Empty);
+        await Click.InvokeAsync((TSelf)this, EventArgs.Empty);
         await _click.InvokeAsync(this, EventArgs.Empty);
 
         var args = new CommandEventArgs(CommandName, CommandArgument);
-        await Command.InvokeAsync(this, args);
+        await Command.InvokeAsync((TSelf)this, args);
         await RaiseBubbleEventAsync(this, args);
     }
 

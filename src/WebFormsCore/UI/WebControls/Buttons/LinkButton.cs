@@ -1,6 +1,6 @@
 namespace WebFormsCore.UI.WebControls;
 
-public partial class LinkButton : Button
+public partial class LinkButton : BaseButton<LinkButton>
 {
     public LinkButton()
         : base(HtmlTextWriterTag.A)

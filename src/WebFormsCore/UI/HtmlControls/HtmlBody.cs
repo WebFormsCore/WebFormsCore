@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,8 @@ namespace WebFormsCore.UI.HtmlControls;
 public class HtmlBody() : HtmlContainerControl("body")
 {
     protected override bool GenerateAutomaticID => false;
+
+    public string? LastViewState { get; set; }
 
     protected override void FrameworkInitialize()
     {

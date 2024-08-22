@@ -181,7 +181,7 @@ partial class {{ type.InheritsClassName }}
 {
 {{- for prop in type.Ids }}
 {{- if !prop.Designer }}
-    protected {{ prop.DisplayType }} {{ prop.Name }} = default!;
+    {{ type.FieldVisibility }} {{ prop.DisplayType }} {{ prop.Name }} = default!;
 {{- end }}
 {{- end }}
 
@@ -212,7 +212,7 @@ public partial class CompiledViews_{{ type.AssemblyName }}
     {{- for file in type.IncludeFiles }}
     [WebFormsCore.CompiledViewInclude(@"{{ file.Path }}", "{{ file.Hash }}")]
     {{- end }}
-    public class {{ type.ClassName }} : {{ type.InheritsClassName }}
+    public class {{ type.ClassName }} : {{ type.FullInheritsClassName }}
     {
         {{- for constructor in type.Constructors }}
         public {{ type.ClassName }}({{- constructor.Parameters -}})

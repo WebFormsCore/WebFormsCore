@@ -343,6 +343,11 @@ public class Parser
                     Root.VbNamespace = classNamespace;
                 }
             }
+            else
+            {
+                Root.Inherits = _compilation.GetType("WebFormsCore.UI.Page");
+                Root.Namespace = "WebFormsCore.UI";
+            }
         }
 
         if (element.DirectiveType is DirectiveType.Register &&

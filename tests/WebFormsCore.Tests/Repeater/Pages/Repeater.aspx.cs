@@ -9,7 +9,7 @@ public partial class Repeater : Page
     {
         await base.OnInitAsync(token);
 
-        items.DataSource = new List<RepeaterItem>
+        items.DataSource = new List<RepeaterDataItem>
         {
             new() { Id = 1, Text = "Item 1" },
             new() { Id = 2, Text = "Item 2" },
@@ -23,7 +23,7 @@ public partial class Repeater : Page
 
     public Task items_OnItemDataBound(object? sender, RepeaterItemEventArgs e)
     {
-        var item = (RepeaterItem)e.Item.DataItem!;
+        var item = (RepeaterDataItem)e.Item.DataItem!;
 
         if (e.Item.FindControl("litText") is Literal text)
         {

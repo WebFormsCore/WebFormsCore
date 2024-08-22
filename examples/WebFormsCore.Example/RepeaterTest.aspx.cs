@@ -42,7 +42,7 @@ public partial class RepeaterTest : Page
 		list.SetDataSource(todos);
 	}
 
-	protected Task Delete_OnClick(Button sender, EventArgs e)
+	protected Task Delete_OnClick(LinkButton sender, EventArgs e)
 	{
 		var item = sender.FindDataItem<TodoModel>();
 

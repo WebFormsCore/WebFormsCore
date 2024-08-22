@@ -12,7 +12,7 @@ using WebFormsCore;
 namespace {{ item.Namespace }}
 {
 {{- end }}
-    public partial class {{ item.Type }} : IViewStateObject
+    partial class {{ item.Type }} : IViewStateObject
     {
         private DefaultViewStateValues? _defaultViewStateValues;
 

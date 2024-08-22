@@ -145,7 +145,6 @@ public class GenerateTest
         return Verifier.Verify(driver);
     }
 
-
     [Fact]
     public Task GenerateViewState()
     {

@@ -12,14 +12,14 @@ namespace Tests
 [WebFormsCore.ViewPath(@"Example.ascx")]
 partial class ControlTest
 {
-    protected global::WebFormsCore.UI.WebControls.Literal litTest = default!;
+        protected global::WebFormsCore.UI.WebControls.Literal litTest = default!;
     protected global::WebFormsCore.UI.WebControls.Button btnIncrement = default!;
 }
 
 public partial class CompiledViews_Tests
 {
     [WebFormsCore.CompiledView(@"Example.ascx", "5D486F276D786E27DCBC39C051FA927E")]
-    public class Example_ascx : ControlTest
+    public class Example_ascx : global::Tests.ControlTest
     {
         public Example_ascx(global::Tests.IService service)
             : base(service)

@@ -10,7 +10,7 @@ public partial class PageTest
     {
         DisposableControl[] controls;
 
-        await using (var result = await RenderAsync("Pages/Page.aspx"))
+        await using (var result = await RenderAsync("Pages/Page.aspx", enableViewState: false))
         {
             controls = result.Page.EnumerateControls()
                 .OfType<DisposableControl>()
@@ -31,8 +31,31 @@ public partial class PageTest
     [Fact]
     public async Task PageWithControlAndAttributes()
     {
-        await using var result = await RenderAsync("Pages/DivAttributes.aspx");
+        await using var result = await RenderAsync("Pages/DivAttributes.aspx", enableViewState: false);
 
         await Verify(result.Html);
+    }
+
+    [Fact]
+    public async Task PageWithClickEvent()
+    {
+        await using var result = await RenderAsync<ClickTest>();
+
+        Assert.Empty(result.Page.lblResult.Text);
+
+        await result.PostbackAsync(result.Page.btnSetResult);
+
+        Assert.Equal("Success", result.GetElement(result.Page.lblResult).TextContent);
+    }
+
+    [Fact]
+    public async Task PageLargeViewState()
+    {
+        await using var result = await RenderAsync<LargeViewStateTest>();
+
+        Assert.Equal(100, result.Document.QuerySelectorAll("[data-id]").Length);
+        await result.PostbackAsync("[data-id='10'] .btn");
+
+        Assert.Equal("10", result.Page.SelectedId);
     }
 }

@@ -13,6 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="AngleSharp" Version="1.1.2" />
         <PackageReference Include="Verify.XUnit" Version="25.3.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
         <PackageReference Include="NSubstitute" Version="5.1.0" />
@@ -46,6 +47,14 @@
         </AdditionalFiles>
 
         <AdditionalFiles Update="Repeater\Pages\Repeater.aspx">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
+        <AdditionalFiles Update="Pages\ClickTest.aspx">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
+        <AdditionalFiles Update="Pages\LargeViewStateTest.aspx">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>
     </ItemGroup>

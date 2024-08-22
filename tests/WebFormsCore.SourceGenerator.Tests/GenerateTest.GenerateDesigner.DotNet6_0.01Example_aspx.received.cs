@@ -12,7 +12,7 @@ namespace Tests
 [WebFormsCore.ViewPath(@"Example.aspx")]
 partial class PageTest
 {
-    protected global::WebFormsCore.UI.WebControls.TextBox tbUsername = default!;
+        protected global::WebFormsCore.UI.WebControls.TextBox tbUsername = default!;
     protected global::WebFormsCore.UI.WebControls.TextBox tbPassword = default!;
     protected global::WebFormsCore.UI.WebControls.Button btnLogin = default!;
 }
@@ -20,7 +20,7 @@ partial class PageTest
 public partial class CompiledViews_Tests
 {
     [WebFormsCore.CompiledView(@"Example.aspx", "54923F66579973C927C298D45C4619DF")]
-    public class Example_aspx : PageTest
+    public class Example_aspx : global::Tests.PageTest
     {
         public Example_aspx()
             : base()

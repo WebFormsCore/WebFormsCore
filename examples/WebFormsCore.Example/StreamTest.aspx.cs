@@ -39,7 +39,7 @@ public partial class StreamTest : Page, IPostBackLoadHandler
 		await Controls.AddAsync(panel);
 	}
 
-	protected async Task btnStartStream_OnClick(Button sender, EventArgs e)
+	protected async Task btnStartStream_OnClick(LinkButton sender, EventArgs e)
 	{
 		await AddClockAsync();
 	}

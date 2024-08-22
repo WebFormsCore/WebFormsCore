@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +22,8 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
     public bool UpdatePage { get; set; } = true;
 
     private bool IsDiv => Page.IsExternal;
+
+    public string? LastViewState { get; set; }
 
     public string? Target
     {
@@ -116,5 +119,6 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
 
         UpdatePage = true;
         Submit = null;
+        LastViewState = null;
     }
 }

@@ -36,8 +36,8 @@
 
     <!-- NuGet references -->
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true'">
-        <PackageReference Include="WebFormsCore" Version="0.0.1-alpha.54" />
-        <PackageReference Include="WebFormsCore.SourceGenerator" Version="0.0.1-alpha.54" OutputItemType="Analyzer" />
+        <PackageReference Include="WebFormsCore" Version="0.0.1-alpha.55" />
+        <PackageReference Include="WebFormsCore.SourceGenerator" Version="0.0.1-alpha.55" OutputItemType="Analyzer" />
     </ItemGroup>
 
     <!-- Control Compiler -->
@@ -52,6 +52,6 @@
     </ItemGroup>
 
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true' and $(WebFormsCoreUseCompiler) == 'true'">
-        <PackageReference Include="WebFormsCore.Compiler" Version="0.0.1-alpha.54" />
+        <PackageReference Include="WebFormsCore.Compiler" Version="0.0.1-alpha.55" />
     </ItemGroup>
 </Project>

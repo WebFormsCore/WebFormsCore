@@ -1,6 +1,6 @@
 namespace WebFormsCore.Tests.Pages;
 
-public class RepeaterItem
+public class RepeaterDataItem
 {
     public int Id { get; set; }
 

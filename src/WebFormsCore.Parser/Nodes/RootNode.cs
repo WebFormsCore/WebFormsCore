@@ -19,6 +19,7 @@ public record IncludeFile(string Path, string Hash);
 
 public class RootNode : ContainerNode
 {
+    private string? _fieldVisibility;
     private IReadOnlyList<Constructor>? _constructors;
     private INamedTypeSymbol? _inherits;
     private string? _path;
@@ -37,6 +38,17 @@ public class RootNode : ContainerNode
             ? $"{ns}.CompiledViews_{AssemblyName}+{ClassName}"
             : $"CompiledViews_{AssemblyName}+{inherits}";
     }
+
+    public string FieldVisibility => _fieldVisibility ??= Inherits?.GetAttributes()
+            .Concat(Inherits.ContainingAssembly.GetAttributes())
+            .FirstOrDefault(a => a.AttributeClass?.Name == "DesignerOptionsAttribute")
+            ?.NamedArguments.FirstOrDefault(i => i.Key == "Visibility").Value.Value switch
+        {
+            0 => "protected",
+            1 => "public",
+            2 => "internal",
+            _ => "protected"
+        };
 
     public List<DirectiveNode> Directives { get; set; } = new();
 
@@ -91,7 +103,9 @@ public class RootNode : ContainerNode
 
     public bool AddFields { get; set; }
 
-    public string? InheritsClassName => Inherits?.Name ?? (
+    public string? InheritsClassName => Inherits?.Name;
+
+    public string FullInheritsClassName => Inherits?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) ?? (
         Directives.Any(d => d.DirectiveType == DirectiveType.Page)
             ? "global::WebFormsCore.UI.Page"
             : "global::WebFormsCore.UI.Control"
