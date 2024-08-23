@@ -154,7 +154,12 @@ public static class ControlExtensions
 
                 if (index < 0)
                 {
-                    return true;
+                    if (_filter == null || _filter(currentControl))
+                    {
+                        return true;
+                    }
+
+                    continue;
                 }
 
                 var nextControl = currentControl.Controls[index];
