@@ -1,4 +1,8 @@
-﻿using WebFormsCore.Tests.Pages;
+﻿using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using WebDriverManager;
+using WebDriverManager.DriverConfigs.Impl;
+using WebFormsCore.Tests.Pages;
 using WebFormsCore.UI;
 
 namespace WebFormsCore.Tests;
@@ -45,7 +49,7 @@ public partial class PageTest
 
         await result.PostbackAsync(result.Page.btnSetResult);
 
-        Assert.Equal("Success", result.GetElement(result.Page.lblResult).TextContent);
+        Assert.Equal("Success", result.GetElement(result.Page.lblResult).Text);
     }
 
     [Fact]
@@ -57,5 +61,15 @@ public partial class PageTest
         await result.PostbackAsync("[data-id='10'] .btn");
 
         Assert.Equal("10", result.Page.SelectedId);
+    }
+
+    [Fact]
+    public async Task BrowserTest()
+    {
+        await using var ctx = await SeleniumTest.StartFirefoxAsync<ClickTest, AssemblyControlTypeProvider>();
+
+        await ctx.FindElement(ctx.Control.btnSetResult).ClickAsync();
+
+        Assert.Equal("Success", ctx.FindElement(ctx.Control.lblResult).Text);
     }
 }

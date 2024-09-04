@@ -2,6 +2,7 @@ export interface WebFormsCore {
     _?: [number, string, any][];
     hiddenClass: string;
 
+    readonly hasPendingPostbacks: boolean;
     postBackChange: (target: Element, timeOut?: number, eventArgument?: string) => void;
     postBack: (target: Element, eventArgument?: string) => Promise<void>;
 

@@ -5,14 +5,14 @@ namespace WebFormsCore.Tests.Pages;
 
 public partial class ClickTest : Page
 {
-    protected override ValueTask OnLoadAsync(CancellationToken token)
+    protected override async ValueTask OnLoadAsync(CancellationToken token)
     {
         if (!IsPostBack)
         {
             btnSetResult.CommandArgument = "Success";
         }
 
-        return base.OnLoadAsync(token);
+        await base.OnLoadAsync(token);
     }
 
     protected Task btnSetResult_OnClick(Button sender, EventArgs e)

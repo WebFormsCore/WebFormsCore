@@ -907,6 +907,7 @@
         }
     });
     const postbackMutex = new Mutex();
+    let pendingPostbacks = 0;
     class ViewStateContainer {
         constructor(element, formData) {
             this.element = element;
@@ -1073,6 +1074,7 @@
         if (!wfc.validate(element)) {
             return;
         }
+        pendingPostbacks++;
         const release = await postbackMutex.acquire();
         try {
             const cancelled = !target.dispatchEvent(new CustomEvent("wfc:beforeSubmit", {
@@ -1156,6 +1158,7 @@
             }
         }
         finally {
+            pendingPostbacks--;
             release();
             target.dispatchEvent(new CustomEvent("wfc:afterSubmit", { bubbles: true, detail: { target, container, form, eventTarget } }));
         }
@@ -1342,9 +1345,12 @@
         const eventTarget = target.getAttribute('name');
         const key = ((_b = container === null || container === void 0 ? void 0 : container.id) !== null && _b !== void 0 ? _b : '') + eventTarget + eventArgument;
         if (timeouts[key]) {
+            pendingPostbacks--;
             clearTimeout(timeouts[key]);
         }
+        pendingPostbacks++;
         timeouts[key] = setTimeout(async () => {
+            pendingPostbacks--;
             delete timeouts[key];
             await postBackElement(target, eventTarget, eventArgument);
         }, timeOut);
@@ -1369,6 +1375,9 @@
         hiddenClass: '',
         postBackChange,
         postBack,
+        get hasPendingPostbacks() {
+            return pendingPostbacks > 0;
+        },
         init: function (arg) {
             arg();
         },

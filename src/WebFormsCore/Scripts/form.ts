@@ -17,6 +17,8 @@ const morphdom = morphdomFactory((fromEl, toEl) => {
 
 const postbackMutex = new Mutex();
 
+let pendingPostbacks = 0;
+
 class ViewStateContainer {
 
     constructor(private element: HTMLElement | undefined, private formData: FormData) {
@@ -218,6 +220,7 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
         return;
     }
 
+    pendingPostbacks++;
     const release = await postbackMutex.acquire();
 
     try {
@@ -308,6 +311,7 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
             }
         }
     } finally {
+        pendingPostbacks--;
         release();
         target.dispatchEvent(new CustomEvent("wfc:afterSubmit", {bubbles: true, detail: {target, container, form, eventTarget}}));
     }
@@ -542,10 +546,14 @@ function postBackChange(target: Element, timeOut = 1000, eventArgument: string =
     const key = (container?.id ?? '') + eventTarget + eventArgument;
 
     if (timeouts[key]) {
+        pendingPostbacks--;
         clearTimeout(timeouts[key]);
     }
 
+    pendingPostbacks++;
+
     timeouts[key] = setTimeout(async () => {
+        pendingPostbacks--;
         delete timeouts[key];
         await postBackElement(target, eventTarget, eventArgument);
     }, timeOut);
@@ -575,6 +583,10 @@ const wfc: WebFormsCore = {
     hiddenClass: '',
     postBackChange,
     postBack,
+
+    get hasPendingPostbacks() {
+        return pendingPostbacks > 0;
+    },
 
     init: function (arg) {
         arg();
