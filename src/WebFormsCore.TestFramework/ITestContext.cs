@@ -4,7 +4,13 @@ namespace WebFormsCore;
 
 public interface ITestContext
 {
-    Task ReloadAsync();
+    ValueTask<string> GetHtmlAsync();
 
-    IElement GetElementById(string id);
+    ValueTask ReloadAsync();
+
+    IElement? GetElementById(string id);
+
+    IElement? QuerySelector(string selector);
+
+    IElement[] QuerySelectorAll(string selector);
 }

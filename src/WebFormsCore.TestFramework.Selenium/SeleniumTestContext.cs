@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using OpenQA.Selenium;
 using WebFormsCore.UI;
@@ -13,14 +14,45 @@ internal class SeleniumTestContext<T>(IHost host, IWebDriver driver) : WebServer
         await driver.Navigate().GoToUrlAsync(url);
     }
 
-    public override async Task ReloadAsync()
+    public override ValueTask<string> GetHtmlAsync()
+    {
+        return new ValueTask<string>(driver.PageSource);
+    }
+
+    public override async ValueTask ReloadAsync()
     {
         await driver.Navigate().RefreshAsync();
     }
 
-    public override IElement GetElementById(string id)
+    public override IElement? GetElementById(string id)
     {
-        return new SeleniumElement(driver.FindElement(By.Id(id)));
+        try
+        {
+            return new SeleniumElement(driver.FindElement(By.Id(id)));
+        }
+        catch (NoSuchElementException)
+        {
+            return null;
+        }
+    }
+
+    public override IElement? QuerySelector(string selector)
+    {
+        try
+        {
+            return new SeleniumElement(driver.FindElement(By.CssSelector(selector)));
+        }
+        catch (NoSuchElementException)
+        {
+            return null;
+        }
+    }
+
+    public override IElement[] QuerySelectorAll(string selector)
+    {
+        return driver.FindElements(By.CssSelector(selector))
+            .Select(element => (IElement) new SeleniumElement(element))
+            .ToArray();
     }
 
     protected override ValueTask DisposeCoreAsync()

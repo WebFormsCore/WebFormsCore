@@ -14,9 +14,9 @@ public partial class PageTest
     {
         DisposableControl[] controls;
 
-        await using (var result = await RenderAsync("Pages/Page.aspx", enableViewState: false))
+        await using (var result = await RenderAsync<AssemblyControlTypeProvider>("Pages/Page.aspx", enableViewState: false))
         {
-            controls = result.Page.EnumerateControls()
+            controls = result.Control.EnumerateControls()
                 .OfType<DisposableControl>()
                 .ToArray();
 
@@ -25,7 +25,7 @@ public partial class PageTest
             Assert.False(controls[0].IsDisposed, "Control in Page should not be disposed");
             Assert.False(controls[1].IsDisposed, "Dynamic control should not be disposed");
 
-            await Verify(result.Html);
+            await Verify(result.GetHtmlAsync());
         }
 
         Assert.True(controls[0].IsDisposed, "Control in Page should be disposed");
@@ -35,41 +35,41 @@ public partial class PageTest
     [Fact]
     public async Task PageWithControlAndAttributes()
     {
-        await using var result = await RenderAsync("Pages/DivAttributes.aspx", enableViewState: false);
+        await using var result = await RenderAsync<AssemblyControlTypeProvider>("Pages/DivAttributes.aspx", enableViewState: false);
 
-        await Verify(result.Html);
+        await Verify(await result.GetHtmlAsync());
     }
 
     [Fact]
     public async Task PageWithClickEvent()
     {
-        await using var result = await RenderAsync<ClickTest>();
+        await using var result = await RenderAsync<ClickTest, AssemblyControlTypeProvider>();
 
-        Assert.Empty(result.Page.lblResult.Text);
+        Assert.Empty(result.Control.lblResult.Text);
 
-        await result.PostbackAsync(result.Page.btnSetResult);
+        await result.GetRequiredElement(result.Control.btnSetResult).ClickAsync();
 
-        Assert.Equal("Success", result.GetElement(result.Page.lblResult).Text);
+        Assert.Equal("Success", result.GetRequiredElement(result.Control.lblResult).Text);
     }
 
     [Fact]
     public async Task PageLargeViewState()
     {
-        await using var result = await RenderAsync<LargeViewStateTest>();
+        await using var result = await RenderAsync<LargeViewStateTest, AssemblyControlTypeProvider>();
 
-        Assert.Equal(100, result.Document.QuerySelectorAll("[data-id]").Length);
-        await result.PostbackAsync("[data-id='10'] .btn");
+        Assert.Equal(100, result.QuerySelectorAll("[data-id]").Length);
+        await result.QuerySelectorRequired("[data-id='10'] .btn").ClickAsync();
 
-        Assert.Equal("10", result.Page.SelectedId);
+        Assert.Equal("10", result.Control.SelectedId);
     }
 
     [Fact]
     public async Task BrowserTest()
     {
-        await using var ctx = await SeleniumTest.StartFirefoxAsync<ClickTest, AssemblyControlTypeProvider>();
+        await using var ctx = await SeleniumTest.StartChromeAsync<ClickTest, AssemblyControlTypeProvider>();
 
-        await ctx.FindElement(ctx.Control.btnSetResult).ClickAsync();
+        await ctx.GetRequiredElement(ctx.Control.btnSetResult).ClickAsync();
 
-        Assert.Equal("Success", ctx.FindElement(ctx.Control.lblResult).Text);
+        Assert.Equal("Success", ctx.GetRequiredElement(ctx.Control.lblResult).Text);
     }
 }

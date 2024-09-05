@@ -54,7 +54,13 @@ public abstract class WebServerContext<T>(IHost host) : IWebServerContext<T>
 
     public abstract Task GoToUrlAsync(string url);
 
-    public abstract Task ReloadAsync();
+    public abstract ValueTask<string> GetHtmlAsync();
 
-    public abstract IElement GetElementById(string id);
+    public abstract ValueTask ReloadAsync();
+
+    public abstract IElement? GetElementById(string id);
+
+    public abstract IElement? QuerySelector(string selector);
+
+    public abstract IElement[] QuerySelectorAll(string selector);
 }

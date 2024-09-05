@@ -5,7 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
-        <LangVersion>10</LangVersion>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
     
     <ItemGroup>
@@ -13,7 +13,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="AngleSharp" Version="1.1.2" />
         <PackageReference Include="Verify.XUnit" Version="25.3.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
         <PackageReference Include="NSubstitute" Version="5.1.0" />
@@ -61,6 +60,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\WebFormsCore.Compiler\WebFormsCore.Compiler.csproj" />
+        <ProjectReference Include="..\..\src\WebFormsCore.TestFramework.AngleSharp\WebFormsCore.TestFramework.AngleSharp.csproj" />
         <ProjectReference Include="..\..\src\WebFormsCore.TestFramework.Selenium\WebFormsCore.TestFramework.Selenium.csproj" />
         <ProjectReference Include="..\..\src\WebFormsCore\WebFormsCore.csproj" />
         <ProjectReference Include="..\..\src\WebFormsCore.SourceGenerator\WebFormsCore.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

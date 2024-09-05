@@ -1,18 +1,25 @@
-﻿global using static WebFormsCore.Tests.TestUtils;
-
-using System.Text;
+﻿using System.Text;
 using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
-using NSubstitute;
 using WebFormsCore.UI;
 
 namespace WebFormsCore.Tests;
 
-public sealed class TestResult<T> : IAsyncDisposable
+
+public interface IAngleSharpTestContext : ITestContext
+{
+    ValueTask PostbackAsync(string selector, string? argument = null);
+
+    ValueTask PostbackAsync(AngleSharp.Dom.IElement element, string? argument = null);
+
+    ValueTask PostbackAsync(Control? control = null, string? argument = null);
+}
+
+public sealed class AngleSharpTestContext<T> : ITestContext<T>, IAngleSharpTestContext
     where T : Page
 {
     private readonly ServiceProvider _serviceProvider;
@@ -21,7 +28,7 @@ public sealed class TestResult<T> : IAsyncDisposable
     private IDocument? _document;
     private readonly IBrowsingContext _browsingContext;
 
-    public TestResult(ServiceProvider serviceProvider, Func<IPageManager, HttpContext, Task<T>> create)
+    public AngleSharpTestContext(ServiceProvider serviceProvider, Func<IPageManager, HttpContext, Task<T>> create)
     {
         _serviceProvider = serviceProvider;
         _create = create;
@@ -30,7 +37,7 @@ public sealed class TestResult<T> : IAsyncDisposable
         _browsingContext = BrowsingContext.New(config);
     }
 
-    public T Page { get; private set; } = null!;
+    public T Control { get; private set; } = null!;
 
     public string Html { get; private set; } = null!;
 
@@ -38,41 +45,16 @@ public sealed class TestResult<T> : IAsyncDisposable
 
     public HttpResponse Response { get; private set; } = null!;
 
-    public Task GetAsync()
+    public ValueTask GetAsync()
     {
         return DoRequestAsync(request =>
         {
-            request.Method.Returns("GET");
+            request.Method = "GET";
             return default;
         });
     }
 
-    public IElement GetElement(Control control)
-    {
-        return GetElement<IElement>(control);
-    }
-
-    public TElement GetElement<TElement>(Control control)
-        where TElement : IElement
-    {
-        var id = control.ClientID;
-
-        if (string.IsNullOrEmpty(id))
-        {
-            throw new ArgumentException("Control must have a ClientID", nameof(control));
-        }
-
-        var element = Document.GetElementById(id);
-
-        if (element == null)
-        {
-            throw new ArgumentException($"Element with id '{id}' not found", nameof(control));
-        }
-
-        return (TElement) element;
-    }
-
-    public Task PostbackAsync(string selector, string? argument = null)
+    public ValueTask PostbackAsync(string selector, string? argument = null)
     {
         var element = Document.QuerySelector(selector);
 
@@ -81,10 +63,15 @@ public sealed class TestResult<T> : IAsyncDisposable
             throw new InvalidOperationException("Element not found");
         }
 
+        return PostbackAsync(element, argument);
+    }
+
+    public ValueTask PostbackAsync(AngleSharp.Dom.IElement element, string? argument = null)
+    {
         var id = element.Id;
         var name = element.GetAttribute("name");
 
-        foreach (var control in Page.EnumerateControls())
+        foreach (var control in Control.EnumerateControls())
         {
             if (id != null && control.ClientID == id)
             {
@@ -100,7 +87,7 @@ public sealed class TestResult<T> : IAsyncDisposable
         throw new ArgumentException($"Control with id '{id}' or name '{name}' not found", nameof(element));
     }
 
-    public Task PostbackAsync(Control? control = null, string? argument = null)
+    public ValueTask PostbackAsync(Control? control = null, string? argument = null)
     {
         return DoRequestAsync(request =>
         {
@@ -149,16 +136,31 @@ public sealed class TestResult<T> : IAsyncDisposable
                 }
             }
 
-            request.Method.Returns("POST");
-            request.Form.Returns(new FormCollection(form));
+            request.Method = "POST";
+            request.Form = new FormCollection(form);
             return default;
         });
     }
 
-    private async Task DoRequestAsync(Func<HttpRequest, ValueTask>? prepareRequest = null)
+    private async ValueTask DoRequestAsync(Func<HttpRequest, ValueTask>? prepareRequest = null)
     {
-        var coreRequest = Substitute.For<HttpRequest>();
-        if (prepareRequest != null) await prepareRequest.Invoke(coreRequest);
+
+        var context = new DefaultHttpContext
+        {
+            Request =
+            {
+                Method = "GET",
+                Protocol = "http",
+                IsHttps = false,
+                Path = "/",
+                Headers =
+                {
+                    Host = "localhost"
+                }
+            }
+        };
+
+        if (prepareRequest != null) await prepareRequest.Invoke(context.Request);
 
         _document?.Dispose();
 
@@ -170,23 +172,16 @@ public sealed class TestResult<T> : IAsyncDisposable
         await using var stream = new MemoryStream();
         var scope = _serviceProvider.CreateAsyncScope();
 
-        var coreResponse = Substitute.For<HttpResponse>();
-        var responseHeaders = new HeaderDictionary();
-        coreResponse.Headers.Returns(responseHeaders);
-        coreResponse.Body.Returns(stream);
-
-        var coreContext = Substitute.For<HttpContext>();
-        coreContext.Request.Returns(coreRequest);
-        coreContext.Response.Returns(coreResponse);
-        coreContext.RequestServices.Returns(scope.ServiceProvider);
+        context.RequestServices = scope.ServiceProvider;
+        context.Response.Body = stream;
 
         var pageManager = scope.ServiceProvider.GetRequiredService<IPageManager>();
-        Page = await _create(pageManager, coreContext);
+        Control = await _create(pageManager, context);
 
         stream.Position = 0;
 
         Html = Encoding.UTF8.GetString(stream.ToArray());
-        Response = coreResponse;
+        Response = context.Response;
         _document = await _browsingContext.OpenAsync(req => req.Content(Html));
 
         _lastScope = scope;
@@ -204,65 +199,33 @@ public sealed class TestResult<T> : IAsyncDisposable
 
         await _serviceProvider.DisposeAsync();
     }
-}
 
-public class TestEnvironment : IWebFormsEnvironment
-{
-    public string? ContentRootPath => AppContext.BaseDirectory;
-
-    public bool EnableControlWatcher => false;
-
-    public bool CompileInBackground => false;
-}
-
-internal static class TestUtils
-{
-    public static Task<TestResult<T>> RenderAsync<T>(bool enableViewState = true)
-        where T : Page
+    public ValueTask<string> GetHtmlAsync()
     {
-        return RenderAsync(async (pageManager, context) => (T) await pageManager.RenderPageAsync(context, typeof(T)), enableViewState);
+        return new ValueTask<string>(Html);
     }
 
-    public static Task<TestResult<Page>> RenderAsync(string path, bool enableViewState = true)
+    public ValueTask ReloadAsync()
     {
-        return RenderAsync(async (pageManager, context) => await pageManager.RenderPageAsync(context, path), enableViewState);
+        return GetAsync();
     }
 
-    private static async Task<TestResult<T>> RenderAsync<T>(
-        Func<IPageManager, HttpContext, Task<T>> create,
-        bool enableViewState)
-        where T : Page
+    public IElement? GetElementById(string id)
     {
-        var services = new ServiceCollection();
+        var element = Document.GetElementById(id);
+        return element == null ? null : new AngleSharpElement(this, element);
+    }
 
-        services.AddWebFormsCore(builder =>
-        {
-            builder.Services.AddSingleton<IControlTypeProvider, AssemblyControlTypeProvider>();
-        });
+    public IElement? QuerySelector(string selector)
+    {
+        var result = Document.QuerySelector(selector);
+        return result == null ? null : new AngleSharpElement(this, result);
+    }
 
-        services.AddLogging();
-        services.AddSingleton<IWebFormsEnvironment, TestEnvironment>();
-
-        services.AddOptions<ViewStateOptions>()
-            .Configure(options =>
-            {
-                options.Enabled = enableViewState;
-            });
-
-        services.AddOptions<WebFormsCoreOptions>()
-            .Configure(options =>
-            {
-                options.AddWebFormsCoreScript = false;
-                options.AddWebFormsCoreHeadScript = false;
-                options.EnableWebFormsPolyfill = false;
-            });
-
-        var serviceProvider = services.BuildServiceProvider();
-
-        var result = new TestResult<T>(serviceProvider, create);
-
-        await result.GetAsync();
-
-        return result;
+    public IElement[] QuerySelectorAll(string selector)
+    {
+        return Document.QuerySelectorAll(selector)
+            .Select(element => (IElement) new AngleSharpElement(this, element))
+            .ToArray();
     }
 }
