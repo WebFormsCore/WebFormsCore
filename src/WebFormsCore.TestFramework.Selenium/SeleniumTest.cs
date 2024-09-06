@@ -12,6 +12,9 @@ namespace WebFormsCore;
 
 public static class SeleniumTest
 {
+    private static readonly Lazy<string> ChromePath = new(() => new DriverManager().SetUpDriver(new ChromeConfig()));
+    private static readonly Lazy<string> FirefoxPath = new(() => new DriverManager().SetUpDriver(new FirefoxConfig()));
+
     public static async Task<ITestContext<TControl>> StartChromeAsync<TControl, TTypeProvider>(
         Action<IServiceCollection>? configure = null,
         bool enableViewState = true,
@@ -24,12 +27,11 @@ public static class SeleniumTest
 
         IWebDriver DriverFactory()
         {
-            var path = new DriverManager().SetUpDriver(new ChromeConfig());
             var chromeOptions = new ChromeOptions();
             if (headless) chromeOptions.AddArgument("headless");
             chromeOptions.AddArguments("disable-search-engine-choice-screen");
 
-            return new ChromeDriver(path, chromeOptions);
+            return new ChromeDriver(ChromePath.Value, chromeOptions);
         }
     }
 
@@ -45,11 +47,10 @@ public static class SeleniumTest
 
         IWebDriver DriverFactory()
         {
-            var path = new DriverManager().SetUpDriver(new FirefoxConfig());
             var firefoxOptions = new FirefoxOptions();
             if (headless) firefoxOptions.AddArgument("--headless");
 
-            return new FirefoxDriver(path, firefoxOptions);
+            return new FirefoxDriver(FirefoxPath.Value, firefoxOptions);
         }
     }
 
