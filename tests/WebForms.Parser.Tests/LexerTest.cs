@@ -3,7 +3,6 @@ using WebFormsCore.Models;
 
 namespace WebFormsCore.Parser.Tests;
 
-[UsesVerify]
 public class LexerTest
 {
     [Theory]

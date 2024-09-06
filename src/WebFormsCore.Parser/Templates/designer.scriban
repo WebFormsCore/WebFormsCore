@@ -294,4 +294,3 @@ public partial class CompiledViews_{{ type.AssemblyName }}
 }
 {{- end }}
 {{- end }}
-{{- end }}

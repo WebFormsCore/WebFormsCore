@@ -10,16 +10,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\WebFormsCore\WebFormsCore.csproj"/>
+        <ProjectReference Include="..\WebFormsCore\WebFormsCore.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\WebFormsCore.SourceGenerator\WebFormsCore.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+        <ProjectReference Include="..\WebFormsCore.SourceGenerator\WebFormsCore.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="System.Text.Json" Version="8.0.4"/>
-        <PackageReference Include="PolySharp" Version="1.13.2">
+        <PackageReference Include="System.Text.Json" Version="8.0.4" />
+        <PackageReference Include="PolySharp" Version="1.14.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>

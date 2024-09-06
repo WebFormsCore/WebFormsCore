@@ -14,8 +14,8 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Selenium.Support" Version="4.22.0" />
-        <PackageReference Include="Selenium.WebDriver" Version="4.22.0"/>
+        <PackageReference Include="Selenium.Support" Version="4.24.0" />
+        <PackageReference Include="Selenium.WebDriver" Version="4.24.0"/>
         <PackageReference Include="WebDriverManager" Version="2.17.4" />
     </ItemGroup>
 

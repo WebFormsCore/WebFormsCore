@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,14 +13,11 @@ using WebFormsCore.UI;
 
 namespace WebFormsCore.SourceGenerator.Tests;
 
-[UsesVerify]
 public class GenerateTest
 {
     [Fact]
     public Task GenerateDesigner()
     {
-        VerifySourceGenerators.Enable();
-
         var generator = new CSharpDesignGenerator();
         GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
 
@@ -148,8 +147,6 @@ public class GenerateTest
     [Fact]
     public Task GenerateViewState()
     {
-        VerifySourceGenerators.Enable();
-
         var generator = new ViewStateGenerator();
         GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
 
@@ -188,8 +185,6 @@ public class GenerateTest
     [Fact]
     public Task GenerateDesignerVisualBasic()
     {
-        VerifySourceGenerators.Enable();
-
         var generator = new VisualBasicDesignGenerator();
         
         GeneratorDriver driver = VisualBasicGeneratorDriver.Create(
