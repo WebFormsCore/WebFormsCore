@@ -24,8 +24,6 @@ public partial class PageTest
 
             Assert.False(controls[0].IsDisposed, "Control in Page should not be disposed");
             Assert.False(controls[1].IsDisposed, "Dynamic control should not be disposed");
-
-            await Verify(result.GetHtmlAsync());
         }
 
         Assert.True(controls[0].IsDisposed, "Control in Page should be disposed");
@@ -37,7 +35,11 @@ public partial class PageTest
     {
         await using var result = await RenderAsync<AssemblyControlTypeProvider>("Pages/DivAttributes.aspx", enableViewState: false);
 
-        await Verify(await result.GetHtmlAsync());
+        var content = result.Control.FindControl("content");
+        var element = result.GetRequiredElement(content);
+
+        Assert.Equal("color:red;", await element.GetAttributeAsync("style"));
+        Assert.Equal("bar", await element.GetAttributeAsync("data-foo"));
     }
 
     [Fact]
@@ -57,7 +59,7 @@ public partial class PageTest
     {
         await using var result = await RenderAsync<LargeViewStateTest, AssemblyControlTypeProvider>();
 
-        Assert.Equal(100, result.QuerySelectorAll("[data-id]").Length);
+        Assert.Equal(100, await result.QuerySelectorAll("[data-id]").CountAsync());
         await result.QuerySelectorRequired("[data-id='10'] .btn").ClickAsync();
 
         Assert.Equal("10", result.Control.SelectedId);

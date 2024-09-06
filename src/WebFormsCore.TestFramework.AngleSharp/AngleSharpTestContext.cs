@@ -5,6 +5,7 @@ using AngleSharp.Html.Dom;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
+using WebFormsCore.Internal;
 using WebFormsCore.UI;
 
 namespace WebFormsCore.Tests;
@@ -222,10 +223,10 @@ public sealed class AngleSharpTestContext<T> : ITestContext<T>, IAngleSharpTestC
         return result == null ? null : new AngleSharpElement(this, result);
     }
 
-    public IElement[] QuerySelectorAll(string selector)
+    public IAsyncEnumerable<IElement> QuerySelectorAll(string selector)
     {
         return Document.QuerySelectorAll(selector)
-            .Select(element => (IElement) new AngleSharpElement(this, element))
-            .ToArray();
+            .Select(IElement (element) => new AngleSharpElement(this, element))
+            .AsAsyncEnumerable();
     }
 }

@@ -17,4 +17,9 @@ internal class SeleniumElement(IWebElement element) : IElement
         element.SendKeys(text);
         return ValueTask.CompletedTask;
     }
+
+    public ValueTask<string> GetAttributeAsync(string dataFoo)
+    {
+        return ValueTask.FromResult(element.GetAttribute(dataFoo));
+    }
 }

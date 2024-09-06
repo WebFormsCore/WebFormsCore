@@ -1,4 +1,6 @@
-﻿namespace WebFormsCore.Tests;
+﻿using AngleSharp.Css.Dom;
+
+namespace WebFormsCore.Tests;
 
 internal class AngleSharpElement(IAngleSharpTestContext result, AngleSharp.Dom.IElement element) : IElement
 {
@@ -21,5 +23,10 @@ internal class AngleSharpElement(IAngleSharpTestContext result, AngleSharp.Dom.I
         }
 
         return result.PostbackAsync(element);
+    }
+
+    public ValueTask<string> GetAttributeAsync(string dataFoo)
+    {
+        return ValueTask.FromResult(element.GetAttribute(dataFoo) ?? "");
     }
 }

@@ -5,14 +5,16 @@ namespace WebFormsCore;
 
 public static class TestContextExtensions
 {
-    public static IElement? GetElement(this ITestContext context, Control control)
+    public static IElement? GetElement(this ITestContext context, Control? control)
     {
+        ArgumentNullException.ThrowIfNull(control, nameof(control));
+
         var id = control.ClientID ?? throw new InvalidOperationException("ClientID is not available");
 
         return context.GetElementById(id);
     }
 
-    public static IElement GetRequiredElement(this ITestContext context, Control control)
+    public static IElement GetRequiredElement(this ITestContext context, Control? control)
     {
         return context.GetElement(control) ?? throw new InvalidOperationException("Element not found");
     }

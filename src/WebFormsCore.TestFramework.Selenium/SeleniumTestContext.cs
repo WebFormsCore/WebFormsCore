@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using OpenQA.Selenium;
+using WebFormsCore.Internal;
 using WebFormsCore.UI;
 
 namespace WebFormsCore;
@@ -48,11 +50,11 @@ internal class SeleniumTestContext<T>(IHost host, IWebDriver driver) : WebServer
         }
     }
 
-    public override IElement[] QuerySelectorAll(string selector)
+    public override IAsyncEnumerable<IElement> QuerySelectorAll(string selector)
     {
         return driver.FindElements(By.CssSelector(selector))
-            .Select(element => (IElement) new SeleniumElement(element))
-            .ToArray();
+            .Select(IElement (element) => new SeleniumElement(element))
+            .AsAsyncEnumerable();
     }
 
     protected override ValueTask DisposeCoreAsync()

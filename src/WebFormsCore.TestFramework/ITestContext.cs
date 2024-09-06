@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace WebFormsCore;
 
@@ -12,5 +13,5 @@ public interface ITestContext
 
     IElement? QuerySelector(string selector);
 
-    IElement[] QuerySelectorAll(string selector);
+    IAsyncEnumerable<IElement> QuerySelectorAll(string selector);
 }

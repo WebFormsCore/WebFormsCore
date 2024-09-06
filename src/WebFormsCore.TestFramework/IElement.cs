@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace WebFormsCore;
 
@@ -9,4 +10,6 @@ public interface IElement
     ValueTask ClickAsync();
 
     ValueTask TypeAsync(string text);
+
+    ValueTask<string> GetAttributeAsync(string dataFoo);
 }

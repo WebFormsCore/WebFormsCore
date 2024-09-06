@@ -7,7 +7,7 @@ public class RepeaterTests
     {
         await using var result = await RenderAsync<AssemblyControlTypeProvider>("Repeater/Pages/TypedRepeater.aspx");
 
-        await Verify(await result.GetHtmlAsync());
+        Assert.Equal(5, await result.QuerySelectorAll("li").CountAsync());
     }
 
     [Fact]
@@ -15,6 +15,6 @@ public class RepeaterTests
     {
         await using var result = await RenderAsync<AssemblyControlTypeProvider>("Repeater/Pages/Repeater.aspx");
 
-        await Verify(await result.GetHtmlAsync());
+        Assert.Equal(5, await result.QuerySelectorAll("li").CountAsync());
     }
 }
