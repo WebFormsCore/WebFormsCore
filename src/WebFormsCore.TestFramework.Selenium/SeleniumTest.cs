@@ -27,7 +27,8 @@ public static class SeleniumTest
         {
             var chromeOptions = new ChromeOptions();
             if (headless) chromeOptions.AddArgument("headless");
-            chromeOptions.AddArguments("disable-search-engine-choice-screen");
+            chromeOptions.AddArgument("disable-search-engine-choice-screen");
+            chromeOptions.AddArgument("no-sandbox");
 
             return new ChromeDriver(ChromePath.Value, chromeOptions);
         }
@@ -44,7 +45,13 @@ public static class SeleniumTest
         IWebDriver DriverFactory()
         {
             var firefoxOptions = new FirefoxOptions();
-            if (headless) firefoxOptions.AddArgument("--headless");
+            firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_CONTENT_SANDBOX", "1");
+            firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_GMP_SANDBOX", "1");
+            firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_NPAPI_SANDBOX", "1");
+            firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_GPU_SANDBOX", "1");
+            firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_RDD_SANDBOX", "1");
+            firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_SOCKET_PROCESS_SANDBOX", "1");
+            if (headless) firefoxOptions.AddArgument("-headless");
 
             return new FirefoxDriver(FirefoxPath.Value, firefoxOptions);
         }

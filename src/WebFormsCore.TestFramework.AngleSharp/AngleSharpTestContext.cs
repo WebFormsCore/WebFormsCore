@@ -8,14 +8,14 @@ using Microsoft.Extensions.Primitives;
 using WebFormsCore.Internal;
 using WebFormsCore.UI;
 
-namespace WebFormsCore.Tests;
+namespace WebFormsCore.TestFramework.AngleSharp;
 
 
 public interface IAngleSharpTestContext : ITestContext
 {
     ValueTask PostbackAsync(string selector, string? argument = null);
 
-    ValueTask PostbackAsync(AngleSharp.Dom.IElement element, string? argument = null);
+    ValueTask PostbackAsync(global::AngleSharp.Dom.IElement element, string? argument = null);
 
     ValueTask PostbackAsync(Control? control = null, string? argument = null);
 }
@@ -67,7 +67,7 @@ public sealed class AngleSharpTestContext<T> : ITestContext<T>, IAngleSharpTestC
         return PostbackAsync(element, argument);
     }
 
-    public ValueTask PostbackAsync(AngleSharp.Dom.IElement element, string? argument = null)
+    public ValueTask PostbackAsync(global::AngleSharp.Dom.IElement element, string? argument = null)
     {
         var id = element.Id;
         var name = element.GetAttribute("name");
@@ -119,18 +119,22 @@ public sealed class AngleSharpTestContext<T> : ITestContext<T>, IAngleSharpTestC
                     case IHtmlInputElement { Type: "submit", Name: not null } input:
                         form[input.Name] = new StringValues(input.Value);
                         break;
+
                     case IHtmlInputElement { Type: "checkbox" or "radio", Name: not null } input:
                         if (input.IsChecked)
                         {
-                            form[input.Name] = new StringValues(input.Value);
+                            form[input.Name] = new StringValues(string.IsNullOrEmpty(input.Value) ? "on" : input.Value);
                         }
                         break;
+
                     case IHtmlInputElement { Name: not null } input:
                         form[input.Name] = new StringValues(input.Value);
                         break;
+
                     case IHtmlSelectElement { Name: not null } select:
                         form[select.Name] = new StringValues(select.Value);
                         break;
+
                     case IHtmlTextAreaElement { Name: not null } textarea:
                         form[textarea.Name] = new StringValues(textarea.Value);
                         break;
