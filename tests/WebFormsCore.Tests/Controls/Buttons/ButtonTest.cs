@@ -1,13 +1,14 @@
-﻿using WebFormsCore.Tests.Controls.Buttons.Pages;
+﻿using WebFormsCore.TestFramework;
+using WebFormsCore.Tests.Controls.Buttons.Pages;
 
 namespace WebFormsCore.Tests.Controls.Buttons;
 
 public class ButtonTest
 {
-    [Fact]
-    public async Task Click()
+    [Theory, ClassData(typeof(TestTypeData))]
+    public async Task Click(TestType type)
     {
-        await using var result = await StartAsync<ClickTest>();
+        await using var result = await StartAsync<ClickTest>(type);
 
         Assert.Empty(result.Control.lblResult.Text);
 

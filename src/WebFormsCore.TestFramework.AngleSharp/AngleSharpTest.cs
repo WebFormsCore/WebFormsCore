@@ -8,19 +8,19 @@ namespace WebFormsCore.TestFramework.AngleSharp;
 
 public static class AngleSharpTest
 {
-    public static Task<ITestContext<T>> StartAsync<T>(bool enableViewState = true)
+    public static Task<ITestContext<T>> StartAngleSharpAsync<T>(bool enableViewState = true)
         where T : Page
     {
-        return StartAsync<T>(async (pageManager, context) => (T) await pageManager.RenderPageAsync(context, typeof(T)), enableViewState);
+        return StartAngleSharpAsync<T>(async (pageManager, context) => (T) await pageManager.RenderPageAsync(context, typeof(T)), enableViewState);
     }
 
-    public static Task<ITestContext<Page>> StartAsync<TTypeProvider>(string path, bool enableViewState = true)
+    public static Task<ITestContext<Page>> StartAngleSharpAsync<TTypeProvider>(string path, bool enableViewState = true)
         where TTypeProvider : class, IControlTypeProvider
     {
-        return StartAsync<Page>(async (pageManager, context) => await pageManager.RenderPageAsync(context, path), enableViewState, typeof(TTypeProvider));
+        return StartAngleSharpAsync<Page>(async (pageManager, context) => await pageManager.RenderPageAsync(context, path), enableViewState, typeof(TTypeProvider));
     }
 
-    private static async Task<ITestContext<T>> StartAsync<T>(
+    private static async Task<ITestContext<T>> StartAngleSharpAsync<T>(
         Func<IPageManager, HttpContext, Task<T>> create,
         bool enableViewState,
         Type? typeProvider = null)

@@ -404,7 +404,7 @@ public sealed class CssStyleCollection
             foreach (var entry in _table)
             {
                 await writer.WriteAsync(entry.Key);
-                await writer.WriteAsync(':');
+                await writer.WriteAsync(": ");
                 await writer.WriteAsync(entry.Value);
                 await writer.WriteAsync(';');
             }
@@ -415,7 +415,7 @@ public sealed class CssStyleCollection
             foreach (var entry in _intTable)
             {
                 await writer.WriteAsync(CssTextWriter.GetStyleName(entry.Key));
-                await writer.WriteAsync(':');
+                await writer.WriteAsync(": ");
                 await writer.WriteAsync(entry.Value);
                 await writer.WriteAsync(';');
             }
@@ -438,7 +438,7 @@ public sealed class CssStyleCollection
             foreach (var entry in _table)
             {
                 sb.Append(entry.Key);
-                sb.Append(':');
+                sb.Append(": ");
                 sb.Append(entry.Value);
                 sb.Append(';');
             }
@@ -449,7 +449,7 @@ public sealed class CssStyleCollection
             foreach (var entry in _intTable)
             {
                 sb.Append(CssTextWriter.GetStyleName(entry.Key));
-                sb.Append(':');
+                sb.Append(": ");
                 sb.Append(entry.Value);
                 sb.Append(';');
             }
