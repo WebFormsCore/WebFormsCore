@@ -1,4 +1,6 @@
 ﻿//HintName: GenerateAssemblyTypeProvider.cs
+[assembly: WebFormsCore.AssemblyControlTypeProvider(typeof(Tests.AssemblyControlTypeProvider))]
+
 namespace Tests
 {
 

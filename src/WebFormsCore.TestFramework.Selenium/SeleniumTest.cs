@@ -15,15 +15,13 @@ public static class SeleniumTest
     private static readonly Lazy<string> ChromePath = new(() => new DriverManager().SetUpDriver(new ChromeConfig()));
     private static readonly Lazy<string> FirefoxPath = new(() => new DriverManager().SetUpDriver(new FirefoxConfig()));
 
-    public static async Task<ITestContext<TControl>> StartChromeAsync<TControl, TTypeProvider>(
+    public static async Task<ITestContext<TControl>> StartChromeAsync<TControl>(
         Action<IServiceCollection>? configure = null,
         bool enableViewState = true,
         bool headless = true
-    )
-        where TControl : Control, new()
-        where TTypeProvider : class, IControlTypeProvider
+    ) where TControl : Control, new()
     {
-        return await StartBrowserAsync<TControl, TTypeProvider>(DriverFactory, configure, enableViewState);
+        return await StartBrowserAsync<TControl>(DriverFactory, configure, enableViewState);
 
         IWebDriver DriverFactory()
         {
@@ -35,15 +33,13 @@ public static class SeleniumTest
         }
     }
 
-    public static async Task<ITestContext<TControl>> StartFirefoxAsync<TControl, TTypeProvider>(
+    public static async Task<ITestContext<TControl>> StartFirefoxAsync<TControl>(
         Action<IServiceCollection>? configure = null,
         bool enableViewState = true,
         bool headless = true
-    )
-        where TControl : Control, new()
-        where TTypeProvider : class, IControlTypeProvider
+    ) where TControl : Control, new()
     {
-        return await StartBrowserAsync<TControl, TTypeProvider>(DriverFactory, configure, enableViewState);
+        return await StartBrowserAsync<TControl>(DriverFactory, configure, enableViewState);
 
         IWebDriver DriverFactory()
         {
@@ -54,15 +50,13 @@ public static class SeleniumTest
         }
     }
 
-    public static Task<ITestContext<TControl>> StartBrowserAsync<TControl, TTypeProvider>(
+    public static Task<ITestContext<TControl>> StartBrowserAsync<TControl>(
         Func<IWebDriver> driverFactory,
         Action<IServiceCollection>? configure = null,
         bool enableViewState = true
-    )
-        where TControl : Control, new()
-        where TTypeProvider : class, IControlTypeProvider
+    ) where TControl : Control, new()
     {
-        return ControlTest.StartBrowserAsync<TControl, TTypeProvider>(
+        return ControlTest.StartBrowserAsync<TControl>(
             host => new SeleniumTestContext<TControl>(host, driverFactory()),
             configure,
             enableViewState);

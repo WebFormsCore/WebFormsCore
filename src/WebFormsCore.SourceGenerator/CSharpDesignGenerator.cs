@@ -21,6 +21,9 @@ public class CSharpDesignGenerator : DesignerGenerator
 
         var builder = new StringBuilder();
 
+        builder.Append("[assembly: WebFormsCore.AssemblyControlTypeProvider(typeof(").Append(rootNamespace).AppendLine(".AssemblyControlTypeProvider))]");
+        builder.AppendLine();
+
         if (!string.IsNullOrEmpty(rootNamespace))
         {
             builder.Append("namespace ").Append(rootNamespace).AppendLine();

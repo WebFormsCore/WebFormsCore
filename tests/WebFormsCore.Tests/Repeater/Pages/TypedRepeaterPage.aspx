@@ -1,4 +1,4 @@
-<%@ Page Inherits="WebFormsCore.Tests.Pages.TypedRepeater" %>
+<%@ Page Inherits="WebFormsCore.Tests.Pages.TypedRepeaterPage" %>
 <%@ Register TagPrefix="asp" Namespace="WebFormsCore.UI.WebControls" Assembly="WebFormsCore" %>
 
 <ul>

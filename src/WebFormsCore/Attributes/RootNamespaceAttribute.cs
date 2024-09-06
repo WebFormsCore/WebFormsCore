@@ -4,42 +4,34 @@ using System.Diagnostics.CodeAnalysis;
 namespace WebFormsCore;
 
 [AttributeUsage(AttributeTargets.Assembly)]
-public class RootNamespaceAttribute : Attribute
+public class RootNamespaceAttribute(string ns) : Attribute
 {
-    public RootNamespaceAttribute(string ns)
-    {
-        Namespace = ns;
-    }
-
-    public string Namespace { get; }
+    public string Namespace { get; } = ns;
 }
 
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-public class AssemblyViewAttribute : Attribute
+public class AssemblyViewAttribute(
+    string path,
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type
+) : Attribute
 {
-    public AssemblyViewAttribute(string path,
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-        Type type)
-    {
-        Path = path;
-        Type = type;
-    }
+    public string Path { get; } = path;
 
-    public string Path { get; }
-
-    public Type Type { get; }
+    public Type Type { get; } = type;
 }
 
+[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+public class AssemblyControlAttribute(
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type
+) : Attribute
+{
+    public Type Type { get; } = type;
+}
 
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-public class AssemblyControlAttribute : Attribute
+public class AssemblyControlTypeProviderAttribute(
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type
+) : Attribute
 {
-    public AssemblyControlAttribute(
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-        Type type)
-    {
-        Type = type;
-    }
-
-    public Type Type { get; }
+    public Type Type { get; } = type;
 }

@@ -3,7 +3,7 @@ using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.Tests.Pages;
 
-public partial class TypedRepeater : Page
+public partial class RepeaterPage : Page
 {
     protected override async ValueTask OnInitAsync(CancellationToken token)
     {
@@ -25,7 +25,7 @@ public partial class TypedRepeater : Page
     {
         var item = (RepeaterDataItem)e.Item.DataItem!;
 
-        if (e.Item.FindControl("item") is Literal text)
+        if (e.Item.FindControl("litText") is Literal text)
         {
             text.Text = item.Text;
         }

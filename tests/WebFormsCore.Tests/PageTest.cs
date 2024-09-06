@@ -45,7 +45,7 @@ public partial class PageTest
     [Fact]
     public async Task PageWithClickEvent()
     {
-        await using var result = await RenderAsync<ClickTest, AssemblyControlTypeProvider>();
+        await using var result = await RenderAsync<ClickTest>();
 
         Assert.Empty(result.Control.lblResult.Text);
 
@@ -57,7 +57,7 @@ public partial class PageTest
     [Fact]
     public async Task PageLargeViewState()
     {
-        await using var result = await RenderAsync<LargeViewStateTest, AssemblyControlTypeProvider>();
+        await using var result = await RenderAsync<LargeViewStateTest>();
 
         Assert.Equal(100, await result.QuerySelectorAll("[data-id]").CountAsync());
         await result.QuerySelectorRequired("[data-id='10'] .btn").ClickAsync();
@@ -68,7 +68,7 @@ public partial class PageTest
     [Fact]
     public async Task BrowserTest()
     {
-        await using var ctx = await SeleniumTest.StartChromeAsync<ClickTest, AssemblyControlTypeProvider>();
+        await using var ctx = await SeleniumTest.StartChromeAsync<ClickTest>();
 
         await ctx.GetRequiredElement(ctx.Control.btnSetResult).ClickAsync();
 

@@ -5,7 +5,7 @@ namespace WebFormsCore.Parser.Tests;
 
 public class LexerTest
 {
-    [Theory]
+    [SkippableTheory]
     [InlineData("text", """<div>Test</div>""")]
     [InlineData("control", """<div runat="server"><Inner><span runat="server" /></Inner></div>""")]
     [InlineData("script", "<html><body><script></script></body></html>")]
@@ -19,6 +19,8 @@ public class LexerTest
        """)]
     public Task TestLexer(string name, string input)
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Line endings are different");
+
         var lexer = new Lexer("Tests.aspx", input);
         var output = new List<Token>();
 

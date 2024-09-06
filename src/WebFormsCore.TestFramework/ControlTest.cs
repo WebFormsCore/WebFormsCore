@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Connections.Features;
@@ -17,13 +18,11 @@ namespace WebFormsCore;
 
 public class ControlTest
 {
-    public static async Task<ITestContext<TControl>> StartBrowserAsync<TControl, TTypeProvider>(
+    public static async Task<ITestContext<TControl>> StartBrowserAsync<TControl>(
         Func<WebApplication, WebServerContext<TControl>> contextFactory,
         Action<IServiceCollection>? configure = null,
         bool enableViewState = true
-    )
-        where TControl : Control, new()
-        where TTypeProvider : class, IControlTypeProvider
+    ) where TControl : Control, new()
     {
         var builder = WebApplication.CreateEmptyBuilder(new WebApplicationOptions());
 
@@ -35,7 +34,14 @@ public class ControlTest
 
         builder.Services.AddWebFormsCore();
 
-        builder.Services.AddSingleton<IControlTypeProvider, TTypeProvider>();
+        var typeProvider = typeof(TControl).Assembly.GetCustomAttribute<AssemblyControlTypeProviderAttribute>()?.Type;
+
+        if (typeProvider is null)
+        {
+            throw new InvalidOperationException("Type provider not found");
+        }
+
+        builder.Services.AddSingleton(typeof(IControlTypeProvider), typeProvider);
         builder.Services.AddSingleton<IWebFormsEnvironment, TestEnvironment>();
 
         builder.Services.AddOptions<ViewStateOptions>()
