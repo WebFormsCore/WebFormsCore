@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-#if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#endif
 
 namespace WebFormsCore.UI
 {
@@ -210,18 +208,10 @@ namespace WebFormsCore.UI
                 { HtmlTextWriterTag.Xml, "xml" },
             };
 
-#if NET8_0_OR_GREATER
             AttributeNames = dictionary.ToFrozenDictionary();
-#else
-            AttributeNames = dictionary;
-#endif
         }
 
-#if NET8_0_OR_GREATER
         private static readonly FrozenDictionary<HtmlTextWriterTag, string> AttributeNames;
-#else
-        private static readonly Dictionary<HtmlTextWriterTag, string> AttributeNames;
-#endif
 
         public static string ToName(this HtmlTextWriterTag attribute) => AttributeNames[attribute];
     }

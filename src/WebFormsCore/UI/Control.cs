@@ -10,9 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
-#if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#endif
 
 namespace WebFormsCore.UI;
 
@@ -804,14 +802,7 @@ public partial class Control : System.Web.UI.Control
         {
             if (control.ID != null)
             {
-#if NET6_0_OR_GREATER
                 namedControls.TryAdd(control.ID, control);
-#else
-                if (!namedControls.ContainsKey(control.ID))
-                {
-                    namedControls.Add(control.ID, control);
-                }
-#endif
             }
 
             if (control is not INamingContainer)
@@ -1052,11 +1043,7 @@ public partial class Control : System.Web.UI.Control
       "c127"
     };
 
-#if NET8_0_OR_GREATER
     private static readonly FrozenSet<string> VoidElements;
-#else
-    private static readonly List<string> VoidElements;
-#endif
 
     static Control()
     {
@@ -1079,19 +1066,11 @@ public partial class Control : System.Web.UI.Control
             "wbr"
         };
 
-#if NET8_0_OR_GREATER
         VoidElements = list.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
-#else
-        VoidElements = list;
-#endif
     }
 
     protected static bool IsVoidTag(string tagName) =>
-#if NET8_0_OR_GREATER
         VoidElements.Contains(tagName);
-#else
-        VoidElements.Contains(tagName, StringComparer.OrdinalIgnoreCase);
-#endif
 
 }
 
