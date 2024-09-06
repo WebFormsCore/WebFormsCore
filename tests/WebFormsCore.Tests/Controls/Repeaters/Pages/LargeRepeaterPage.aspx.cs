@@ -2,9 +2,9 @@
 using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
 
-namespace WebFormsCore.Tests.Pages;
+namespace WebFormsCore.Tests.Controls.Repeaters.Pages;
 
-public partial class LargeViewStateTest : Page
+public partial class LargeRepeaterPage : Page
 {
     public record RepeaterDataItem(int Id);
 

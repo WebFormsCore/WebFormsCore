@@ -1,6 +1,6 @@
 ﻿using WebFormsCore.UI;
 
-namespace WebFormsCore.Tests.Pages;
+namespace WebFormsCore.Tests.Controls.DisposeTests.Pages;
 
 public sealed class DisposableControl : Control, IDisposable
 {

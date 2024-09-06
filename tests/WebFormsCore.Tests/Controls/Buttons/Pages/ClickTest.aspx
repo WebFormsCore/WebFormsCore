@@ -1,4 +1,4 @@
-<%@ Page Inherits="WebFormsCore.Tests.Pages.ClickTest" %>
+<%@ Page Inherits="WebFormsCore.Tests.Controls.Buttons.Pages.ClickTest" %>
 <%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI.WebControls" Assembly="WebFormsCore" %>
 <!DOCTYPE html>
 <html lang="en">

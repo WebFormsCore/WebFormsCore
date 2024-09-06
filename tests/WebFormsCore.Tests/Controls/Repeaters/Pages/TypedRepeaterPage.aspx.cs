@@ -1,7 +1,7 @@
 ﻿using WebFormsCore.UI;
 using WebFormsCore.UI.WebControls;
 
-namespace WebFormsCore.Tests.Pages;
+namespace WebFormsCore.Tests.Controls.Repeaters.Pages;
 
 public partial class TypedRepeaterPage : Page
 {

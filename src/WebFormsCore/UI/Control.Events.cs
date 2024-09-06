@@ -43,6 +43,23 @@ public static class ControlExtensions
         return container;
     }
 
+    public static T? FindControl<T>(this Control control, string id)
+        where T : Control
+    {
+        return control.FindControl(id) as T;
+    }
+
+    public static T FindRequiredControl<T>(this Control control, string id)
+        where T : Control
+    {
+        return control.FindControl(id) as T ?? throw new InvalidOperationException($"Control with ID '{id}' not found.");
+    }
+
+    public static Control FindRequiredControl(this Control control, string id)
+    {
+        return control.FindControl(id) ?? throw new InvalidOperationException($"Control with ID '{id}' not found.");
+    }
+
     public static T? FindParent<T>(this Control control)
     {
         var parent = control.ParentInternal;

@@ -1,6 +1,6 @@
 ﻿using WebFormsCore.UI;
 
-namespace WebFormsCore.Tests.Pages;
+namespace WebFormsCore.Tests.Controls.HtmlGenericControls.Pages;
 
 public partial class DivAttributes : Page
 {

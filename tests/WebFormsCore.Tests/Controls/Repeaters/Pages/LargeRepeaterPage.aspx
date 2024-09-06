@@ -1,4 +1,4 @@
-<%@ Page Inherits="WebFormsCore.Tests.Pages.LargeViewStateTest" Language="C#" %>
+<%@ Page Inherits="WebFormsCore.Tests.Controls.Repeaters.Pages.LargeRepeaterPage" Language="C#" %>
 <%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI.WebControls" Assembly="WebFormsCore" %>
 <!DOCTYPE html>
 <html lang="en">

@@ -1,4 +1,4 @@
-namespace WebFormsCore.Tests.Pages;
+namespace WebFormsCore.Tests.Controls.Repeaters.Pages;
 
 public class RepeaterDataItem
 {

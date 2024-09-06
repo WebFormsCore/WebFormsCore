@@ -1,6 +1,6 @@
 ﻿using WebFormsCore.UI;
 
-namespace WebFormsCore.Tests.Pages;
+namespace WebFormsCore.Tests.Controls.DisposeTests.Pages;
 
 public class DynamicControl : Control
 {
@@ -8,8 +8,9 @@ public class DynamicControl : Control
     {
         await base.OnInitAsync(token);
 
-        await Controls.AddAsync(
-            new DisposableControl()
-        );
+        await Controls.AddAsync(new DisposableControl
+        {
+            ID = "dynamicControl"
+        });
     }
 }
