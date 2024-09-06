@@ -399,3 +399,7 @@ FodyWeavers.xsd
 .idea/
 
 /.act
+
+# Verify
+*.received.*
+*.received/
