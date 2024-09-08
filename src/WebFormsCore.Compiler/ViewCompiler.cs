@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -15,7 +16,7 @@ public record struct ViewCompileResult(Compilation Compilation, RootNode Type);
 public static class ViewCompiler
 {
     private static IReadOnlyList<MetadataReference>? _references;
-    private static readonly object ReferencesLock = new();
+    private static readonly Lock ReferencesLock = new();
 
     public static ViewCompileResult Compile(string path, string? text = null, string? rootDirectory = null, bool generateHash = true, bool concurrentBuild = true, IReadOnlyList<MetadataReference>? references = null)
     {
