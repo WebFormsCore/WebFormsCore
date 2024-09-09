@@ -72,11 +72,23 @@
         <AdditionalFiles Update="Controls\Repeaters\Pages\LargeRepeaterPage.aspx">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>
+
+        <AdditionalFiles Update="Controls\Checkboxes\Pages\DisposePage.aspx">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
+        <AdditionalFiles Update="Controls\Checkboxes\Pages\CheckboxPostbackPage.aspx">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
+        <AdditionalFiles Update="Controls\Checkboxes\Pages\CheckboxAutoPostbackPage.aspx">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\WebFormsCore.Compiler\WebFormsCore.Compiler.csproj" />
-        <ProjectReference Include="..\..\src\WebFormsCore.TestFramework.All\WebFormsCore.TestFramework.All.csproj" />
+        <ProjectReference Include="..\..\src\WebFormsCore.TestFramework.Selenium\WebFormsCore.TestFramework.Selenium.csproj" />
         <ProjectReference Include="..\..\src\WebFormsCore\WebFormsCore.csproj" />
         <ProjectReference Include="..\..\src\WebFormsCore.SourceGenerator\WebFormsCore.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>

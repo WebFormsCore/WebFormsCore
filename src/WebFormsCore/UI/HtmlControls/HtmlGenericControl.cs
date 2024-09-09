@@ -4,6 +4,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using WebFormsCore.Security;
 using WebFormsCore.UI.WebControls;
 
@@ -44,17 +46,24 @@ public class HtmlGenericControl : HtmlContainerControl
 
         if (Page.Csp.Enabled)
         {
-            await RegisterCsp(token);
+            await RegisterCspAsync(token);
         }
     }
 
-    private ValueTask RegisterCsp(CancellationToken token)
+    private ValueTask RegisterCspAsync(CancellationToken token)
     {
         CspDirective directive;
         string? attributeName;
 
         if (_tagName.Equals("script", StringComparison.OrdinalIgnoreCase))
         {
+            var options = Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>()?.Value;
+
+            if (Page.IsPostBack && !(options?.RenderScriptOnPostBack ?? false))
+            {
+                return default;
+            }
+
             directive = Page.Csp.ScriptSrc;
             attributeName = "src";
         }
@@ -78,10 +87,10 @@ public class HtmlGenericControl : HtmlContainerControl
             return default;
         }
 
-        return RegisterCsp(attributeName, directive, token);
+        return RegisterCspAsync(attributeName, directive, token);
     }
 
-    private async ValueTask RegisterCsp(string? attributeName, CspDirective directive, CancellationToken token)
+    private async ValueTask RegisterCspAsync(string? attributeName, CspDirective directive, CancellationToken token)
     {
         if (attributeName is not null && directive.TryAddUri(Attributes[attributeName]))
         {

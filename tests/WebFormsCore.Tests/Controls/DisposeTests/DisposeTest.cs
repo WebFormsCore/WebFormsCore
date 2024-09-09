@@ -1,12 +1,11 @@
-﻿using WebFormsCore.TestFramework;
-using WebFormsCore.UI;
+﻿using WebFormsCore.UI;
 
 namespace WebFormsCore.Tests.Controls.DisposeTests.Pages;
 
 public class DisposeTest
 {
-    [Theory, ClassData(typeof(TestTypeData))]
-    public async Task PageWithControl(TestType type)
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task PageWithControl(Browser type)
     {
         DisposableControl staticControl;
         DisposableControl dynamicControl;

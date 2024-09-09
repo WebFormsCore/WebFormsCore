@@ -38,9 +38,9 @@ public class ViewStateSerializer
 
     public static IEnumerable<object?[]> ListData()
     {
-        yield return new object?[] { new List<string> { "1", "2", "3" }, 2 + ((2 + 1) * 3) };
-        yield return new object?[] { new List<string>(), 2 };
-        yield return new object?[] { null, 2 };
+        yield return [new List<string> { "1", "2", "3" }, 2 + ((2 + 1) * 3)];
+        yield return [new List<string>(), 2];
+        yield return [null, 2];
     }
 
     [Theory]

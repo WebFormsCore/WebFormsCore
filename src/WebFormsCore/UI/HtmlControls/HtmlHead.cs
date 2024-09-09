@@ -19,31 +19,6 @@ public class HtmlHead() : HtmlContainerControl("head")
         Page.Header ??= this;
     }
 
-    protected override void OnInit(EventArgs args)
-    {
-        base.OnInit(args);
-
-        var options = Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>()?.Value;
-
-        if (options?.AddWebFormsCoreHeadScript ?? true)
-        {
-            Page.ClientScript.RegisterStartupScript(
-                typeof(Page),
-                "FormPostback",
-                $$$"""window.wfc={hiddenClass:'{{{options?.HiddenClass ?? ""}}}',_:[],bind:function(a,b){this._.push([0,a,b])},bindValidator:function(a,b){this._.push([1,a,b])},init:function(a){this._.push([2,'',a])}};""",
-                position: ScriptPosition.HeadStart);
-        }
-
-        if (options?.EnableWebFormsPolyfill ?? true)
-        {
-            Page.ClientScript.RegisterStartupStaticScript(
-                typeof(Page),
-                "/js/webforms-polyfill.min.js",
-                Resources.Polyfill,
-                position: ScriptPosition.HeadStart);
-        }
-    }
-
     protected override void OnUnload(EventArgs args)
     {
         base.OnUnload(args);
@@ -56,21 +31,34 @@ public class HtmlHead() : HtmlContainerControl("head")
 
     protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        if (!Page.IsPostBack)
-        {
-            await Page.ClientScript.RenderHeadStart(writer);
-        }
-
+        await RenderHeadStartAsync(this, writer);
         await base.RenderChildrenAsync(writer, token);
+        await RenderHeadEndAsync(this, writer, token);
+    }
 
-        foreach (var renderer in Context.RequestServices.GetServices<IPageService>())
-        {
-            await renderer.RenderHeadAsync(Page, writer, token);
-        }
+    internal static async Task RenderHeadStartAsync(Control control, HtmlTextWriter writer)
+    {
+        var page = control.Page;
 
-        if (!Page.IsPostBack)
+        if (!page.IsPostBack)
         {
-            await Page.ClientScript.RenderHeadEnd(writer);
+            await page.ClientScript.RenderHeadStart(writer);
         }
     }
+
+    internal static async Task RenderHeadEndAsync(Control control, HtmlTextWriter writer, CancellationToken token)
+    {
+        var page = control.Page;
+
+        foreach (var renderer in control.Context.RequestServices.GetServices<IPageService>())
+        {
+            await renderer.RenderHeadAsync(page, writer, token);
+        }
+
+        if (!page.IsPostBack)
+        {
+            await page.ClientScript.RenderHeadEnd(writer);
+        }
+    }
+
 }

@@ -1,2 +1,2 @@
 global using Xunit;
-global using static WebFormsCore.TestFramework.WebFormsTest;
+global using static WebFormsCore.SeleniumTest;

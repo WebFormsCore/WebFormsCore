@@ -23,29 +23,6 @@ public class HtmlBody() : HtmlContainerControl("body")
         Page.Body ??= this;
     }
 
-    protected override void OnInit(EventArgs args)
-    {
-        base.OnUnload(args);
-
-        RegisterScript();
-    }
-
-    private void RegisterScript()
-    {
-        // TODO: Move this to a better place.
-        var options = Context.RequestServices
-            .GetService<IOptions<WebFormsCoreOptions>>()
-            ?.Value;
-
-        if (options?.AddWebFormsCoreScript ?? true)
-        {
-            Page.ClientScript.RegisterStartupDeferStaticScript(
-                typeof(Page),
-                "/js/form.min.js",
-                Resources.Script);
-        }
-    }
-
     protected override void OnUnload(EventArgs args)
     {
         base.OnUnload(args);
@@ -58,30 +35,44 @@ public class HtmlBody() : HtmlContainerControl("body")
 
     protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        var viewStateManager = ServiceProvider.GetRequiredService<IViewStateManager>();
-
-        if (!Page.IsPostBack)
-        {
-            await Page.ClientScript.RenderBodyStart(writer);
-        }
+        await RenderBodyStartAsync(this, writer);
 
         await base.RenderChildrenAsync(writer, token);
 
-        foreach (var renderer in Context.RequestServices.GetServices<IPageService>())
+        await RenderBodyEndAsync(this, writer, token);
+    }
+
+    internal static async Task RenderBodyStartAsync(Control control, HtmlTextWriter writer)
+    {
+        var page = control.Page;
+
+        if (!page.IsPostBack)
         {
-            await renderer.RenderBodyAsync(Page, writer, token);
+            await page.ClientScript.RenderBodyStart(writer);
+        }
+    }
+
+    internal static async Task RenderBodyEndAsync(Control control, HtmlTextWriter writer, CancellationToken token)
+    {
+        var page = control.Page;
+
+        foreach (var renderer in control.Context.RequestServices.GetServices<IPageService>())
+        {
+            await renderer.RenderBodyAsync(page, writer, token);
         }
 
-        if (!Page.IsPostBack)
+        if (!page.IsPostBack)
         {
-            await Page.ClientScript.RenderBodyEnd(writer);
+            await page.ClientScript.RenderBodyEnd(writer);
         }
 
-        if (viewStateManager.EnableViewState && Page is { EnableViewState: true, IsStreaming: false })
+        var viewStateManager = control.Context.RequestServices.GetRequiredService<IViewStateManager>();
+
+        if (viewStateManager.EnableViewState && page is { EnableViewState: true, IsStreaming: false })
         {
             await writer.WriteAsync(@"<input id=""pagestate"" type=""hidden"" name=""wfcPageState"" value=""");
 
-            using (var viewState = await viewStateManager.WriteAsync(Page, out var length))
+            using (var viewState = await viewStateManager.WriteAsync(control.Page, out var length))
             {
                 await writer.WriteAsync(viewState.Memory.Slice(0, length));
             }

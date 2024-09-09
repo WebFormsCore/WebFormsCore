@@ -14,7 +14,7 @@ public static class SeleniumExtensions
             return;
         }
 
-        for (var i = 0; i < 30; i++)
+        for (var i = 0; i < 60; i++)
         {
             if (token.IsCancellationRequested)
             {
@@ -28,7 +28,7 @@ public static class SeleniumExtensions
                 return;
             }
 
-            await Task.Delay(100, token);
+            await Task.Delay(50, token);
         }
 
         if (!token.IsCancellationRequested)

@@ -3,13 +3,37 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using JetBrains.Annotations;
+using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 using WebFormsCore.Security;
 using ScriptList = System.Collections.Generic.List<WebFormsCore.UI.RegisteredScript>;
 
 namespace WebFormsCore.UI;
 
-internal record struct RegisteredScript(string Script, string? Nonce, RegisterType Type, IAttributeRenderer? Attributes);
+internal class RegisteredScript : IResettable
+{
+    public string Script { get; set; } = string.Empty;
+    public string? Nonce { get; set; }
+    public RegisterType Type { get; set; }
+    public IAttributeRenderer? Attributes { get; set; }
+
+    public void Deconstruct(out string script, out string? nonce, out RegisterType type, out IAttributeRenderer? attributes)
+    {
+        script = Script;
+        nonce = Nonce;
+        type = Type;
+        attributes = Attributes;
+    }
+
+    public bool TryReset()
+    {
+        Script = string.Empty;
+        Nonce = null;
+        Type = RegisterType.Raw;
+        Attributes = null;
+        return true;
+    }
+}
 
 internal enum RegisterType
 {
@@ -51,6 +75,8 @@ public enum ScriptPosition
 
 public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>? options = null)
 {
+    private static readonly ObjectPool<RegisteredScript> RegisteredScriptPool = new DefaultObjectPool<RegisteredScript>(new DefaultPooledObjectPolicy<RegisteredScript>());
+
     private const string ScriptStart = "<script";
     private const string ScriptEnd = "</script>\n";
     private const string StyleStart = "<style";
@@ -58,7 +84,7 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
     private const string LinkStart = "<link rel=\"stylesheet\"";
     private const string LinkEnd = " />\n";
 
-    private readonly Dictionary<(ScriptType, Type, string), (ScriptList, RegisteredScript)> _registeredScripts = new();
+    private readonly Dictionary<(ScriptType, Type, string), (ScriptList list, RegisteredScript script)> _registeredScripts = new();
     private ScriptList? _headStart;
     private ScriptList? _headEnd;
     private ScriptList? _bodyEnd;
@@ -156,15 +182,38 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
             return;
         }
 
-        string? nonce = null;
+        var registration = RegisteredScriptPool.Get();
+        registration.Script = content;
+        registration.Type = registerType;
+        registration.Attributes = attribute;
 
-        if (page.Csp.Enabled && registerType is not RegisterType.Raw)
+        list ??= new ScriptList();
+        list.Add(registration);
+
+        _registeredScripts[dictionaryKey] = (list, registration);
+    }
+
+    internal void OnPreRender()
+    {
+        if (!page.Csp.Enabled)
         {
-            var cspTarget = registerType is RegisterType.ExternalScript or RegisterType.InlineScript
+            return;
+        }
+
+        foreach (var kv in _registeredScripts)
+        {
+            var (content, cspNonce, type, _) = kv.Value.script;
+
+            if (cspNonce is not null || type is RegisterType.Raw)
+            {
+                continue;
+            }
+
+            var cspTarget = type is RegisterType.ExternalScript or RegisterType.InlineScript
                 ? page.Csp.ScriptSrc
                 : page.Csp.StyleSrc;
 
-            if (registerType is RegisterType.ExternalScript or RegisterType.ExternalStyle)
+            if (type is RegisterType.ExternalScript or RegisterType.ExternalStyle)
             {
                 if (Uri.TryCreate(content, UriKind.Absolute, out var href))
                 {
@@ -173,7 +222,7 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
             }
             else if (cspTarget.Mode is CspMode.Nonce)
             {
-                nonce = cspTarget.GenerateNonce();
+                kv.Value.script.Nonce = cspTarget.GenerateNonce();
             }
             else if (cspTarget.Mode is CspMode.Sha256)
             {
@@ -185,13 +234,6 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
                 page.Csp.ScriptSrc.AddInlineHash(content);
             }
         }
-
-        var registration = new RegisteredScript(content, nonce, registerType, attribute);
-
-        list ??= new ScriptList();
-        list.Add(registration);
-
-        _registeredScripts[dictionaryKey] = (list, registration);
     }
 
     private async ValueTask Render(HtmlTextWriter writer, ScriptList scripts)

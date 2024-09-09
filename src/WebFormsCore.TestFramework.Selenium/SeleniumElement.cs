@@ -18,6 +18,11 @@ internal class SeleniumElement(IWebElement element) : IElement
         return ValueTask.CompletedTask;
     }
 
+    public ValueTask<bool> IsVisibleAsync()
+    {
+        return ValueTask.FromResult(element.Displayed);
+    }
+
     public ValueTask<string> GetAttributeAsync(string dataFoo)
     {
         return ValueTask.FromResult(element.GetAttribute(dataFoo));

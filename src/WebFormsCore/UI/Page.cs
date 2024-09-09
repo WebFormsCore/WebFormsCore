@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using WebFormsCore.Security;
 using WebFormsCore.UI.Attributes;
 using WebFormsCore.UI.HtmlControls;
@@ -95,6 +96,52 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
     internal HtmlForm? ActiveForm { get; set; }
 
+    protected override void OnInit(EventArgs args)
+    {
+        base.OnInit(args);
+
+        RegisterScript();
+    }
+
+    protected override void OnPreRender(EventArgs args)
+    {
+        base.OnPreRender(args);
+
+        ClientScript.OnPreRender();
+    }
+
+    private void RegisterScript()
+    {
+        // TODO: Move this to a better place.
+        var options = Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>()?.Value;
+
+        if (options?.AddWebFormsCoreScript ?? true)
+        {
+            Page.ClientScript.RegisterStartupDeferStaticScript(
+                typeof(Page),
+                "/js/form.min.js",
+                Resources.Script);
+        }
+
+        if (options?.AddWebFormsCoreHeadScript ?? true)
+        {
+            Page.ClientScript.RegisterStartupScript(
+                typeof(Page),
+                "FormPostback",
+                $$$"""window.wfc={hiddenClass:'{{{options?.HiddenClass ?? ""}}}',_:[],bind:function(a,b){this._.push([0,a,b])},bindValidator:function(a,b){this._.push([1,a,b])},init:function(a){this._.push([2,'',a])}};""",
+                position: ScriptPosition.HeadStart);
+        }
+
+        if (options?.EnableWebFormsPolyfill ?? true)
+        {
+            Page.ClientScript.RegisterStartupStaticScript(
+                typeof(Page),
+                "/js/webforms-polyfill.min.js",
+                Resources.Polyfill,
+                position: ScriptPosition.HeadStart);
+        }
+    }
+
     public async ValueTask RaiseChangedEventsAsync(CancellationToken cancellationToken)
     {
         if (ChangedPostDataConsumers is not { } consumers)
@@ -176,5 +223,25 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
             .OfType<BaseValidator>()
             .FirstOrDefault(v => v.GetControlToValidate() == control)
             ?.ValidationGroup ?? "";
+    }
+
+    protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
+    {
+        if (Header is null)
+        {
+            await HtmlHead.RenderHeadStartAsync(this, writer);
+            await HtmlHead.RenderHeadEndAsync(this, writer, token);
+        }
+
+        if (Body is null)
+        {
+            await HtmlBody.RenderBodyStartAsync(this, writer);
+            await base.RenderChildrenAsync(writer, token);
+            await HtmlBody.RenderBodyEndAsync(this, writer, token);
+        }
+        else
+        {
+            await base.RenderChildrenAsync(writer, token);
+        }
     }
 }

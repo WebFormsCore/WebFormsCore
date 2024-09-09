@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
+using WebFormsCore.Features;
 using WebFormsCore.UI;
 using WebFormsCore.UI.HtmlControls;
 using Page = WebFormsCore.UI.Page;
@@ -58,6 +59,8 @@ public class ControlTest
         host.UseWebFormsCore();
         host.Run(async ctx =>
         {
+            ctx.Features.Set<ITestContextFeature>(new TestContextFeature(context));
+
             var activator = host.Services.GetRequiredService<IWebObjectActivator>();
             var control = activator.CreateControl<TControl>();
 

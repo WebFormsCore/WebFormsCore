@@ -64,4 +64,9 @@ public class WebFormsCoreOptions
     /// Gets or sets the default literal mode.
     /// </summary>
     public LiteralMode DefaultLiteralMode { get; set; } = LiteralMode.Encode;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the script should be rendered on postback.
+    /// </summary>
+    public bool RenderScriptOnPostBack { get; set; }
 }
