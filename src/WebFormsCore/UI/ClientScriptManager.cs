@@ -12,6 +12,7 @@ namespace WebFormsCore.UI;
 
 internal class RegisteredScript : IResettable
 {
+    public (ScriptType, Type, string) Key { get; set; }
     public string Script { get; set; } = string.Empty;
     public string? Nonce { get; set; }
     public RegisterType Type { get; set; }
@@ -27,6 +28,7 @@ internal class RegisteredScript : IResettable
 
     public bool TryReset()
     {
+        Key = default;
         Script = string.Empty;
         Nonce = null;
         Type = RegisterType.Raw;
@@ -183,6 +185,7 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
         }
 
         var registration = RegisteredScriptPool.Get();
+        registration.Key = dictionaryKey;
         registration.Script = content;
         registration.Type = registerType;
         registration.Attributes = attribute;
@@ -295,9 +298,14 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
                 await WriteEndTag(writer, current);
                 current = RegisterType.Raw;
             }
+
+            _registeredScripts.Remove(kv.Key);
+            RegisteredScriptPool.Return(kv);
         }
 
         await WriteEndTag(writer, current);
+
+        scripts.Clear();
     }
 
     private static ValueTask WriteEndTag(HtmlTextWriter writer, RegisterType current)
