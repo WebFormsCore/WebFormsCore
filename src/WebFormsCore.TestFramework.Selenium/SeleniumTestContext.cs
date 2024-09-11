@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
 using WebFormsCore.Internal;
 using WebFormsCore.UI;
 
@@ -14,6 +16,9 @@ internal class SeleniumTestContext<T>(IHost host, IWebDriver driver) : WebServer
     public override async Task GoToUrlAsync(string url)
     {
         await driver.Navigate().GoToUrlAsync(url);
+
+        var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
+        wait.Until(static d => ((IJavaScriptExecutor)d).ExecuteScript("return document.readyState").Equals("complete"));
     }
 
     public override ValueTask<string> GetHtmlAsync()

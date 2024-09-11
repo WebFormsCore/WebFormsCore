@@ -17,8 +17,20 @@ public abstract class WebServerContext<T>(IHost host) : IWebServerContext<T>
     private T? _control;
     private string? _url;
     private TaskCompletionSource? _requestLock;
+    private Exception? _exception;
 
-    public T Control => _control ?? throw new InvalidOperationException("Control is not initialized");
+    public T Control
+    {
+        get
+        {
+            if (_exception != null)
+            {
+                throw new InvalidOperationException("An exception occurred while initializing the control", _exception);
+            }
+
+            return _control ?? throw new InvalidOperationException("Control is not initialized");
+        }
+    }
 
     public Task SetControlAsync(T control)
     {
@@ -29,6 +41,11 @@ public abstract class WebServerContext<T>(IHost host) : IWebServerContext<T>
         oldLock?.SetResult();
 
         return requestLock.Task;
+    }
+
+    public void SetException(Exception exception)
+    {
+        _exception = exception;
     }
 
     public string Url => _url ??= host.Services.GetRequiredService<IServer>()

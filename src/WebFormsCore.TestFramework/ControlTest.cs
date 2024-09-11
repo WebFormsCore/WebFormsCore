@@ -59,39 +59,46 @@ public class ControlTest
         host.UseWebFormsCore();
         host.Run(async ctx =>
         {
-            ctx.Features.Set<ITestContextFeature>(new TestContextFeature(context));
-
-            var activator = host.Services.GetRequiredService<IWebObjectActivator>();
-            var control = activator.CreateControl<TControl>();
-
-            if (control is Page page)
+            try
             {
-                await ctx.ExecutePageAsync(page);
+                ctx.Features.Set<ITestContextFeature>(new TestContextFeature(context));
+
+                var activator = host.Services.GetRequiredService<IWebObjectActivator>();
+                var control = activator.CreateControl<TControl>();
+
+                if (control is Page page)
+                {
+                    await ctx.ExecutePageAsync(page);
+                }
+                else
+                {
+                    page = new Page();
+
+                    var literal = activator.CreateControl<LiteralControl>();
+                    literal.Text = "<!DOCTYPE html>";
+                    page.Controls.AddWithoutPageEvents(literal);
+                    page.Controls.AddWithoutPageEvents(activator.CreateControl<HtmlHead>());
+
+                    var body = activator.CreateControl<HtmlBody>();
+                    body.Controls.AddWithoutPageEvents(control);
+
+                    page.Controls.AddWithoutPageEvents(body);
+
+                    await ctx.ExecutePageAsync(page);
+                }
+
+                await ctx.Response.CompleteAsync();
+                await ctx.Response.Body.FlushAsync();
+
+                var transport = ctx.Features.GetRequiredFeature<IConnectionTransportFeature>().Transport;
+                await transport.Output.CompleteAsync();
+
+                await context.SetControlAsync(control);
             }
-            else
+            catch(Exception e)
             {
-                page = new Page();
-
-                var literal = activator.CreateControl<LiteralControl>();
-                literal.Text = "<!DOCTYPE html>";
-                page.Controls.AddWithoutPageEvents(literal);
-                page.Controls.AddWithoutPageEvents(activator.CreateControl<HtmlHead>());
-
-                var body = activator.CreateControl<HtmlBody>();
-                body.Controls.AddWithoutPageEvents(control);
-
-                page.Controls.AddWithoutPageEvents(body);
-
-                await ctx.ExecutePageAsync(page);
+                context.SetException(e);
             }
-
-            await ctx.Response.CompleteAsync();
-            await ctx.Response.Body.FlushAsync();
-
-            var transport = ctx.Features.GetRequiredFeature<IConnectionTransportFeature>().Transport;
-            await transport.Output.CompleteAsync();
-
-            await context.SetControlAsync(control);
         });
 
         await host.StartAsync();

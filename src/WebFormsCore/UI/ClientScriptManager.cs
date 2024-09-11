@@ -157,7 +157,7 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
 
     public void RegisterStartupScriptLink(Type type, string key, string url, bool addScriptTags = true, IAttributeRenderer? attributes = null, ScriptPosition? position = null)
     {
-        RegisterBlock(ScriptType.Style, type, key, url, ref GetList(position ?? _defaultScriptPosition), addScriptTags ? RegisterType.ExternalScript : RegisterType.Raw, attribute: attributes);
+        RegisterBlock(ScriptType.Script, type, key, url, ref GetList(position ?? _defaultScriptPosition), addScriptTags ? RegisterType.ExternalScript : RegisterType.Raw, attribute: attributes);
     }
 
     public void RegisterStartupStyle(Type type, string key, string content, bool addStyleTags, IAttributeRenderer? attributes = null, ScriptPosition? position = null)
