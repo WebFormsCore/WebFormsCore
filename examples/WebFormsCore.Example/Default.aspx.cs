@@ -23,7 +23,7 @@ public partial class Default : Page
     protected override async ValueTask OnInitAsync(CancellationToken token)
     {
         Csp.Enabled = true;
-        Csp.DefaultMode = CspMode.Nonce | CspMode.Sha256;
+        Csp.DefaultMode = CspMode.Nonce;
         Csp.RequireTrustedTypesFor.Add("'script'");
         // EnablePageViewState = false;
 

@@ -33,7 +33,7 @@ public class CspDirectiveGenerated : CspDirective
         var nonceBytes = ArrayPool<byte>.Shared.Rent(length);
         RandomNumberGenerator.Fill(nonceBytes);
 
-        var result = Convert.ToBase64String(nonceBytes, 0, length);
+        var result = Convert.ToBase64String(nonceBytes, 0, length).Replace('+', '-');
         ArrayPool<byte>.Shared.Return(nonceBytes);
         SourceList.Add($"'nonce-{result}'");
         return result;
