@@ -93,7 +93,7 @@ public class HtmlGenericControl : HtmlContainerControl
     private async ValueTask RegisterCspAsync(string? attributeName, CspDirective directive, CancellationToken token)
     {
         if (attributeName is not null &&
-            (directive is not CspDirectiveGenerated { Mode: var mode } || !mode.HasFlag(CspMode.Uri)) &&
+            (directive is not CspDirectiveGenerated { Mode: var mode } || mode.HasFlag(CspMode.Uri)) &&
             directive.TryAddUri(Attributes[attributeName]))
         {
             return;
