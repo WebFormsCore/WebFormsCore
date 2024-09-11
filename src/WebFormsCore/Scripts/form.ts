@@ -1,7 +1,10 @@
 import {WebFormsCore} from "../../../typings";
 import morphAttrs from "morphdom/src/morphAttrs";
 import morphdomFactory from "morphdom/src/morphdom";
+import DOMPurify from 'dompurify';
 import { Mutex } from 'async-mutex';
+
+const sanitise = (input: string) => DOMPurify.sanitize(input, {RETURN_TRUSTED_TYPE: true});
 
 const morphdom = morphdomFactory((fromEl, toEl) => {
     if (!fromEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateAttributes", {cancelable: true, bubbles: true, detail: {node: fromEl, source: toEl}}))) {
@@ -299,7 +302,7 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
             const options = getMorpdomSettings(form);
 
             const parser = new DOMParser();
-            const htmlDoc = parser.parseFromString(text, 'text/html');
+            const htmlDoc = parser.parseFromString(sanitise(text), 'text/html');
 
             if (form && form.getAttribute('data-wfc-form') === 'self') {
                 morphdom(form, htmlDoc.querySelector('[data-wfc-form]'), options);
@@ -799,7 +802,7 @@ wfc.bind('[data-wfc-stream]', {
 
         webSocket.addEventListener('message', function(e) {
             const parser = new DOMParser();
-            const htmlDoc = parser.parseFromString(`<!DOCTYPE html><html><body>${e.data}</body></html>`, 'text/html');
+            const htmlDoc = parser.parseFromString(sanitise(`<!DOCTYPE html><html><body>${e.data}</body></html>`), 'text/html');
 
             element.isUpdating = true;
             morphdom(element, htmlDoc.getElementById(id), getMorpdomSettings());

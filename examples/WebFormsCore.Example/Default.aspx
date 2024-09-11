@@ -27,8 +27,6 @@
         </div>
     </div>
 
-    <wfc:TinyEditor runat="server" ID="editor" />
-
     <wfc:Button runat="server" Text="Download file" OnClick="btnDownload_OnClick" CssClass="btn btn-primary" />
     <wfc:Button runat="server" Text="Go to example" OnClick="btnRedirect_OnClick" CssClass="btn btn-primary" />
 

@@ -19,27 +19,29 @@ public class Csp
     private CspDirective? _formAction;
     private CspDirective? _frameAncestors;
     private CspDirective? _pluginTypes;
-    private CspDirective? _baseUri;
+    private CspDirective _baseUri;
     private CspDirective? _reportTo;
     private CspDirective? _workerSrc;
     private CspDirective? _manifestSrc;
     private CspDirective? _prefetchSrc;
     private CspDirective? _navigateTo;
+    private CspDirective? _requireTrustedTypesFor;
 
     public Csp()
     {
         DefaultSrc = new CspDirective(this, "default-src", "'self'");
+        _baseUri = new CspDirective(this, "base-uri", "'self'");
     }
 
     public bool Enabled { get; set; }
 
-    public CspMode DefaultMode { get; set; } = CspMode.Nonce;
+    public CspMode DefaultMode { get; set; } = CspMode.Nonce | CspMode.Uri;
 
     public CspDirective DefaultSrc { get; }
 
-    public CspDirectiveGenerated ScriptSrc => _scriptSrc ??= new CspDirectiveGenerated(this, "script-src");
+    public CspDirectiveGenerated ScriptSrc => _scriptSrc ??= new CspDirectiveGenerated(this, "script-src") { AllowDefault = false };
 
-    public CspDirectiveGenerated StyleSrc => _styleSrc ??= new CspDirectiveGenerated(this, "style-src");
+    public CspDirectiveGenerated StyleSrc => _styleSrc ??= new CspDirectiveGenerated(this, "style-src") { AllowDefault = false };
 
     public CspDirective ImgSrc => _imgSrc ??= new CspDirective(this, "img-src");
 
@@ -65,7 +67,7 @@ public class Csp
 
     public CspDirective PluginTypes => _pluginTypes ??= new CspDirective(this, "plugin-types");
 
-    public CspDirective BaseUri => _baseUri ??= new CspDirective(this, "base-uri");
+    public CspDirective BaseUri => _baseUri;
 
     public CspDirective ReportTo => _reportTo ??= new CspDirective(this, "report-to");
 
@@ -76,6 +78,8 @@ public class Csp
     public CspDirective PrefetchSrc => _prefetchSrc ??= new CspDirective(this, "prefetch-src");
 
     public CspDirective NavigateTo => _navigateTo ??= new CspDirective(this, "navigate-to");
+
+    public CspDirective RequireTrustedTypesFor => _requireTrustedTypesFor ??= new CspDirective(this, "require-trusted-types-for") { AllowDefault = false };
 
     public void Write(StringBuilder builder)
     {
@@ -94,12 +98,13 @@ public class Csp
         _formAction?.Write(builder);
         _frameAncestors?.Write(builder);
         _pluginTypes?.Write(builder);
-        _baseUri?.Write(builder);
+        _baseUri.Write(builder);
         _reportTo?.Write(builder);
         _workerSrc?.Write(builder);
         _manifestSrc?.Write(builder);
         _prefetchSrc?.Write(builder);
         _navigateTo?.Write(builder);
+        _requireTrustedTypesFor?.Write(builder);
     }
 
     public override string ToString()

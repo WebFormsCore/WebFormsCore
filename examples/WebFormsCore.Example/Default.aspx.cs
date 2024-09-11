@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using WebFormsCore.Security;
 using WebFormsCore.UI;
 using WebFormsCore.UI.WebControls;
 
@@ -22,6 +23,8 @@ public partial class Default : Page
     protected override async ValueTask OnInitAsync(CancellationToken token)
     {
         Csp.Enabled = true;
+        Csp.DefaultMode = CspMode.Nonce | CspMode.Sha256;
+        Csp.RequireTrustedTypesFor.Add("'script'");
         // EnablePageViewState = false;
 
         await phTodoContainer.Controls.AddAsync(
@@ -37,8 +40,6 @@ public partial class Default : Page
     protected override void OnLoad(EventArgs args)
     {
         title.InnerText = (PostbackCount++).ToString();
-
-        editor.Text = editor.Text.ToUpper();
     }
 
     protected Task choices_OnValuesChanged(Choices sender, EventArgs e)

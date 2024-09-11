@@ -53,4 +53,12 @@ declare global {
         webSocket: WebSocket | undefined;
         isUpdating: boolean;
     }
+
+    var trustedTypes: {
+        createPolicy(name: string, policy: {
+            createHTML?: (input: string) => string;
+            createScript?: (input: string) => string;
+            createScriptURL?: (input: string) => string;
+        }): void;
+    }
 }

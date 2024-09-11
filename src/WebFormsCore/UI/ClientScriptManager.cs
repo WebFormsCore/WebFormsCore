@@ -218,23 +218,36 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
 
             if (type is RegisterType.ExternalScript or RegisterType.ExternalStyle)
             {
-                if (Uri.TryCreate(content, UriKind.Absolute, out var href))
+                if (cspTarget.Mode.HasFlag(CspMode.Uri) && Uri.TryCreate(content, UriKind.RelativeOrAbsolute, out var href))
                 {
-                    cspTarget.Add($"{href.Scheme}://{href.Host}");
+                    cspTarget.Add(href.IsAbsoluteUri ? $"{href.Scheme}://{href.Host}" : "'self'");
+                }
+                else if (cspTarget.Mode.HasFlag(CspMode.Nonce))
+                {
+                    kv.Value.script.Nonce = cspTarget.GenerateNonce();
+                }
+                else
+                {
+                    throw new InvalidOperationException("Cannot register CSP with the current configuration.");
                 }
             }
-            else if (cspTarget.Mode is CspMode.Nonce)
-            {
-                kv.Value.script.Nonce = cspTarget.GenerateNonce();
-            }
-            else if (cspTarget.Mode is CspMode.Sha256)
+            else if (cspTarget.Mode.HasFlag(CspMode.Sha256))
             {
                 if (content.IndexOf('\r') != -1)
                 {
+                    // TODO: Reduce allocations
                     content = content.ReplaceLineEndings("\n");
                 }
 
                 page.Csp.ScriptSrc.AddInlineHash(content);
+            }
+            else if (cspTarget.Mode.HasFlag(CspMode.Nonce))
+            {
+                kv.Value.script.Nonce = cspTarget.GenerateNonce();
+            }
+            else
+            {
+                throw new InvalidOperationException("Cannot register CSP with the current configuration.");
             }
         }
     }

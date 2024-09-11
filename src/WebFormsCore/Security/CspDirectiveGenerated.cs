@@ -23,6 +23,12 @@ public class CspDirectiveGenerated : CspDirective
 
     public string GenerateNonce()
     {
+        if (Name is "script-src" or "style-src")
+        {
+            // Added for backward compatible with browsers that do not support 'nonce'
+            SourceList.Add("'unsafe-inline'");
+        }
+
         const int length = 9;
         var nonceBytes = ArrayPool<byte>.Shared.Rent(length);
         RandomNumberGenerator.Fill(nonceBytes);
@@ -46,6 +52,12 @@ public class CspDirectiveGenerated : CspDirective
 
     public static string GetHash(string code)
     {
+        if (code.IndexOf('\r') != -1)
+        {
+            // TODO: Reduce allocations
+            code = code.ReplaceLineEndings("\n");
+        }
+
         var encoding = Encoding.UTF8;
         var byteLength = encoding.GetMaxByteCount(code.Length);
         if (byteLength > 4096)

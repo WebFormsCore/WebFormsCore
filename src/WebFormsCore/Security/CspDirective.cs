@@ -13,6 +13,8 @@ public class CspDirective : ICollection<string>
 
     public string Name { get; }
 
+    internal bool AllowDefault { get; set; } = true;
+
     public CspDirective(Csp csp, string name, string? defaultValue = null)
     {
         Csp = csp;
@@ -52,15 +54,18 @@ public class CspDirective : ICollection<string>
             return;
         }
 
-        foreach (var item in defaultDirective.SourceList)
+        if (AllowDefault)
         {
-            builder.Append(' ');
-            builder.Append(item);
+            foreach (var item in defaultDirective.SourceList)
+            {
+                builder.Append(' ');
+                builder.Append(item);
+            }
         }
 
         foreach (var item in SourceList)
         {
-            if (defaultDirective.SourceList.Contains(item))
+            if (AllowDefault && defaultDirective.SourceList.Contains(item))
             {
                 continue;
             }
@@ -99,15 +104,23 @@ public class CspDirective : ICollection<string>
             return true;
         }
 
-        if (item.StartsWith("http", StringComparison.OrdinalIgnoreCase) &&
-            !item.Contains('*') &&
-            Uri.TryCreate(item, UriKind.Absolute, out var uri))
+        if (item.Contains('*') ||
+            item.StartsWith('\'') ||
+            !Uri.TryCreate(item, UriKind.RelativeOrAbsolute, out var uri))
         {
-            Add(uri);
-            return true;
+            return false;
         }
 
-        return false;
+        if (uri.IsAbsoluteUri)
+        {
+            Add(uri);
+        }
+        else
+        {
+            SourceList.Add("'self'");
+        }
+
+        return true;
     }
 
     public void Add(Uri uri)

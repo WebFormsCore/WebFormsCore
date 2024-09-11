@@ -92,22 +92,28 @@ public class HtmlGenericControl : HtmlContainerControl
 
     private async ValueTask RegisterCspAsync(string? attributeName, CspDirective directive, CancellationToken token)
     {
-        if (attributeName is not null && directive.TryAddUri(Attributes[attributeName]))
+        if (attributeName is not null &&
+            (directive is not CspDirectiveGenerated { Mode: var mode } || !mode.HasFlag(CspMode.Uri)) &&
+            directive.TryAddUri(Attributes[attributeName]))
         {
             return;
         }
 
         if (directive is CspDirectiveGenerated extended)
         {
-            if (extended.Mode == CspMode.Sha256)
+            if (extended.Mode.HasFlag(CspMode.Sha256))
             {
-                _preRenderedContent = await this.RenderChildrenToStringAsync(token);
-                extended.AddInlineHash(_preRenderedContent);
+                var preRenderedContent = await this.RenderChildrenToStringAsync(token);
+
+                if (!string.IsNullOrWhiteSpace(preRenderedContent))
+                {
+                    _preRenderedContent = preRenderedContent;
+                    extended.AddInlineHash(preRenderedContent);
+                    return;
+                }
             }
-            else
-            {
-                _nonce = extended.GenerateNonce();
-            }
+
+            _nonce = extended.GenerateNonce();
         }
     }
 

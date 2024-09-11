@@ -392,7 +392,7 @@ public sealed class CssStyleCollection
 
     public async Task RenderAsync(HtmlTextWriter writer)
     {
-        if (_table is { Count: 0} && _intTable is { Count: 0 })
+        if (_table is null or { Count: 0} && _intTable is null or { Count: 0 })
         {
             return;
         }
