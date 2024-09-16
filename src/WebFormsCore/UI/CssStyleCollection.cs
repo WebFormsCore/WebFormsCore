@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI;
 
-public sealed class CssStyleCollection
+public sealed class CssStyleCollection : IEquatable<CssStyleCollection>
 {
     private static readonly Regex StyleAttribRegex = new(
         "\\G(\\s*(;\\s*)*" + // match leading semicolons and spaces
@@ -319,7 +319,7 @@ public sealed class CssStyleCollection
         // create a case-insensitive dictionary
         var table = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
 
-        var s = _state == null ? _style : (string?)_state["style"];
+        var s = _state == null ? _style : _state["style"];
         if (s == null)
         {
             return table;
@@ -456,5 +456,72 @@ public sealed class CssStyleCollection
         }
 
         writer.AddAttribute("style", sb.ToString());
+    }
+
+    public bool Equals(CssStyleCollection? other)
+    {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+
+        var left = _table ?? ParseString();
+        var right = other._table ?? other.ParseString();
+
+        if (left.Count != right.Count)
+        {
+            return false;
+        }
+
+        foreach (var (key, value) in left)
+        {
+            if (!right.TryGetValue(key, out var otherValue) || value != otherValue)
+            {
+                return false;
+            }
+        }
+
+        if (_intTable is null && other._intTable is null)
+        {
+            return true;
+        }
+
+        if ((_intTable?.Count ?? 0) != (other._intTable?.Count ?? 0))
+        {
+            return false;
+        }
+
+        if (_intTable is null || other._intTable is null)
+        {
+            return false;
+        }
+
+        foreach (var (key, value) in _intTable)
+        {
+            if (!other._intTable.TryGetValue(key, out var otherValue) || value != otherValue)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return ReferenceEquals(this, obj) || obj is CssStyleCollection other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(_table, _intTable);
+    }
+
+    public static bool operator ==(CssStyleCollection? left, CssStyleCollection? right)
+    {
+        return Equals(left, right);
+    }
+
+    public static bool operator !=(CssStyleCollection? left, CssStyleCollection? right)
+    {
+        return !Equals(left, right);
     }
 }

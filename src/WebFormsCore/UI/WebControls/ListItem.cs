@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace WebFormsCore.UI.WebControls;
 
-public sealed partial class ListItem : IAttributeAccessor
+public sealed partial class ListItem : IAttributeAccessor, IEquatable<ListItem>
 {
     [ViewState] private bool _selected;
     [ViewState] private bool _enabled;
@@ -105,7 +105,10 @@ public sealed partial class ListItem : IAttributeAccessor
     }
 
     /// <summary>Serves as a hash function for a particular type, and is suitable for use in hashing algorithms and data structures like a hash table.</summary>
-    public override int GetHashCode() => HashCode.Combine(Value.GetHashCode(), Text.GetHashCode());
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(_selected, _enabled, _value, _attributes, _text);
+    }
 
     /// <summary>Determines whether the specified object has the same value and text as the current list item.</summary>
     /// <returns>true if the specified object is equivalent to the current list item; otherwise, false.</returns>
@@ -129,4 +132,26 @@ public sealed partial class ListItem : IAttributeAccessor
     /// <param name="name">The name component of the attribute's name/value pair. </param>
     /// <param name="value">The value component of the attribute's name/value pair. </param>
     void IAttributeAccessor.SetAttribute(string name, string? value) => Attributes[name] = value;
+
+    /// <inheritdoc />
+    public bool Equals(ListItem? other)
+    {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return _selected == other._selected &&
+               _enabled == other._enabled &&
+               _value == other._value &&
+               _attributes.Equals(other._attributes) &&
+               _text == other._text;
+    }
+
+    public static bool operator ==(ListItem? left, ListItem? right)
+    {
+        return Equals(left, right);
+    }
+
+    public static bool operator !=(ListItem? left, ListItem? right)
+    {
+        return !Equals(left, right);
+    }
 }

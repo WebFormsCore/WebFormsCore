@@ -14,7 +14,7 @@ public interface IAttributeRenderer
     void AddAttributes(HtmlTextWriter writer);
 }
 
-public sealed class AttributeCollection : IDictionary<string, string?>, IViewStateObject, IAttributeAccessor, IAttributeRenderer
+public sealed class AttributeCollection : IDictionary<string, string?>, IViewStateObject, IAttributeAccessor, IAttributeRenderer, IEquatable<AttributeCollection>
 {
     private static readonly Dictionary<byte, string> IdToKey;
     private static readonly Dictionary<string, byte> KeyToId;
@@ -377,5 +377,51 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
     public void SetAttribute(string key, string? value)
     {
         this[key] = value;
+    }
+
+    public bool Equals(AttributeCollection? other)
+    {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+
+        if (_bag.Count != other._bag.Count)
+        {
+            return false;
+        }
+
+        foreach (var kv in _bag)
+        {
+            if (!other._bag.TryGetValue(kv.Key, out var value) || kv.Value != value)
+            {
+                return false;
+            }
+        }
+
+        if (_styleColl == null)
+        {
+            return other._styleColl == null;
+        }
+
+        return _styleColl.Equals(other._styleColl);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return ReferenceEquals(this, obj) || obj is AttributeCollection other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(_bag, _styleColl);
+    }
+
+    public static bool operator ==(AttributeCollection? left, AttributeCollection? right)
+    {
+        return Equals(left, right);
+    }
+
+    public static bool operator !=(AttributeCollection? left, AttributeCollection? right)
+    {
+        return !Equals(left, right);
     }
 }
