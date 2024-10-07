@@ -75,9 +75,9 @@ public partial class WebControl : Control, IAttributeAccessor
 
     protected virtual ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
-        if (AddClientIdToAttributes)
+        if (AddClientIdToAttributes && ClientID is {} clientId)
         {
-            writer.AddAttribute(HtmlTextWriterAttribute.Id, ClientID);
+            writer.AddAttribute(HtmlTextWriterAttribute.Id, clientId);
         }
 
         if (TabIndex > 0)
