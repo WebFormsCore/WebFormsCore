@@ -512,6 +512,12 @@ function getMorpdomSettings(options: { updateScripts: boolean, updateStyles: boo
             }
 
             if (fromEl.nodeName === "SCRIPT" && toEl.nodeName === "SCRIPT") {
+                if (fromEl.src === toEl.src && fromEl.innerHTML === toEl.innerHTML) {
+                    // Skip updating the script if the src and innerHTML are the same
+                    // Firefox will re-execute the script if we replace it
+                    return false;
+                }
+
                 const script = document.createElement('script');
 
                 for (let i = 0; i < toEl.attributes.length; i++) {

@@ -28,10 +28,14 @@ public class MorphdomTests
             });
         });
 
-        Assert.Equal("null", await result.ExecuteScriptAsync("return window.success ?? 'null'"));
+        Assert.Equal("null", await result.ExecuteScriptAsync("return window.counter ?? 'null'"));
 
         await result.Control.btnSetScript.ClickAsync();
 
-        Assert.Equal("true", await result.ExecuteScriptAsync("return window.success"));
+        Assert.Equal("1", await result.ExecuteScriptAsync("return window.counter"));
+
+        await result.Control.btnSetScript.ClickAsync();
+
+        Assert.Equal("1", await result.ExecuteScriptAsync("return window.counter"));
     }
 }

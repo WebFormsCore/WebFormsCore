@@ -7,7 +7,7 @@
 <body>
 <wfc:LinkButton runat="server" ID="btnSetScript" Text="Set Script" />
 <wfc:PlaceHolder runat="server" ID="phScript" Visible="False">
-<script>window.success = 'true';</script>
+<script>window.counter = (window.counter || 0) + 1;</script>
 </wfc:PlaceHolder>
 </body>
 </html>
