@@ -2449,7 +2449,20 @@
         }
     }
 
-    const sanitise = (input) => purify.sanitize(input, { RETURN_TRUSTED_TYPE: true });
+    const sanitise = (input, options) => {
+        const allowedTags = [];
+        if (options.updateScripts) {
+            allowedTags.push('script');
+        }
+        if (options.updateStyles) {
+            allowedTags.push('style');
+        }
+        return purify.sanitize(input, {
+            RETURN_TRUSTED_TYPE: true,
+            WHOLE_DOCUMENT: true,
+            ADD_TAGS: allowedTags,
+        });
+    };
     const morphdom = morphdomFactory((fromEl, toEl) => {
         if (!fromEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateAttributes", { cancelable: true, bubbles: true, detail: { node: fromEl, source: toEl } }))) {
             return;
@@ -2608,6 +2621,12 @@
         }
         return formData;
     }
+    function getOptions(data) {
+        return {
+            updateScripts: data[0] === '1',
+            updateStyles: data[1] === '1'
+        };
+    }
     async function submitForm(element, form, eventTarget, eventArgument) {
         var _a;
         const baseElement = element.closest('[data-wfc-base]');
@@ -2705,9 +2724,15 @@
             }
             else {
                 const text = await response.text();
-                const options = getMorpdomSettings(form);
+                const jsOptions = response.headers.has('x-wfc-options')
+                    ? getOptions(response.headers.get('x-wfc-options'))
+                    : {
+                        updateScripts: false,
+                        updateStyles: false
+                    };
+                const options = getMorpdomSettings(jsOptions, form);
                 const parser = new DOMParser();
-                const htmlDoc = parser.parseFromString(sanitise(text), 'text/html');
+                const htmlDoc = parser.parseFromString(sanitise(text, jsOptions), 'text/html');
                 if (form && form.getAttribute('data-wfc-form') === 'self') {
                     morphdom(form, htmlDoc.querySelector('[data-wfc-form]'), options);
                 }
@@ -2790,12 +2815,35 @@
             document.dispatchEvent(new CustomEvent("wfc:afterFileDownload", { detail: { element, response } }));
         }
     }
-    function getMorpdomSettings(form) {
+    function getMorpdomSettings(options, form) {
         return {
+            getNodeKey(node) {
+                if (node) {
+                    if (node.nodeName === 'SCRIPT' && (node.src || node.innerHTML)) {
+                        return node.src || node.innerHTML;
+                    }
+                    if (node.nodeName === 'STYLE' && node.innerHTML) {
+                        return node.innerHTML;
+                    }
+                    if (node.nodeName === 'LINK' && node.href) {
+                        return node.href;
+                    }
+                    return (node.getAttribute && node.getAttribute('id')) || node.id;
+                }
+            },
             onNodeAdded(node) {
                 document.dispatchEvent(new CustomEvent("wfc:addNode", { detail: { node, form } }));
                 if (node.nodeType === Node.ELEMENT_NODE) {
                     document.dispatchEvent(new CustomEvent("wfc:addElement", { detail: { element: node, form } }));
+                }
+                if (node.nodeName === 'SCRIPT') {
+                    const script = document.createElement('script');
+                    for (let i = 0; i < node.attributes.length; i++) {
+                        const attr = node.attributes[i];
+                        script.setAttribute(attr.name, attr.value);
+                    }
+                    script.innerHTML = node.innerHTML;
+                    node.replaceWith(script);
                 }
             },
             onBeforeElUpdated: function (fromEl, toEl) {
@@ -2818,6 +2866,16 @@
                     }
                     return false;
                 }
+                if (fromEl.nodeName === "SCRIPT" && toEl.nodeName === "SCRIPT") {
+                    const script = document.createElement('script');
+                    for (let i = 0; i < toEl.attributes.length; i++) {
+                        const attr = toEl.attributes[i];
+                        script.setAttribute(attr.name, attr.value);
+                    }
+                    script.innerHTML = toEl.innerHTML;
+                    fromEl.replaceWith(script);
+                    return false;
+                }
             },
             onElUpdated(el) {
                 if (el.nodeType === Node.ELEMENT_NODE) {
@@ -2826,7 +2884,9 @@
             },
             onBeforeNodeDiscarded(node) {
                 var _a, _b;
-                if (node.tagName === "SCRIPT" || node.tagName === "STYLE" || node.tagName === "LINK" && node.hasAttribute('rel') && node.getAttribute('rel') === 'stylesheet') {
+                if (node.tagName === "SCRIPT" && !options.updateScripts ||
+                    node.tagName === "STYLE" && !options.updateStyles ||
+                    node.tagName === "LINK" && node.hasAttribute('rel') && node.getAttribute('rel') === 'stylesheet' && !options.updateStyles) {
                     return false;
                 }
                 if (node instanceof Element && node.hasAttribute('data-wfc-form')) {
@@ -3110,9 +3170,12 @@
             element.isUpdating = false;
             webSocket.addEventListener('message', function (e) {
                 const parser = new DOMParser();
-                const htmlDoc = parser.parseFromString(sanitise(`<!DOCTYPE html><html><body>${e.data}</body></html>`), 'text/html');
+                const index = e.data.indexOf('|');
+                const options = getOptions(e.data.substring(0, index));
+                const data = e.data.substring(index + 1);
+                const htmlDoc = parser.parseFromString(sanitise(`<!DOCTYPE html><html><body>${data}</body></html>`, options), 'text/html');
                 element.isUpdating = true;
-                morphdom(element, htmlDoc.getElementById(id), getMorpdomSettings());
+                morphdom(element, htmlDoc.getElementById(id), getMorpdomSettings(options));
                 element.isUpdating = false;
             });
             webSocket.addEventListener('open', function () {

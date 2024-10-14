@@ -9,14 +9,21 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.IO;
 
 namespace WebFormsCore.UI.WebControls;
 
 [JsonSerializable(typeof(WebSocketCommand))]
+[JsonSerializable(typeof(JavaScriptWebFormsCoreOptions))]
 internal partial class JsonContext : JsonSerializerContext
 {
 }
+
+internal record JavaScriptWebFormsCoreOptions(
+    [property: JsonPropertyName("updateScripts")] bool RenderScriptOnPostBack,
+    [property: JsonPropertyName("updateStyles")] bool RenderStyleOnPostBack
+);
 
 internal record WebSocketCommand(
     [property: JsonPropertyName("t"), Required] string EventTarget,
@@ -31,6 +38,7 @@ public class StreamPanel : Control, INamingContainer
     private Task<WebSocketReceiveResult>? _receiveTask;
     private bool _prerender;
     private TaskCompletionSource _stateHasChangedTcs = new();
+    private IOptions<WebFormsCoreOptions>? _options;
 
     public event AsyncEventHandler<StreamPanel, EventArgs>? Connected;
 
@@ -178,8 +186,13 @@ public class StreamPanel : Control, INamingContainer
 
     private async Task UpdateControlAsync(CancellationToken token = default)
     {
+        _options ??= Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>() ?? Options.Create(new WebFormsCoreOptions());
+
         using var memory = MemoryStreamManager.GetStream();
         await using var writer = new StreamHtmlTextWriter(memory);
+
+        writer.Write(PageManager.ToJavaScriptOptions(_options.Value));
+        writer.Write('|');
 
         Context.Response.Body = new FlushHtmlStream(memory, writer);
 

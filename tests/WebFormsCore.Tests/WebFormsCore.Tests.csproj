@@ -40,66 +40,6 @@
         <AdditionalFiles Update="**/*.ascx">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>
-
-        <AdditionalFiles Update="Repeater\Pages\TypedRepeaterPage.aspx">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="Repeater\Pages\RepeaterPage.aspx">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="Pages\ClickTest.aspx">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="Controls\Dispose\DisposePage.aspx">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="Controls\DisposeTests\Pages\DisposePage.aspx">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="Controls\Buttons\Pages\ClickTest.aspx">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="Controls\HtmlGenericControls\Pages\DivAttributes.aspx">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="Controls\Repeaters\Pages\LargeRepeaterPage.aspx">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="Controls\Checkboxes\Pages\DisposePage.aspx">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="Controls\Checkboxes\Pages\CheckboxPostbackPage.aspx">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="Controls\Checkboxes\Pages\CheckboxAutoPostbackPage.aspx">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="Csp\Pages\CspNonceTest.aspx">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="Csp\Pages\CspSha256Test.aspx">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="Interceptors\Pages\RequestInterceptor.aspx">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
-
-        <AdditionalFiles Update="Interceptors\Pages\CspSha256Test.aspx">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AdditionalFiles>
     </ItemGroup>
 
     <ItemGroup>

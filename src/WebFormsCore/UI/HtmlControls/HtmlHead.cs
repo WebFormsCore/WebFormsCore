@@ -40,9 +40,14 @@ public class HtmlHead() : HtmlContainerControl("head")
     {
         var page = control.Page;
 
-        if (!page.IsPostBack)
+        if (HtmlStyle.RenderStyles(control))
         {
-            await page.ClientScript.RenderHeadStart(writer);
+            await page.ClientScript.RenderHeadStart(writer, ScriptType.Style);
+        }
+
+        if (HtmlScript.RenderScripts(control))
+        {
+            await page.ClientScript.RenderHeadStart(writer, ScriptType.Script);
         }
     }
 
@@ -55,9 +60,14 @@ public class HtmlHead() : HtmlContainerControl("head")
             await renderer.RenderHeadAsync(page, writer, token);
         }
 
-        if (!page.IsPostBack)
+        if (HtmlStyle.RenderStyles(control))
         {
-            await page.ClientScript.RenderHeadEnd(writer);
+            await page.ClientScript.RenderHeadEnd(writer, ScriptType.Style);
+        }
+
+        if (HtmlScript.RenderScripts(control))
+        {
+            await page.ClientScript.RenderHeadEnd(writer, ScriptType.Script);
         }
     }
 

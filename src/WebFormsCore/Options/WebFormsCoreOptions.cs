@@ -69,4 +69,9 @@ public class WebFormsCoreOptions
     /// Gets or sets a value indicating whether the script should be rendered on postback.
     /// </summary>
     public bool RenderScriptOnPostBack { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the script should be rendered on postback.
+    /// </summary>
+    public bool RenderStylesOnPostBack { get; set; }
 }

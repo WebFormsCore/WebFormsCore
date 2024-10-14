@@ -58,7 +58,7 @@ namespace WebFormsCore.UI.WebControls
                 else if (Controls.All(c => c is LiteralControl))
                 {
                     Controls.Clear();
-                    Controls.AddWithoutPageEvents(WebActivator.CreateLiteral(value));
+                    Controls.AddWithoutPageEvents(IsInPage ? WebActivator.CreateLiteral(value) : new LiteralControl { Text = value });
                 }
                 else if (Controls.Count > 0)
                 {
@@ -66,7 +66,7 @@ namespace WebFormsCore.UI.WebControls
                 }
                 else
                 {
-                    Controls.AddWithoutPageEvents(WebActivator.CreateLiteral(value));
+                    Controls.AddWithoutPageEvents(IsInPage ? WebActivator.CreateLiteral(value) : new LiteralControl { Text = value });
                 }
             }
         }

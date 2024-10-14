@@ -16,13 +16,18 @@ public class HtmlScript : HtmlGenericControl
 
     public override ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        var options = Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>()?.Value;
-
-        if (Page.IsPostBack && !(options?.RenderScriptOnPostBack ?? false))
+        if (!RenderScripts(this))
         {
             return default;
         }
 
         return base.RenderAsync(writer, token);
+    }
+
+    internal static bool RenderScripts(Control control)
+    {
+        var options = control.Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>()?.Value;
+
+        return !control.Page.IsPostBack || (options?.RenderScriptOnPostBack ?? false);
     }
 }

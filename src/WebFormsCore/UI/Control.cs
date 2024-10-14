@@ -45,6 +45,7 @@ public partial class Control : System.Web.UI.Control
     private IWebObjectActivator? _webObjectActivator;
     private RenderAsyncDelegate? _renderMethod;
     private bool _visible = true;
+    private bool _visibleTracking;
     private bool _trackViewState;
     protected internal ControlState _state = ControlState.Constructed;
     private bool? _enableViewState;
@@ -191,7 +192,11 @@ public partial class Control : System.Web.UI.Control
     public virtual bool Visible
     {
         get => _visible && (_parent == null || _parent.Visible);
-        set => _visible = value;
+        set
+        {
+            _visible = value;
+            _visibleTracking = ViewState.IsTracking;
+        }
     }
 
     public bool SelfVisible => _visible;
@@ -353,6 +358,7 @@ public partial class Control : System.Web.UI.Control
         _webObjectActivator = null;
         _renderMethod = null;
         _visible = true;
+        _visibleTracking = false;
         _trackViewState = false;
         _enableViewState = null;
         _forceClientIdAttribute = false;
@@ -856,7 +862,7 @@ public partial class Control : System.Web.UI.Control
 
     protected virtual void OnWriteViewState(ref ViewStateWriter writer)
     {
-        writer.Write(_visible);
+        writer.Write<bool?>(_visibleTracking ? _visible : null);
 
         if (EnableViewStateBag)
         {
@@ -873,7 +879,10 @@ public partial class Control : System.Web.UI.Control
 
     protected virtual void OnLoadViewState(ref ViewStateReader reader)
     {
-        _visible = reader.Read<bool>();
+        if (reader.Read<bool?>() is { } visible)
+        {
+            _visible = visible;
+        }
 
         if (EnableViewStateBag)
         {

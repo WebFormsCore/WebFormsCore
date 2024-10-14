@@ -11,6 +11,8 @@ public class HtmlTitle : HtmlContainerControl
 
     protected override bool GenerateAutomaticID => false;
 
+    protected override bool AddClientIdToAttributes => false;
+
     public string Text
     {
         get => InnerText;

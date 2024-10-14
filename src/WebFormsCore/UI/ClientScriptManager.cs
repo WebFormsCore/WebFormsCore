@@ -12,7 +12,7 @@ namespace WebFormsCore.UI;
 
 internal class RegisteredScript : IResettable
 {
-    public (ScriptType, Type, string) Key { get; set; }
+    public (ScriptType ScriptType, Type Type, string Key) Key { get; set; }
     public string Script { get; set; } = string.Empty;
     public string? Nonce { get; set; }
     public RegisterType Type { get; set; }
@@ -46,7 +46,7 @@ internal enum RegisterType
     ExternalStyle
 }
 
-internal enum ScriptType
+public enum ScriptType
 {
     Script,
     Style
@@ -252,7 +252,7 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
         }
     }
 
-    private async ValueTask Render(HtmlTextWriter writer, ScriptList scripts)
+    private async ValueTask Render(HtmlTextWriter writer, ScriptList scripts, ScriptType scriptType)
     {
         await writer.WriteLineAsync();
         var current = RegisterType.Raw;
@@ -260,6 +260,12 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
         foreach (var kv in scripts)
         {
             var (script, cspNonce, type, attributes) = kv;
+
+            if (kv.Key.ScriptType != scriptType)
+            {
+                continue;
+            }
+
             var attr = type switch
             {
                 RegisterType.ExternalScript => "src",
@@ -318,7 +324,14 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
 
         await WriteEndTag(writer, current);
 
-        scripts.Clear();
+        if (scriptType == ScriptType.Script)
+        {
+            scripts.RemoveAll(s => s.Key.ScriptType == ScriptType.Script);
+        }
+        else
+        {
+            scripts.RemoveAll(s => s.Key.ScriptType == ScriptType.Style);
+        }
     }
 
     private static ValueTask WriteEndTag(HtmlTextWriter writer, RegisterType current)
@@ -347,23 +360,23 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
         };
     }
 
-    public ValueTask RenderHeadStart(HtmlTextWriter writer)
+    public ValueTask RenderHeadStart(HtmlTextWriter writer, ScriptType scriptType)
     {
-        return _headStart is null ? default : Render(writer, _headStart);
+        return _headStart is null ? default : Render(writer, _headStart, scriptType);
     }
 
-    public ValueTask RenderHeadEnd(HtmlTextWriter writer)
+    public ValueTask RenderHeadEnd(HtmlTextWriter writer, ScriptType scriptType)
     {
-        return _headEnd is null ? default : Render(writer, _headEnd);
+        return _headEnd is null ? default : Render(writer, _headEnd, scriptType);
     }
 
-    public ValueTask RenderBodyStart(HtmlTextWriter writer)
+    public ValueTask RenderBodyStart(HtmlTextWriter writer, ScriptType scriptType)
     {
-        return _bodyStart is null ? default : Render(writer, _bodyStart);
+        return _bodyStart is null ? default : Render(writer, _bodyStart, scriptType);
     }
 
-    public ValueTask RenderBodyEnd(HtmlTextWriter writer)
+    public ValueTask RenderBodyEnd(HtmlTextWriter writer, ScriptType scriptType)
     {
-        return _bodyEnd is null ? default : Render(writer, _bodyEnd);
+        return _bodyEnd is null ? default : Render(writer, _bodyEnd, scriptType);
     }
 }

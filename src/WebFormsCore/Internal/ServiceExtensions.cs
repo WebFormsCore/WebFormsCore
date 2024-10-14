@@ -105,6 +105,7 @@ public static class ServiceExtensions
         builder.TryAddViewStateSerializer<ListViewStateSerializer>();
         builder.TryAddViewStateSerializer<ViewStateObjectSerializer>();
         builder.TryAddViewStateSerializer<EnumViewStateSerializer>();
+        builder.TryAddViewStateSerializer<bool?, NullableBoolViewStateSerializer>();
         builder.TryAddViewStateSerializer<NullableViewStateSerializer>();
         builder.TryAddViewStateSerializer<Type, TypeViewStateSerializer>();
         builder.TryAddViewStateSerializer<string, StringViewStateSerializer>();
@@ -195,7 +196,6 @@ public static class ServiceExtensions
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
         TSerializer>(this IWebFormsCoreBuilder builder)
         where TSerializer : class, IViewStateSerializer<T>
-        where T : notnull
     {
         TryAddViewStateSerializer<TSerializer>(builder);
         builder.Services.TryAddSingleton<IViewStateSerializer<T>>(p => p.GetRequiredService<TSerializer>());

@@ -4,7 +4,23 @@ import morphdomFactory from "morphdom/src/morphdom";
 import DOMPurify from 'dompurify';
 import { Mutex } from 'async-mutex';
 
-const sanitise = (input: string) => DOMPurify.sanitize(input, {RETURN_TRUSTED_TYPE: true});
+const sanitise = (input: string, options: JavaScriptOptions) => {
+    const allowedTags = [];
+
+    if (options.updateScripts) {
+        allowedTags.push('script');
+    }
+
+    if (options.updateStyles) {
+        allowedTags.push('style');
+    }
+
+    return DOMPurify.sanitize(input, {
+        RETURN_TRUSTED_TYPE: true,
+        WHOLE_DOCUMENT: true,
+        ADD_TAGS: allowedTags,
+    })
+}
 
 const morphdom = morphdomFactory((fromEl, toEl) => {
     if (!fromEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateAttributes", {cancelable: true, bubbles: true, detail: {node: fromEl, source: toEl}}))) {
@@ -203,6 +219,18 @@ function getFormData(form?: HTMLElement, eventTarget?: string, eventArgument?: s
     return formData;
 }
 
+interface JavaScriptOptions {
+    updateScripts: boolean
+    updateStyles: boolean
+}
+
+function getOptions(data: string): JavaScriptOptions {
+    return {
+        updateScripts: data[0] === '1',
+        updateStyles: data[1] === '1'
+    }
+}
+
 async function submitForm(element: Element, form?: HTMLElement, eventTarget?: string, eventArgument?: string) {
     const baseElement = element.closest('[data-wfc-base]') as HTMLElement;
     let target: HTMLElement;
@@ -311,10 +339,17 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
             receiveFile(element, response, contentDisposition);
         } else {
             const text = await response.text();
-            const options = getMorpdomSettings(form);
+
+            const jsOptions: JavaScriptOptions = response.headers.has('x-wfc-options')
+                ? getOptions(response.headers.get('x-wfc-options'))
+                : {
+                    updateScripts: false,
+                    updateStyles: false
+                };
+            const options = getMorpdomSettings(jsOptions, form);
 
             const parser = new DOMParser();
-            const htmlDoc = parser.parseFromString(sanitise(text), 'text/html');
+            const htmlDoc = parser.parseFromString(sanitise(text, jsOptions), 'text/html');
 
             if (form && form.getAttribute('data-wfc-form') === 'self') {
                 morphdom(form, htmlDoc.querySelector('[data-wfc-form]'), options);
@@ -412,13 +447,42 @@ async function receiveFile(element: Element, response: Response, contentDisposit
     }
 }
 
-function getMorpdomSettings(form?: HTMLElement) {
+function getMorpdomSettings(options: { updateScripts: boolean, updateStyles: boolean }, form?: HTMLElement) {
     return {
+        getNodeKey(node) {
+            if (node) {
+                if (node.nodeName === 'SCRIPT' && (node.src || node.innerHTML)) {
+                    return node.src || node.innerHTML;
+                }
+
+                if (node.nodeName === 'STYLE' && node.innerHTML) {
+                    return node.innerHTML;
+                }
+
+                if (node.nodeName === 'LINK' && node.href) {
+                    return node.href;
+                }
+
+                return (node.getAttribute && node.getAttribute('id')) || node.id;
+            }
+        },
         onNodeAdded(node) {
             document.dispatchEvent(new CustomEvent("wfc:addNode", {detail: {node, form}}));
 
             if (node.nodeType === Node.ELEMENT_NODE) {
                 document.dispatchEvent(new CustomEvent("wfc:addElement", {detail: {element: node, form}}));
+            }
+
+            if (node.nodeName === 'SCRIPT') {
+                const script = document.createElement('script');
+
+                for (let i = 0; i < node.attributes.length; i++) {
+                    const attr = node.attributes[i];
+                    script.setAttribute(attr.name, attr.value);
+                }
+
+                script.innerHTML = node.innerHTML;
+                node.replaceWith(script);
             }
         },
         onBeforeElUpdated: function(fromEl, toEl) {
@@ -446,6 +510,19 @@ function getMorpdomSettings(form?: HTMLElement) {
 
                 return false;
             }
+
+            if (fromEl.nodeName === "SCRIPT" && toEl.nodeName === "SCRIPT") {
+                const script = document.createElement('script');
+
+                for (let i = 0; i < toEl.attributes.length; i++) {
+                    const attr = toEl.attributes[i];
+                    script.setAttribute(attr.name, attr.value);
+                }
+
+                script.innerHTML = toEl.innerHTML;
+                fromEl.replaceWith(script)
+                return false;
+            }
         },
         onElUpdated(el) {
             if (el.nodeType === Node.ELEMENT_NODE) {
@@ -453,7 +530,9 @@ function getMorpdomSettings(form?: HTMLElement) {
             }
         },
         onBeforeNodeDiscarded(node) {
-            if (node.tagName === "SCRIPT" || node.tagName === "STYLE" || node.tagName === "LINK" && node.hasAttribute('rel') && node.getAttribute('rel') === 'stylesheet') {
+            if (node.tagName === "SCRIPT" && !options.updateScripts ||
+                node.tagName === "STYLE" && !options.updateStyles ||
+                node.tagName === "LINK" && node.hasAttribute('rel') && node.getAttribute('rel') === 'stylesheet' && !options.updateStyles) {
                 return false;
             }
 
@@ -814,10 +893,13 @@ wfc.bind('[data-wfc-stream]', {
 
         webSocket.addEventListener('message', function(e) {
             const parser = new DOMParser();
-            const htmlDoc = parser.parseFromString(sanitise(`<!DOCTYPE html><html><body>${e.data}</body></html>`), 'text/html');
+            const index = e.data.indexOf('|');
+            const options = getOptions(e.data.substring(0, index));
+            const data = e.data.substring(index + 1);
+            const htmlDoc = parser.parseFromString(sanitise(`<!DOCTYPE html><html><body>${data}</body></html>`, options), 'text/html');
 
             element.isUpdating = true;
-            morphdom(element, htmlDoc.getElementById(id), getMorpdomSettings());
+            morphdom(element, htmlDoc.getElementById(id), getMorpdomSettings(options));
             element.isUpdating = false;
         });
 

@@ -14,4 +14,6 @@ public interface ITestContext
     IElement? QuerySelector(string selector);
 
     IAsyncEnumerable<IElement> QuerySelectorAll(string selector);
+
+    ValueTask<string?> ExecuteScriptAsync(string script);
 }

@@ -57,9 +57,7 @@ public class HtmlGenericControl : HtmlContainerControl
 
         if (_tagName.Equals("script", StringComparison.OrdinalIgnoreCase))
         {
-            var options = Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>()?.Value;
-
-            if (Page.IsPostBack && !(options?.RenderScriptOnPostBack ?? false))
+            if (!HtmlScript.RenderScripts(Page))
             {
                 return default;
             }
@@ -69,11 +67,21 @@ public class HtmlGenericControl : HtmlContainerControl
         }
         else if (_tagName.Equals("link", StringComparison.OrdinalIgnoreCase) && Attributes["rel"] == "stylesheet")
         {
+            if (!HtmlStyle.RenderStyles(Page))
+            {
+                return default;
+            }
+
             directive = Page.Csp.StyleSrc;
             attributeName = "href";
         }
         else if (_tagName.Equals("style", StringComparison.OrdinalIgnoreCase))
         {
+            if (!HtmlStyle.RenderStyles(Page))
+            {
+                return default;
+            }
+
             directive = Page.Csp.StyleSrc;
             attributeName = null;
         }

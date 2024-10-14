@@ -62,6 +62,11 @@ internal class SeleniumTestContext<T>(IHost host, IWebDriver driver) : WebServer
             .AsAsyncEnumerable();
     }
 
+    public override ValueTask<string?> ExecuteScriptAsync(string script)
+    {
+        return new ValueTask<string?>(((IJavaScriptExecutor)driver).ExecuteScript(script)?.ToString());
+    }
+
     protected override ValueTask DisposeCoreAsync()
     {
         driver.Dispose();

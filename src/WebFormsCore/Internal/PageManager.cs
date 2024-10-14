@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -92,6 +93,13 @@ public class PageManager : IPageManager
             return;
         }
 
+        if (page.IsPostBack)
+        {
+            var options = _options.Value;
+
+            response.Headers["x-wfc-options"] = ToJavaScriptOptions(options);
+        }
+
         var stream = context.Response.Body;
         await using var writer = new StreamHtmlTextWriter(stream);
 
@@ -110,6 +118,17 @@ public class PageManager : IPageManager
         await writer.FlushAsync();
 
         context.Response.Body = stream;
+    }
+
+    internal static string ToJavaScriptOptions(WebFormsCoreOptions options)
+    {
+        return options switch
+        {
+            { RenderScriptOnPostBack: true, RenderStylesOnPostBack: true } => "11",
+            { RenderScriptOnPostBack: true } => "10",
+            { RenderStylesOnPostBack: true } => "01",
+            _ => "00"
+        };
     }
 
     /// <summary>
@@ -483,8 +502,8 @@ public class PageManager : IPageManager
                 }
             }
 
-            await page.ClientScript.RenderHeadStart(writer);
-            await page.ClientScript.RenderHeadEnd(writer);
+            await page.ClientScript.RenderHeadEnd(writer, ScriptType.Style);
+            await page.ClientScript.RenderHeadStart(writer, ScriptType.Script);
         }
 
         var request = context.Request;

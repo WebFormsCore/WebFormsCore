@@ -46,9 +46,14 @@ public class HtmlBody() : HtmlContainerControl("body")
     {
         var page = control.Page;
 
-        if (!page.IsPostBack)
+        if (HtmlStyle.RenderStyles(control))
         {
-            await page.ClientScript.RenderBodyStart(writer);
+            await page.ClientScript.RenderBodyStart(writer, ScriptType.Style);
+        }
+
+        if (HtmlScript.RenderScripts(control))
+        {
+            await page.ClientScript.RenderBodyStart(writer, ScriptType.Script);
         }
     }
 
@@ -61,9 +66,15 @@ public class HtmlBody() : HtmlContainerControl("body")
             await renderer.RenderBodyAsync(page, writer, token);
         }
 
-        if (!page.IsPostBack)
+
+        if (HtmlStyle.RenderStyles(control))
         {
-            await page.ClientScript.RenderBodyEnd(writer);
+            await page.ClientScript.RenderBodyEnd(writer, ScriptType.Style);
+        }
+
+        if (HtmlScript.RenderScripts(control))
+        {
+            await page.ClientScript.RenderBodyEnd(writer, ScriptType.Script);
         }
 
         var viewStateManager = control.Context.RequestServices.GetRequiredService<IViewStateManager>();

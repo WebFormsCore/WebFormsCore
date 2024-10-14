@@ -39,7 +39,6 @@ public interface IViewStateSpanSerializer<T>
 }
 
 public abstract class ViewStateSerializer<T> : IViewStateSerializer<T>
-    where T : notnull
 {
     public abstract void Write(Type type, ref ViewStateWriter writer, T? value, T? defaultValue);
 

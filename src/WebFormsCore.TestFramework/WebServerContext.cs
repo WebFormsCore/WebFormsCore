@@ -81,4 +81,6 @@ public abstract class WebServerContext<T>(IHost host) : IWebServerContext<T>
     public abstract IElement? QuerySelector(string selector);
 
     public abstract IAsyncEnumerable<IElement> QuerySelectorAll(string selector);
+
+    public abstract ValueTask<string?> ExecuteScriptAsync(string script);
 }

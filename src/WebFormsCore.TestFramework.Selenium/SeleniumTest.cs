@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,13 +22,15 @@ public static class SeleniumTest
     public static Task<ITestContext<TControl>> StartAsync<TControl>(
         Browser browser,
         Action<IServiceCollection>? configure = null,
-        bool headless = true)
+        bool? headless = null)
         where TControl : Control, new()
     {
+        headless ??= !Debugger.IsAttached;
+
         return browser switch
         {
-            Browser.Chrome => StartChromeAsync<TControl>(configure, headless),
-            Browser.Firefox => StartFirefoxAsync<TControl>(configure, headless),
+            Browser.Chrome => StartChromeAsync<TControl>(configure, headless.Value),
+            Browser.Firefox => StartFirefoxAsync<TControl>(configure, headless.Value),
             _ => throw new NotSupportedException(),
         };
     }
@@ -42,7 +45,7 @@ public static class SeleniumTest
         IWebDriver DriverFactory()
         {
             var chromeOptions = new ChromeOptions();
-            if (headless) chromeOptions.AddArgument("headless");
+            if (headless) chromeOptions.AddArgument("--headless=old");
             chromeOptions.AddArgument("disable-search-engine-choice-screen");
             chromeOptions.AddArgument("no-sandbox");
 
