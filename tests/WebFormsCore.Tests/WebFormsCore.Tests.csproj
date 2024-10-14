@@ -92,6 +92,14 @@
         <AdditionalFiles Update="Csp\Pages\CspSha256Test.aspx">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>
+
+        <AdditionalFiles Update="Interceptors\Pages\RequestInterceptor.aspx">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
+        <AdditionalFiles Update="Interceptors\Pages\CspSha256Test.aspx">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
     </ItemGroup>
 
     <ItemGroup>

@@ -40,6 +40,24 @@ export interface Sys {
     }
 }
 
+export interface ViewStateContainer {
+    formData: FormData;
+    element: Element;
+
+    querySelectorAll(selectors: string): Array<Element>;
+    querySelector(selector: string): Element | null;
+    addInputs(selector: string): void;
+}
+
+export interface WfcBeforeSubmitEvent {
+    target: HTMLElement,
+    container: ViewStateContainer,
+    eventTarget: string,
+    element: Element
+
+    addRequestInterceptor(interceptor: ((request: RequestInit) => void | Promise<void>)): void;
+}
+
 declare global {
     var wfc: WebFormsCore
     var Sys: Sys
@@ -49,9 +67,17 @@ declare global {
         Sys: Sys;
     }
 
-    interface Element {
+    interface WebFormsCoreEvent {
+        addEventListener(event: "wfc:beforeSubmit", listener: (this: this, ev: CustomEvent<WfcBeforeSubmitEvent>) => any, options?: boolean | AddEventListenerOptions): void;
+    }
+    
+    interface Document extends WebFormsCoreEvent {
+    }
+
+    interface Element extends WebFormsCoreEvent {
         webSocket: WebSocket | undefined;
         isUpdating: boolean;
+        dispatchEvent(event: Event): boolean;
     }
 
     var trustedTypes: {

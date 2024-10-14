@@ -1,4 +1,4 @@
-import {WebFormsCore} from "../../../typings";
+import {WebFormsCore, WfcBeforeSubmitEvent} from "../../../typings";
 import morphAttrs from "morphdom/src/morphAttrs";
 import morphdomFactory from "morphdom/src/morphdom";
 import DOMPurify from 'dompurify';
@@ -24,7 +24,7 @@ let pendingPostbacks = 0;
 
 class ViewStateContainer {
 
-    constructor(private element: HTMLElement | undefined, private formData: FormData) {
+    constructor(public element: HTMLElement | undefined, public formData: FormData) {
     }
 
     querySelector(selector: string) {
@@ -225,6 +225,7 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
 
     pendingPostbacks++;
     const release = await postbackMutex.acquire();
+    const interceptors: Array<(request: RequestInit) => void | Promise<void>> = [];
 
     try {
         const cancelled = !target.dispatchEvent(new CustomEvent("wfc:beforeSubmit", {
@@ -234,8 +235,11 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
                 target,
                 container,
                 eventTarget,
-                element
-            }
+                element,
+                addRequestInterceptor(input) {
+                    interceptors.push(input);
+                }
+            } as WfcBeforeSubmitEvent
         }));
 
         if (cancelled) {
@@ -252,6 +256,14 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
         };
 
         request.body = hasElementFile(document.body) ? formData : new URLSearchParams(formData as any);
+
+        for (const interceptor of interceptors) {
+            const result = interceptor(request);
+
+            if (result instanceof Promise) {
+                await result;
+            }
+        }
 
         let response: Response;
 
@@ -688,7 +700,7 @@ const wfc: WebFormsCore = {
         }
 
         if (submit) {
-            document.addEventListener('wfc:beforeSubmit', function (e: CustomEvent) {
+            document.addEventListener('wfc:beforeSubmit', function (e: CustomEvent<WfcBeforeSubmitEvent>) {
                 const {container} = e.detail;
 
                 for (const element of container.querySelectorAll(selectors)) {

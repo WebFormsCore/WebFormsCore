@@ -2629,6 +2629,7 @@
         }
         pendingPostbacks++;
         const release = await postbackMutex.acquire();
+        const interceptors = [];
         try {
             const cancelled = !target.dispatchEvent(new CustomEvent("wfc:beforeSubmit", {
                 bubbles: true,
@@ -2637,7 +2638,10 @@
                     target,
                     container,
                     eventTarget,
-                    element
+                    element,
+                    addRequestInterceptor(input) {
+                        interceptors.push(input);
+                    }
                 }
             }));
             if (cancelled) {
@@ -2652,6 +2656,12 @@
                 }
             };
             request.body = hasElementFile(document.body) ? formData : new URLSearchParams(formData);
+            for (const interceptor of interceptors) {
+                const result = interceptor(request);
+                if (result instanceof Promise) {
+                    await result;
+                }
+            }
             let response;
             try {
                 response = await fetch(url, request);
