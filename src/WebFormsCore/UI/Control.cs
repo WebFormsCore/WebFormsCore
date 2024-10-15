@@ -49,6 +49,7 @@ public partial class Control : System.Web.UI.Control
     private bool _trackViewState;
     protected internal ControlState _state = ControlState.Constructed;
     private bool? _enableViewState;
+    private string? _clientId;
 
     protected bool IsTrackingViewState => _trackViewState;
 
@@ -266,7 +267,7 @@ public partial class Control : System.Web.UI.Control
         }
     }
 
-    public ClientIDMode EffectiveClientIDModeValue { get; set; }
+    public ClientIDMode EffectiveClientIDModeValue { get; private set; }
 
     internal virtual ClientIDMode EffectiveClientIDMode
     {
@@ -299,7 +300,7 @@ public partial class Control : System.Web.UI.Control
     {
         get
         {
-            return EffectiveClientIDMode switch
+            return _clientId ?? EffectiveClientIDMode switch
             {
                 ClientIDMode.Predictable => PredictableClientID,
                 ClientIDMode.Static => ID,
@@ -307,6 +308,7 @@ public partial class Control : System.Web.UI.Control
                 _ => UniqueClientID
             };
         }
+        set => _clientId = value;
     }
 
     internal string? UniqueClientID
@@ -363,6 +365,7 @@ public partial class Control : System.Web.UI.Control
         _enableViewState = null;
         _forceClientIdAttribute = false;
         _state = ControlState.Constructed;
+        _clientId = null;
     }
 
     protected virtual string GetUniqueIDPrefix()
