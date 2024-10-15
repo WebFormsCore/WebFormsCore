@@ -13,5 +13,5 @@ public interface IElement
 
     ValueTask<bool> IsVisibleAsync();
 
-    ValueTask<string> GetAttributeAsync(string dataFoo);
+    ValueTask<string> GetAttributeAsync(string name);
 }

@@ -70,6 +70,16 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
             return;
         }
 
+        if (_items.Count > 0)
+        {
+            if (_items.Count != count)
+            {
+                throw new InvalidOperationException("The number of items in the repeater has changed.");
+            }
+
+            return;
+        }
+
         Clear();
 
         for (var i = 0; i < count; i++)

@@ -23,8 +23,8 @@ internal class SeleniumElement(IWebElement element) : IElement
         return ValueTask.FromResult(element.Displayed);
     }
 
-    public ValueTask<string> GetAttributeAsync(string dataFoo)
+    public ValueTask<string> GetAttributeAsync(string name)
     {
-        return ValueTask.FromResult(element.GetAttribute(dataFoo));
+        return ValueTask.FromResult(element.GetAttribute(name));
     }
 }

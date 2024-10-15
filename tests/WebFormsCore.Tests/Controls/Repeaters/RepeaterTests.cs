@@ -33,4 +33,28 @@ public class RepeaterTests
 
         Assert.Equal("10", result.Control.SelectedId);
     }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task LabelInitViewState(Browser type)
+    {
+        await using var result = await StartAsync<InitRepeaterViewState>(type);
+
+        Assert.Equal("Success", result.Control.lblViewState.GetBrowserText());
+        Assert.Equal(3, await result.QuerySelectorAll(".repeater-label").CountAsync());
+
+        await foreach (var label in result.QuerySelectorAll(".repeater-label"))
+        {
+            Assert.Equal("Success", label.Text);
+        }
+
+        await result.Control.btnSubmit.ClickAsync();
+
+        Assert.Equal("Success", result.Control.lblViewState.GetBrowserText());
+        Assert.Equal(3, await result.QuerySelectorAll(".repeater-label").CountAsync());
+
+        await foreach (var label in result.QuerySelectorAll(".repeater-label"))
+        {
+            Assert.Equal("Success", label.Text);
+        }
+    }
 }

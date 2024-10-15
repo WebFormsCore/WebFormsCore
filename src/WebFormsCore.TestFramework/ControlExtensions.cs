@@ -23,4 +23,14 @@ public static class ControlExtensions
     {
         return control.FindBrowserElement().TypeAsync(text);
     }
+
+    public static ValueTask<string> GetBrowserAttributeAsync(this Control control, string name)
+    {
+        return control.FindBrowserElement().GetAttributeAsync(name);
+    }
+
+    public static string GetBrowserText(this Control control)
+    {
+        return control.FindBrowserElement().Text;
+    }
 }
