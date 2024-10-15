@@ -57,4 +57,21 @@ public class RepeaterTests
             Assert.Equal("Success", label.Text);
         }
     }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task NestedRepeater(Browser type)
+    {
+        await using var result = await StartAsync<NestedRepeaterPage>(type);
+
+        Assert.Equal(4, await result.QuerySelectorAll(".repeater-label").CountAsync());
+
+        var values = await result.QuerySelectorAll(".repeater-label").Select(x => x.Text).ToListAsync();
+
+        Assert.Equal([
+            "1 - 1",
+            "1 - 2",
+            "2 - 1",
+            "2 - 2"
+        ], values);
+    }
 }

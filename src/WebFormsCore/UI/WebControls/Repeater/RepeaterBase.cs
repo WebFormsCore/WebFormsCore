@@ -134,7 +134,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
 
         if (_dataSource is null)
         {
-            throw new InvalidOperationException("The DataSource property must be set.");
+            return;
         }
 
         await _dataSource.LoadAsync(this, dataBinding, filterByKeys);

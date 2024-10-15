@@ -19,7 +19,7 @@
             {{- end }}
 
             {{- for prop in $0.Templates }}
-            {{ $0.VariableName }}.{{ prop.Property }} = new {{ prop.ClassName }}(WebActivator, this);
+            {{ $0.VariableName }}.{{ prop.Property }} = new {{ prop.ClassName }}(WebActivator, {{ $1 }});
             {{- end }}
 
             {{- for prop in $0.Events }}
@@ -29,7 +29,7 @@
             {{ $0.VariableName }}.{{ prop.EventName }} += ({{ prop.Arguments }}) =>
             {
                 {{ if !prop.IsVoid }}var result = {{ end -}}
-                {{ $1 }}{{- prop.MethodName }}({{ prop.Arguments }});
+                {{ $1 }}.{{- prop.MethodName }}({{ prop.Arguments }});
                 return {{ prop.ReturnValue }};
             };
             {{- end }}
@@ -256,7 +256,7 @@ public partial class CompiledViews_{{ type.AssemblyName }}
             {{- if type.RenderName }}
             SetRenderMethodDelegate({{ type.RenderName }});
             {{- end }}
-            {{ write_children type.AllChildren "this" null type.ItemType }}
+            {{ write_children type.AllChildren "this" "this" type.ItemType }}
         }
 
         {{- for template in type.Templates }}
@@ -279,10 +279,10 @@ public partial class CompiledViews_{{ type.AssemblyName }}
 {{- if template.RenderName }}
                 var control = new global::WebFormsCore.UI.Control();
                 control.SetRenderMethodDelegate({{ template.RenderName }});
-                {{ write_children template.AllChildren "control" "_parent." template.ItemType }}
+                {{ write_children template.AllChildren "control" "_parent" template.ItemType }}
                 container.AddParsedSubObject(control);
 {{- else }}
-                {{ write_children template.AllChildren "container" "_parent." template.ItemType }}
+                {{ write_children template.AllChildren "container" "_parent" template.ItemType }}
 {{- end }}
             }
         }

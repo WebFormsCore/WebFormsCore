@@ -48,6 +48,10 @@
         <AdditionalFiles Update="Controls\Controls\Pages\CheckboxPostbackPage.aspx">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>
+
+        <AdditionalFiles Update="Controls\Repeaters\Pages\NestedRepeaterPage.aspx">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
     </ItemGroup>
 
     <ItemGroup>

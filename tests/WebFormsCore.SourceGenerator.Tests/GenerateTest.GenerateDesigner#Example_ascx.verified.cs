@@ -51,7 +51,7 @@ public partial class CompiledViews_Tests
             
             ctrl1.Click += (sender, e) =>
             {
-                btnIncrement_OnClick(sender, e);
+                this.btnIncrement_OnClick(sender, e);
                 return System.Threading.Tasks.Task.CompletedTask;
             };
             this.btnIncrement = ctrl1;
