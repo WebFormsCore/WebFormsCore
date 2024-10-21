@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +37,17 @@ builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession();
 
 var app = builder.Build();
+
+app.Use((c, n) =>
+{
+    if (c.Request.Path == "/favicon.ico")
+    {
+        c.Response.StatusCode = 404;
+        return Task.CompletedTask;
+    }
+
+    return n(c);
+});
 
 app.UseSession();
 app.UseWebSockets();

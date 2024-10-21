@@ -257,8 +257,9 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
         await writer.WriteLineAsync();
         var current = RegisterType.Raw;
 
-        foreach (var kv in scripts)
+        for (var index = 0; index < scripts.Count; index++)
         {
+            var kv = scripts[index];
             var (script, cspNonce, type, attributes) = kv;
 
             if (kv.Key.ScriptType != scriptType)
@@ -319,19 +320,11 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
             }
 
             _registeredScripts.Remove(kv.Key);
+            scripts.RemoveAt(index--);
             RegisteredScriptPool.Return(kv);
         }
 
         await WriteEndTag(writer, current);
-
-        if (scriptType == ScriptType.Script)
-        {
-            scripts.RemoveAll(s => s.Key.ScriptType == ScriptType.Script);
-        }
-        else
-        {
-            scripts.RemoveAll(s => s.Key.ScriptType == ScriptType.Style);
-        }
     }
 
     private static ValueTask WriteEndTag(HtmlTextWriter writer, RegisterType current)

@@ -51,12 +51,15 @@ public class DataSource : IDataSource
         }
     }
 
-    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2075:UnrecognizedReflectionPattern", Justification = "Requires dynamic code")]
     public ValueTask LoadAsync(IDataSourceConsumer consumer, bool dataBinding, bool filterByKeys)
     {
+#pragma warning disable IL2075
+#pragma warning disable IL2076
         var genericMethod = typeof(IDataSourceConsumer)
             .GetMethod(nameof(IDataSourceConsumer.LoadDataSourceAsync), BindingFlags.Instance | BindingFlags.Public)!
             .MakeGenericMethod(ElementType);
+#pragma warning restore IL2075
+#pragma warning restore IL2076
 
         return (ValueTask) genericMethod.Invoke(consumer, [Value, dataBinding, filterByKeys])!;
     }
