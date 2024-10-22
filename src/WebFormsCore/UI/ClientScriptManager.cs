@@ -245,6 +245,10 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
             {
                 kv.Value.script.Nonce = cspTarget.GenerateNonce();
             }
+            else if (cspTarget.Mode.HasFlag(CspMode.UnsafeInline))
+            {
+                cspTarget.Add("'unsafe-inline'");
+            }
             else
             {
                 throw new InvalidOperationException("Cannot register CSP with the current configuration.");
