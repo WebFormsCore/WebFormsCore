@@ -109,6 +109,11 @@ public class HtmlGenericControl : HtmlContainerControl
 
         if (directive is CspDirectiveGenerated extended)
         {
+            if (extended.Mode.HasFlag(CspMode.UnsafeInline))
+            {
+                return;
+            }
+
             if (extended.Mode.HasFlag(CspMode.Sha256))
             {
                 var preRenderedContent = await this.RenderChildrenToStringAsync(token);

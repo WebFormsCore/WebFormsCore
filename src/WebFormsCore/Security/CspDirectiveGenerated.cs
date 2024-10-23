@@ -41,11 +41,23 @@ public class CspDirectiveGenerated : CspDirective
 
     public void AddInlineHash(string code)
     {
+        if (Mode.HasFlag(CspMode.UnsafeInline))
+        {
+            SourceList.Add("'unsafe-inline'");
+            return;
+        }
+
         SourceList.Add(GetHash(code));
     }
 
     public void AddUnsafeInlineHash(string code)
     {
+        if (Mode.HasFlag(CspMode.UnsafeInline))
+        {
+            SourceList.Add("'unsafe-inline'");
+            return;
+        }
+
         SourceList.Add("'unsafe-hashes'");
         SourceList.Add(GetHash(code));
     }
