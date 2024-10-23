@@ -52,6 +52,10 @@
         <AdditionalFiles Update="Controls\Repeaters\Pages\NestedRepeaterPage.aspx">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>
+
+        <AdditionalFiles Update="Controls\Repeaters\Pages\PredictableRepeaterId.aspx">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
     </ItemGroup>
 
     <ItemGroup>

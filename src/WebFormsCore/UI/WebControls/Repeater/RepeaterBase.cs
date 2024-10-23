@@ -31,6 +31,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
     protected RepeaterBase()
     {
         Keys = new KeyCollection(this);
+        Items = new ReadOnlyList(_items);
     }
 
     public string[] DataKeys { get; set; } = Array.Empty<string>();
@@ -42,7 +43,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
         set => _itemType = value;
     }
 
-    public IEnumerable<TItem> Items => _items.Select(x => x.Item);
+    public ReadOnlyList Items { get; }
 
     public ITemplate? HeaderTemplate { get; set; }
 
@@ -401,6 +402,15 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
         var itemIndex = itemType is ListItemType.Item or ListItemType.AlternatingItem ? _itemCount++ : -1;
         var item = await CreateItemAsync(itemIndex, itemType);
 
+        item.ID = itemType switch
+        {
+            ListItemType.Header => "h",
+            ListItemType.Footer => "f",
+            ListItemType.Item or ListItemType.AlternatingItem => $"i{itemIndex}",
+            ListItemType.Separator => $"s{itemIndex}",
+            _ => throw new ArgumentOutOfRangeException(nameof(itemType))
+        };
+
         Controls.AddWithoutPageEvents(item);
         InitializeItem(item);
 
@@ -452,4 +462,22 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandle
         get => _dataSource;
         set => _dataSource = value;
     }
+
+    public class ReadOnlyList(IReadOnlyList<(TItem Item, Control? Seperator)> items) : IReadOnlyList<TItem>
+    {
+        public IEnumerator<TItem> GetEnumerator()
+        {
+            return items.Select(x => x.Item).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public int Count => items.Count;
+
+        public TItem this[int index] => items[index].Item;
+    }
+
 }

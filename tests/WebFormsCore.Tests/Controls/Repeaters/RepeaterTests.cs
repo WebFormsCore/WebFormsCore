@@ -74,4 +74,15 @@ public class RepeaterTests
             "2 - 2"
         ], values);
     }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task PredictableRepeaterId(Browser type)
+    {
+        await using var result = await StartAsync<PredictableRepeaterId>(type);
+
+        var clientId = result.Control.items.Items[0].FindControl("lbl")?.ClientID;
+
+        Assert.NotNull(clientId);
+        Assert.Equal(clientId, result.QuerySelector(".result")?.Text);
+    }
 }
