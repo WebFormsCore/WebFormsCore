@@ -11,6 +11,8 @@
 <body id="Body" runat="server">
 
 <div class="container">
+    <wfc:DropDownList runat="server" ID="list" AutoPostBack="True" OnSelectedIndexChanged="list_OnSelectedIndexChanged" />
+
     <wfc:Choices runat="server" ID="choices" AutoPostBack="True" Multiple="True" OnValuesChanged="choices_OnValuesChanged">
         <Items>
             <wfc:ListItem runat="server" Value="1" Text="One" />

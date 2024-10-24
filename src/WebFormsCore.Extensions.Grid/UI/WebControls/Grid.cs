@@ -7,7 +7,7 @@ namespace WebFormsCore.UI.WebControls;
 
 [ParseChildren(true)]
 [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
-public partial class Grid : WebControl, IPostBackLoadHandler, IDataSourceConsumer, IDisposable, IDataKeyProvider, INeedDataSourceProvider
+public partial class Grid : WebControl, IPostBackAsyncLoadHandler, IDataSourceConsumer, IDisposable, IDataKeyProvider, INeedDataSourceProvider
 {
     private readonly List<GridItem> _items = new();
     private bool _ignorePaging;

@@ -27,6 +27,13 @@ public partial class Default : Page
         Csp.RequireTrustedTypesFor.Add("'script'");
         // EnablePageViewState = false;
 
+        list.Items =
+        [
+            new ListItem("Item 1", "1"),
+            new ListItem("Item 2", "2"),
+            new ListItem("Item 3", "3")
+        ];
+
         await phTodoContainer.Controls.AddAsync(
             LoadControl("TodoList.ascx")
         );
@@ -92,6 +99,13 @@ public partial class Default : Page
     {
         Response.StatusCode = 302;
         Response.Headers["Location"] = "https://www.example.com";
+        return Task.CompletedTask;
+    }
+
+    protected Task list_OnSelectedIndexChanged(DropDownList sender, EventArgs e)
+    {
+        sender.SelectedIndex = 0;
+
         return Task.CompletedTask;
     }
 }

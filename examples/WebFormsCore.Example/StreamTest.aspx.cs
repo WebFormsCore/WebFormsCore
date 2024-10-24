@@ -14,7 +14,7 @@ using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.Example;
 
-public partial class StreamTest : Page, IPostBackLoadHandler
+public partial class StreamTest : Page, IPostBackAsyncLoadHandler
 {
 	[ViewState] public bool ShowClock { get; set; }
 

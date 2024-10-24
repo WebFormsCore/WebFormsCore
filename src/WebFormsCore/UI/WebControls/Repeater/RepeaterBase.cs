@@ -10,7 +10,7 @@ using WebFormsCore.Providers;
 
 namespace WebFormsCore.UI.WebControls;
 
-public abstract partial class RepeaterBase<TItem> : Control, IPostBackLoadHandler, INamingContainer, IDataKeyProvider, IDataSourceConsumer
+public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadHandler, INamingContainer, IDataKeyProvider, IDataSourceConsumer
     where TItem : Control, IRepeaterItem
 {
     private readonly List<(TItem Item, Control? Seperator)> _items = new();

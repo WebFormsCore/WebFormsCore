@@ -270,7 +270,7 @@ public class ViewStateManager : IViewStateManager
     /// <summary>
     /// Try to load the view state for as many controls as possible with the span-reader.
     /// </summary>
-    private IPostBackLoadHandler? LoadViewState(
+    private IPostBackAsyncLoadHandler? LoadViewState(
         ref ViewStateControlEnumerator controls,
         ViewStateReaderOwner owner,
         ref int actualControlCount)
@@ -288,7 +288,12 @@ public class ViewStateManager : IViewStateManager
 
                 if (control is IPostBackLoadHandler handler)
                 {
-                    return handler;
+                    handler.AfterPostBackLoad();
+                }
+
+                if (control is IPostBackAsyncLoadHandler asyncHandler)
+                {
+                    return asyncHandler;
                 }
             }
 

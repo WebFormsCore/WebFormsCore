@@ -32,7 +32,7 @@ public interface IWebObjectActivator
     HtmlContainerControl CreateElement(string tagName);
 }
 
-public interface IPostBackLoadHandler
+public interface IPostBackAsyncLoadHandler
 {
     /// <summary>
     /// Called after the control view state has been loaded but before the view state of child controls have been loaded.
@@ -41,6 +41,17 @@ public interface IPostBackLoadHandler
     /// This is directly after the method <see cref="Control.LoadViewState"/>.
     /// </remarks>
     Task AfterPostBackLoadAsync();
+}
+
+public interface IPostBackLoadHandler
+{
+    /// <summary>
+    /// Called after the control view state has been loaded but before the view state of child controls have been loaded.
+    /// </summary>
+    /// <remarks>
+    /// This is directly after the method <see cref="Control.LoadViewState"/>.
+    /// </remarks>
+    void AfterPostBackLoad();
 }
 
 public interface IPostBackEventHandler
