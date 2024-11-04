@@ -51,6 +51,10 @@ public partial class Control : System.Web.UI.Control
     private bool? _enableViewState;
     private string? _clientId;
 
+    public event AsyncEventHandler<Control, EventArgs>? Init;
+    public event AsyncEventHandler<Control, EventArgs>? Load;
+    public event AsyncEventHandler<Control, EventArgs>? PreRender;
+
     protected bool IsTrackingViewState => _trackViewState;
 
     public IWebObjectActivator WebActivator => _webObjectActivator ??= ServiceProvider.GetRequiredService<IWebObjectActivator>();
@@ -308,7 +312,11 @@ public partial class Control : System.Web.UI.Control
                 _ => UniqueClientID
             };
         }
-        set => _clientId = value;
+        set
+        {
+            _clientId = value;
+            _forceClientIdAttribute = true;
+        }
     }
 
     internal string? UniqueClientID
@@ -366,6 +374,10 @@ public partial class Control : System.Web.UI.Control
         _forceClientIdAttribute = false;
         _state = ControlState.Constructed;
         _clientId = null;
+
+        Init = null;
+        Load = null;
+
     }
 
     protected virtual string GetUniqueIDPrefix()
@@ -516,19 +528,24 @@ public partial class Control : System.Web.UI.Control
         }
     }
 
-    internal async ValueTask AddedControlAsync(ControlState state, Control control)
+    internal async ValueTask InvokeStateMethodsAsync(ControlState state, Control control)
     {
-        if (state >= ControlState.Initialized)
+        if (state >= ControlState.FrameworkInitialized && control._state < ControlState.FrameworkInitialized)
+        {
+            control.InvokeFrameworkInit(default);
+        }
+
+        if (state >= ControlState.Initialized && control._state < ControlState.Initialized)
         {
             await control.InvokeInitAsync(default);
         }
 
-        if (state >= ControlState.Loaded)
+        if (state >= ControlState.Loaded && control._state < ControlState.Loaded)
         {
             await control.InvokeLoadAsync(default, Page.ActiveForm);
         }
 
-        if (state >= ControlState.PreRendered)
+        if (state >= ControlState.PreRendered && control._state < ControlState.PreRendered)
         {
             await control.InvokePreRenderAsync(default, Page.ActiveForm);
         }

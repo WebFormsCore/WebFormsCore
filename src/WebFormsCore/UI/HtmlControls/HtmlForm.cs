@@ -10,16 +10,16 @@ namespace WebFormsCore.UI.HtmlControls;
 
 public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
 {
+    private bool _processControl;
+
     public HtmlForm()
         : base("form")
     {
     }
 
-    protected override bool ProcessControl => Page._state <= ControlState.Initialized || !Page.IsPostBack || Page.ActiveForm == this;
+    protected override bool ProcessControl => _processControl || _state <= ControlState.Initialized || !Page.IsPostBack || Page.ActiveForm == this;
 
     public event AsyncEventHandler<HtmlForm, EventArgs>? Submit;
-
-    public bool UpdatePage { get; set; } = true;
 
     private bool IsDiv => Page.IsExternal;
 
@@ -51,6 +51,17 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
 
     public override string TagName => IsDiv ? "div" : "form";
 
+    protected override void FrameworkInitialize()
+    {
+        base.FrameworkInitialize();
+
+        // Dynamically added form
+        if (Page._state > ControlState.Initialized)
+        {
+            _processControl = true;
+        }
+    }
+
     protected internal virtual async Task OnSubmitAsync(CancellationToken token)
     {
         await Submit.InvokeAsync(this, EventArgs.Empty);
@@ -80,7 +91,7 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         }
 
         await writer.WriteAttributeAsync("id", ClientID);
-        await writer.WriteAttributeAsync("data-wfc-form", UpdatePage ? null : "self");
+        await writer.WriteAttributeAsync("data-wfc-form", null);
     }
 
     protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
@@ -117,8 +128,8 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
     {
         base.ClearControl();
 
-        UpdatePage = true;
         Submit = null;
         LastViewState = null;
+        _processControl = false;
     }
 }

@@ -426,7 +426,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
         var state = _state;
         if (state != ControlState.Constructed)
         {
-            await AddedControlAsync(state, item);
+            await InvokeStateMethodsAsync(state, item);
         }
 
         if (dataBinding)

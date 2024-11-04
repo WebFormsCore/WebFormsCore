@@ -262,6 +262,7 @@ public partial class Control : IInternalControl
 
             OnInit(EventArgs.Empty);
             await OnInitAsync(token);
+            await Init.InvokeAsync(this, EventArgs.Empty);
 
             InvokeTrackViewState();
 
@@ -348,6 +349,7 @@ public partial class Control : IInternalControl
 
             OnLoad(EventArgs.Empty);
             await OnLoadAsync(token);
+            await Load.InvokeAsync(this, EventArgs.Empty);
 
             _state = ControlState.Loaded;
         }
@@ -371,6 +373,7 @@ public partial class Control : IInternalControl
 
             OnPreRender(EventArgs.Empty);
             await OnPreRenderAsync(token);
+            await PreRender.InvokeAsync(this, EventArgs.Empty);
 
             _state = ControlState.PreRendered;
         }

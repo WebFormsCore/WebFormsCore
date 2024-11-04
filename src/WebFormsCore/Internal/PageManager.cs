@@ -181,16 +181,15 @@ public class PageManager : IPageManager
         HtmlForm? form = null;
         StringValues formState = default;
 
+        if (request.Form.TryGetValue("wfcPageState", out var pageState))
+        {
+            await _viewStateManager.LoadAsync(page, pageState.ToString()!);
+        }
+
         if (request.Form.TryGetValue("wfcForm", out var formId) &&
             request.Form.TryGetValue("wfcFormState", out formState))
         {
             form = page.Forms.FirstOrDefault(i => i.UniqueID == formId);
-        }
-
-        if (form is null or { UpdatePage: true} &&
-            request.Form.TryGetValue("wfcPageState", out var pageState))
-        {
-            await _viewStateManager.LoadAsync(page, pageState.ToString()!);
         }
 
         if (form != null && !string.IsNullOrEmpty(formState))
@@ -219,7 +218,7 @@ public class PageManager : IPageManager
     private async Task<Control?> ProcessRequestAsync(HttpContext context, Page page, HtmlForm? form, bool render, CancellationToken token)
     {
         var serviceProvider = context.RequestServices;
-        var target = form is null or { UpdatePage: true } ? (Control)page : form;
+        var target = page; // form is null or { UpdatePage: true } ? (Control)page : form;
         var pageServices = serviceProvider.GetServices<IPageService>() as IPageService[] ?? Array.Empty<IPageService>();
 
         page.ActiveForm = form;

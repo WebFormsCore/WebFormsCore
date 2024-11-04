@@ -235,9 +235,7 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
     const baseElement = element.closest('[data-wfc-base]') as HTMLElement;
     let target: HTMLElement;
 
-    if (form && form.getAttribute('data-wfc-form') === 'self') {
-        target = form;
-    } else if (baseElement) {
+    if (baseElement) {
         target = baseElement;
     } else {
         target = document.body;

@@ -38,7 +38,7 @@ public class ControlCollection : IReadOnlyCollection<Control>
         var state = Owner._state;
 
         return state != ControlState.Constructed
-            ? Owner.AddedControlAsync(state, child)
+            ? Owner.InvokeStateMethodsAsync(state, child)
             : default;
     }
 
