@@ -17,7 +17,9 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
     {
     }
 
-    protected override bool ProcessControl => _processControl || _state <= ControlState.Initialized || !Page.IsPostBack || Page.ActiveForm == this;
+    protected override bool ProcessControl => ProcessAndRenderControl || _state <= ControlState.Initialized;
+
+    private bool ProcessAndRenderControl => _processControl || !Page.IsPostBack || Page.ActiveForm == this;
 
     public event AsyncEventHandler<HtmlForm, EventArgs>? Submit;
 
@@ -117,11 +119,22 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         }
     }
 
-    public override ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
-    {
-        if (!ProcessControl) return default;
 
-        return base.RenderAsync(writer, token);
+
+    public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    {
+        if (!ProcessAndRenderControl)
+        {
+            // Ignore the current form
+            await writer.WriteBeginTagAsync(TagName);
+            await writer.WriteAttributeAsync("id", ClientID);
+            await writer.WriteAttributeAsync("data-wfc-ignore", null);
+            await writer.WriteAsync('>');
+            await RenderEndTagAsync(writer, token);
+            return;
+        }
+
+        await base.RenderAsync(writer, token);
     }
 
     public override void ClearControl()

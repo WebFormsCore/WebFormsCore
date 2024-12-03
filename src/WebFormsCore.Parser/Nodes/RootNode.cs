@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Scriban;
 using WebFormsCore.Models;
+using WebFormsCore.SourceGenerator.Models;
 using Lexer = WebFormsCore.Language.Lexer;
 using Parser = WebFormsCore.Language.Parser;
 using TokenType = WebFormsCore.Models.TokenType;
@@ -184,7 +185,7 @@ public class RootNode : ContainerNode
 
     [return: NotNullIfNotNull("text")]
     public static RootNode? Parse(
-        out IEnumerable<Diagnostic> diagnostics,
+        out ImmutableArray<ReportedDiagnostic> diagnostics,
         Compilation compilation,
         string fullPath,
         string? text,
@@ -197,7 +198,7 @@ public class RootNode : ContainerNode
     {
         if (text == null)
         {
-            diagnostics = Enumerable.Empty<Diagnostic>();
+            diagnostics = ImmutableArray<ReportedDiagnostic>.Empty;
             return null;
         }
 
@@ -214,7 +215,7 @@ public class RootNode : ContainerNode
 
         parser.Parse(ref lexer);
 
-        diagnostics = parser.Diagnostics;
+        diagnostics = parser.Diagnostics.ToImmutableArray();
 
         if (relativePath == null)
         {

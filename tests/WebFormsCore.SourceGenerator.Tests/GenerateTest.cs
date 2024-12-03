@@ -260,4 +260,34 @@ public class GenerateTest
 
         return Verifier.Verify(driver);
     }
+
+
+    [Fact]
+    public void UnknownPropertyWarning()
+    {
+        var compilation = CSharpCompilation.Create(
+            assemblyName: "Tests",
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+            references: [MetadataReference.CreateFromFile(typeof(Control).Assembly.Location)]);
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new CSharpDesignGenerator());
+
+        driver = driver.AddAdditionalTexts([
+            new MemoryAdditionalText(
+                "Example.ascx",
+                """
+                <%@ Control language="C#" %>
+                <%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI" %>
+
+                <wfc:Control InvalidPropertyName="Test" runat="server" />
+                """
+            )
+        ]);
+
+        driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
+
+        Assert.Single(diagnostics);
+        Assert.Equal(DiagnosticSeverity.Warning, diagnostics[0].Severity);
+        Assert.Equal("Could not find property 'InvalidPropertyName' on type 'WebFormsCore.UI.Control'", diagnostics[0].GetMessage());
+    }
 }

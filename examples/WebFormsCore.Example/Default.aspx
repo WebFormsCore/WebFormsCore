@@ -33,7 +33,7 @@
     <wfc:Button runat="server" Text="Go to example" OnClick="btnRedirect_OnClick" CssClass="btn btn-primary" />
 
     <wfc:HtmlForm runat="server" UpdatePage="False">
-        <wfc:Grid runat="server" ID="grid" class="table" PageSize="20" OnNeedDataSource="grid_OnNeedDataSource" EditRowAttributes-CssClass="table-active" DataKeys="Id">
+        <wfc:Grid runat="server" ID="grid" class="table" PageSize="20" OnNeedDataSource="grid_OnNeedDataSource" EditRowAttributes-CssClass="table-active" DataKeys="Id" LoadDataOnPostBack="True">
             <Columns>
                 <wfc:GridBoundColumn runat="server" DataField="Id" CellAttributes-CssClass="test" />
                 <wfc:GridBoundColumn DataField="Title" />

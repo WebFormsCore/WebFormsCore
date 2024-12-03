@@ -14,8 +14,7 @@ namespace WebFormsCore.SourceGenerator.Models;
 /// Remove this struct when the issue above is resolved.
 /// </remarks>
 [ExcludeFromCodeCoverage]
-internal readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnumerable<T>
-    where T : IEquatable<T>
+public readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnumerable<T>
 {
     /// <summary>
     /// The underlying <typeparamref name="T"/> array.
@@ -104,7 +103,40 @@ internal readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnu
     /// <inheritdoc/>
     public bool Equals(EquatableArray<T> array)
     {
-        return AsSpan().SequenceEqual(array.AsSpan());
+        var left = this.array.AsSpan();
+        var right = array.array.AsSpan();
+
+        if (left.Length != right.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < left.Length; i++)
+        {
+            var leftItem = left[i];
+            var rightItem = right[i];
+
+            if (leftItem is IEquatable<T> equatable)
+            {
+                if (!equatable.Equals(rightItem))
+                {
+                    return false;
+                }
+            }
+            else if (leftItem is null)
+            {
+                if (rightItem is not null)
+                {
+                    return false;
+                }
+            }
+            else if (!leftItem.Equals(rightItem))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <inheritdoc/>
@@ -157,6 +189,11 @@ internal readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnu
     public T[] ToArray()
     {
         return AsImmutableArray().ToArray();
+    }
+
+    public T[] GetUnsafeArray()
+    {
+        return array ?? Array.Empty<T>();
     }
 
     /// <summary>

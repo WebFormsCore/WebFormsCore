@@ -1,10 +1,8 @@
-﻿using System.Diagnostics;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.VisualBasic;
+﻿using Microsoft.CodeAnalysis;
 using WebFormsCore.Collections.Comparers;
 using WebFormsCore.Models;
 using WebFormsCore.Nodes;
+using WebFormsCore.SourceGenerator.Models;
 
 namespace WebFormsCore.Language;
 
@@ -51,7 +49,7 @@ public class Parser
 
     public RootNode Root => _container.Root;
 
-    public List<Diagnostic> Diagnostics { get; } = new();
+    public List<ReportedDiagnostic> Diagnostics { get; } = new();
 
     public void Parse(ref Lexer lexer)
     {
@@ -307,9 +305,9 @@ public class Parser
                             if (!IgnoredDirectiveNames.Contains(kv.Key.Value, StringComparer.OrdinalIgnoreCase))
                             {
                                 Diagnostics.Add(
-                                    Diagnostic.Create(
-                                        new DiagnosticDescriptor("ASP0003", "Could not find property", $"Could not find property '{kv.Key}' on type '{_type.Name}'", "ASP", DiagnosticSeverity.Warning, true),
-                                        kv.Value.Range,
+                                    ReportedDiagnostic.Create(
+                                        Descriptors.PropertyNotFound,
+                                        kv.Key.Range,
                                         kv.Key,
                                         _type.ToDisplayString()));
                             }
@@ -372,11 +370,11 @@ public class Parser
         if (_controlTypes.ContainsKey(key))
         {
             Diagnostics.Add(
-                Diagnostic.Create(
-                    new DiagnosticDescriptor("ASP0004", "Duplicate control registration",
-                        $"Duplicate control registration for '{key.Namespace}:{key.Name}'", "ASP",
-                        DiagnosticSeverity.Warning, true),
-                    src.Range));
+                ReportedDiagnostic.Create(
+                    Descriptors.DuplicateControlRegister,
+                    src.Range,
+                    tagPrefix.Value,
+                    tagName.Value));
 
             return;
         }
@@ -422,11 +420,7 @@ public class Parser
                 return;
             }
 
-            Diagnostics.Add(
-                Diagnostic.Create(
-                    new DiagnosticDescriptor("ASP0005", "Could not find control",
-                        $"Could not find control '{lexer.File}'", "ASP", DiagnosticSeverity.Warning, true), src.Range));
-
+            Diagnostics.Add(ReportedDiagnostic.Create(Descriptors.ControlNotFound, src.Range, lexer.File));
             _controlTypes.Add(key, ("WebFormsCore.UI.Control", path));
             return;
         }
@@ -436,10 +430,7 @@ public class Parser
 
         if (typeName is null)
         {
-            Diagnostics.Add(
-                Diagnostic.Create(
-                    new DiagnosticDescriptor("ASP0006", "Could not find inherits",
-                        $"Could not find inherits for '{lexer.File}'", "ASP", DiagnosticSeverity.Warning, true), src.Range));
+            Diagnostics.Add(ReportedDiagnostic.Create(Descriptors.InheritNotFound, src.Range, lexer.File));
 
             return;
         }
@@ -725,7 +716,7 @@ public class Parser
                 continue;
             }
 
-            SetAttribute(node, key, attribute.Value);
+            SetAttribute(node, attribute.Key, attribute.Value);
         }
     }
 
@@ -778,7 +769,7 @@ public class Parser
 
     private void SetAttribute(
         ITypedNode controlNode,
-        string key,
+        TokenString key,
         AttributeValue value)
     {
         var controlType = controlNode.Type;
@@ -811,13 +802,13 @@ public class Parser
             return;
         }
 
-        Diagnostics.Add(
-            Diagnostic.Create(
-                new DiagnosticDescriptor("ASP0001", "Could not find property", "Could not find property '{0}' on type '{1}'", "ASP", DiagnosticSeverity.Warning, true),
-                value.Range,
-                key,
-                controlType.ToDisplayString()));
+        Diagnostics.Add(ReportedDiagnostic.Create(
+            Descriptors.PropertyNotFound,
+            key.Range,
+            key,
+            controlType.ToDisplayString()));
     }
+
 
     private static RunAt FindRunAt(ref Lexer lexer)
     {
@@ -945,9 +936,11 @@ public class Parser
             var nameNamespace = endNamespace.HasValue ? endNamespace.Value.Value + ":" : null;
 
             Diagnostics.Add(
-                Diagnostic.Create(
-                    new DiagnosticDescriptor("ASP0002", "Mismatched closing tag", $"Expected closing tag '{popNamespace}{pop.Name}' but found '{nameNamespace}{name.Text}'", "ASP", DiagnosticSeverity.Warning, true),
-                    new TokenRange(lexer.File, startPosition, endPosition)));
+                ReportedDiagnostic.Create(
+                    Descriptors.UnexpectedClosingTag,
+                    new TokenRange(lexer.File, startPosition, endPosition),
+                    $"{popNamespace}{pop.Name}",
+                    $"{nameNamespace}{name.Text}"));
 
             return;
         }
@@ -1003,14 +996,8 @@ public class Parser
         type = _compilation.GetType("WebFormsCore.UI", "Control");
 
         Diagnostics.Add(
-            Diagnostic.Create(
-                new DiagnosticDescriptor(
-                    "WEBFORMS0001",
-                    "Could not find type",
-                    "Could not find type '{0}' in namespace '{1}'",
-                    "WebForms",
-                    DiagnosticSeverity.Warning,
-                    true),
+            ReportedDiagnostic.Create(
+                Descriptors.TypeNotFoundInNamespace,
                 name.Range,
                 name.Value,
                 elementNs));

@@ -71,7 +71,7 @@ public class GridCell : TableCell
     }
 }
 
-public partial class GridItem : TableRow, IDataItemContainer
+public partial class GridItem : TableRow, IDataItemContainer, IRepeaterItem
 {
     internal readonly List<GridCell> Cells = new();
     private object? _dataItem;
@@ -148,6 +148,8 @@ public partial class GridItem : TableRow, IDataItemContainer
     int IDataItemContainer.DataItemIndex => ItemIndex;
 
     int IDataItemContainer.DisplayIndex => ItemIndex;
+
+    ListItemType IRepeaterItem.ItemType => ListItemType.Item;
 
     internal async ValueTask AddCell(GridCell cell)
     {

@@ -10,9 +10,11 @@ using WebFormsCore.Providers;
 
 namespace WebFormsCore.UI.WebControls;
 
-public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadHandler, INamingContainer, IDataKeyProvider, IDataSourceConsumer
+public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadHandler, INamingContainer, IDataKeyProvider, IDataSourceConsumer, INeedDataSourceProvider
     where TItem : Control, IRepeaterItem
 {
+    private bool _ignorePaging;
+
     private readonly List<(TItem Item, Control? Seperator)> _items = new();
     private Control? _header;
     private Control? _footer;
@@ -20,6 +22,8 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
     protected IReadOnlyList<(TItem Item, Control? Seperator)> ItemsAndSeparators => _items;
     protected Control? Header => _header;
     protected Control? Footer => _footer;
+
+    public bool LoadDataOnPostBack { get; set; }
 
     [ViewState] private bool _loadFromViewState;
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties), ViewState(WriteAlways = true)] private Type? _itemType;
@@ -34,7 +38,13 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
         Items = new ReadOnlyList(_items);
     }
 
-    public string[] DataKeys { get; set; } = Array.Empty<string>();
+    public int? PageSize { get; set; }
+
+    public int PageIndex { get; set; }
+
+    [ViewState] public int PageCount { get; private set; }
+
+    public string[] DataKeys { get; set; } = [];
 
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
     public virtual Type? ItemType
@@ -44,16 +54,6 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
     }
 
     public ReadOnlyList Items { get; }
-
-    public ITemplate? HeaderTemplate { get; set; }
-
-    public ITemplate? FooterTemplate { get; set; }
-
-    public ITemplate? SeparatorTemplate { get; set; }
-
-    public ITemplate? ItemTemplate { get; set; }
-
-    public ITemplate? AlternatingItemTemplate { get; set; }
 
     public object? DataSource
     {
@@ -71,6 +71,21 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
             return;
         }
 
+        if (LoadDataOnPostBack && ItemsAndSeparators.Count != count)
+        {
+            await LoadAsync(dataBinding: false, filterByKeys: true);
+            _ignorePaging = true;
+
+            if (ItemsAndSeparators.Count != count)
+            {
+                throw new InvalidOperationException($"The number of items in the repeater ({ItemsAndSeparators.Count}) does not match the number of items in the data source ({count}).");
+            }
+
+            Keys.Validate();
+
+            return;
+        }
+
         if (_items.Count > 0)
         {
             if (_items.Count != count)
@@ -81,6 +96,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
             return;
         }
 
+        await BeforeDataBindAsync();
         Clear();
 
         for (var i = 0; i < count; i++)
@@ -91,6 +107,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
 
     protected virtual async ValueTask LoadDataSourceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(object value, bool dataBinding, bool filterByKeys)
     {
+        await BeforeDataBindAsync();
         await LoadDataSourceCoreAsync<T>(value, dataBinding, filterByKeys);
 
         if (dataBinding)
@@ -149,6 +166,14 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
 
         Clear();
 
+        if (!_ignorePaging && PageSize.HasValue)
+        {
+            var count = await queryableProvider.CountAsync(dataSource);
+            PageCount = (int)Math.Ceiling(count / (double)PageSize.Value);
+
+            dataSource = dataSource.Skip(PageIndex * PageSize.Value).Take(PageSize.Value);
+        }
+
         var list = await queryableProvider.ToListAsync(dataSource);
 
         if (filterByKeys)
@@ -171,6 +196,16 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
         Clear();
 
         var i = 0;
+
+        if (!_ignorePaging && PageSize.HasValue)
+        {
+            // ReSharper disable once PossibleMultipleEnumeration
+            var count = dataSource.Count();
+            PageCount = (int)Math.Ceiling(count / (double)PageSize.Value);
+
+            // ReSharper disable once PossibleMultipleEnumeration
+            dataSource = dataSource.Skip(PageIndex * PageSize.Value).Take(PageSize.Value);
+        }
 
         var list = dataSource.ToList();
 
@@ -195,6 +230,16 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
         Clear();
 
         var i = 0;
+
+        if (!_ignorePaging && PageSize.HasValue)
+        {
+            // ReSharper disable once PossibleMultipleEnumeration
+            var count = await dataSource.CountAsync();
+            PageCount = (int)Math.Ceiling(count / (double)PageSize.Value);
+
+            // ReSharper disable once PossibleMultipleEnumeration
+            dataSource = dataSource.Skip(PageIndex * PageSize.Value).Take(PageSize.Value);
+        }
 
         var list = new List<T>();
 
@@ -225,6 +270,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
 
     public async Task AddAsync(object data)
     {
+        await BeforeDataBindAsync();
         await CreateItemAsync(true, data);
     }
 
@@ -349,28 +395,11 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
 
     public TItem this[int index] => _items[index].Item;
 
-    protected virtual void InitializeItem(TItem item)
-    {
-        var contentTemplate = item.ItemType switch
-        {
-            ListItemType.Header => HeaderTemplate,
-            ListItemType.Footer => FooterTemplate,
-            ListItemType.Item => ItemTemplate,
-            ListItemType.AlternatingItem => AlternatingItemTemplate ?? ItemTemplate,
-            ListItemType.Separator => SeparatorTemplate,
-            _ => null
-        };
+    protected abstract void InitializeItem(TItem item);
 
-        contentTemplate?.InstantiateIn(item);
-    }
-
-    protected virtual async ValueTask<TItem> CreateItemAsync(bool dataBinding = false, object? dataItem = default)
+    protected virtual async ValueTask<TItem?> CreateItemAsync(bool dataBinding = false, object? dataItem = default)
     {
-        if (_header == null && HeaderTemplate != null)
-        {
-            _header = await CreateItemAsync(ListItemType.Header, true);
-            _header.ID = "h";
-        }
+        _header ??= await CreateItemAsync(ListItemType.Header, true);
 
         Control? separator = null;
 
@@ -379,28 +408,30 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
         if (index > 0)
         {
             separator = await CreateItemAsync(ListItemType.Separator);
-            separator.ID = $"s{index}";
         }
 
         var itemType = (index % 2 == 0) ? ListItemType.Item : ListItemType.AlternatingItem;
         var item = await CreateItemAsync(itemType, dataBinding, dataItem);
 
-        item.ID = $"i{index}";
-        _items.Add((item, separator));
-
-        if (_footer == null && FooterTemplate != null)
+        if (item is not null)
         {
-            _footer = await CreateItemAsync(ListItemType.Footer, true);
-            _footer.ID = "f";
+            _items.Add((item, separator));
         }
+
+        _footer ??= await CreateItemAsync(ListItemType.Footer, true);
 
         return item;
     }
 
-    private async ValueTask<TItem> CreateItemAsync(ListItemType itemType, bool dataBinding = false, object? dataItem = default)
+    private async ValueTask<TItem?> CreateItemAsync(ListItemType itemType, bool dataBinding = false, object? dataItem = default)
     {
         var itemIndex = itemType is ListItemType.Item or ListItemType.AlternatingItem ? _itemCount++ : -1;
         var item = await CreateItemAsync(itemIndex, itemType);
+
+        if (item is null)
+        {
+            return null;
+        }
 
         item.ID = itemType switch
         {
@@ -416,10 +447,8 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
 
         if (dataItem != null)
         {
-            SetDataItem(item, dataItem!);
+            SetDataItem(item, dataItem);
         }
-
-        await item.DataBindAsync();
 
         await InvokeItemCreated(item);
 
@@ -431,6 +460,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
 
         if (dataBinding)
         {
+            item.InvokeTrackViewState(force: true);
             await item.DataBindAsync();
             await InvokeItemDataBound(item);
         }
@@ -443,7 +473,12 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
         // ignore
     }
 
-    protected abstract ValueTask<TItem> CreateItemAsync(int itemIndex, ListItemType itemType);
+    protected virtual ValueTask BeforeDataBindAsync()
+    {
+        return default;
+    }
+
+    protected abstract ValueTask<TItem?> CreateItemAsync(int itemIndex, ListItemType itemType);
 
     protected abstract void SetDataItem(TItem item, object dataItem);
 
@@ -461,6 +496,13 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
     {
         get => _dataSource;
         set => _dataSource = value;
+    }
+
+
+    bool INeedDataSourceProvider.IgnorePaging
+    {
+        get => _ignorePaging;
+        set => _ignorePaging = value;
     }
 
     public class ReadOnlyList(IReadOnlyList<(TItem Item, Control? Seperator)> items) : IReadOnlyList<TItem>

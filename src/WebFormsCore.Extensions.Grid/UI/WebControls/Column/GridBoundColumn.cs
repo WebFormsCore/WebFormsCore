@@ -20,7 +20,7 @@ public class GridBoundColumn : GridColumn
         {
             cell.PropertyInfo = member;
 
-            var renderers = Context.RequestServices.GetServices<IGridCellRenderer>();
+            var renderers = item.Context.RequestServices.GetServices<IGridCellRenderer>();
 
             foreach (var renderer in renderers)
             {
@@ -33,9 +33,24 @@ public class GridBoundColumn : GridColumn
         }
 
         await base.InvokeItemCreated(cell, item, isPostBack);
+
+        if (item.Grid.LoadDataOnPostBack)
+        {
+            await BindAsync(cell, item);
+        }
     }
 
     public override async ValueTask InvokeDataBinding(GridCell cell, GridItem item, bool isPostBack)
+    {
+        if (!item.Grid.LoadDataOnPostBack)
+        {
+            await BindAsync(cell, item);
+        }
+
+        await base.InvokeDataBinding(cell, item, isPostBack);
+    }
+
+    private async Task BindAsync(GridCell cell, GridItem item)
     {
         if (DataField is not null)
         {
@@ -50,8 +65,6 @@ public class GridBoundColumn : GridColumn
                 cell.Text = value?.ToString();
             }
         }
-
-        await base.InvokeDataBinding(cell, item, isPostBack);
     }
 
     protected override string? GetDefaultUniqueName()

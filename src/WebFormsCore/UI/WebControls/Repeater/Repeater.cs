@@ -9,8 +9,6 @@ namespace WebFormsCore.UI.WebControls;
 public interface IRepeaterItem : IDataItemContainer
 {
     ListItemType ItemType { get; }
-
-    Task DataBindAsync();
 }
 
 public enum ListItemType
@@ -26,9 +24,17 @@ public enum ListItemType
 }
 
 [ParseChildren(true)]
-public class Repeater : RepeaterBase<RepeaterItem>, INeedDataSourceProvider
+public class Repeater : RepeaterBase<RepeaterItem>
 {
-    private bool _ignorePaging;
+    public ITemplate? HeaderTemplate { get; set; }
+
+    public ITemplate? FooterTemplate { get; set; }
+
+    public ITemplate? SeparatorTemplate { get; set; }
+
+    public ITemplate? ItemTemplate { get; set; }
+
+    public ITemplate? AlternatingItemTemplate { get; set; }
 
     public event AsyncEventHandler<Repeater, RepeaterItemEventArgs>? ItemCreated;
 
@@ -36,38 +42,41 @@ public class Repeater : RepeaterBase<RepeaterItem>, INeedDataSourceProvider
 
     public event AsyncEventHandler<Repeater, NeedDataSourceEventArgs>? NeedDataSource;
 
-    public bool LoadDataOnPostBack { get; set; }
-
     protected override ValueTask InvokeNeedDataSource(bool filterByKeys)
     {
         return NeedDataSource.InvokeAsync(this, new NeedDataSourceEventArgs(this, filterByKeys));
     }
 
-    public override async Task AfterPostBackLoadAsync()
+    protected override void InitializeItem(RepeaterItem item)
     {
-        var count = ItemCount;
-
-        if (LoadDataOnPostBack && NeedDataSource != null && ItemsAndSeparators.Count != count)
+        var contentTemplate = item.ItemType switch
         {
-            await LoadAsync(dataBinding: false, filterByKeys: true);
-            _ignorePaging = true;
+            ListItemType.Header => HeaderTemplate,
+            ListItemType.Footer => FooterTemplate,
+            ListItemType.Item => ItemTemplate,
+            ListItemType.AlternatingItem => AlternatingItemTemplate ?? ItemTemplate,
+            ListItemType.Separator => SeparatorTemplate,
+            _ => null
+        };
 
-            if (ItemsAndSeparators.Count != count)
-            {
-                throw new InvalidOperationException($"The number of items in the repeater ({ItemsAndSeparators.Count}) does not match the number of items in the data source ({count}).");
-            }
-
-            Keys.Validate();
-
-            return;
-        }
-
-        await base.AfterPostBackLoadAsync();
+        contentTemplate?.InstantiateIn(item);
     }
 
-    protected override ValueTask<RepeaterItem> CreateItemAsync(int itemIndex, ListItemType itemType)
+    protected override ValueTask<RepeaterItem?> CreateItemAsync(int itemIndex, ListItemType itemType)
     {
-        return new ValueTask<RepeaterItem>(new RepeaterItem(itemIndex, itemType, this));
+        var hasTemplate = itemType switch
+        {
+            ListItemType.Header => HeaderTemplate != null,
+            ListItemType.Footer => FooterTemplate != null,
+            ListItemType.Item => ItemTemplate != null,
+            ListItemType.AlternatingItem => AlternatingItemTemplate != null || ItemTemplate != null,
+            ListItemType.Separator => SeparatorTemplate != null,
+            _ => false
+        };
+
+        return hasTemplate
+            ? new ValueTask<RepeaterItem?>(new RepeaterItem(itemIndex, itemType, this))
+            : default;
     }
 
     protected override void SetDataItem(RepeaterItem item, object dataItem)
@@ -83,12 +92,6 @@ public class Repeater : RepeaterBase<RepeaterItem>, INeedDataSourceProvider
     protected override ValueTask InvokeItemCreated(RepeaterItem item)
     {
         return ItemCreated.InvokeAsync(this, new RepeaterItemEventArgs(item));
-    }
-
-    bool INeedDataSourceProvider.IgnorePaging
-    {
-        get => _ignorePaging;
-        set => _ignorePaging = value;
     }
 }
 
@@ -118,9 +121,9 @@ public class Repeater<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes
         return base.LoadDataSourceAsync<T1>(value, dataBinding, filterByKeys);
     }
 
-    protected override ValueTask<RepeaterItem> CreateItemAsync(int itemIndex, ListItemType itemType)
+    protected override ValueTask<RepeaterItem?> CreateItemAsync(int itemIndex, ListItemType itemType)
     {
-        return new ValueTask<RepeaterItem>(new RepeaterItem<T>(itemIndex, itemType, this));
+        return new ValueTask<RepeaterItem?>(new RepeaterItem<T>(itemIndex, itemType, this));
     }
 
     protected override void SetDataItem(RepeaterItem item, object dataItem)

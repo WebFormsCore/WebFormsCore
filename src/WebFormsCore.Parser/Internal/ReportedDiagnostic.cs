@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
 namespace WebFormsCore.SourceGenerator.Models;
@@ -11,7 +12,11 @@ namespace WebFormsCore.SourceGenerator.Models;
 /// <param name="TextSpan">Text span.</param>
 /// <param name="LineSpan">Line span.</param>
 /// <see href="https://github.com/dotnet/roslyn/issues/62269#issuecomment-1170760367" />
-internal sealed record ReportedDiagnostic(DiagnosticDescriptor Descriptor, string FilePath, TextSpan TextSpan, LinePositionSpan LineSpan)
+public sealed record ReportedDiagnostic(
+    DiagnosticDescriptor Descriptor,
+    TextSpan TextSpan,
+    FileLinePositionSpan FileLineSpan,
+    EquatableArray<object> Arguments)
 {
     /// <summary>
     /// Implicitly converts <see cref="ReportedDiagnostic"/> to <see cref="Diagnostic"/>.
@@ -21,7 +26,8 @@ internal sealed record ReportedDiagnostic(DiagnosticDescriptor Descriptor, strin
     {
         return Diagnostic.Create(
             descriptor: diagnostic.Descriptor,
-            location: Location.Create(diagnostic.FilePath, diagnostic.TextSpan, diagnostic.LineSpan));
+            location: Location.Create(diagnostic.FileLineSpan.Path, diagnostic.TextSpan, diagnostic.FileLineSpan.Span),
+            messageArgs: diagnostic.Arguments.GetUnsafeArray());
     }
 
     /// <summary>
@@ -29,9 +35,10 @@ internal sealed record ReportedDiagnostic(DiagnosticDescriptor Descriptor, strin
     /// </summary>
     /// <param name="descriptor">Descriptor.</param>
     /// <param name="location">Location.</param>
+    /// <param name="arguments">Arguments.</param>
     /// <returns>A new <see cref="ReportedDiagnostic"/>.</returns>
-    public static ReportedDiagnostic Create(DiagnosticDescriptor descriptor, Location location)
+    public static ReportedDiagnostic Create(DiagnosticDescriptor descriptor, Location location, params object[] arguments)
     {
-        return new(descriptor, location.SourceTree?.FilePath ?? string.Empty, location.SourceSpan, location.GetLineSpan().Span);
+        return new(descriptor, location.SourceSpan, location.GetLineSpan(), arguments.ToImmutableArray());
     }
 }

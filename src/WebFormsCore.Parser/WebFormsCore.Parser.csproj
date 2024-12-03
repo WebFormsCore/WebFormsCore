@@ -4,7 +4,7 @@
         <TargetFrameworks>netstandard2.0;$(DotNetVersions)</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <LangVersion>10</LangVersion>
+        <LangVersion>12</LangVersion>
 	    <RootNamespace>WebFormsCore</RootNamespace>
     </PropertyGroup>
 

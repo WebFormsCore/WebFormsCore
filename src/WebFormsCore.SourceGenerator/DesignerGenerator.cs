@@ -167,7 +167,7 @@ public abstract class DesignerGenerator : IIncrementalGenerator
             }
 
             if (RootNode.Parse(
-                out var diagnosticResults,
+                out var diagnostics,
                 compilation,
                 fullPath,
                 content,
@@ -176,10 +176,8 @@ public abstract class DesignerGenerator : IIncrementalGenerator
                 relativePath: relativePath,
                 rootDirectory: projectDirectory) is not { } type)
             {
-                return new ControlResult(EquatableArray.FromEnumerable(diagnosticResults.Select(i => ReportedDiagnostic.Create(i.Descriptor, i.Location))));
+                return new ControlResult(diagnostics);
             }
-
-            var diagnostics = EquatableArray.FromEnumerable(diagnosticResults.Select(i => ReportedDiagnostic.Create(i.Descriptor, i.Location)));
 
             if (type.Inherits == null)
             {
@@ -208,17 +206,12 @@ public abstract class DesignerGenerator : IIncrementalGenerator
                 )
             );
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             var diagnostic = Diagnostic.Create(
-                new DiagnosticDescriptor(
-                    id: "WF0001",
-                    title: "WebFormsCore",
-                    messageFormat: ex.ToString(),
-                    category: "WebFormsCore",
-                    DiagnosticSeverity.Error,
-                    isEnabledByDefault: true),
-                Location.None);
+                Descriptors.SourceGeneratorException,
+                Location.None,
+                ex.ToString());
 
             return new ControlResult(
                 EquatableArray.FromEnumerable(new[]

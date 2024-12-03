@@ -63,6 +63,8 @@ public class CSharpDesignGenerator : DesignerGenerator
     {
         const string templateFile = "Templates/designer.scriban";
         var template = Template.Parse(EmbeddedResource.GetContent(templateFile), templateFile);
-        return template.Render(model, member => member.Name);
+        var result = template.Render(model, member => member.Name);
+
+        return result;
     }
 }

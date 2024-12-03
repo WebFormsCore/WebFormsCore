@@ -171,9 +171,9 @@ public partial class WebControl : Control, IAttributeAccessor
         TabIndex = 0;
     }
 
-    protected virtual string? GetAttribute(string name) => _attributes?[name];
+    protected virtual string? GetAttribute(string name) => _attributes[name];
 
-    protected virtual void SetAttribute(string name, string? value) => Attributes[name] = value;
+    protected virtual void SetAttribute(string name, string? value) => _attributes[name] = value;
 
     /// <inheritdoc />
     string? IAttributeAccessor.GetAttribute(string name) => GetAttribute(name);
