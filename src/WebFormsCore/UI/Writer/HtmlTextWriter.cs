@@ -103,7 +103,7 @@ public abstract class HtmlTextWriter : IAsyncDisposable
         if (_charPos == _charBuffer.Length) Flush();
     }
 
-    private void Write(string? buffer)
+    public void Write(string? buffer)
     {
         if (buffer is null) return;
         Write(buffer.AsSpan());
@@ -472,7 +472,7 @@ public abstract class HtmlTextWriter : IAsyncDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteEncodedText(string? text)
     {
-        var result = HtmlEncoder.Default.Encode(text, _charBuffer.AsSpan(_charPos), out var charsConsumed, out var charsWritten);
+        var result = HtmlEncoder.Default.Encode(text.AsSpan(), _charBuffer.AsSpan(_charPos), out var charsConsumed, out var charsWritten);
         _charPos += charsWritten;
 
         if (result != OperationStatus.Done)
@@ -521,7 +521,7 @@ public abstract class HtmlTextWriter : IAsyncDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ValueTask WriteEncodedTextAsync(string? text)
     {
-        var result = HtmlEncoder.Default.Encode(text, _charBuffer.AsSpan(_charPos), out var charsConsumed, out var charsWritten);
+        var result = HtmlEncoder.Default.Encode(text.AsSpan(), _charBuffer.AsSpan(_charPos), out var charsConsumed, out var charsWritten);
         _charPos += charsWritten;
         return result == OperationStatus.Done ? default : WriteEncodedTextSlowAsync(result, text.AsMemory(charsConsumed));
     }

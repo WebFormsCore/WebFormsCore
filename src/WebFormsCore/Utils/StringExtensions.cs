@@ -10,6 +10,11 @@ internal static class StringExtensions
 {
     private static readonly Regex NewLineRegex = new(@"\r\n|\r|\n", RegexOptions.Compiled);
 
+    public static bool Contains(this string str, char c)
+    {
+        return str.IndexOf(c) >= 0;
+    }
+
     public static string ReplaceLineEndings(this string str, string replacement)
     {
         return NewLineRegex.Replace(str, replacement);
