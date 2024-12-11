@@ -400,6 +400,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
     protected virtual async ValueTask<TItem?> CreateItemAsync(bool dataBinding = false, object? dataItem = default)
     {
         _header ??= await CreateItemAsync(ListItemType.Header, true);
+        _footer ??= await CreateItemAsync(ListItemType.Footer, true);
 
         Control? separator = null;
 
@@ -417,8 +418,6 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
         {
             _items.Add((item, separator));
         }
-
-        _footer ??= await CreateItemAsync(ListItemType.Footer, true);
 
         return item;
     }
