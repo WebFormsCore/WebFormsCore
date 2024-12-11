@@ -24,7 +24,7 @@ public class MarshalViewStateSerializer<T> : ViewStateSerializer<T>
 
     public override bool StoreInViewState(Type type, T value, T defaultValue)
     {
-        return true;
+        return !EqualityComparer<T>.Default.Equals(value, defaultValue);
     }
 
     public override void TrackViewState(Type type, T value, ViewStateProvider provider)
