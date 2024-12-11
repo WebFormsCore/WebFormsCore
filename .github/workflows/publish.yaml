@@ -26,8 +26,11 @@ jobs:
       - name: Install dependencies
         run: dotnet restore
 
+      - name: Build Debug
+        run: dotnet build --configuration Debug --no-restore
+
       - name: Test
-        run: dotnet test --no-restore --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+        run: dotnet test --no-build --no-restore --configuration Debug --verbosity normal --logger trx --collect:"XPlat Code Coverage"
       
       - name: Combine Coverage Reports
         uses: danielpalme/ReportGenerator-GitHub-Action@5.2.4
@@ -81,7 +84,7 @@ jobs:
         with:
           trx_files: "${{ github.workspace }}/**/*.trx"
 
-      - name: Build
+      - name: Build Release
         run: dotnet build --configuration Release --no-restore
 
       - name: Publish WebFormsCore
