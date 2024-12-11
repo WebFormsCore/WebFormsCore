@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NETFRAMEWORK
+using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 
@@ -104,3 +105,4 @@ public sealed class TemplateContainerAttribute : Attribute
         BindingDirection = bindingDirection;
     }
 }
+#endif

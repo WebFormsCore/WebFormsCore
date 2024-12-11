@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -82,7 +83,7 @@ public static class SeleniumTest
     {
         return ControlTest.StartBrowserAsync(ContextFactory, configure);
 
-        WebServerContext<TControl> ContextFactory(WebApplication host)
+        WebServerContext<TControl> ContextFactory(IWebHost host)
         {
             return new SeleniumTestContext<TControl>(host, driverFactory());
         }

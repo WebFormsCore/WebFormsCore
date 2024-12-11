@@ -14,7 +14,10 @@ using WebFormsCore.UI.WebControls;
 namespace WebFormsCore.UI;
 
 [ParseChildren(false)]
-public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Page, IInternalPage
+public class Page : Control, INamingContainer, IStateContainer, IInternalPage
+#pragma warning disable CS0436 // Type conflicts with imported type
+    , System.Web.UI.Page
+#pragma warning restore CS0436
 {
     private HttpContext? _context;
     private ScopedControlContainer? _scopedContainer;

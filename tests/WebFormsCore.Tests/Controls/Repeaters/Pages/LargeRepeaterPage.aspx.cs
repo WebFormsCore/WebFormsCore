@@ -26,15 +26,7 @@ public partial class LargeRepeaterPage : Page
             var item = (RepeaterDataItem)e.Item.DataItem!;
             var id = item.Id.ToString();
 
-            lblName.Text = string.Create(50, item.Id, static (span, id) =>
-            {
-                var random = new Random(id);
-
-                for (var i = 0; i < span.Length; i++)
-                {
-                    span[i] = (char)random.Next('A', 'Z');
-                }
-            });
+            lblName.Text = Guid.NewGuid().ToString();
 
             btnSetId.CommandArgument = id;
             divContainer.Attributes["data-id"] = id;

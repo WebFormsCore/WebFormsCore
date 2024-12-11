@@ -63,7 +63,7 @@ public sealed class ParseChildrenAttribute : Attribute
 
     /// <summary>Gets a value indicating the allowed type of a control. </summary>
     /// <returns>The control type. The default is <see cref="T:System.Web.UI.Control" />. </returns>
-    public Type ChildControlType => _childControlType ?? typeof(System.Web.UI.Control);
+    public Type ChildControlType => _childControlType ?? typeof(Control);
 
     /// <summary>Gets or sets a value indicating whether to parse the elements that are contained within a server control as properties.</summary>
     /// <returns>true to parse the elements as properties; otherwise, false. The default is true.</returns>

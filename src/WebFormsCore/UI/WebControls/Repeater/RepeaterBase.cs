@@ -316,6 +316,8 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
                     _items[0] = (firstItem, null);
                 }
             }
+
+            UpdateNames();
         }
     }
 
@@ -424,7 +426,12 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
 
     private async ValueTask<TItem?> CreateItemAsync(ListItemType itemType, bool dataBinding = false, object? dataItem = default)
     {
-        var itemIndex = itemType is ListItemType.Item or ListItemType.AlternatingItem ? _itemCount++ : -1;
+        var itemIndex = itemType switch
+        {
+            ListItemType.Item or ListItemType.AlternatingItem => _itemCount++,
+            ListItemType.Separator => _itemCount,
+            _ => -1
+        };
         var item = await CreateItemAsync(itemIndex, itemType);
 
         if (item is null)

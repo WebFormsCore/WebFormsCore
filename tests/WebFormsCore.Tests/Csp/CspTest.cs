@@ -9,7 +9,7 @@ public class CspTest
     {
         await using var result = await StartAsync<CspNonceTest>(type);
 
-        var csp = result.Control.Context.Response.Headers.ContentSecurityPolicy.ToString();
+        var csp = result.Control.Context.Response.Headers["Content-Security-Policy"].ToString();
 
         Assert.Contains("'nonce-", csp);
         Assert.Equal("Success", result.QuerySelectorRequired("#result").Text);
@@ -20,7 +20,7 @@ public class CspTest
     {
         await using var result = await StartAsync<CspShaTest>(type);
 
-        var csp = result.Control.Context.Response.Headers.ContentSecurityPolicy.ToString();
+        var csp = result.Control.Context.Response.Headers["Content-Security-Policy"].ToString();
 
         Assert.Contains("'sha256-", csp);
         Assert.Equal("Success", result.QuerySelectorRequired("#result").Text);

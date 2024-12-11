@@ -16,7 +16,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <DotNetVersions>net8.0;net9.0</DotNetVersions>
+        <DotNetVersions>net8.0;net9.0;net472</DotNetVersions>
     </PropertyGroup>
 
 </Project>

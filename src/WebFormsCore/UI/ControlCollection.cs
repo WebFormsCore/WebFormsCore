@@ -175,11 +175,9 @@ public class ControlCollection : IReadOnlyCollection<Control>
 
         public bool MoveNext()
         {
-            var items = CollectionsMarshal.AsSpan(_list);
-
-            if ((uint)_index < (uint)items.Length)
+            if ((uint)_index < (uint)_list.Count)
             {
-                _current = items[_index];
+                _current = _list[_index];
                 _index++;
                 return true;
             }

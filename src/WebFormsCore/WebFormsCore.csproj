@@ -15,15 +15,26 @@
 		<PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
 		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
 		<PackageReference Include="System.Text.Json" Version="8.0.4" />
-		<PackageReference Include="PolySharp" Version="1.14.1">
+		<PackageReference Include="PolySharp" Version="1.15.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
 
-    <ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' != 'net472'">
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+		<Reference Include="System.Web" />
+		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.1.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.0" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="2.1.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="2.1.0" />
+		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="8.0.11" />
+		<PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\WebFormsCore.SourceGenerator\WebFormsCore.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

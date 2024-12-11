@@ -16,6 +16,11 @@ builder.Services.AddWebFormsCore(b =>
     b.AddClientResourceManagement();
 });
 
+builder.Services.Configure<ViewStateOptions>(options =>
+{
+    // options.Compact = false;
+});
+
 builder.Services.Configure<WebFormsCoreOptions>(options =>
 {
     options.HiddenClass = "d-none";

@@ -1,15 +1,17 @@
 ﻿using System;
-using System.Linq;
+using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Connections.Features;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using WebFormsCore.Features;
 using WebFormsCore.UI;
 using WebFormsCore.UI.HtmlControls;
@@ -20,91 +22,114 @@ namespace WebFormsCore;
 public class ControlTest
 {
     public static async Task<ITestContext<TControl>> StartBrowserAsync<TControl>(
-        Func<WebApplication, WebServerContext<TControl>> contextFactory,
+        Func<IWebHost, WebServerContext<TControl>> contextFactory,
         Action<IServiceCollection>? configure = null,
         bool enableViewState = true
     ) where TControl : Control, new()
     {
-        var builder = WebApplication.CreateEmptyBuilder(new WebApplicationOptions());
+        var builder = WebHost.CreateDefaultBuilder();
+        StrongBox<WebServerContext<TControl>> context = new StrongBox<WebServerContext<TControl>>();
 
-        builder.WebHost.UseKestrelCore();
-        builder.WebHost.ConfigureKestrel(options =>
+        builder.UseKestrel(options =>
         {
+            options.Limits.MaxResponseBufferSize = null;
             options.Listen(IPAddress.Loopback, 0);
         });
 
-        builder.Services.AddWebFormsCore();
-
-        var typeProvider = typeof(TControl).Assembly.GetCustomAttribute<AssemblyControlTypeProviderAttribute>()?.Type;
-
-        if (typeProvider is null)
+        builder.ConfigureServices(services =>
         {
-            throw new InvalidOperationException("Type provider not found");
-        }
+            services.AddWebFormsCore();
 
-        builder.Services.AddSingleton(typeof(IControlTypeProvider), typeProvider);
-        builder.Services.AddSingleton<IWebFormsEnvironment, TestEnvironment>();
+            var typeProvider = typeof(TControl).Assembly.GetCustomAttribute<AssemblyControlTypeProviderAttribute>()?.Type;
 
-        builder.Services.AddOptions<ViewStateOptions>()
-            .Configure(options =>
+            if (typeProvider is null)
             {
-                options.Enabled = enableViewState;
-            });
-
-        configure?.Invoke(builder.Services);
-
-        var host = builder.Build();
-        var context = contextFactory(host);
-
-        host.UseWebFormsCore();
-        host.Run(async ctx =>
-        {
-            try
-            {
-                ctx.Features.Set<ITestContextFeature>(new TestContextFeature(context));
-
-                var activator = host.Services.GetRequiredService<IWebObjectActivator>();
-                var control = activator.CreateControl<TControl>();
-
-                if (control is Page page)
-                {
-                    await ctx.ExecutePageAsync(page);
-                }
-                else
-                {
-                    page = new Page();
-
-                    var literal = activator.CreateControl<LiteralControl>();
-                    literal.Text = "<!DOCTYPE html>";
-                    page.Controls.AddWithoutPageEvents(literal);
-                    page.Controls.AddWithoutPageEvents(activator.CreateControl<HtmlHead>());
-
-                    var body = activator.CreateControl<HtmlBody>();
-                    body.Controls.AddWithoutPageEvents(control);
-
-                    page.Controls.AddWithoutPageEvents(body);
-
-                    await ctx.ExecutePageAsync(page);
-                }
-
-                await ctx.Response.CompleteAsync();
-                await ctx.Response.Body.FlushAsync();
-
-                var transport = ctx.Features.GetRequiredFeature<IConnectionTransportFeature>().Transport;
-                await transport.Output.CompleteAsync();
-
-                await context.SetControlAsync(control);
+                throw new InvalidOperationException("Type provider not found");
             }
-            catch(Exception e)
-            {
-                context.SetException(e);
-            }
+
+            services.AddSingleton(typeof(IControlTypeProvider), typeProvider);
+            services.AddSingleton<IWebFormsEnvironment, TestEnvironment>();
+
+            services.AddOptions<ViewStateOptions>()
+                .Configure(options =>
+                {
+                    options.Enabled = enableViewState;
+                });
+
+            configure?.Invoke(services);
         });
 
-        await host.StartAsync();
-        await context.GoToUrlAsync(context.Url);
+        builder.Configure(app =>
+        {
+            app.Run(async ctx =>
+            {
+                try
+                {
+                    Debug.Assert(context.Value != null);
+                    ctx.Features.Set<ITestContextFeature>(new TestContextFeature(context.Value!));
 
-        return context;
+                    var activator = ctx.RequestServices.GetRequiredService<IWebObjectActivator>();
+                    var control = activator.CreateControl<TControl>();
+
+                    var responseBody = ctx.Response.Body;
+                    using var memoryStream = new MemoryStream();
+                    ctx.Response.Body = memoryStream;
+
+                    if (control is Page page)
+                    {
+                        await ctx.ExecutePageAsync(page);
+                    }
+                    else
+                    {
+                        page = new Page();
+
+                        var literal = activator.CreateControl<LiteralControl>();
+                        literal.Text = "<!DOCTYPE html>";
+                        page.Controls.AddWithoutPageEvents(literal);
+                        page.Controls.AddWithoutPageEvents(activator.CreateControl<HtmlHead>());
+
+                        var body = activator.CreateControl<HtmlBody>();
+                        body.Controls.AddWithoutPageEvents(control);
+
+                        page.Controls.AddWithoutPageEvents(body);
+
+                        await ctx.ExecutePageAsync(page);
+                    }
+
+                    ctx.Response.ContentLength = memoryStream.Length;
+                    memoryStream.Position = 0;
+
+                    await memoryStream.CopyToAsync(responseBody);
+#if NET
+                    await ctx.Response.CompleteAsync();
+#endif
+                    await responseBody.FlushAsync();
+
+                    var transport = ctx.Features.Get<IConnectionTransportFeature>()!.Transport;
+#if NET
+                    await transport.Output.CompleteAsync();
+#else
+                    transport.Output.Complete();
+                    await transport.Output.FlushAsync();
+#endif
+
+                    await context.Value!.SetControlAsync(control);
+                }
+                catch (Exception e)
+                {
+                    context.Value!.SetException(e);
+                }
+            });
+        });
+
+        var host = builder.Build();
+
+        context.Value = contextFactory(host);
+
+        await host.StartAsync();
+        await context.Value.GoToUrlAsync(context.Value.Url);
+
+        return context.Value;
     }
 }
 

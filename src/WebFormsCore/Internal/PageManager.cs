@@ -5,10 +5,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -402,7 +400,7 @@ public class PageManager : IPageManager
 
             // TODO: Improve parsing of query strings
             var values = new Dictionary<string, StringValues>();
-            var queryString = HttpUtility.ParseQueryString(formData);
+            var queryString = System.Web.HttpUtility.ParseQueryString(formData);
 
             foreach (var key in queryString.AllKeys)
             {

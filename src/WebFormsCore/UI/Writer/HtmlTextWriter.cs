@@ -210,6 +210,7 @@ public abstract class HtmlTextWriter : IAsyncDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ValueTask WriteObjectAsync<T>(T value, bool encode = true)
     {
+#if NET
         // TODO: Span-based encoding
         if (value is ISpanFormattable formattable && !encode)
         {
@@ -224,6 +225,7 @@ public abstract class HtmlTextWriter : IAsyncDisposable
                 return default;
             }
         }
+#endif
 
         var str = value?.ToString();
         if (encode)
@@ -234,6 +236,7 @@ public abstract class HtmlTextWriter : IAsyncDisposable
         return WriteAsync(str.AsMemory());
     }
 
+#if NET
     [MethodImpl(MethodImplOptions.NoInlining)]
     private bool WriteFormattableSlow(ISpanFormattable formattable)
     {
@@ -263,6 +266,7 @@ public abstract class HtmlTextWriter : IAsyncDisposable
             owner = MemoryPool<char>.Shared.Rent(span.Length * 2);
         }
     }
+#endif
 
     public virtual void WriteObject<T>(T value, bool encode = true)
     {

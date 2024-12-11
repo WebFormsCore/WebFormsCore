@@ -29,17 +29,15 @@ public partial class DropDownList() : WebControl(HtmlTextWriterTag.Select), IPos
     {
         get
         {
-            var span = CollectionsMarshal.AsSpan(Items);
-
-            for (var i = 0; i < span.Length; i++)
+            for (var i = 0; i < Items.Count; i++)
             {
-                if (span[i].Selected)
+                if (Items[i].Selected)
                 {
                     return i;
                 }
             }
 
-            return span.Length == 0 ? -1 : 0;
+            return Items.Count == 0 ? -1 : 0;
         }
         set
         {
@@ -67,9 +65,7 @@ public partial class DropDownList() : WebControl(HtmlTextWriterTag.Select), IPos
     {
         get
         {
-            var span = CollectionsMarshal.AsSpan(Items);
-
-            foreach (var item in span)
+            foreach (var item in Items)
             {
                 if (item.Selected)
                 {
@@ -77,9 +73,9 @@ public partial class DropDownList() : WebControl(HtmlTextWriterTag.Select), IPos
                 }
             }
 
-            if (span.Length > 0)
+            if (Items.Count > 0)
             {
-                return span[0].Value;
+                return Items[0].Value;
             }
 
             return string.Empty;
@@ -91,16 +87,14 @@ public partial class DropDownList() : WebControl(HtmlTextWriterTag.Select), IPos
     {
         ClearSelection();
 
-        var span = CollectionsMarshal.AsSpan(Items);
-
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; i < Items.Count; i++)
         {
-            if (!string.Equals(span[i].Value, value, StringComparison.Ordinal))
+            if (!string.Equals(Items[i].Value, value, StringComparison.Ordinal))
             {
                 continue;
             }
 
-            span[i].Selected = true;
+            Items[i].Selected = true;
             if (updateSelectedIndex)
             {
                 _selectedIndex = i;
@@ -213,11 +207,10 @@ public partial class DropDownList() : WebControl(HtmlTextWriterTag.Select), IPos
         ClearSelection();
 
         var index = _selectedIndex;
-        var span = CollectionsMarshal.AsSpan(Items);
 
-        if (index >= 0 && index < span.Length)
+        if (index >= 0 && index < Items.Count)
         {
-            span[index].Selected = true;
+            Items[index].Selected = true;
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
@@ -10,7 +11,7 @@ using WebFormsCore.UI;
 
 namespace WebFormsCore;
 
-internal class SeleniumTestContext<T>(IHost host, IWebDriver driver) : WebServerContext<T>(host)
+internal class SeleniumTestContext<T>(IWebHost host, IWebDriver driver) : WebServerContext<T>(host)
     where T : Control, new()
 {
     public override async Task GoToUrlAsync(string url)
@@ -70,6 +71,6 @@ internal class SeleniumTestContext<T>(IHost host, IWebDriver driver) : WebServer
     protected override ValueTask DisposeCoreAsync()
     {
         driver.Dispose();
-        return ValueTask.CompletedTask;
+        return default;
     }
 }
