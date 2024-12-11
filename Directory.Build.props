@@ -17,6 +17,13 @@
 
     <PropertyGroup>
         <DotNetVersions>net8.0;net9.0;net472</DotNetVersions>
+        <ExeDotNetVersions>net8.0;net9.0</ExeDotNetVersions>
+        <ExeDotNetVersions Condition="'$(TargetOS)' == 'Windows'">$(ExeDotNetVersions);net472</ExeDotNetVersions>
     </PropertyGroup>
+
+    <!-- Print the value of DotNetVersions -->
+    <Target Name="PrintDotNetVersions" BeforeTargets="Build">
+        <Message Importance="high" Text="DotNetVersions: $(DotNetVersions)" />
+    </Target>
 
 </Project>
