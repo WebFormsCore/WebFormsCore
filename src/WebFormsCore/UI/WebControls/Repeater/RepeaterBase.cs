@@ -42,7 +42,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
 
     public int PageIndex { get; set; }
 
-    [ViewState] public int PageCount { get; private set; }
+    [ViewState(WriteAlways = true)] public int PageCount { get; private set; }
 
     public string[] DataKeys { get; set; } = [];
 

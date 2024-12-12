@@ -2985,15 +2985,8 @@
         return postBackElement(target, eventTarget, eventArgument);
     }
     document.addEventListener('change', async function (e) {
-        var _a, _b;
         if (e.target instanceof Element && e.target.hasAttribute('data-wfc-autopostback')) {
-            const eventTarget = e.target.getAttribute('name');
-            const container = (_a = getStreamPanel(e.target)) !== null && _a !== void 0 ? _a : getForm(e.target);
-            const key = ((_b = container === null || container === void 0 ? void 0 : container.id) !== null && _b !== void 0 ? _b : '') + eventTarget;
-            if (timeouts[key]) {
-                clearTimeout(timeouts[key]);
-            }
-            setTimeout(() => postBackElement(e.target, eventTarget, 'CHANGE'), 10);
+            postBackChange(e.target, 10);
         }
     });
     const wfc = {

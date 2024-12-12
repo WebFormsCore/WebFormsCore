@@ -28,6 +28,7 @@ public class GridBoundColumn : GridColumn
                 {
                     await renderer.CellCreated(member!, cell, item);
                     cell.Renderer = renderer;
+                    break;
                 }
             }
         }
