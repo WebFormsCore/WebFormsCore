@@ -15,6 +15,11 @@ public interface IValidator
     string? ErrorMessage { get; set; }
 
     /// <summary>
+    /// <c>true</c> if the validation control is enabled; otherwise, <c>false</c>.
+    /// </summary>
+    bool Enabled { get; set; }
+
+    /// <summary>
     /// Compares the entered content with the valid parameters provided by the validation control.
     /// </summary>
     ValueTask ValidateAsync();

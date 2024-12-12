@@ -3134,7 +3134,8 @@
                         return;
                     }
                     element._callback = function (e) {
-                        const isValid = validate(elementToValidate, element);
+                        const disabled = element.hasAttribute('data-wfc-disabled');
+                        const isValid = disabled || validate(elementToValidate, element);
                         element._isValid = isValid;
                         wfc.toggle(element, !isValid);
                         if (!isValid) {

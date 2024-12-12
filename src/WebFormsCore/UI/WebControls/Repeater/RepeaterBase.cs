@@ -497,18 +497,22 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
         set => _dataSource = value;
     }
 
-
     bool INeedDataSourceProvider.IgnorePaging
     {
         get => _ignorePaging;
         set => _ignorePaging = value;
     }
 
-    public class ReadOnlyList(IReadOnlyList<(TItem Item, Control? Seperator)> items) : IReadOnlyList<TItem>
+    public class ReadOnlyList(List<(TItem Item, Control? Seperator)> items) : IReadOnlyList<TItem>
     {
-        public IEnumerator<TItem> GetEnumerator()
+        public Enumerator GetEnumerator()
         {
-            return items.Select(x => x.Item).GetEnumerator();
+            return new Enumerator(items.GetEnumerator());
+        }
+
+        IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator()
+        {
+            return GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -519,6 +523,30 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
         public int Count => items.Count;
 
         public TItem this[int index] => items[index].Item;
+
+        public struct Enumerator(List<(TItem Item, Control? Seperator)>.Enumerator enumerator) : IEnumerator<TItem>
+        {
+            private List<(TItem Item, Control? Seperator)>.Enumerator _enumerator = enumerator;
+
+            public bool MoveNext()
+            {
+                return _enumerator.MoveNext();
+            }
+
+            public void Reset()
+            {
+                ((IEnumerator)_enumerator).Reset();
+            }
+
+            public TItem Current => _enumerator.Current.Item;
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose()
+            {
+                _enumerator.Dispose();
+            }
+        }
     }
 
 }

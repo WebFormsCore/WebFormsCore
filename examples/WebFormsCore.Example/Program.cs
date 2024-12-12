@@ -18,6 +18,7 @@ builder.Services.AddWebFormsCore(b =>
 
 builder.Services.Configure<WebFormsCoreOptions>(options =>
 {
+    options.EnableWebFormsPolyfill = true;
     options.HiddenClass = "d-none";
     options.DisabledClass = "disabled";
     options.DefaultScriptPosition = ScriptPosition.HeadEnd;

@@ -1,4 +1,4 @@
-﻿using System;
+﻿    using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -79,7 +79,8 @@ public abstract partial class BaseValidator : Label, IValidator
         _didValidate = true;
         IsValid = true;
 
-        if (!Visible || !Enabled) {
+        if (!IsEnabled)
+        {
             return;
         }
 
@@ -225,6 +226,11 @@ public abstract partial class BaseValidator : Label, IValidator
         if (GetControlToValidate() is {} controlValue)
         {
             writer.AddAttribute("data-wfc-validator", controlValue.ClientID);
+        }
+
+        if (!IsEnabled)
+        {
+            writer.AddAttribute("data-wfc-disabled", null);
         }
 
         if (_didValidate)

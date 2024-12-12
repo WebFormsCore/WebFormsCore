@@ -197,7 +197,7 @@ partial class {{ type.InheritsClassName }}
         public void Load(WebFormsCore.UI.Control container)
         {
         {{- for prop in template.Ids }}
-            {{~ "            " }}{{ prop.Name }} = ({{ prop.DisplayType }})container.FindControl("{{ prop.Name }}")!;
+            {{~ "            " }}this.{{ prop.Name }} = ({{ prop.DisplayType }})container.FindControl("{{ prop.Name }}")!;
         {{- end }}
         }
     }

@@ -134,9 +134,9 @@ public class Page : Control, INamingContainer, IStateContainer, System.Web.UI.Pa
 
         if (options?.EnableWebFormsPolyfill ?? true)
         {
-            Page.ClientScript.RegisterStartupStaticScript(
+            Page.ClientScript.RegisterStartupScript(
                 typeof(Page),
-                "/js/webforms-polyfill.min.js",
+                "WebFormsCorePolyfill",
                 Resources.Polyfill,
                 position: ScriptPosition.HeadStart);
         }
