@@ -2,7 +2,7 @@
 
 namespace WebFormsCore.Tests.Controls.Checkboxes;
 
-public class CheckboxTest(SeleniumFixture fixture) : IClassFixture<SeleniumFixture>
+public class CheckboxTest(SeleniumFixture fixture)
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task OnCheckedChanged(Browser type)

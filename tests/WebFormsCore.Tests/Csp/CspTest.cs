@@ -2,7 +2,7 @@
 
 namespace WebFormsCore.Tests.Csp;
 
-public class CspTest(SeleniumFixture fixture) : IClassFixture<SeleniumFixture>
+public class CspTest(SeleniumFixture fixture)
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task InlineScript_Nonce(Browser type)

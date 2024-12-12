@@ -2,7 +2,7 @@
 
 namespace WebFormsCore.Tests.Interceptors;
 
-public class RequestInterceptorTest(SeleniumFixture fixture) : IClassFixture<SeleniumFixture>
+public class RequestInterceptorTest(SeleniumFixture fixture)
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task AddHeader(Browser type)

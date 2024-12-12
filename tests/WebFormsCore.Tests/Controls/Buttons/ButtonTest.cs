@@ -2,7 +2,7 @@
 
 namespace WebFormsCore.Tests.Controls.Buttons;
 
-public class ButtonTest(SeleniumFixture fixture) : IClassFixture<SeleniumFixture>
+public class ButtonTest(SeleniumFixture fixture)
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task Click(Browser type)

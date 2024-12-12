@@ -316,12 +316,15 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
                     _items[0] = (firstItem, null);
                 }
             }
+
+            UpdateNames();
         }
     }
 
     public void Swap(int index1, int index2)
     {
         (_items[index1], _items[index2]) = (_items[index2], _items[index1]);
+        UpdateNames();
     }
 
     public void Swap(TItem item1, TItem item2)
