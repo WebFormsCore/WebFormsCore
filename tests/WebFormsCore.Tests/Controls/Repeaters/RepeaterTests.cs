@@ -3,7 +3,7 @@ using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.Tests.Controls.Repeaters;
 
-public class RepeaterTests(SeleniumFixture fixture) : IClassFixture<SeleniumFixture>
+public class RepeaterTests(SeleniumFixture fixture)
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task TypedRepeaterTest(Browser type)

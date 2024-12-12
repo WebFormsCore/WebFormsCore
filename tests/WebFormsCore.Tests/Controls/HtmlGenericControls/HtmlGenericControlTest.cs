@@ -2,7 +2,7 @@
 
 namespace WebFormsCore.Tests.Controls.HtmlGenericControls;
 
-public class HtmlGenericControlTest(SeleniumFixture fixture) : IClassFixture<SeleniumFixture>
+public class HtmlGenericControlTest(SeleniumFixture fixture)
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task PageWithControlAndAttributes(Browser type)

@@ -2,7 +2,7 @@
 
 namespace WebFormsCore.Tests.Controls;
 
-public class ControlTest(SeleniumFixture fixture) : IClassFixture<SeleniumFixture>
+public class ControlTest(SeleniumFixture fixture)
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task CustomClientId(Browser type)

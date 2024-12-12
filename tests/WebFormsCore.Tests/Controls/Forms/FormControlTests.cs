@@ -2,7 +2,7 @@
 
 namespace WebFormsCore.Tests.Forms;
 
-public class FormControlTests(SeleniumFixture fixture) : IClassFixture<SeleniumFixture>
+public class FormControlTests(SeleniumFixture fixture)
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task DynamicForm(Browser type)

@@ -3,7 +3,7 @@ using WebFormsCore.Tests.Morphdom.Pages;
 
 namespace WebFormsCore.Tests.Morphdom;
 
-public class MorphdomTests(SeleniumFixture fixture) : IClassFixture<SeleniumFixture>
+public class MorphdomTests(SeleniumFixture fixture)
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task DocumentTitle(Browser type)

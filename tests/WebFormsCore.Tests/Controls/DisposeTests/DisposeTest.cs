@@ -2,7 +2,7 @@
 
 namespace WebFormsCore.Tests.Controls.DisposeTests.Pages;
 
-public class DisposeTest(SeleniumFixture fixture) : IClassFixture<SeleniumFixture>
+public class DisposeTest(SeleniumFixture fixture)
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task PageWithControl(Browser type)
