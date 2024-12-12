@@ -2,12 +2,12 @@
 
 namespace WebFormsCore.Tests.Controls.Buttons;
 
-public class ButtonTest
+public class ButtonTest(SeleniumFixture fixture) : IClassFixture<SeleniumFixture>
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task Click(Browser type)
     {
-        await using var result = await StartAsync<ClickTest>(type);
+        await using var result = await fixture.StartAsync<ClickTest>(type);
 
         Assert.Empty(result.Control.lblResult.Text);
 

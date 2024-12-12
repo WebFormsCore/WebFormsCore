@@ -2,12 +2,12 @@
 
 namespace WebFormsCore.Tests.Controls.HtmlGenericControls;
 
-public class HtmlGenericControlTest
+public class HtmlGenericControlTest(SeleniumFixture fixture) : IClassFixture<SeleniumFixture>
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task PageWithControlAndAttributes(Browser type)
     {
-        await using var result = await StartAsync<DivAttributes>(type);
+        await using var result = await fixture.StartAsync<DivAttributes>(type);
 
         var element = result.Control.content.FindBrowserElement();
 

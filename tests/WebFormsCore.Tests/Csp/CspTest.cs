@@ -2,12 +2,12 @@
 
 namespace WebFormsCore.Tests.Csp;
 
-public class CspTest
+public class CspTest(SeleniumFixture fixture) : IClassFixture<SeleniumFixture>
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task InlineScript_Nonce(Browser type)
     {
-        await using var result = await StartAsync<CspNonceTest>(type);
+        await using var result = await fixture.StartAsync<CspNonceTest>(type);
 
         var csp = result.Control.Context.Response.Headers.ContentSecurityPolicy.ToString();
 
@@ -18,7 +18,7 @@ public class CspTest
     [Theory, ClassData(typeof(BrowserData))]
     public async Task InlineScript_Sha256(Browser type)
     {
-        await using var result = await StartAsync<CspShaTest>(type);
+        await using var result = await fixture.StartAsync<CspShaTest>(type);
 
         var csp = result.Control.Context.Response.Headers.ContentSecurityPolicy.ToString();
 
