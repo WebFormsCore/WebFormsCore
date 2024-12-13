@@ -435,7 +435,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
 
     public void AddAttributes(HtmlTextWriter writer)
     {
-        if (_table is { Count: 0 } && _intTable is { Count: 0 })
+        if (_table is not { Count: > 0 } && _intTable is not { Count: > 0 })
         {
             return;
         }

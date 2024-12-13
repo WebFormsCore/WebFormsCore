@@ -237,7 +237,7 @@ public abstract class HtmlTextWriter : IAsyncDisposable
     [MethodImpl(MethodImplOptions.NoInlining)]
     private bool WriteFormattableSlow(ISpanFormattable formattable)
     {
-        var owner = MemoryPool<char>.Shared.Rent(64);
+        var owner = MemoryPool<char>.Shared.Rent(1024);
         var attempt = 0;
 
         while (true)

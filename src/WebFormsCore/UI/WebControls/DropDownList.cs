@@ -130,7 +130,7 @@ public partial class DropDownList() : WebControl(HtmlTextWriterTag.Select), IPos
 
         if (CausesValidation)
         {
-            writer.AddAttribute("data-wfc-validate", ValidationGroup);
+            writer.AddAttribute("data-wfc-validate", ValidationGroup == "" ? null : ValidationGroup);
         }
     }
 
