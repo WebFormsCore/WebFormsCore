@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI;
 
-public sealed class CssStyleCollection : IEquatable<CssStyleCollection>
+public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewStateObject
 {
     private static readonly Regex StyleAttribRegex = new(
         "\\G(\\s*(;\\s*)*" + // match leading semicolons and spaces
@@ -22,6 +22,9 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>
 
     private readonly IDictionary<string, string?>? _state;
     private string? _style;
+
+    private readonly HashSet<string> _trackedKeys = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<HtmlTextWriterStyle> _trackedIntKeys = new();
 
     private Dictionary<string, string?>? _table;
     private Dictionary<HtmlTextWriterStyle, string?>? _intTable;
@@ -185,6 +188,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>
 
         _table ??= ParseString();
         _table[key] = value;
+        _trackedKeys.Add(key);
 
         if (_intTable != null)
         {
@@ -193,6 +197,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>
             if (style != (HtmlTextWriterStyle)(-1))
             {
                 _intTable.Remove(style);
+                _trackedIntKeys.Remove(style);
             }
         }
 
@@ -210,6 +215,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>
     {
         _intTable ??= new Dictionary<HtmlTextWriterStyle, string?>();
         _intTable[key] = value;
+        _trackedIntKeys.Add(key);
 
         var name = CssTextWriter.GetStyleName(key);
         if (name.Length != 0)
@@ -217,6 +223,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>
             // Remove from the other table to avoid duplicates.
             _table ??= ParseString();
             _table.Remove(name);
+            _trackedKeys.Remove(name);
         }
 
         if (_state != null)
@@ -241,6 +248,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>
         if (_table[key] != null)
         {
             _table.Remove(key);
+            _trackedKeys.Add(key);
 
             if (_state != null)
             {
@@ -261,6 +269,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>
         }
 
         _intTable.Remove(key);
+        _trackedIntKeys.Add(key);
 
         if (_state != null)
         {
@@ -524,4 +533,93 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>
     {
         return !Equals(left, right);
     }
+
+    internal bool WriteToViewState => _trackedKeys.Count > 0 || _trackedIntKeys.Count > 0;
+
+    internal void TrackViewState(ViewStateProvider provider)
+    {
+        _trackedKeys.Clear();
+        _trackedIntKeys.Clear();
+    }
+
+    internal void WriteViewState(ref ViewStateWriter writer)
+    {
+        writer.Write((ushort) (_trackedKeys?.Count ?? 0));
+
+        if (_trackedKeys is not null)
+        {
+            foreach (var key in _trackedKeys)
+            {
+                writer.Write(key);
+                writer.Write(_table != null && _table.TryGetValue(key, out var value) ? value : null);
+            }
+        }
+
+        writer.Write((ushort) (_trackedIntKeys?.Count ?? 0));
+
+        if (_trackedIntKeys is not null)
+        {
+            foreach (var key in _trackedIntKeys)
+            {
+                writer.Write((byte)key);
+                writer.Write(_intTable != null && _intTable.TryGetValue(key, out var value) ? value : null);
+            }
+        }
+    }
+
+    internal void ReadViewState(ref ViewStateReader reader)
+    {
+        _table ??= ParseString();
+
+        var count = reader.Read<ushort>();
+
+        for (var i = 0; i < count; i++)
+        {
+            var key = reader.Read<string>();
+
+            if (key is null) continue;
+
+            var value = reader.Read<string>();
+
+            if (value is not null)
+            {
+                _table[key] = value;
+            }
+            else
+            {
+                _table.Remove(key);
+            }
+
+            _trackedKeys.Add(key);
+        }
+
+        count = reader.Read<ushort>();
+
+        if (count > 0)
+        {
+            _intTable ??= new Dictionary<HtmlTextWriterStyle, string?>();
+
+            for (var i = 0; i < count; i++)
+            {
+                var key = (HtmlTextWriterStyle)reader.ReadByte();
+                var value = reader.Read<string>();
+
+                if (value is not null)
+                {
+                    _intTable[key] = value;
+                }
+                else
+                {
+                    _intTable.Remove(key);
+                }
+
+                _trackedIntKeys.Add(key);
+            }
+        }
+    }
+
+    bool IViewStateObject.WriteToViewState => WriteToViewState;
+    void IViewStateObject.TrackViewState(ViewStateProvider provider) => TrackViewState(provider);
+    void IViewStateObject.ReadViewState(ref ViewStateReader reader) => ReadViewState(ref reader);
+    void IViewStateObject.WriteViewState(ref ViewStateWriter writer) => WriteViewState(ref writer);
 }
