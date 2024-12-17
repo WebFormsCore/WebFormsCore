@@ -85,10 +85,8 @@ public partial class Default : Page
             return;
         }
 
-        if (e.FilterByKeys)
+        if (e.FilterByKeys<int>("Id", out var keys))
         {
-            var keys = sender.Keys.GetAll<int>("Id");
-
             todos = todos.Where(x => keys.Contains(x.Id));
         }
 

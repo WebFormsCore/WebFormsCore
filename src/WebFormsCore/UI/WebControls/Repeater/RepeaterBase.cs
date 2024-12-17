@@ -18,6 +18,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
     private readonly List<(TItem Item, Control? Seperator)> _items = new();
     private Control? _header;
     private Control? _footer;
+    private Control? _empty;
 
     protected IReadOnlyList<(TItem Item, Control? Seperator)> ItemsAndSeparators => _items;
     protected Control? Header => _header;
@@ -68,6 +69,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
 
         if (count == 0)
         {
+            _empty ??= await CreateItemAsync(ListItemType.NoData);
             return;
         }
 
@@ -358,14 +360,25 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
         }
     }
 
-    protected override ValueTask OnPreRenderAsync(CancellationToken token)
+    protected override async ValueTask OnPreRenderAsync(CancellationToken token)
     {
+        if (_items.Count == 0)
+        {
+            _empty ??= await CreateItemAsync(ListItemType.NoData, true);
+        }
+
         UpdateNames();
-        return base.OnPreRenderAsync(token);
+        await base.OnPreRenderAsync(token);
     }
 
     protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
+        if (_empty is not null)
+        {
+            await _empty.RenderAsync(writer, token);
+            return;
+        }
+
         if (_header is not null)
         {
             await _header.RenderAsync(writer, token);
@@ -393,6 +406,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
         _items.Clear();
         _header = null;
         _footer = null;
+        _empty = null;
         Controls.Clear();
     }
 
@@ -402,6 +416,12 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
 
     protected virtual async ValueTask<TItem?> CreateItemAsync(bool dataBinding = false, object? dataItem = default)
     {
+        if (_empty is not null)
+        {
+            Controls.Remove(_empty);
+            _empty = null;
+        }
+
         _header ??= await CreateItemAsync(ListItemType.Header, true);
         _footer ??= await CreateItemAsync(ListItemType.Footer, true);
 
@@ -441,6 +461,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
             ListItemType.Footer => "f",
             ListItemType.Item or ListItemType.AlternatingItem => $"i{itemIndex}",
             ListItemType.Separator => $"s{itemIndex}",
+            ListItemType.NoData => "n",
             _ => throw new ArgumentOutOfRangeException(nameof(itemType))
         };
 
