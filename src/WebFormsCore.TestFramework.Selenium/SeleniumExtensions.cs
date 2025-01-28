@@ -43,7 +43,7 @@ public static class SeleniumExtensions
 
         return element is IWrapsDriver wrapsDriver
             ? wrapsDriver.WrappedDriver.WaitForPageBackAsync(token)
-            : ValueTask.CompletedTask;
+            : default;
     }
 
     public static IWebElement FindElement(this IWebDriver element, Control control)

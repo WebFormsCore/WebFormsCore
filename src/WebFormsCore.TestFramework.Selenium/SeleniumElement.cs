@@ -15,16 +15,16 @@ internal class SeleniumElement(IWebElement element) : IElement
     public ValueTask TypeAsync(string text)
     {
         element.SendKeys(text);
-        return ValueTask.CompletedTask;
+        return default;
     }
 
     public ValueTask<bool> IsVisibleAsync()
     {
-        return ValueTask.FromResult(element.Displayed);
+        return new ValueTask<bool>(element.Displayed);
     }
 
     public ValueTask<string> GetAttributeAsync(string name)
     {
-        return ValueTask.FromResult(element.GetAttribute(name));
+        return new ValueTask<string>(element.GetAttribute(name));
     }
 }

@@ -10,7 +10,7 @@ public static class ControlExtensions
     public static IElement FindBrowserElement(this Control control)
     {
         return control.Context.Features
-            .GetRequiredFeature<ITestContextFeature>().TestContext
+            .Get<ITestContextFeature>()!.TestContext
             .GetRequiredElement(control);
     }
 

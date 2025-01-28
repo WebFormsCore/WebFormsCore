@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,12 +12,12 @@ using WebFormsCore.UI;
 
 namespace WebFormsCore;
 
-public abstract class WebServerContext<T>(IHost host) : IWebServerContext<T>
+public abstract class WebServerContext<T>(IWebHost host) : IWebServerContext<T>
     where T : Control, new()
 {
     private T? _control;
     private string? _url;
-    private TaskCompletionSource? _requestLock;
+    private TaskCompletionSource<bool>? _requestLock;
     private Exception? _exception;
 
     public T Control
@@ -34,11 +35,11 @@ public abstract class WebServerContext<T>(IHost host) : IWebServerContext<T>
 
     public Task SetControlAsync(T control)
     {
-        var requestLock = new TaskCompletionSource();
+        var requestLock = new TaskCompletionSource<bool>();
         _control = control;
 
         var oldLock = Interlocked.Exchange(ref _requestLock, requestLock);
-        oldLock?.SetResult();
+        oldLock?.SetResult(true);
 
         return requestLock.Task;
     }
@@ -52,11 +53,11 @@ public abstract class WebServerContext<T>(IHost host) : IWebServerContext<T>
         .Features.Get<IServerAddressesFeature>()
         ?.Addresses.FirstOrDefault() ?? throw new InvalidOperationException("Server address is not available");
 
-    protected virtual ValueTask DisposeCoreAsync() => ValueTask.CompletedTask;
+    protected virtual ValueTask DisposeCoreAsync() => default;
 
     public async ValueTask DisposeAsync()
     {
-        _requestLock?.SetResult();
+        _requestLock?.SetResult(true);
         await host.StopAsync();
         await DisposeCoreAsync();
 

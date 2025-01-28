@@ -7,7 +7,7 @@ public static class TestContextExtensions
 {
     public static IElement? GetElement(this ITestContext context, Control? control)
     {
-        ArgumentNullException.ThrowIfNull(control, nameof(control));
+        if (control is null) throw new ArgumentNullException(nameof(control));
 
         var id = control.ClientID ?? throw new InvalidOperationException("ClientID is not available");
 

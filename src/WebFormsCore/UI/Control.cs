@@ -25,7 +25,10 @@ public enum ControlState
     PreRendered,
 }
 
-public partial class Control : System.Web.UI.Control
+public partial class Control
+#pragma warning disable CS0436 // Type conflicts with imported type
+    : System.Web.UI.Control
+#pragma warning restore CS0436
 {
     protected const char IdSeparator = '$';
 

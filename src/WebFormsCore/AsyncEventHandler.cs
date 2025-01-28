@@ -40,7 +40,7 @@ public static class AsyncEventHandlerHelper
     }
 
 #else
-
+#if NET8_0_OR_GREATER
     private static bool SupportsUnsafeAccessors { get; set; } = true;
 
     private static (int, object) GetInvocationList(MulticastDelegate d)
@@ -73,6 +73,31 @@ public static class AsyncEventHandlerHelper
         var result = d.GetInvocationList();
         return (result.Length, result);
     }
+#else
+    private static readonly Func<MulticastDelegate, (int, object)> GetInvocationList = CreateGetInvocationList();
+
+    private static Func<MulticastDelegate, (int, object)> CreateGetInvocationList()
+    {
+        var list = typeof(MulticastDelegate).GetField("_invocationList", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var count = typeof(MulticastDelegate).GetField("_invocationCount", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        if (list == null || count == null)
+        {
+            return d =>
+            {
+                var result = d.GetInvocationList();
+                return (result.Length, result);
+            };
+        }
+
+        var parameter = Expression.Parameter(typeof(MulticastDelegate), "d");
+        var listAccess = Expression.Field(parameter, list);
+        var countAccess = Expression.Field(parameter, count);
+        var tuple = Expression.New(typeof(ValueTuple<int, object>).GetConstructor(new[] { typeof(int), typeof(object) })!, Expression.Convert(countAccess, typeof(int)), listAccess);
+        var lambda = Expression.Lambda<Func<MulticastDelegate, (int, object)>>(tuple, parameter);
+        return lambda.Compile();
+    }
+#endif
 
     public static async ValueTask InvokeAsync<TSender, TArgs>(this AsyncEventHandler<TSender, TArgs>? handler, TSender sender, TArgs e)
         where TSender : class
@@ -116,6 +141,5 @@ public static class AsyncEventHandlerHelper
             if (task != null) await task;
         }
     }
-
 #endif
 }

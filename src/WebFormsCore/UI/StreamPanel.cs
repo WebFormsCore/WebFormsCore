@@ -26,7 +26,7 @@ internal record JavaScriptWebFormsCoreOptions(
 );
 
 internal record WebSocketCommand(
-    [property: JsonPropertyName("t"), Required] string EventTarget,
+    [property: JsonPropertyName("t")] string EventTarget,
     [property: JsonPropertyName("a")] string? EventArgument
 );
 
@@ -37,7 +37,7 @@ public class StreamPanel : Control, INamingContainer
     private WebSocket _webSocket = null!;
     private Task<WebSocketReceiveResult>? _receiveTask;
     private bool _prerender;
-    private TaskCompletionSource _stateHasChangedTcs = new();
+    private TaskCompletionSource<bool> _stateHasChangedTcs = new();
     private IOptions<WebFormsCoreOptions>? _options;
 
     public event AsyncEventHandler<StreamPanel, EventArgs>? Connected;
@@ -81,7 +81,7 @@ public class StreamPanel : Control, INamingContainer
     {
         if (!IsConnected) return;
 
-        _stateHasChangedTcs.TrySetResult();
+        _stateHasChangedTcs.TrySetResult(true);
     }
 
     internal async Task StartAsync(HttpContext context, WebSocket websocket)
@@ -98,7 +98,9 @@ public class StreamPanel : Control, INamingContainer
         var status = WebSocketCloseStatus.NormalClosure;
         var message = "Done";
 
-        var cancellationToken = context.RequestServices.GetService<IHostApplicationLifetime>()?.ApplicationStopping ?? default;
+        var cancellationToken =
+            context.RequestServices.GetService<IHostApplicationLifetime>()?.ApplicationStopping
+            ?? default;
 
         try
         {
@@ -122,7 +124,7 @@ public class StreamPanel : Control, INamingContainer
                 }
                 else
                 {
-                    _stateHasChangedTcs = new TaskCompletionSource();
+                    _stateHasChangedTcs = new TaskCompletionSource<bool>();
 
                     await UpdateControlAsync(cancellationToken);
                 }
@@ -203,7 +205,7 @@ public class StreamPanel : Control, INamingContainer
         var length = (int) memory.Length;
         var buffer = memory.GetBuffer();
 
-        await _webSocket.SendAsync(buffer.AsMemory(0, length), WebSocketMessageType.Text, true, token);
+        await _webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, length), WebSocketMessageType.Text, true, token);
 
         Context.Response.Body = Stream.Null;
     }

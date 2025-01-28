@@ -5,7 +5,7 @@
         <PackageVersion>$(Version)</PackageVersion>
         <Authors>WebFormsCore</Authors>
         <RepositoryUrl>https://github.com/WebFormsCore/WebFormsCore</RepositoryUrl>
-        <Copyright>Copyright © 2024 WebFormsCore</Copyright>
+        <Copyright>Copyright © 2025 WebFormsCore</Copyright>
         <PackageTags>webformscore</PackageTags>
         <PackageProjectUrl>https://github.com/WebFormsCore/WebFormsCore</PackageProjectUrl>
         <PackageLicense>https://github.com/WebFormsCore/WebFormsCore/blob/main/LICENSE</PackageLicense>
@@ -16,7 +16,18 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <DotNetVersions>net8.0;net9.0</DotNetVersions>
+        <DotNetVersions>net8.0;net9.0;net472</DotNetVersions>
+        <ExeDotNetVersions>net8.0;net9.0</ExeDotNetVersions>
+        <ExeDotNetVersions Condition="'$(OS)' == 'Windows_NT'">$(ExeDotNetVersions);net472</ExeDotNetVersions>
     </PropertyGroup>
+
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net472'">
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    </PropertyGroup>
+
+    <!-- Print the value of DotNetVersions -->
+    <Target Name="PrintDotNetVersions" BeforeTargets="Build">
+        <Message Importance="high" Text="DotNetVersions: $(DotNetVersions)" />
+    </Target>
 
 </Project>

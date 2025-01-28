@@ -109,6 +109,7 @@ internal class FlushHtmlStream : Stream
         throw new NotSupportedException();
     }
 
+#if NET6_0_OR_GREATER
     public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
     {
         await _writer.FlushAsync();
@@ -139,6 +140,7 @@ internal class FlushHtmlStream : Stream
     {
         return _stream.DisposeAsync();
     }
+#endif
 
     public override bool CanRead => _stream.CanRead;
 

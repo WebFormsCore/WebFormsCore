@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFrameworks>net8.0;net472</TargetFrameworks>
         <LangVersion>preview</LangVersion>
         <Nullable>enable</Nullable>
         <RootNamespace>WebFormsCore</RootNamespace>
@@ -10,13 +10,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="PolySharp" Version="1.14.1">
+        <PackageReference Include="PolySharp" Version="1.15.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Selenium.Support" Version="4.24.0" />
-        <PackageReference Include="Selenium.WebDriver" Version="4.24.0"/>
-        <PackageReference Include="WebDriverManager" Version="2.17.4" />
+        <PackageReference Include="Selenium.Support" Version="4.28.0" />
+        <PackageReference Include="Selenium.WebDriver" Version="4.28.0" />
+        <PackageReference Include="WebDriverManager" Version="2.17.5" />
     </ItemGroup>
 
     <ItemGroup>

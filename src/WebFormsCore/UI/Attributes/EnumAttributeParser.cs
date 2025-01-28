@@ -7,6 +7,10 @@ public class EnumAttributeParser<T> : IAttributeParser<T>
 {
     public T Parse(string value)
     {
+#if NET
         return Enum.Parse<T>(value);
+#else
+        return (T)Enum.Parse(typeof(T), value);
+#endif
     }
 }
