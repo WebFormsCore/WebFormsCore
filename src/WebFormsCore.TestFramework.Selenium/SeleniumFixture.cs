@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -53,9 +54,9 @@ public sealed class SeleniumFixture : IDisposable
             }
 
             var chromeOptions = new ChromeOptions();
-            if (headless) chromeOptions.AddArgument("--headless=old");
-            chromeOptions.AddArgument("disable-search-engine-choice-screen");
-            chromeOptions.AddArgument("no-sandbox");
+            if (headless) chromeOptions.AddArgument("--headless");
+            chromeOptions.AddArgument("--disable-search-engine-choice-screen");
+            chromeOptions.AddArgument("--no-sandbox");
 
             return new ChromeDriver(ChromePath.Value, chromeOptions);
         }
@@ -93,12 +94,7 @@ public sealed class SeleniumFixture : IDisposable
         Action<IServiceCollection>? configure = null
     ) where TControl : Control, new()
     {
-        return ControlTest.StartBrowserAsync(ContextFactory, configure);
-
-        WebServerContext<TControl> ContextFactory(WebApplication host)
-        {
-            return new SeleniumTestContext<TControl>(host, driverFactory(), this);
-        }
+        return ControlTest.StartBrowserAsync(host => new SeleniumTestContext<TControl>(host, driverFactory(), this), configure);
     }
 
     internal bool ReturnDriver(IWebDriver driver)
@@ -142,7 +138,12 @@ public sealed class SeleniumFixture : IDisposable
             }
         }
 
+#if NET
         _chromeDrivers.Clear();
         _firefoxDrivers.Clear();
+#else
+        while (_chromeDrivers.TryTake(out _)) ;
+        while (_firefoxDrivers.TryTake(out _)) ;
+#endif
     }
 }

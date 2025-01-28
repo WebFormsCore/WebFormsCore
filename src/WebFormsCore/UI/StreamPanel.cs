@@ -99,11 +99,7 @@ public class StreamPanel : Control, INamingContainer
         var message = "Done";
 
         var cancellationToken =
-#if NET
             context.RequestServices.GetService<IHostApplicationLifetime>()?.ApplicationStopping
-#else
-            context.RequestServices.GetService<IApplicationLifetime>()?.ApplicationStopping
-#endif
             ?? default;
 
         try
