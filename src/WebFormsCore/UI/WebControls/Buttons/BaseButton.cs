@@ -83,7 +83,7 @@ public partial class BaseButton<TSelf> : WebControl, IButtonControl, IPostBackAs
 
         if (CausesValidation)
         {
-            writer.AddAttribute("data-wfc-validate", ValidationGroup);
+            writer.AddAttribute("data-wfc-validate", ValidationGroup == "" ? null : ValidationGroup);
         }
     }
 

@@ -2,7 +2,7 @@
 
 namespace WebFormsCore.Tests.Controls.DisposeTests.Pages;
 
-public class DisposeTest
+public class DisposeTest(SeleniumFixture fixture)
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task PageWithControl(Browser type)
@@ -10,7 +10,7 @@ public class DisposeTest
         DisposableControl staticControl;
         DisposableControl dynamicControl;
 
-        await using (var result = await StartAsync<DisposePage>(type))
+        await using (var result = await fixture.StartAsync<DisposePage>(type))
         {
             staticControl = result.Control.FindRequiredControl<DisposableControl>("staticControl");
             dynamicControl = result.Control.FindRequiredControl<DisposableControl>("dynamicControl");

@@ -3,12 +3,12 @@ using WebFormsCore.Tests.Morphdom.Pages;
 
 namespace WebFormsCore.Tests.Morphdom;
 
-public class MorphdomTests
+public class MorphdomTests(SeleniumFixture fixture)
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task DocumentTitle(Browser type)
     {
-        await using var result = await StartAsync<TitlePage>(type);
+        await using var result = await fixture.StartAsync<TitlePage>(type);
 
         Assert.Equal("Success", await result.ExecuteScriptAsync("return document.title"));
 
@@ -20,7 +20,7 @@ public class MorphdomTests
     [Theory, ClassData(typeof(BrowserData))]
     public async Task UpdateScript(Browser type)
     {
-        await using var result = await StartAsync<UpdateScriptPage>(type, services =>
+        await using var result = await fixture.StartAsync<UpdateScriptPage>(type, services =>
         {
             services.Configure<WebFormsCoreOptions>(options =>
             {

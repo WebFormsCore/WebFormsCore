@@ -23,6 +23,12 @@ public partial class Grid : RepeaterBase<GridItem>, IAttributeAccessor, IDisposa
 
     public event AsyncEventHandler<Grid, GridItemEventArgs>? ItemDataBound;
 
+    public string? CssClass
+    {
+        get => _attributes.CssClass;
+        set => _attributes.CssClass = value;
+    }
+
     protected override void InitializeItem(GridItem item)
     {
 

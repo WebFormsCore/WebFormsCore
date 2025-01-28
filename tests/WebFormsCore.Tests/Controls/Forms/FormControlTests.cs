@@ -2,12 +2,12 @@
 
 namespace WebFormsCore.Tests.Forms;
 
-public class FormControlTests
+public class FormControlTests(SeleniumFixture fixture)
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task DynamicForm(Browser type)
     {
-        await using var result = await StartAsync<DynamicForms>(type);
+        await using var result = await fixture.StartAsync<DynamicForms>(type);
 
         await result.Control.btnSubmit.ClickAsync();
 

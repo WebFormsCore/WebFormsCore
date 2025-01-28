@@ -665,15 +665,7 @@ function postBack(target: Element, eventArgument?: string) {
 
 document.addEventListener('change', async function(e){
     if (e.target instanceof Element && e.target.hasAttribute('data-wfc-autopostback')) {
-        const eventTarget = e.target.getAttribute('name');
-        const container = getStreamPanel(e.target) ?? getForm(e.target);
-        const key = (container?.id ?? '') + eventTarget;
-
-        if (timeouts[key]) {
-            clearTimeout(timeouts[key]);
-        }
-
-        setTimeout(() => postBackElement(e.target as Element, eventTarget, 'CHANGE'), 10);
+        postBackChange(e.target, 10);
     }
 });
 
@@ -848,7 +840,8 @@ const wfc: WebFormsCore = {
                 }
 
                 element._callback = function (e) {
-                    const isValid = validate(elementToValidate, element);
+                    const disabled = element.hasAttribute('data-wfc-disabled');
+                    const isValid = disabled || validate(elementToValidate, element);
 
                     element._isValid = isValid;
                     wfc.toggle(element, !isValid);

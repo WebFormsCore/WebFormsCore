@@ -20,7 +20,8 @@ public enum ListItemType
     SelectedItem = 4,
     EditItem = 5,
     Separator = 6,
-    Pager = 7
+    Pager = 7,
+    NoData = 8
 }
 
 [ParseChildren(true)]
@@ -35,6 +36,8 @@ public class Repeater : RepeaterBase<RepeaterItem>
     public ITemplate? ItemTemplate { get; set; }
 
     public ITemplate? AlternatingItemTemplate { get; set; }
+
+    public ITemplate? NoDataTemplate { get; set; }
 
     public event AsyncEventHandler<Repeater, RepeaterItemEventArgs>? ItemCreated;
 
@@ -56,6 +59,7 @@ public class Repeater : RepeaterBase<RepeaterItem>
             ListItemType.Item => ItemTemplate,
             ListItemType.AlternatingItem => AlternatingItemTemplate ?? ItemTemplate,
             ListItemType.Separator => SeparatorTemplate,
+            ListItemType.NoData => NoDataTemplate,
             _ => null
         };
 
@@ -71,6 +75,7 @@ public class Repeater : RepeaterBase<RepeaterItem>
             ListItemType.Item => ItemTemplate != null,
             ListItemType.AlternatingItem => AlternatingItemTemplate != null || ItemTemplate != null,
             ListItemType.Separator => SeparatorTemplate != null,
+            ListItemType.NoData => NoDataTemplate != null,
             _ => false
         };
 

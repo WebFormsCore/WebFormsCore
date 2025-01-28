@@ -24,19 +24,20 @@ public partial class RepeaterTest : Page
 	protected async Task OnNeedDataSource(Repeater sender, NeedDataSourceEventArgs e)
 	{
 		using var httpClient = new HttpClient();
-		using var response = await httpClient.GetAsync("https://jsonplaceholder.typicode.com/todos");
+
+		var url = "https://jsonplaceholder.typicode.com/todos";
+
+		if (e.FilterByPage(out var info))
+		{
+			url += $"?_start={info.Offset}&_limit={info.PageSize}";
+		}
+
+		using var response = await httpClient.GetAsync(url);
 		var todos = await response.Content.ReadFromJsonAsync(TodoJsonContext.Default.IAsyncEnumerableTodoModel);
 
 		if (todos is null)
 		{
 			return;
-		}
-
-		if (e.FilterByKeys)
-		{
-			var keys = sender.Keys.GetAll<int>(nameof(TodoModel.Id));
-
-			todos = todos.Where(x => keys.Contains(x.Id));
 		}
 
 		list.SetDataSource(todos);

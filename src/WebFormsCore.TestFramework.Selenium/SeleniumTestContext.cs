@@ -11,7 +11,7 @@ using WebFormsCore.UI;
 
 namespace WebFormsCore;
 
-internal class SeleniumTestContext<T>(IWebHost host, IWebDriver driver) : WebServerContext<T>(host)
+internal class SeleniumTestContext<T>(IHost host, IWebDriver driver, SeleniumFixture fixture) : WebServerContext<T>(host)
     where T : Control, new()
 {
     public override async Task GoToUrlAsync(string url)
@@ -70,7 +70,11 @@ internal class SeleniumTestContext<T>(IWebHost host, IWebDriver driver) : WebSer
 
     protected override ValueTask DisposeCoreAsync()
     {
-        driver.Dispose();
+        if (!fixture.ReturnDriver(driver))
+        {
+            driver.Dispose();
+        }
+
         return default;
     }
 }

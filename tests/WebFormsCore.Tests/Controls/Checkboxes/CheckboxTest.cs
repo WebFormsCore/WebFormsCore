@@ -2,12 +2,12 @@
 
 namespace WebFormsCore.Tests.Controls.Checkboxes;
 
-public class CheckboxTest
+public class CheckboxTest(SeleniumFixture fixture)
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task OnCheckedChanged(Browser type)
     {
-        await using var result = await StartAsync<CheckboxPostbackPage>(type);
+        await using var result = await fixture.StartAsync<CheckboxPostbackPage>(type);
 
         Assert.Equal("Unchanged", result.Control.label.FindBrowserElement().Text);
 
@@ -27,7 +27,7 @@ public class CheckboxTest
     [Theory, ClassData(typeof(BrowserData))]
     public async Task AutoPostback_OnCheckedChanged(Browser type)
     {
-        await using var result = await StartAsync<CheckboxAutoPostbackPage>(type);
+        await using var result = await fixture.StartAsync<CheckboxAutoPostbackPage>(type);
 
         Assert.Equal("Unchanged", result.Control.label.FindBrowserElement().Text);
 

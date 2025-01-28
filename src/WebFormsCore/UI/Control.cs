@@ -307,6 +307,7 @@ public partial class Control
     {
         get
         {
+            _forceClientIdAttribute = true;
             return _clientId ?? EffectiveClientIDMode switch
             {
                 ClientIDMode.Predictable => PredictableClientID,
@@ -317,8 +318,8 @@ public partial class Control
         }
         set
         {
-            _clientId = value;
             _forceClientIdAttribute = true;
+            _clientId = value;
         }
     }
 

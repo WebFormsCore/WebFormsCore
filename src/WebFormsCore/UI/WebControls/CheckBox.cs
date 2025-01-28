@@ -57,7 +57,7 @@ public partial class CheckBox : WebControl, IPostBackAsyncDataHandler
 
         if (CausesValidation)
         {
-            writer.AddAttribute("data-wfc-validate", ValidationGroup);
+            writer.AddAttribute("data-wfc-validate", ValidationGroup == "" ? null : ValidationGroup);
         }
     }
 

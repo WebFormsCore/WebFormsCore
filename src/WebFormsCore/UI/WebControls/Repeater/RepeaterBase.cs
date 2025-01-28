@@ -18,6 +18,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
     private readonly List<(TItem Item, Control? Seperator)> _items = new();
     private Control? _header;
     private Control? _footer;
+    private Control? _empty;
 
     protected IReadOnlyList<(TItem Item, Control? Seperator)> ItemsAndSeparators => _items;
     protected Control? Header => _header;
@@ -42,7 +43,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
 
     public int PageIndex { get; set; }
 
-    [ViewState] public int PageCount { get; private set; }
+    [ViewState(WriteAlways = true)] public int PageCount { get; private set; }
 
     public string[] DataKeys { get; set; } = [];
 
@@ -68,6 +69,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
 
         if (count == 0)
         {
+            _empty ??= await CreateItemAsync(ListItemType.NoData);
             return;
         }
 
@@ -324,6 +326,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
     public void Swap(int index1, int index2)
     {
         (_items[index1], _items[index2]) = (_items[index2], _items[index1]);
+        UpdateNames();
     }
 
     public void Swap(TItem item1, TItem item2)
@@ -357,14 +360,25 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
         }
     }
 
-    protected override ValueTask OnPreRenderAsync(CancellationToken token)
+    protected override async ValueTask OnPreRenderAsync(CancellationToken token)
     {
+        if (_items.Count == 0)
+        {
+            _empty ??= await CreateItemAsync(ListItemType.NoData, true);
+        }
+
         UpdateNames();
-        return base.OnPreRenderAsync(token);
+        await base.OnPreRenderAsync(token);
     }
 
     protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
+        if (_empty is not null)
+        {
+            await _empty.RenderAsync(writer, token);
+            return;
+        }
+
         if (_header is not null)
         {
             await _header.RenderAsync(writer, token);
@@ -392,6 +406,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
         _items.Clear();
         _header = null;
         _footer = null;
+        _empty = null;
         Controls.Clear();
     }
 
@@ -401,6 +416,12 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
 
     protected virtual async ValueTask<TItem?> CreateItemAsync(bool dataBinding = false, object? dataItem = default)
     {
+        if (_empty is not null)
+        {
+            Controls.Remove(_empty);
+            _empty = null;
+        }
+
         _header ??= await CreateItemAsync(ListItemType.Header, true);
         _footer ??= await CreateItemAsync(ListItemType.Footer, true);
 
@@ -445,6 +466,7 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
             ListItemType.Footer => "f",
             ListItemType.Item or ListItemType.AlternatingItem => $"i{itemIndex}",
             ListItemType.Separator => $"s{itemIndex}",
+            ListItemType.NoData => "n",
             _ => throw new ArgumentOutOfRangeException(nameof(itemType))
         };
 
@@ -504,18 +526,22 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
         set => _dataSource = value;
     }
 
-
     bool INeedDataSourceProvider.IgnorePaging
     {
         get => _ignorePaging;
         set => _ignorePaging = value;
     }
 
-    public class ReadOnlyList(IReadOnlyList<(TItem Item, Control? Seperator)> items) : IReadOnlyList<TItem>
+    public class ReadOnlyList(List<(TItem Item, Control? Seperator)> items) : IReadOnlyList<TItem>
     {
-        public IEnumerator<TItem> GetEnumerator()
+        public Enumerator GetEnumerator()
         {
-            return items.Select(x => x.Item).GetEnumerator();
+            return new Enumerator(items.GetEnumerator());
+        }
+
+        IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator()
+        {
+            return GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -526,6 +552,30 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
         public int Count => items.Count;
 
         public TItem this[int index] => items[index].Item;
+
+        public struct Enumerator(List<(TItem Item, Control? Seperator)>.Enumerator enumerator) : IEnumerator<TItem>
+        {
+            private List<(TItem Item, Control? Seperator)>.Enumerator _enumerator = enumerator;
+
+            public bool MoveNext()
+            {
+                return _enumerator.MoveNext();
+            }
+
+            public void Reset()
+            {
+                ((IEnumerator)_enumerator).Reset();
+            }
+
+            public TItem Current => _enumerator.Current.Item;
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose()
+            {
+                _enumerator.Dispose();
+            }
+        }
     }
 
 }

@@ -153,7 +153,7 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
     }
 
     private readonly Dictionary<string, string?> _bag = new();
-    private CssStyleCollection? _styleColl;
+    private readonly CssStyleCollection _styleColl = new();
     private readonly HashSet<string> _trackedKeys = new(StringComparer.OrdinalIgnoreCase);
 
     public string? CssClass
@@ -195,7 +195,7 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
     public int Count => _bag.Count;
     public bool IsReadOnly => false;
 
-    public CssStyleCollection CssStyle => _styleColl ??= new CssStyleCollection();
+    public CssStyleCollection CssStyle => _styleColl;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Track(string key)
@@ -224,7 +224,7 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
 
     public bool Remove(string key)
     {
-        if (_styleColl != null && key.StartsWith("style", StringComparison.OrdinalIgnoreCase))
+        if (key.StartsWith("style", StringComparison.OrdinalIgnoreCase))
         {
             if (_styleColl.Count == 0)
             {
@@ -247,7 +247,7 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
         }
 
         _bag.Clear();
-        _styleColl?.Clear();
+        _styleColl.Clear();
     }
 
     public async ValueTask RenderAsync(HtmlTextWriter writer)
@@ -257,10 +257,7 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
             await writer.WriteAttributeAsync(kv.Key, kv.Value);
         }
 
-        if (_styleColl != null)
-        {
-            await _styleColl.RenderAsync(writer);
-        }
+        await _styleColl.RenderAsync(writer);
     }
 
     public void AddAttributes(HtmlTextWriter writer)
@@ -270,10 +267,7 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
             writer.AddAttribute(kv.Key, kv.Value);
         }
 
-        if (_styleColl != null)
-        {
-            _styleColl.AddAttributes(writer);
-        }
+        _styleColl.AddAttributes(writer);
     }
 
     public Dictionary<string, string?>.Enumerator GetEnumerator() => _bag.GetEnumerator();
@@ -314,11 +308,12 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
         }
     }
 
-    bool IViewStateObject.WriteToViewState => _trackedKeys.Count > 0;
+    bool IViewStateObject.WriteToViewState => _trackedKeys.Count > 0 || _styleColl.WriteToViewState;
 
     void IViewStateObject.TrackViewState(ViewStateProvider provider)
     {
         _trackedKeys.Clear();
+        _styleColl.TrackViewState(provider);
     }
 
     void IViewStateObject.WriteViewState(ref ViewStateWriter writer)
@@ -337,8 +332,17 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
                 writer.Write(key);
             }
 
-            writer.Write(_bag[key]);
+            if (_bag.TryGetValue(key, out var value))
+            {
+                writer.Write(value);
+            }
+            else
+            {
+                writer.Write<string>(null);
+            }
         }
+
+        _styleColl.WriteViewState(ref writer);
     }
 
     void IViewStateObject.ReadViewState(ref ViewStateReader reader)
@@ -364,9 +368,19 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
 
             var value = reader.Read<string>();
 
-            _bag[key] = value;
+            if (value == null)
+            {
+                _bag.Remove(key);
+            }
+            else
+            {
+                _bag[key] = value;
+            }
+
             _trackedKeys.Add(key);
         }
+
+        _styleColl.ReadViewState(ref reader);
     }
 
     public string? GetAttribute(string key)

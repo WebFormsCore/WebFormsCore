@@ -2,12 +2,12 @@
 
 namespace WebFormsCore.Tests.Interceptors;
 
-public class RequestInterceptorTest
+public class RequestInterceptorTest(SeleniumFixture fixture)
 {
     [Theory, ClassData(typeof(BrowserData))]
     public async Task AddHeader(Browser type)
     {
-        await using var result = await StartAsync<RequestInterceptor>(type);
+        await using var result = await fixture.StartAsync<RequestInterceptor>(type);
 
         await result.Control.btnSubmit.ClickAsync();
 

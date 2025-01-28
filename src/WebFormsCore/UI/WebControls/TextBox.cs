@@ -114,7 +114,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
         if (CausesValidation)
         {
-            writer.AddAttribute("data-wfc-validate", ValidationGroup);
+            writer.AddAttribute("data-wfc-validate", ValidationGroup == "" ? null : ValidationGroup);
         }
     }
 
