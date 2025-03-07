@@ -2844,6 +2844,7 @@
                 }
             },
             onBeforeElUpdated: function (fromEl, toEl) {
+                var _a;
                 if (!fromEl.dispatchEvent(new CustomEvent("wfc:beforeUpdateNode", { cancelable: true, bubbles: true, detail: { node: fromEl, source: toEl, form } }))) {
                     return false;
                 }
@@ -2854,13 +2855,13 @@
                     return false;
                 }
                 if (fromEl.tagName === "INPUT" && fromEl.type !== "hidden") {
+                    // If the 'value' attribute is not set, set it to the current value
+                    if (!toEl.hasAttribute('value')) {
+                        toEl.setAttribute('value', (_a = fromEl.getAttribute('value')) !== null && _a !== void 0 ? _a : "");
+                    }
                     morphAttrs(fromEl, toEl);
                     syncBooleanAttrProp(fromEl, toEl, 'checked');
                     syncBooleanAttrProp(fromEl, toEl, 'disabled');
-                    // Only update the value if the value attribute is present
-                    if (toEl.hasAttribute('value')) {
-                        fromEl.value = toEl.value;
-                    }
                     return false;
                 }
                 if (fromEl.nodeName === "SCRIPT" && toEl.nodeName === "SCRIPT") {
@@ -3023,7 +3024,7 @@
                 wfc.hide(element);
             }
         },
-        validate: function (validationGroup = "") {
+        validate: async function (validationGroup = "") {
             var _a, _b;
             if (typeof validationGroup === "object") {
                 if (!validationGroup.hasAttribute('data-wfc-validate')) {
@@ -3031,7 +3032,12 @@
                 }
                 validationGroup = (_a = validationGroup.getAttribute('data-wfc-validate')) !== null && _a !== void 0 ? _a : "";
             }
-            const detail = { isValid: true };
+            const validators = [];
+            const detail = {
+                addValidator(validator) {
+                    validators.push(validator);
+                }
+            };
             for (const element of document.querySelectorAll('[data-wfc-validate]')) {
                 const elementValidationGroup = (_b = element.getAttribute('data-wfc-validate')) !== null && _b !== void 0 ? _b : "";
                 if (elementValidationGroup !== validationGroup) {
@@ -3042,7 +3048,13 @@
                     detail
                 }));
             }
-            return detail.isValid;
+            let isValid = true;
+            for (const validator of validators) {
+                if (!await validator()) {
+                    isValid = false;
+                }
+            }
+            return isValid;
         },
         bind: async function (selectors, options) {
             var _a, _b, _c, _d, _e;
@@ -3096,10 +3108,13 @@
                 });
             }
         },
-        bindValidator: function (selectors, validate) {
+        bindValidator: function (selectors, options) {
             wfc.bind(selectors, {
                 init: function (element) {
                     element._isValid = true;
+                    if ('init' in options) {
+                        options.init(element);
+                    }
                 },
                 afterUpdate: function (element) {
                     // Restore old state
@@ -3126,14 +3141,14 @@
                         console.warn(`Element with id ${idToValidate} not found`);
                         return;
                     }
-                    element._callback = function (e) {
-                        const disabled = element.hasAttribute('data-wfc-disabled');
-                        const isValid = disabled || validate(elementToValidate, element);
-                        element._isValid = isValid;
-                        wfc.toggle(element, !isValid);
-                        if (!isValid) {
-                            e.detail.isValid = false;
-                        }
+                    element._callback = async function (e) {
+                        e.detail.addValidator(async function () {
+                            const disabled = element.hasAttribute('data-wfc-disabled');
+                            const isValid = disabled || await options.validate(elementToValidate, element);
+                            element._isValid = isValid;
+                            wfc.toggle(element, !isValid);
+                            return isValid;
+                        });
                     };
                     elementToValidate.addEventListener('wfc:validate', element._callback);
                 },
@@ -3145,6 +3160,41 @@
                     }
                 }
             });
+        },
+        getStringValue: async (element) => {
+            var _a, _b, _c, _d, _e;
+            if ('getStringValue' in element) {
+                return (_b = (_a = (await Promise.resolve(element.getStringValue()))) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "";
+            }
+            else if ('value' in element) {
+                return (_d = (_c = element.value) === null || _c === void 0 ? void 0 : _c.toString()) !== null && _d !== void 0 ? _d : "";
+            }
+            else if ('textContent' in element) {
+                return (_e = element.textContent) !== null && _e !== void 0 ? _e : "";
+            }
+            else {
+                return "";
+            }
+        },
+        isEmpty: async (element, initialValue = "") => {
+            if ('isEmpty' in element) {
+                const isEmpty = element.isEmpty;
+                if (typeof isEmpty === "function") {
+                    const result = await Promise.resolve(isEmpty(initialValue));
+                    if (typeof (result) === "boolean") {
+                        return result;
+                    }
+                    console.warn('isEmpty did not return a boolean', element);
+                }
+                else if (typeof isEmpty === "boolean") {
+                    return isEmpty;
+                }
+                else {
+                    console.warn('isEmpty is not a function', element);
+                }
+            }
+            const value = await wfc.getStringValue(element);
+            return initialValue === value;
         }
     };
     // Stream
@@ -3215,11 +3265,10 @@
             }
         }
     }
-    wfc.bindValidator('[data-wfc-requiredvalidator]', function (elementToValidate, element) {
-        var _a, _b;
-        const initialValue = ((_a = element.getAttribute('data-wfc-requiredvalidator')) !== null && _a !== void 0 ? _a : "").trim();
-        const value = ((_b = elementToValidate.value) !== null && _b !== void 0 ? _b : "").trim();
-        return initialValue !== value;
+    wfc.bindValidator('[data-wfc-requiredvalidator]', {
+        validate: async function (elementToValidate, validator) {
+            return await wfc.isEmpty(elementToValidate, validator.getAttribute('data-wfc-requiredvalidator'));
+        }
     });
     window.wfc = wfc;
 

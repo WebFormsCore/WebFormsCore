@@ -20,9 +20,14 @@ export interface WebFormsCore {
         destroy?: (element: HTMLElement & T) => void;
     }) => void;
 
-    bindValidator: (selectors: string, validate: (element: HTMLElement, source: HTMLElement) => boolean) => void;
+    bindValidator: (selectors: string, options: {
+        init?: (element: HTMLElement) => void;
+        validate: (elementToValidate: HTMLElement, validator: HTMLElement) => boolean | Promise<boolean>
+    }) => void;
 
-    validate: (validationGroup?: string | Element) => boolean;
+    validate: (validationGroup?: string | Element) => Promise<boolean>;
+    getStringValue: (element: Element) => Promise<string>;
+    isEmpty: (element: Element, initialValue?: string) => Promise<boolean | null>;
 }
 
 export interface PageRequestManager {
@@ -58,6 +63,10 @@ export interface WfcBeforeSubmitEvent {
     addRequestInterceptor(interceptor: ((request: RequestInit) => void | Promise<void>)): void;
 }
 
+export interface WfcValidateEvent {
+    addValidator(validator: () => boolean | Promise<boolean>): void;
+}
+
 declare global {
     var wfc: WebFormsCore
     var Sys: Sys
@@ -69,6 +78,7 @@ declare global {
 
     interface WebFormsCoreEvent {
         addEventListener(event: "wfc:beforeSubmit", listener: (this: this, ev: CustomEvent<WfcBeforeSubmitEvent>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(event: "wfc:validate", listener: (this: this, ev: CustomEvent<WfcValidateEvent>) => any, options?: boolean | AddEventListenerOptions): void;
     }
     
     interface Document extends WebFormsCoreEvent {
@@ -78,6 +88,8 @@ declare global {
         webSocket: WebSocket | undefined;
         isUpdating: boolean;
         dispatchEvent(event: Event): boolean;
+        isEmpty?: boolean | ((initialValue: string) => boolean) | ((initialValue: string) => Promise<boolean>);
+        getStringValue?: (() => string) | (() => Promise<string>);
     }
 
     var trustedTypes: {

@@ -60,6 +60,10 @@
         <AdditionalFiles Update="Controls\Forms\Pages\DynamicForms.aspx">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>
+
+        <AdditionalFiles Update="Controls\TextBox\Pages\CheckboxPostbackPage.aspx">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
     </ItemGroup>
 
     <ItemGroup>

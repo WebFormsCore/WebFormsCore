@@ -17,7 +17,7 @@ namespace WebFormsCore;
 
 public sealed class SeleniumFixture : IDisposable
 {
-    private static readonly Lazy<string> ChromePath = new(() => new DriverManager().SetUpDriver(new ChromeConfig()));
+    private static readonly Lazy<string> ChromePath = new(() => new DriverManager().SetUpDriver(new ChromeConfig(), "MatchingBrowser"));
     private static readonly Lazy<string> FirefoxPath = new(() => new DriverManager().SetUpDriver(new FirefoxConfig()));
 
     private readonly ConcurrentBag<IWebDriver> _chromeDrivers = [];

@@ -1,7 +1,7 @@
 <Project>
 
     <PropertyGroup>
-        <Version>0.0.1-alpha.66</Version>
+        <Version>0.0.1-alpha.67</Version>
         <PackageVersion>$(Version)</PackageVersion>
         <Authors>WebFormsCore</Authors>
         <RepositoryUrl>https://github.com/WebFormsCore/WebFormsCore</RepositoryUrl>

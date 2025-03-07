@@ -7,6 +7,10 @@ public interface IElement
 {
     string Text { get; }
 
+    string Value { get; }
+
+    ValueTask ClearAsync();
+
     ValueTask ClickAsync();
 
     ValueTask TypeAsync(string text);

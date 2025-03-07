@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using OpenQA.Selenium;
 
 namespace WebFormsCore;
@@ -6,6 +7,41 @@ namespace WebFormsCore;
 internal class SeleniumElement(IWebElement element) : IElement
 {
     public string Text => element.Text;
+
+    public string Value
+    {
+        get
+        {
+            switch (element.TagName)
+            {
+                case "input":
+                    return element.GetAttribute("value");
+                case "textarea":
+                    return element.Text;
+                default:
+                    throw new NotSupportedException($"Element tag name '{element.TagName}' is not supported.");
+            }
+        }
+        set
+        {
+            switch (element.TagName)
+            {
+                case "input":
+                case "textarea":
+                    element.Clear();
+                    element.SendKeys(value);
+                    break;
+                default:
+                    throw new NotSupportedException($"Element tag name '{element.TagName}' is not supported.");
+            }
+        }
+    }
+
+    public ValueTask ClearAsync()
+    {
+        element.Clear();
+        return default;
+    }
 
     public ValueTask ClickAsync()
     {

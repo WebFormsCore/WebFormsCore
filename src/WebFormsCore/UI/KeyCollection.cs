@@ -98,13 +98,25 @@ public sealed class KeyCollection : IViewStateObject, IDisposable
         return keys;
     }
 
-    public object Get(string name, int itemIndex)
+    public object? Get(string name, int itemIndex)
     {
         var index = GetIndex(name);
 
         if (_keys is null)
         {
-            return null!;
+            return null;
+        }
+
+        var length = _dataKeyProvider.DataKeys.Length;
+
+        return _keys[itemIndex * length + index]!;
+    }
+
+    public object? Get(int index, int itemIndex)
+    {
+        if (_keys is null)
+        {
+            return null;
         }
 
         var length = _dataKeyProvider.DataKeys.Length;
