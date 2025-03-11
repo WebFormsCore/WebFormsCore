@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Support.Extensions;
 
 namespace WebFormsCore;
 
@@ -46,6 +48,30 @@ internal class SeleniumElement(IWebElement element) : IElement
     public ValueTask ClickAsync()
     {
         return element.ClickAndWaitForPageBackAsync();
+    }
+
+    public async ValueTask PostBackAsync(string? argument = null, PostBackOptions? options = null)
+    {
+        if (element is IWrapsDriver wrapsDriver)
+        {
+            if (options == null)
+            {
+                wrapsDriver.WrappedDriver.ExecuteJavaScript(
+                    "wfc.postBack(document.getElementById(arguments[0].id), arguments[1])",
+                    element,
+                    argument);
+            }
+            else
+            {
+                wrapsDriver.WrappedDriver.ExecuteJavaScript(
+                    "wfc.postBack(document.getElementById(arguments[0].id), arguments[1], JSON.parse(arguments[2]))",
+                    element,
+                    argument,
+                    JsonSerializer.Serialize(options));
+            }
+
+            await wrapsDriver.WrappedDriver.WaitForPageBackAsync();
+        }
     }
 
     public ValueTask TypeAsync(string text)

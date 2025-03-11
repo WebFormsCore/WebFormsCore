@@ -204,7 +204,7 @@ public class Page : Control, INamingContainer, IStateContainer, IInternalPage
         foreach (var validator in Validators)
         {
             if (validationGroup is not null &&
-                (validator is not BaseValidator v || !string.Equals(v.ValidationGroup, validationGroup, StringComparison.OrdinalIgnoreCase)))
+                (validator is not BaseValidator v || !string.Equals(v.ValidationGroup ?? "", validationGroup, StringComparison.OrdinalIgnoreCase)))
             {
                 continue;
             }

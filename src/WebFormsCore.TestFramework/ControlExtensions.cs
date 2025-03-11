@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Features;
 using WebFormsCore.Features;
 using WebFormsCore.UI;
 
@@ -12,6 +11,11 @@ public static class ControlExtensions
         return control.Context.Features
             .Get<ITestContextFeature>()!.TestContext
             .GetRequiredElement(control);
+    }
+
+    public static ValueTask PostBackAsync(this Control control, string? argument = null, PostBackOptions? options = null)
+    {
+        return control.FindBrowserElement().PostBackAsync(argument, options);
     }
 
     public static ValueTask ClickAsync(this Control control)

@@ -64,6 +64,10 @@
         <AdditionalFiles Update="Controls\TextBox\Pages\CheckboxPostbackPage.aspx">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>
+
+        <AdditionalFiles Update="Controls\RequiredFieldValidator\Pages\TextBoxPage.aspx">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
     </ItemGroup>
 
     <ItemGroup>

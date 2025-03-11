@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace WebFormsCore;
 
@@ -12,6 +11,8 @@ public interface IElement
     ValueTask ClearAsync();
 
     ValueTask ClickAsync();
+
+    ValueTask PostBackAsync(string? argument = null, PostBackOptions? options = null);
 
     ValueTask TypeAsync(string text);
 

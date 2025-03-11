@@ -3,8 +3,8 @@ export interface WebFormsCore {
     hiddenClass: string;
 
     readonly hasPendingPostbacks: boolean;
-    postBackChange: (target: Element, timeOut?: number, eventArgument?: string) => void;
-    postBack: (target: Element, eventArgument?: string) => Promise<void>;
+    postBackChange: (target: Element, timeOut?: number, eventArgument?: string, options?: PostBackOptions) => void;
+    postBack: (target: Element, eventArgument?: string, options?: PostBackOptions) => Promise<void>;
 
     show: (element: HTMLElement) => void;
     hide: (element: HTMLElement) => void;
@@ -28,6 +28,10 @@ export interface WebFormsCore {
     validate: (validationGroup?: string | Element) => Promise<boolean>;
     getStringValue: (element: Element) => Promise<string>;
     isEmpty: (element: Element, initialValue?: string) => Promise<boolean | null>;
+}
+
+export interface PostBackOptions {
+    validate?: boolean;
 }
 
 export interface PageRequestManager {

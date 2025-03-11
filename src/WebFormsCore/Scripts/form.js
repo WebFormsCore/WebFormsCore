@@ -2508,14 +2508,21 @@
             }
         }
     }
-    function postBackElement(element, eventTarget, eventArgument) {
+    async function postBackElement(element, eventTarget, eventArgument, options) {
+        var _a, _b;
+        if (!eventTarget) {
+            eventTarget = (_a = element.getAttribute('data-wfc-postback')) !== null && _a !== void 0 ? _a : "";
+        }
+        if (((_b = options === null || options === void 0 ? void 0 : options.validate) !== null && _b !== void 0 ? _b : true) && !await wfc.validate(element)) {
+            return;
+        }
         const form = getForm(element);
         const streamPanel = getStreamPanel(element);
         if (streamPanel) {
-            return sendToStream(streamPanel, eventTarget, eventArgument);
+            await sendToStream(streamPanel, eventTarget, eventArgument);
         }
         else {
-            return submitForm(element, form, eventTarget, eventArgument);
+            await submitForm(element, form, eventTarget, eventArgument);
         }
     }
     function sendToStream(streamPanel, eventTarget, eventArgument) {
@@ -2640,9 +2647,6 @@
         const url = (_a = baseElement === null || baseElement === void 0 ? void 0 : baseElement.getAttribute('data-wfc-base')) !== null && _a !== void 0 ? _a : location.toString();
         const formData = getFormData(form, eventTarget, eventArgument);
         const container = new ViewStateContainer(form, formData);
-        if (!wfc.validate(element)) {
-            return;
-        }
         pendingPostbacks++;
         const release = await postbackMutex.acquire();
         const interceptors = [];
@@ -2936,8 +2940,7 @@
         if (wfcDisabled === "true") {
             return;
         }
-        const eventTarget = postbackControl.getAttribute('data-wfc-postback');
-        postBackElement(e.target, eventTarget);
+        postBackElement(e.target);
     });
     document.addEventListener('keypress', async function (e) {
         if (e.key !== 'Enter' && e.keyCode !== 13 && e.which !== 13) {
@@ -2965,7 +2968,7 @@
         }
         postBackChange(e.target);
     });
-    function postBackChange(target, timeOut = 1000, eventArgument = 'CHANGE') {
+    function postBackChange(target, timeOut = 1000, eventArgument = 'CHANGE', options) {
         var _a, _b;
         const container = (_a = getStreamPanel(target)) !== null && _a !== void 0 ? _a : getForm(target);
         const eventTarget = target.getAttribute('name');
@@ -2978,12 +2981,12 @@
         timeouts[key] = setTimeout(async () => {
             pendingPostbacks--;
             delete timeouts[key];
-            await postBackElement(target, eventTarget, eventArgument);
+            await postBackElement(target, eventTarget, eventArgument, options);
         }, timeOut);
     }
-    function postBack(target, eventArgument) {
+    function postBack(target, eventArgument, options) {
         const eventTarget = target.getAttribute('name');
-        return postBackElement(target, eventTarget, eventArgument);
+        return postBackElement(target, eventTarget, eventArgument, options);
     }
     document.addEventListener('change', async function (e) {
         if (e.target instanceof Element && e.target.hasAttribute('data-wfc-autopostback')) {
@@ -3026,7 +3029,7 @@
         },
         validate: async function (validationGroup = "") {
             var _a, _b;
-            if (typeof validationGroup === "object") {
+            if (typeof validationGroup === "object" && validationGroup instanceof Element) {
                 if (!validationGroup.hasAttribute('data-wfc-validate')) {
                     return true;
                 }
@@ -3267,7 +3270,7 @@
     }
     wfc.bindValidator('[data-wfc-requiredvalidator]', {
         validate: async function (elementToValidate, validator) {
-            return await wfc.isEmpty(elementToValidate, validator.getAttribute('data-wfc-requiredvalidator'));
+            return !(await wfc.isEmpty(elementToValidate, validator.getAttribute('data-wfc-requiredvalidator')));
         }
     });
     window.wfc = wfc;

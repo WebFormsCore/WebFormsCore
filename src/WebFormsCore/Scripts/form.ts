@@ -1,4 +1,4 @@
-import {WebFormsCore, WfcBeforeSubmitEvent, WfcValidateEvent} from "../../../typings";
+import {PostBackOptions, WebFormsCore, WfcBeforeSubmitEvent, WfcValidateEvent} from "../../../typings";
 import morphAttrs from "morphdom/src/morphAttrs";
 import morphdomFactory from "morphdom/src/morphdom";
 import DOMPurify from 'dompurify';
@@ -80,14 +80,22 @@ class ViewStateContainer {
 
 }
 
-function postBackElement(element: Element, eventTarget?: string, eventArgument?: string) {
+async function postBackElement(element: Element, eventTarget?: string, eventArgument?: string, options?: PostBackOptions) {
+    if (!eventTarget) {
+        eventTarget = element.getAttribute('data-wfc-postback') ?? "";
+    }
+
+    if ((options?.validate ?? true) && !await wfc.validate(element)) {
+        return;
+    }
+
     const form = getForm(element);
     const streamPanel = getStreamPanel(element);
 
     if (streamPanel) {
-        return sendToStream(streamPanel, eventTarget, eventArgument);
+        await sendToStream(streamPanel, eventTarget, eventArgument);
     } else {
-        return submitForm(element, form, eventTarget, eventArgument);
+        await submitForm(element, form, eventTarget, eventArgument);
     }
 }
 
@@ -244,10 +252,6 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
     const url = baseElement?.getAttribute('data-wfc-base') ?? location.toString();
     const formData = getFormData(form, eventTarget, eventArgument);
     const container = new ViewStateContainer(form, formData);
-
-    if (!wfc.validate(element)) {
-        return;
-    }
 
     pendingPostbacks++;
     const release = await postbackMutex.acquire();
@@ -595,9 +599,7 @@ document.addEventListener('click', async function(e){
         return;
     }
 
-    const eventTarget = postbackControl.getAttribute('data-wfc-postback');
-
-    postBackElement(e.target, eventTarget);
+    postBackElement(e.target);
 });
 
 document.addEventListener('keypress', async function(e){
@@ -638,7 +640,7 @@ document.addEventListener('input', function(e){
     postBackChange(e.target);
 });
 
-function postBackChange(target: Element, timeOut = 1000, eventArgument: string = 'CHANGE') {
+function postBackChange(target: Element, timeOut = 1000, eventArgument: string = 'CHANGE', options?: PostBackOptions) {
     const container = getStreamPanel(target) ?? getForm(target);
     const eventTarget = target.getAttribute('name');
     const key = (container?.id ?? '') + eventTarget + eventArgument;
@@ -653,14 +655,14 @@ function postBackChange(target: Element, timeOut = 1000, eventArgument: string =
     timeouts[key] = setTimeout(async () => {
         pendingPostbacks--;
         delete timeouts[key];
-        await postBackElement(target, eventTarget, eventArgument);
+        await postBackElement(target, eventTarget, eventArgument, options);
     }, timeOut);
 }
 
-function postBack(target: Element, eventArgument?: string) {
+function postBack(target: Element, eventArgument?: string, options?: PostBackOptions) {
     const eventTarget = target.getAttribute('name');
 
-    return postBackElement(target, eventTarget, eventArgument);
+    return postBackElement(target, eventTarget, eventArgument, options);
 }
 
 document.addEventListener('change', async function(e){
@@ -707,7 +709,7 @@ const wfc: WebFormsCore = {
     },
 
     validate: async function (validationGroup = "") {
-        if (typeof validationGroup === "object") {
+        if (typeof validationGroup === "object" && validationGroup instanceof Element) {
             if (!validationGroup.hasAttribute('data-wfc-validate')) {
                 return true;
             }
@@ -998,7 +1000,7 @@ if ('wfc' in window) {
 
 wfc.bindValidator('[data-wfc-requiredvalidator]', {
     validate: async function(elementToValidate: HTMLInputElement, validator) {
-        return await wfc.isEmpty(elementToValidate, validator.getAttribute('data-wfc-requiredvalidator'));
+        return !(await wfc.isEmpty(elementToValidate, validator.getAttribute('data-wfc-requiredvalidator')));
     }
 });
 
