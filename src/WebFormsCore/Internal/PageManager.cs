@@ -143,6 +143,8 @@ public class PageManager : IPageManager
 
         internalPage.InvokeFrameworkInit(token);
 
+        await internalPage.InvokePreInitAsync(token);
+
         foreach (var pageService in pageServices)
         {
             await pageService.BeforeInitializeAsync(page, token);

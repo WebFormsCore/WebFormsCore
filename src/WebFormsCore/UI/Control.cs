@@ -20,6 +20,7 @@ public enum ControlState
 {
     Constructed,
     FrameworkInitialized,
+    PreInitialized,
     Initialized,
     Loaded,
     PreRendered,
@@ -54,6 +55,7 @@ public partial class Control
     private bool? _enableViewState;
     private string? _clientId;
 
+    public event AsyncEventHandler<Control, EventArgs>? PreInit;
     public event AsyncEventHandler<Control, EventArgs>? Init;
     public event AsyncEventHandler<Control, EventArgs>? Load;
     public event AsyncEventHandler<Control, EventArgs>? PreRender;
@@ -539,6 +541,11 @@ public partial class Control
             control.InvokeFrameworkInit(default);
         }
 
+        if (state >= ControlState.PreInitialized && control._state < ControlState.PreInitialized)
+        {
+            await control.InvokePreInitAsync(default);
+        }
+
         if (state >= ControlState.Initialized && control._state < ControlState.Initialized)
         {
             await control.InvokeInitAsync(default);
@@ -845,6 +852,15 @@ public partial class Control
     public virtual void AddParsedSubObject(Control control)
     {
         Controls.AddWithoutPageEvents(control);
+    }
+
+    protected virtual void OnPreInit(EventArgs args)
+    {
+    }
+
+    protected virtual ValueTask OnPreInitAsync(CancellationToken token)
+    {
+        return default;
     }
 
     protected virtual void OnInit(EventArgs args)

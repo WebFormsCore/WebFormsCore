@@ -254,6 +254,28 @@ public partial class Control : IInternalControl
         }
     }
 
+    internal async ValueTask InvokePreInitAsync(CancellationToken token)
+    {
+        if (ProcessControl)
+        {
+            if (token.IsCancellationRequested) return;
+
+            OnPreInit(EventArgs.Empty);
+            await OnPreInitAsync(token);
+            await PreInit.InvokeAsync(this, EventArgs.Empty);
+
+            _state = ControlState.PreInitialized;
+        }
+
+        if (ProcessChildren)
+        {
+            foreach (var control in Controls)
+            {
+                await control.InvokePreInitAsync(token);
+            }
+        }
+    }
+
     internal async ValueTask InvokeInitAsync(CancellationToken token)
     {
         if (ProcessControl)
@@ -263,11 +285,6 @@ public partial class Control : IInternalControl
             OnInit(EventArgs.Empty);
             await OnInitAsync(token);
             await Init.InvokeAsync(this, EventArgs.Empty);
-
-            InvokeTrackViewState();
-
-            _state = ControlState.Initialized;
-            _viewState?.TrackViewState();
         }
 
         if (ProcessChildren)
@@ -276,6 +293,14 @@ public partial class Control : IInternalControl
             {
                 await control.InvokeInitAsync(token);
             }
+        }
+
+        if (ProcessControl)
+        {
+            InvokeTrackViewState();
+
+            _state = ControlState.Initialized;
+            _viewState?.TrackViewState();
         }
     }
 
@@ -443,6 +468,11 @@ public partial class Control : IInternalControl
     void IInternalControl.InvokeTrackViewState(CancellationToken token)
     {
         InvokeTrackViewState();
+    }
+
+    ValueTask IInternalControl.InvokePreInitAsync(CancellationToken token)
+    {
+        return InvokePreInitAsync(token);
     }
 
     ValueTask IInternalControl.InvokeInitAsync(CancellationToken token)

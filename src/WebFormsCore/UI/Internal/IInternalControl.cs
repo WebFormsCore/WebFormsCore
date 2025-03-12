@@ -22,6 +22,8 @@ public interface IInternalControl
 
     void InvokeTrackViewState(CancellationToken token);
 
+    ValueTask InvokePreInitAsync(CancellationToken token);
+
     ValueTask InvokeInitAsync(CancellationToken token);
 
     ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument);
