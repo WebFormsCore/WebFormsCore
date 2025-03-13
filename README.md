@@ -1,5 +1,5 @@
 ## What is WebForms Core?
-WebForms Core is a framework for ASP.NET Core.
+WebForms Core is a framework for ASP.NET Core 2.3 (.NET Framework), 8.0 or higher (.NET).
 
 It is heavily inspired by WebForms but is not a direct port. There are many breaking changes. The goal is to provide a framework that is easy to use and provides a familiar experience for developers who are used to WebForms.
 
@@ -21,7 +21,9 @@ In comparison to WebForms, there are a few changes:
 - **Pre-compiled views**  
   WebForms Core pre-compiles views to improve the startup time of your application.
 - **Content Security Policy (CSP) support**  
-  Experimental support for Content Security Policy.
+  Experimental support for [Content Security Policy](https://developer.chrome.com/docs/privacy-security/csp).
+- **Early Hints support**  
+  Experimental support for [Early Hints](https://developer.chrome.com/docs/web-platform/early-hints).
 - **Streaming support**  
   Like Blazor Server-Side, it's possible to stream the HTML (without ViewState) with WebSockets.
 
@@ -29,7 +31,7 @@ In comparison to WebForms, there are a few changes:
 Create a new .csproj that uses the SDK `WebFormsCore.SDK`:
 
 ```xml
-<Project Sdk="WebFormsCore.SDK.AspNetCore/0.0.1-alpha.33">
+<Project Sdk="WebFormsCore.SDK.AspNetCore/0.0.1-alpha.68">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
