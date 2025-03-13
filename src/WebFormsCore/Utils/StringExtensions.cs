@@ -15,6 +15,11 @@ internal static class StringExtensions
         return str.IndexOf(c) >= 0;
     }
 
+    public static bool Contains(this string str, string value, StringComparison comparisonType)
+    {
+        return str.IndexOf(value, comparisonType) >= 0;
+    }
+
     public static string ReplaceLineEndings(this string str, string replacement)
     {
         return NewLineRegex.Replace(str, replacement);

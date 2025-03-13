@@ -1,5 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore;
@@ -8,6 +10,11 @@ using WebFormsCore.Options;
 using WebFormsCore.UI;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ConfigureEndpointDefaults(c => c.Protocols = HttpProtocols.Http1AndHttp2);
+});
 
 builder.Services.AddWebFormsCore(b =>
 {
@@ -44,16 +51,18 @@ builder.Services.AddSession();
 
 var app = builder.Build();
 
-app.Use((c, n) =>
+app.Use(async (c, n) =>
 {
     if (c.Request.Path == "/favicon.ico")
     {
         c.Response.StatusCode = 404;
-        return Task.CompletedTask;
+        return;
     }
 
-    return n(c);
+    await n(c);
 });
+
+app.UseStaticFiles();
 
 app.UseSession();
 app.UseWebSockets();

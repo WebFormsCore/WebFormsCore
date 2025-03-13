@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -12,6 +13,19 @@ public class HtmlScript : HtmlGenericControl
     public HtmlScript()
         : base("script")
     {
+    }
+
+    protected override void OnInit(EventArgs args)
+    {
+        base.OnInit(args);
+
+        if (Attributes.TryGetValue("src", out var href)
+            && href != null
+            && RenderScripts(this)
+            && Uri.TryCreate(href, UriKind.Relative, out _))
+        {
+            Page.EarlyHints.AddScript(href);
+        }
     }
 
     public override ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)

@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WebFormsCore.UI.HtmlControls;
@@ -10,6 +11,20 @@ public class HtmlLink : HtmlGenericControl
     public HtmlLink()
         : base("link")
     {
+    }
+
+    protected override void OnInit(EventArgs args)
+    {
+        base.OnInit(args);
+
+        if (Attributes["rel"] == "stylesheet" &&
+            Attributes.TryGetValue("href", out var href)
+            && href != null
+            && HtmlStyle.RenderStyles(this)
+            && Uri.TryCreate(href, UriKind.Relative, out _))
+        {
+            Page.EarlyHints.AddStyle(href);
+        }
     }
 
     public override ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)

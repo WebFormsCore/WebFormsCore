@@ -25,6 +25,7 @@ public class ControlTest
     public static async Task<ITestContext<TControl>> StartBrowserAsync<TControl>(
         Func<IWebHost, WebServerContext<TControl>> contextFactory,
         Action<IServiceCollection>? configure = null,
+        Action<IApplicationBuilder>? configureApp = null,
         bool enableViewState = true
     ) where TControl : Control, new()
     {
@@ -62,10 +63,18 @@ public class ControlTest
 
         builder.Configure(app =>
         {
+            configureApp?.Invoke(app);
+
             app.Run(async ctx =>
             {
                 try
                 {
+                    if (ctx.Request.Path == "/favicon.ico")
+                    {
+                        ctx.Response.StatusCode = 404;
+                        return;
+                    }
+
                     Debug.Assert(context.Value != null);
                     ctx.Features.Set<ITestContextFeature>(new TestContextFeature(context.Value!));
 

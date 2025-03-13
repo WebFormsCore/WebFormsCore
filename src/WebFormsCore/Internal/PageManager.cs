@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -18,7 +19,7 @@ using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore;
 
-public class PageManager : IPageManager
+public partial class PageManager : IPageManager
 {
     private readonly IViewStateManager _viewStateManager;
     private readonly IControlManager _controlManager;
@@ -155,6 +156,97 @@ public class PageManager : IPageManager
         foreach (var pageService in pageServices)
         {
             await pageService.AfterInitializeAsync(page, token);
+        }
+
+        if (page.EarlyHints is { Enabled: true, IsEmpty: false })
+        {
+            await SendEarlyHints(page);
+        }
+    }
+
+    const string BrowserPattern = @"(?'BrowserName'Chrome|Firefox)/(?'Version'\d+)";
+
+#if NET
+    [GeneratedRegex(BrowserPattern, RegexOptions.Compiled)]
+    private static partial Regex UserAgentRegex();
+#else
+    private static readonly Regex UserAgentRegexInstance = new(BrowserPattern, RegexOptions.Compiled);
+
+    private static Regex UserAgentRegex() => UserAgentRegexInstance;
+#endif
+
+    private static async ValueTask SendEarlyHints(Page page)
+    {
+        var userAgent = page.Context.Request.Headers["User-Agent"].ToString();
+
+        if (string.IsNullOrEmpty(userAgent))
+        {
+            return;
+        }
+
+        var match = UserAgentRegex().Match(userAgent);
+
+        if (!match.Success)
+        {
+            return;
+        }
+
+#if NET
+        var versionValue = match.Groups["Version"].ValueSpan;
+        var browserNameValue = match.Groups["BrowserName"].ValueSpan;
+#else
+        var versionValue = match.Groups["Version"].Value;
+        var browserNameValue = match.Groups["BrowserName"].Value;
+#endif
+
+        if (!int.TryParse(versionValue, out var version))
+        {
+            return;
+        }
+
+        if (browserNameValue.Equals("Chrome", StringComparison.OrdinalIgnoreCase))
+        {
+            if (version < 103)
+            {
+                return;
+            }
+        }
+        else if (browserNameValue.Equals("Firefox", StringComparison.OrdinalIgnoreCase))
+        {
+            if (version < 120)
+            {
+                return;
+            }
+        }
+        else
+        {
+            // TODO: Safari doesn't support 'preload' yet
+            return;
+        }
+
+
+#if NET
+        var accept = page.Context.Request.Headers.Accept;
+#else
+        var accept = page.Context.Request.Headers["Accept"];
+#endif
+
+        var isHtml = false;
+
+        foreach (var i in accept)
+        {
+            if (i != null && i.Contains("text/html", StringComparison.OrdinalIgnoreCase))
+            {
+                isHtml = true;
+                break;
+            }
+        }
+
+        if (isHtml)
+        {
+            var earlyHints = page.EarlyHints.GetLinkHeader();
+            await page.Context.Send103EarlyHints(earlyHints);
+            page.Context.Items["EarlyHints"] = earlyHints;
         }
     }
 

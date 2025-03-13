@@ -9,6 +9,8 @@ public static class SeleniumExtensions
 {
     public static async ValueTask WaitForPageBackAsync(this IWebDriver driver, CancellationToken token = default)
     {
+        await Task.Delay(10, token);
+
         if (driver is not IJavaScriptExecutor js)
         {
             return;

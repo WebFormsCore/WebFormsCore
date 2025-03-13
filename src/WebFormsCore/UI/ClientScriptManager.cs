@@ -184,6 +184,19 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
             return;
         }
 
+        if (registerType is RegisterType.ExternalScript or RegisterType.ExternalStyle &&
+            Uri.TryCreate(content, UriKind.Relative, out _))
+        {
+            if (registerType == RegisterType.ExternalScript)
+            {
+                page.EarlyHints.AddScript(content);
+            }
+            else
+            {
+                page.EarlyHints.AddStyle(content);
+            }
+        }
+
         var registration = RegisteredScriptPool.Get();
         registration.Key = dictionaryKey;
         registration.Script = content;

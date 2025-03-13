@@ -68,6 +68,10 @@
         <AdditionalFiles Update="Controls\RequiredFieldValidator\Pages\TextBoxPage.aspx">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>
+
+        <AdditionalFiles Update="EarlyHints\Pages\EarlyHintsPage.aspx">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
     </ItemGroup>
 
     <ItemGroup>

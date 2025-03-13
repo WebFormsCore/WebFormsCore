@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using WebFormsCore.Performance;
 using WebFormsCore.Security;
 using WebFormsCore.UI.Attributes;
 using WebFormsCore.UI.HtmlControls;
@@ -37,11 +38,19 @@ public class Page : Control, INamingContainer, IStateContainer, IInternalPage
         set => Csp.Enabled = value;
     }
 
+    public bool EnableEarlyHints
+    {
+        get => EarlyHints.Enabled;
+        set => EarlyHints.Enabled = value;
+    }
+
     public HtmlHead? Header { get; internal set; }
 
     public HtmlBody? Body { get; internal set; }
 
     public Csp Csp { get; set; } = new();
+
+    public EarlyHints EarlyHints { get; } = new();
 
     public ClientScriptManager ClientScript { get; }
 

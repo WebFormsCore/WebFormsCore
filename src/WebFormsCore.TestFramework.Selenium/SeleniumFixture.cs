@@ -26,6 +26,7 @@ public sealed class SeleniumFixture : IDisposable
     public Task<ITestContext<TControl>> StartAsync<TControl>(
         Browser browser,
         Action<IServiceCollection>? configure = null,
+        Action<IApplicationBuilder>? configureApp = null,
         bool? headless = null)
         where TControl : Control, new()
     {
@@ -33,18 +34,19 @@ public sealed class SeleniumFixture : IDisposable
 
         return browser switch
         {
-            Browser.Chrome => StartChromeAsync<TControl>(configure, headless.Value),
-            Browser.Firefox => StartFirefoxAsync<TControl>(configure, headless.Value),
+            Browser.Chrome => StartChromeAsync<TControl>(configure, configureApp, headless.Value),
+            Browser.Firefox => StartFirefoxAsync<TControl>(configure, configureApp, headless.Value),
             _ => throw new NotSupportedException(),
         };
     }
 
     public async Task<ITestContext<TControl>> StartChromeAsync<TControl>(
         Action<IServiceCollection>? configure = null,
+        Action<IApplicationBuilder>? configureApp = null,
         bool headless = true
     ) where TControl : Control, new()
     {
-        return await StartBrowserAsync<TControl>(DriverFactory, configure);
+        return await StartBrowserAsync<TControl>(DriverFactory, configure, configureApp);
 
         IWebDriver DriverFactory()
         {
@@ -64,10 +66,11 @@ public sealed class SeleniumFixture : IDisposable
 
     public async Task<ITestContext<TControl>> StartFirefoxAsync<TControl>(
         Action<IServiceCollection>? configure = null,
+        Action<IApplicationBuilder>? configureApp = null,
         bool headless = true
     ) where TControl : Control, new()
     {
-        return await StartBrowserAsync<TControl>(DriverFactory, configure);
+        return await StartBrowserAsync<TControl>(DriverFactory, configure, configureApp);
 
         IWebDriver DriverFactory()
         {
@@ -91,10 +94,11 @@ public sealed class SeleniumFixture : IDisposable
 
     public Task<ITestContext<TControl>> StartBrowserAsync<TControl>(
         Func<IWebDriver> driverFactory,
-        Action<IServiceCollection>? configure = null
+        Action<IServiceCollection>? configure = null,
+        Action<IApplicationBuilder>? configureApp = null
     ) where TControl : Control, new()
     {
-        return ControlTest.StartBrowserAsync(host => new SeleniumTestContext<TControl>(host, driverFactory(), this), configure);
+        return ControlTest.StartBrowserAsync(host => new SeleniumTestContext<TControl>(host, driverFactory(), this), configure, configureApp);
     }
 
     internal bool ReturnDriver(IWebDriver driver)
