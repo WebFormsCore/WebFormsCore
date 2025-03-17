@@ -5,7 +5,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v2
@@ -49,49 +53,23 @@ jobs:
       - name: Upload Combined Coverage XML
         uses: actions/upload-artifact@v4
         with:
-          name: coverage
+          name: coverage-${{ matrix.os }}
           path: ${{ github.workspace }}/Cobertura.xml
           retention-days: 5
 
       - name: Upload Test Result Files
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: test-results-${{ matrix.os }}
           path: ${{ github.workspace }}/**/TestResults/**/*
           retention-days: 5
-      
-      - name: Publish Code Coverage Report
-        uses: irongut/CodeCoverageSummary@v1.3.0
-        with:
-          filename: "Cobertura.xml"
-          badge: true
-          fail_below_min: false
-          format: markdown
-          hide_branch_rate: false
-          hide_complexity: false
-          indicators: true
-          output: both
-          thresholds: "10 30"
-
-      - name: Add Coverage PR Comment
-        uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
-        with:
-          recreate: true
-          path: code-coverage-results.md
-
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2.16.1
-        if: always()
-        with:
-          trx_files: "${{ github.workspace }}/**/*.trx"
 
       - name: Build Release
         run: dotnet build --configuration Release --no-restore
 
       - name: Publish WebFormsCore
         uses: GerardSmit/publish-nuget@v3.1.2
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && matrix.os == 'ubuntu-latest'
         with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: Directory.Build.props
@@ -108,3 +86,48 @@ jobs:
             src/WebFormsCore.Extensions.Grid/WebFormsCore.Extensions.Grid.csproj
             src/WebFormsCore.Extensions.TinyMCE/WebFormsCore.Extensions.TinyMCE.csproj
       
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    name: test summary
+    needs: [build]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Combined Coverage XML
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}
+
+      - name: Download Test Result Files
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}
+
+      - name: Publish Code Coverage Report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: "Cobertura.xml"
+          badge: true
+          fail_below_min: false
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: false
+          indicators: true
+          output: both
+          thresholds: "10 30"
+
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request' && matrix.os == 'windows-latest'
+        with:
+          recreate: true
+          path: code-coverage-results.md
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2.18.0
+        with:
+          trx_files: "${{ github.workspace }}/**/*.trx"
+          check_name: "Results (${{ matrix.os }})"
