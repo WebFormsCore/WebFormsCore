@@ -7,21 +7,23 @@ public partial class EarlyHintsPage : Page
 {
     private readonly TaskCompletionSource<object?> _scriptLoadedTcs = new();
 
-    public bool? ScriptLoaded { get; private set; }
+    protected override void OnInit(EventArgs args)
+    {
+        base.OnInit(args);
+
+        // The script is not in the page, we only want to hint it to validate the test
+        EarlyHints.AddScript("/script.js");
+    }
 
     protected override async ValueTask OnLoadAsync(CancellationToken token)
     {
         await base.OnLoadAsync(token);
 
-        var maxWait = Task.Delay(5000, token);
-        await Task.WhenAny(maxWait, _scriptLoadedTcs.Task);
-
-        ScriptLoaded ??= false;
+        await Task.WhenAny(Task.Delay(5000, token), _scriptLoadedTcs.Task);
     }
 
     public void MarkScriptLoaded()
     {
-        ScriptLoaded ??= true;
         _scriptLoadedTcs.SetResult(null);
     }
 }

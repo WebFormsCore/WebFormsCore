@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
+﻿using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.Containers;
 using WebFormsCore.Tests.EarlyHints.Pages;
@@ -10,34 +11,39 @@ public class EarlyHintsTest(SeleniumFixture fixture)
 {
     public static IEnumerable<object[]> BrowserData =>
     [
-        [Browser.Chrome],
-        [Browser.Firefox]
+        // Chrome only supports HTTP/2
+        [Browser.Chrome, HttpProtocols.Http2],
+        [Browser.Firefox, HttpProtocols.Http2],
+        [Browser.Firefox, HttpProtocols.Http1]
     ];
 
     [Theory, MemberData(nameof(BrowserData))]
-    public async Task ScriptFetchedBeforePageLoad(Browser type)
+    public async Task ScriptFetchedBeforePageLoad(Browser type, HttpProtocols protocols)
     {
-        await using var result = await fixture.StartAsync<EarlyHintsPage>(type, configureApp: app =>
+        var loaded = new StrongBox<bool>();
+
+        await using var result = await fixture.StartAsync<EarlyHintsPage>(type, protocols: protocols, configureApp: app =>
         {
             app.Use(async (ctx, next) =>
             {
-                if (ctx.Request.Path == "/script.js")
+                if (ctx.Request.Path != "/script.js")
                 {
-                    await ctx.Response.WriteAsync("console.log('Hello World');");
-
+                    await next();
+                }
+                else
+                {
                     if (ctx.RequestServices.GetService<IControlAccessor>()?.Control is EarlyHintsPage page)
                     {
                         page.MarkScriptLoaded();
                     }
 
-                    return;
+                    ctx.Response.ContentType = "application/javascript";
+                    loaded.Value = true;
                 }
-
-                await next();
             });
         });
 
         Assert.True(result.Control.Page.EnableEarlyHints);
-        Assert.True(result.Control.ScriptLoaded);
+        Assert.True(loaded.Value);
     }
 }

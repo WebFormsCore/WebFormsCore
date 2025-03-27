@@ -69,7 +69,8 @@ public class ControlTest
         Func<IWebHost, WebServerContext<TControl>> contextFactory,
         Action<IServiceCollection>? configure = null,
         Action<IApplicationBuilder>? configureApp = null,
-        bool enableViewState = true
+        bool enableViewState = true,
+        HttpProtocols protocols = HttpProtocols.Http1AndHttp2
     ) where TControl : Control, new()
     {
         var builder = WebHost.CreateDefaultBuilder();
@@ -81,7 +82,7 @@ public class ControlTest
             options.Listen(IPAddress.Loopback, 0, listenOptions =>
             {
                 listenOptions.UseHttps(Certificate);
-                listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+                listenOptions.Protocols = protocols;
             });
         });
 
