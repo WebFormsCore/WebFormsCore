@@ -59,6 +59,7 @@ public sealed class SeleniumFixture : IDisposable
             if (headless) chromeOptions.AddArgument("--headless");
             chromeOptions.AddArgument("--disable-search-engine-choice-screen");
             chromeOptions.AddArgument("--no-sandbox");
+            chromeOptions.AddArgument("--ignore-certificate-errors");
 
             return new ChromeDriver(ChromePath.Value, chromeOptions);
         }
@@ -80,6 +81,7 @@ public sealed class SeleniumFixture : IDisposable
             }
 
             var firefoxOptions = new FirefoxOptions();
+            firefoxOptions.AcceptInsecureCertificates = true;
             firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_CONTENT_SANDBOX", "1");
             firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_GMP_SANDBOX", "1");
             firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_NPAPI_SANDBOX", "1");
@@ -142,12 +144,7 @@ public sealed class SeleniumFixture : IDisposable
             }
         }
 
-#if NET
         _chromeDrivers.Clear();
         _firefoxDrivers.Clear();
-#else
-        while (_chromeDrivers.TryTake(out _)) ;
-        while (_firefoxDrivers.TryTake(out _)) ;
-#endif
     }
 }

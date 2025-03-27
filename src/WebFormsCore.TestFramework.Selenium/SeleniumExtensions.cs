@@ -35,7 +35,10 @@ public static class SeleniumExtensions
 
         if (!token.IsCancellationRequested)
         {
-            throw new WebDriverTimeoutException("Page did not load in time");
+            var wfcLoaded = js.ExecuteScript("return 'wfc' in window");
+            var hasPendingPostbacks = js.ExecuteScript("return wfc.hasPendingPostbacks");
+
+            throw new WebDriverTimeoutException($"Page did not load in time (wfc: {wfcLoaded}, hasPendingPostbacks: {hasPendingPostbacks})");
         }
     }
 

@@ -166,15 +166,10 @@ public partial class PageManager : IPageManager
 
     const string BrowserPattern = @"(?'BrowserName'Chrome|Firefox)/(?'Version'\d+)";
 
-#if NET
     [GeneratedRegex(BrowserPattern, RegexOptions.Compiled)]
     private static partial Regex UserAgentRegex();
-#else
-    private static readonly Regex UserAgentRegexInstance = new(BrowserPattern, RegexOptions.Compiled);
 
-    private static Regex UserAgentRegex() => UserAgentRegexInstance;
-#endif
-
+#if !WASM
     private static async ValueTask SendEarlyHints(Page page)
     {
         var userAgent = page.Context.Request.Headers["User-Agent"].ToString();
@@ -191,13 +186,8 @@ public partial class PageManager : IPageManager
             return;
         }
 
-#if NET
         var versionValue = match.Groups["Version"].ValueSpan;
         var browserNameValue = match.Groups["BrowserName"].ValueSpan;
-#else
-        var versionValue = match.Groups["Version"].Value;
-        var browserNameValue = match.Groups["BrowserName"].Value;
-#endif
 
         if (!int.TryParse(versionValue, out var version))
         {
@@ -225,12 +215,7 @@ public partial class PageManager : IPageManager
         }
 
 
-#if NET
         var accept = page.Context.Request.Headers.Accept;
-#else
-        var accept = page.Context.Request.Headers["Accept"];
-#endif
-
         var isHtml = false;
 
         foreach (var i in accept)
@@ -249,6 +234,9 @@ public partial class PageManager : IPageManager
             page.Context.Items["EarlyHints"] = earlyHints;
         }
     }
+#else
+    private static ValueTask SendEarlyHints(Page page) => default;
+#endif
 
     /// <summary>
     /// Load the view state of the page and its active form.
@@ -440,10 +428,12 @@ public partial class PageManager : IPageManager
             response.Headers["X-Content-Type-Options"] = "nosniff";
             response.Headers["Referrer-Policy"] = "no-referrer";
 
+#if !WASM
             if (page.Csp.Enabled)
             {
                 response.Headers["Content-Security-Policy"] = page.Csp.ToString();
             }
+#endif
         }
 
         await controlToRender.RenderAsync(writer, token);

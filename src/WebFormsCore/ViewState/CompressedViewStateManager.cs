@@ -10,11 +10,7 @@ namespace WebFormsCore;
 
 public class CompressedViewStateManager : ViewStateManager
 {
-#if NET
 	public const ViewStateCompression DefaultCompression = ViewStateCompression.Brotoli;
-#else
-	public const ViewStateCompression DefaultCompression = ViewStateCompression.GZip;
-#endif
 
 	public CompressedViewStateManager(IServiceProvider serviceProvider, IOptions<ViewStateOptions>? options = null)
 		: base(serviceProvider, options)
@@ -47,7 +43,6 @@ public class CompressedViewStateManager : ViewStateManager
 
 		if (compression == ViewStateCompression.Brotoli)
 		{
-#if NET
 			var decodedOwner = MemoryPool<byte>.Shared.Rent(length);
 			var decoded = decodedOwner.Memory.Span;
 
@@ -58,9 +53,6 @@ public class CompressedViewStateManager : ViewStateManager
 
 			newOwner = decodedOwner;
 			return true;
-#else
-			throw new PlatformNotSupportedException("Brotli is not supported on this platform");
-#endif
 		}
 
 		newOwner = null;
@@ -92,21 +84,17 @@ public class CompressedViewStateManager : ViewStateManager
 		CompressionLevel.NoCompression => 0,
 		CompressionLevel.Fastest => 1,
 		CompressionLevel.Optimal => 4,
-#if NET
 		CompressionLevel.SmallestSize => 1,
-#endif
 		_ => throw new ArgumentException("Invalid compression level", nameof(compressionLevel))
 	};
 
 	protected override bool TryCompress(ReadOnlySpan<byte> source, Span<byte> destination, out byte compressionByte, out int length)
 	{
-#if NET
 		if (Compression == ViewStateCompression.Brotoli && BrotliEncoder.TryCompress(source, destination, out length, GetBrotliQualityFromCompressionLevel(CompressionLevel), 22) && length <= source.Length)
 		{
 			compressionByte = (byte)ViewStateCompression.Brotoli;
 			return true;
 		}
-#endif
 
 		if (Compression == ViewStateCompression.GZip && TryCompressGzip(source, destination, out length) && length <= source.Length)
 		{

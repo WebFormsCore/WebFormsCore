@@ -1,4 +1,5 @@
-﻿#nullable disable
+﻿#if !WASM
+#nullable disable
 using System;
 using System.Buffers;
 using System.Diagnostics;
@@ -30,15 +31,14 @@ internal static class KestrelEarlyHints
 
     private static class Http1Writer
     {
-#if NET
         private delegate ValueTask<FlushResult> WriteDataToPipeAsync(
             ReadOnlySpan<byte> buffer,
             CancellationToken cancellationToken = default
         );
 
         private static readonly Type Http1Connection = Type.GetType("Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.Http1Connection, Microsoft.AspNetCore.Server.Kestrel.Core");
-        private static readonly FieldInfo OutputProducerProperty = Type.GetType("Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.Http1Connection, Microsoft.AspNetCore.Server.Kestrel.Core").GetField("_http1Output", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static readonly MethodInfo WriteDataToPipeMethod = Type.GetType("Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.Http1OutputProducer, Microsoft.AspNetCore.Server.Kestrel.Core").GetMethod("WriteDataToPipeAsync", BindingFlags.Public | BindingFlags.Instance);
+        private static readonly FieldInfo OutputProducerProperty = Type.GetType("Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.Http1Connection, Microsoft.AspNetCore.Server.Kestrel.Core")?.GetField("_http1Output", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static readonly MethodInfo WriteDataToPipeMethod = Type.GetType("Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.Http1OutputProducer, Microsoft.AspNetCore.Server.Kestrel.Core")?.GetMethod("WriteDataToPipeAsync", BindingFlags.Public | BindingFlags.Instance);
         private static bool IsSupported = Http1Connection is not null && OutputProducerProperty is not null && WriteDataToPipeMethod is not null;
 
         private static ValueTask WriteAsync(HttpContext httpContext, ReadOnlySpan<byte> buffer)
@@ -62,21 +62,6 @@ internal static class KestrelEarlyHints
 
             return task.IsCompletedSuccessfully ? default : FromValueTaskT(task);
         }
-#else
-        private static ValueTask WriteAsync(HttpContext httpContext, ReadOnlySpan<byte> buffer)
-        {
-            var feature = httpContext.Features.Get<IHttpConnectionFeature>();
-
-            if (feature is not Http1Connection { Output: Http1OutputProducer http1OutputProducer })
-            {
-                return default;
-            }
-
-            var task = http1OutputProducer.WriteDataAsync(buffer);
-
-            return new ValueTask(task);
-        }
-#endif
 
         public static async ValueTask Send103EarlyHints(HttpContext httpContext, string link)
         {
@@ -106,7 +91,6 @@ internal static class KestrelEarlyHints
 
     private static class Http2Writer
     {
-#if NET
         private static readonly object UploadResumptionSupportedHttpStatusCode = 103;
         private static readonly Type Http2HeadersFrameFlags = Type.GetType("Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http2.Http2HeadersFrameFlags, Microsoft.AspNetCore.Server.Kestrel.Core");
         private static readonly object EndHeadersFlag = Http2HeadersFrameFlags is null ? null : Enum.Parse(Http2HeadersFrameFlags, "END_HEADERS");
@@ -152,28 +136,7 @@ internal static class KestrelEarlyHints
 
             return task.IsCompletedSuccessfully ? default : FromValueTaskT(task);
         }
-#else
-        private const int UploadResumptionSupportedHttpStatusCode = 103;
-        private static readonly FieldInfo FrameWriterField = typeof(Http2OutputProducer).GetField("_frameWriter", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static readonly FieldInfo StreamIdField = typeof(Http2OutputProducer).GetField("_streamId", BindingFlags.NonPublic | BindingFlags.Instance);
 
-        public static ValueTask Send103EarlyHints(HttpContext httpContext, string link)
-        {
-            if (httpContext.Features.Get<IHttpConnectionFeature>() is not Http2Stream { Output: Http2OutputProducer output })
-            {
-                return default;
-            }
-
-            var frameWriter = (IHttp2FrameWriter)FrameWriterField.GetValue(output);
-            var streamId = (int)StreamIdField.GetValue(output);
-
-            IHeaderDictionary headers = new HttpResponseHeaders();
-            headers.Add("Link", link);
-
-            frameWriter.WriteResponseHeaders(streamId, UploadResumptionSupportedHttpStatusCode, headers);
-
-            return new ValueTask(frameWriter.FlushAsync());
-        }
-#endif
     }
 }
+#endif

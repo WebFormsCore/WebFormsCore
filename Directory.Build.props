@@ -16,13 +16,8 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <DotNetVersions>net8.0;net9.0;net472</DotNetVersions>
+        <DotNetVersions>net8.0;net9.0</DotNetVersions>
         <ExeDotNetVersions>net8.0;net9.0</ExeDotNetVersions>
-        <ExeDotNetVersions Condition="'$(OS)' == 'Windows_NT'">$(ExeDotNetVersions);net472</ExeDotNetVersions>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(TargetFramework)' == 'net472'">
-        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     </PropertyGroup>
 
     <!-- Print the value of DotNetVersions -->

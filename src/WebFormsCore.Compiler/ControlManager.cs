@@ -15,9 +15,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.Extensions.Logging;
 using WebFormsCore.Compiler;
 using WebFormsCore.Nodes;
-#if NET
 using System.Runtime.Loader;
-#endif
 
 namespace WebFormsCore;
 
@@ -91,19 +89,11 @@ public class ControlManager : IDisposable, IControlManager
         entry.LastModified = modifyTime;
         entry.IsCompiling = true;
 
-#if NET
         if (entry.LoadContext != null)
         {
             entry.LoadContext.Unload();
             entry.LoadContext = null;
         }
-#else
-        if (entry.AppDomain != null)
-        {
-            AppDomain.Unload(entry.AppDomain);
-            entry.AppDomain = null;
-        }
-#endif
 
         _ = Task.Run(async () =>
         {
@@ -303,7 +293,6 @@ public class ControlManager : IDisposable, IControlManager
             throw new InvalidOperationException();
         }
 
-#if NET
         var loadContext = new AssemblyLoadContext("Control", isCollectible: true);
 
         assemblyStream.Seek(0, SeekOrigin.Begin);
@@ -313,12 +302,6 @@ public class ControlManager : IDisposable, IControlManager
         entry.Type = loadContext.Assemblies
             .SelectMany(i => i.GetTypes())
             .FirstOrDefault(i => i.FullName == designerType.DesignerFullTypeName);
-#else
-        var appDomain = AppDomain.CreateDomain("Control");
-        var assembly = Assembly.Load(assemblyStream.ToArray());
-        entry.Type = assembly.GetType(designerType.DesignerFullTypeName);
-        entry.AppDomain = appDomain;
-#endif
 
         _logger?.LogDebug("Compiled view of page {Path}, time spend: {Time}ms", fullPath, sw.ElapsedMilliseconds);
     }
@@ -345,11 +328,7 @@ public class ControlManager : IDisposable, IControlManager
 
         public List<string> Includes { get; } = new();
 
-#if NET
         public AssemblyLoadContext? LoadContext { get; set; }
-#else
-        public AppDomain? AppDomain { get; set; }
-#endif
     }
 
     public void Dispose()

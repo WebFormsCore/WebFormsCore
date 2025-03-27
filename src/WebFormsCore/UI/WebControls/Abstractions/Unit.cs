@@ -104,11 +104,8 @@ public struct Unit
             }
 
             _type = num >= length - 1 ? defaultType : GetTypeFromString(span.Slice(num + 1).Trim());
-#if NET
             var text = span.Slice(0, num + 1);
-#else
-            var text = span.Slice(0, num + 1).ToString();
-#endif
+
             try
             {
                 _value = float.Parse(text, NumberStyles.Float, culture);

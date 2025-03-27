@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net8.0;net472</TargetFrameworks>
+        <TargetFrameworks>$(DotNetVersions)</TargetFrameworks>
         <LangVersion>preview</LangVersion>
         <Nullable>enable</Nullable>
         <RootNamespace>WebFormsCore</RootNamespace>
@@ -18,11 +18,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\WebFormsCore\WebFormsCore.csproj" />
-    </ItemGroup>
-
-    <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
-        <PackageReference Include="Microsoft.AspNetCore" Version="2.3.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.3.0" />
     </ItemGroup>
 
 </Project>

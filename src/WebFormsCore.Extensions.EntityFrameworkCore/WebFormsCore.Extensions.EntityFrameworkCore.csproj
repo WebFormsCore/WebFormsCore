@@ -13,10 +13,6 @@
         <ProjectReference Include="..\WebFormsCore\WebFormsCore.csproj" />
     </ItemGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.3.0" />
-    </ItemGroup>
-
     <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
     </ItemGroup>

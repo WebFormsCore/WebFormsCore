@@ -1,13 +1,21 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using WebFormsCore.Containers;
 using WebFormsCore.Tests.EarlyHints.Pages;
 
 namespace WebFormsCore.Tests.EarlyHints;
 
 public class EarlyHintsTest(SeleniumFixture fixture)
 {
-    [Theory, ClassData(typeof(BrowserData))]
-    public async Task EventsCalled(Browser type)
+    public static IEnumerable<object[]> BrowserData =>
+    [
+        [Browser.Chrome],
+        [Browser.Firefox]
+    ];
+
+    [Theory, MemberData(nameof(BrowserData))]
+    public async Task ScriptFetchedBeforePageLoad(Browser type)
     {
         await using var result = await fixture.StartAsync<EarlyHintsPage>(type, configureApp: app =>
         {
@@ -16,6 +24,12 @@ public class EarlyHintsTest(SeleniumFixture fixture)
                 if (ctx.Request.Path == "/script.js")
                 {
                     await ctx.Response.WriteAsync("console.log('Hello World');");
+
+                    if (ctx.RequestServices.GetService<IControlAccessor>()?.Control is EarlyHintsPage page)
+                    {
+                        page.MarkScriptLoaded();
+                    }
+
                     return;
                 }
 
@@ -24,11 +38,6 @@ public class EarlyHintsTest(SeleniumFixture fixture)
         });
 
         Assert.True(result.Control.Page.EnableEarlyHints);
-
-        // We cannot check if the browser received the early hints
-        // so we only check if the hints were set
-        Assert.True(result.Control.Context.Items.TryGetValue("EarlyHints", out var hints));
-        Assert.NotNull(hints);
-        Assert.Contains("script.js", hints.ToString());
+        Assert.True(result.Control.ScriptLoaded);
     }
 }
