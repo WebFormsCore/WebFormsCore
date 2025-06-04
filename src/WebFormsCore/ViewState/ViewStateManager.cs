@@ -17,14 +17,14 @@ namespace WebFormsCore;
 public class ViewStateManager : IViewStateManager
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly IOptions<ViewStateOptions>? _options;
+    private readonly IOptions<ViewStateOptions> _options;
     private readonly HashAlgorithm _hashAlgorithm;
     private readonly int _hashLength;
 
     public ViewStateManager(IServiceProvider serviceProvider, IOptions<ViewStateOptions>? options = null)
     {
         _serviceProvider = serviceProvider;
-        _options = options;
+        _options = options ?? Options.Create(new ViewStateOptions());
         _hashAlgorithm = !string.IsNullOrEmpty(options?.Value.EncryptionKey)
             ? new HMACSHA256(Encoding.UTF8.GetBytes(options!.Value.EncryptionKey!))
             : SHA256.Create();
@@ -57,7 +57,7 @@ public class ViewStateManager : IViewStateManager
             var state = writer.Span;
             var maxLength = Base64.GetMaxEncodedToUtf8Length(state.Length + HeaderLength + _hashLength);
 
-            if (maxLength > (_options?.Value.MaxBytes ?? 102400))
+            if (maxLength > _options.Value.MaxBytes)
             {
                 throw new ViewStateException("Viewstate exceeds maximum size");
             }
@@ -69,7 +69,6 @@ public class ViewStateManager : IViewStateManager
             var hash = result.Slice(HeaderLength, _hashLength);
             var data = result.Slice(HeaderLength + _hashLength);
 
-            // ReSharper disable once InlineOutVariableDeclaration
             if (TryCompress(state, data, out var compressionByte, out var dataLength))
             {
                 header[0] = compressionByte;
@@ -142,13 +141,6 @@ public class ViewStateManager : IViewStateManager
         await LoadViewStateAsync(control, reader);
     }
 
-    public async ValueTask LoadFromArrayAsync(Control control, byte[] viewState)
-    {
-        using var reader = CreateReader(new ArrayMemoryOwner(viewState, viewState.Length, false));
-
-        await LoadViewStateAsync(control, reader);
-    }
-
     private ViewStateReaderOwner CreateReader(ArrayMemoryOwner arrayOwner)
     {
         var totalHeaderLength = HeaderLength + _hashLength;
@@ -161,6 +153,13 @@ public class ViewStateManager : IViewStateManager
         var span = arrayOwner.Memory.Span;
 
         var header = span.Slice(0, HeaderLength);
+        var length = (int)BinaryPrimitives.ReadUInt16BigEndian(header.Slice(1, 2));
+
+        if (length > _options.Value.MaxBytes)
+        {
+            throw new ViewStateException("Viewstate exceeds maximum size");
+        }
+
         var hash = span.Slice(HeaderLength, _hashLength);
         var data = span.Slice(HeaderLength + _hashLength);
 
@@ -169,7 +168,7 @@ public class ViewStateManager : IViewStateManager
 
         if (!computedHash.SequenceEqual(hash))
         {
-            throw new ViewStateException("The viewstate hash is invalid");
+            throw new ViewStateException("The viewstate hash does not match the data");
         }
 
         IMemoryOwner<byte> owner = arrayOwner;
@@ -177,10 +176,7 @@ public class ViewStateManager : IViewStateManager
 
         var offset = HeaderLength + _hashLength;
 
-        int actualLength;
-        var length = (int)BinaryPrimitives.ReadUInt16BigEndian(header.Slice(1, 2));
-
-        if (TryDecompress(header[0], length, data, out var decodedOwner, out actualLength))
+        if (TryDecompress(header[0], length, data, out var decodedOwner, out var actualLength))
         {
             owner.Dispose();
             owner = decodedOwner;
@@ -219,7 +215,7 @@ public class ViewStateManager : IViewStateManager
         var encoding = Encoding.UTF8;
         var byteLength = encoding.GetByteCount(base64);
 
-        if (byteLength > (_options?.Value.MaxBytes ?? 102400))
+        if (byteLength > _options.Value.MaxBytes)
         {
             throw new ViewStateException("Viewstate exceeds maximum size");
         }
@@ -336,10 +332,7 @@ public class ViewStateManager : IViewStateManager
 
         public ViewStateControlEnumerator(Control root, int depth = 512)
         {
-            if (root == null)
-            {
-                throw new ArgumentNullException(nameof(root));
-            }
+            ArgumentNullException.ThrowIfNull(root);
 
             _array = ArrayPool<(Control, int)>.Shared.Rent(depth);
             Push(root, -2);

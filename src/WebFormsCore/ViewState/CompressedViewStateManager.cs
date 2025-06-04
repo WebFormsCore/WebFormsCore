@@ -10,13 +10,12 @@ namespace WebFormsCore;
 
 public class CompressedViewStateManager : ViewStateManager
 {
-	public const ViewStateCompression DefaultCompression = ViewStateCompression.Brotoli;
-
 	public CompressedViewStateManager(IServiceProvider serviceProvider, IOptions<ViewStateOptions>? options = null)
 		: base(serviceProvider, options)
 	{
-		Compression = options?.Value.DefaultCompression ?? DefaultCompression;
-		CompressionLevel = options?.Value.CompressionLevel ?? CompressionLevel.Fastest;
+		options ??= Options.Create(new ViewStateOptions());
+		Compression = options.Value.DefaultCompression;
+		CompressionLevel = options.Value.CompressionLevel;
 	}
 
 	public CompressionLevel CompressionLevel { get; set; }

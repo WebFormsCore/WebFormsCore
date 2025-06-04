@@ -2,32 +2,27 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.Extensions.Options;
+using WebFormsCore.UI;
 
 namespace WebFormsCore.Serializer;
 
-public class StringViewStateSerializer : ViewStateSerializer<string>, IViewStateSpanSerializer<char>
+public class StringViewStateSerializer(IOptions<ViewStateOptions>? options = null) : ViewStateSerializer<string>, IViewStateSpanSerializer<char>
 {
+    private readonly IOptions<ViewStateOptions> _options = options ?? Options.Create(new ViewStateOptions());
+
     public override void Write(Type type, ref ViewStateWriter writer, string? value, string? defaultValue)
     {
         var sizeSpan = writer.Reserve(sizeof(ushort));
-        ushort size;
 
         if (value is null)
         {
-            size = ushort.MaxValue;
+            var size = ushort.MaxValue;
             MemoryMarshal.Write(writer.GetUnsafeSpan(sizeSpan), ref size);
             return;
         }
 
-        var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
-        if (maxByteCount > 4096) maxByteCount = Encoding.UTF8.GetByteCount(value);
-        var span = writer.GetUnsafeSpan(maxByteCount);
-        var byteCount = Encoding.UTF8.GetBytes(value, span);
-
-        size = (ushort)byteCount;
-
-        MemoryMarshal.Write(writer.GetUnsafeSpan(sizeSpan), ref size);
-        writer.Skip(byteCount);
+        Write(ref writer, value.AsSpan());
     }
 
     public void Write(ref ViewStateWriter writer, scoped ReadOnlySpan<char> value)
@@ -38,6 +33,11 @@ public class StringViewStateSerializer : ViewStateSerializer<string>, IViewState
         var span = writer.GetUnsafeSpan(maxByteCount);
         var byteCount = Encoding.UTF8.GetBytes(value, span);
         var size = (ushort)byteCount;
+
+        if (size > _options.Value.MaxStringLength)
+        {
+            throw new ViewStateException("String is too long");
+        }
 
         MemoryMarshal.Write(writer.GetUnsafeSpan(sizeSpan), ref size);
         writer.Skip(byteCount);
@@ -53,6 +53,11 @@ public class StringViewStateSerializer : ViewStateSerializer<string>, IViewState
             return null;
         }
 
+        if (size > _options.Value.MaxStringLength)
+        {
+            throw new ViewStateException("String is too long");
+        }
+
         var span = reader.ReadBytes(size);
 
         return Encoding.UTF8.GetString(span);
@@ -66,6 +71,11 @@ public class StringViewStateSerializer : ViewStateSerializer<string>, IViewState
         if (size == ushort.MaxValue)
         {
             return 0;
+        }
+
+        if (size > _options.Value.MaxStringLength)
+        {
+            throw new ViewStateException("String is too long");
         }
 
         var span = reader.ReadBytes(size);

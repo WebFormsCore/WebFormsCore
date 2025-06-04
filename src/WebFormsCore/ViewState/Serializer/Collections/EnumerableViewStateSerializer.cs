@@ -2,12 +2,16 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.Options;
+using WebFormsCore.UI;
 
 namespace WebFormsCore.Serializer;
 
-public abstract class EnumerableViewStateSerializer<T> : IViewStateSerializer
+public abstract class EnumerableViewStateSerializer<T>(IOptions<ViewStateOptions>? options) : IViewStateSerializer
     where T : class
 {
+    private readonly IOptions<ViewStateOptions> _options = options ?? Options.Create(new ViewStateOptions());
+
     public bool CanSerialize(Type type)
     {
         return IsSupported(type, out _);
@@ -38,6 +42,11 @@ public abstract class EnumerableViewStateSerializer<T> : IViewStateSerializer
             count++;
         }
 
+        if (count > _options.Value.MaxCollectionLength)
+        {
+            throw new ViewStateException("Collection size is too large");
+        }
+
         MemoryMarshal.Write(writer.GetUnsafeSpan(countSpan), ref count);
     }
 
@@ -49,6 +58,11 @@ public abstract class EnumerableViewStateSerializer<T> : IViewStateSerializer
         if (count == ushort.MaxValue)
         {
             return null;
+        }
+
+        if (count > _options.Value.MaxCollectionLength)
+        {
+            throw new ViewStateException("Collection size is too large");
         }
 
         if (!IsSupported(type, out var typeArgument))

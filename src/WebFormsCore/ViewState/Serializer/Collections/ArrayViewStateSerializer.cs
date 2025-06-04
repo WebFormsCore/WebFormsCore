@@ -2,10 +2,11 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Options;
 
 namespace WebFormsCore.Serializer;
 
-public class ArrayViewStateSerializer : EnumerableViewStateSerializer<Array>
+public class ArrayViewStateSerializer(IOptions<ViewStateOptions>? options = null) : EnumerableViewStateSerializer<Array>(options)
 {
     private readonly ConcurrentDictionary<Type, Array> _empty = new();
 

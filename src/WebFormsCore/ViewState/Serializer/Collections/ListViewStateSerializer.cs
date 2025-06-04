@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Options;
 
 namespace WebFormsCore.Serializer;
 
-public class ListViewStateSerializer : EnumerableViewStateSerializer<IList>
+public class ListViewStateSerializer(IOptions<ViewStateOptions>? options = null) : EnumerableViewStateSerializer<IList>(options)
 {
     private readonly ConcurrentDictionary<Type, Func<int, IList>> _constructors = new();
 
