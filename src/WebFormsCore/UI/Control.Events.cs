@@ -376,6 +376,8 @@ public partial class Control : IInternalControl
             await OnLoadAsync(token);
             await Load.InvokeAsync(this, EventArgs.Empty);
 
+            if (!Page.IsPostBack) RegisterBackgroundControl();
+
             _state = ControlState.Loaded;
         }
 
@@ -387,6 +389,36 @@ public partial class Control : IInternalControl
 
                 await control.InvokeLoadAsync(token, form);
             }
+        }
+    }
+
+    internal void InvokeRegisterBackgroundControl(CancellationToken token)
+    {
+        if (ProcessControl)
+        {
+            RegisterBackgroundControl();
+        }
+
+        if (ProcessChildren)
+        {
+            foreach (var control in Controls)
+            {
+                if (token.IsCancellationRequested) return;
+
+                control.InvokeRegisterBackgroundControl(token);
+            }
+        }
+    }
+
+    private void RegisterBackgroundControl()
+    {
+        if (this is not IBackgroundLoadHandler backgroundLoadAsyncHandler) return;
+
+        var task = backgroundLoadAsyncHandler.OnBackgroundLoadAsync();
+
+        if (!task.IsCompletedSuccessfully)
+        {
+            Page.RegisterAsyncTask(task);
         }
     }
 

@@ -336,7 +336,11 @@ public partial class PageManager : IPageManager
                 : string.Empty;
 
             await TriggerPostBackAsync(page, targetName, argument, token, pageServices);
+
+            target.InvokeRegisterBackgroundControl(token);
         }
+
+        await page.ExecuteRegisteredAsyncTasksAsync(token);
 
         if (!render)
         {

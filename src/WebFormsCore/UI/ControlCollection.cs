@@ -99,9 +99,9 @@ public class ControlCollection : IReadOnlyCollection<Control>
         return _list.IndexOf(value);
     }
 
-    public Enumerator GetEnumerator()
+    public List<Control>.Enumerator GetEnumerator()
     {
-        return new Enumerator(_list);
+        return _list.GetEnumerator();
     }
 
     IEnumerator<Control> IEnumerable<Control>.GetEnumerator()
@@ -154,52 +154,5 @@ public class ControlCollection : IReadOnlyCollection<Control>
 
         Owner.RemovedControlInternal(child);
         return true;
-    }
-
-    public struct Enumerator : IEnumerator<Control>
-    {
-        private readonly List<Control> _list;
-        private int _index;
-        private Control? _current;
-
-        internal Enumerator(List<Control> list)
-        {
-            _list = list;
-            _index = 0;
-            _current = default;
-        }
-
-        public void Dispose()
-        {
-        }
-
-        public bool MoveNext()
-        {
-            if ((uint)_index < (uint)_list.Count)
-            {
-                _current = _list[_index];
-                _index++;
-                return true;
-            }
-
-            return MoveNextRare();
-        }
-
-        private bool MoveNextRare()
-        {
-            _index = _list.Count + 1;
-            _current = default;
-            return false;
-        }
-
-        public Control Current => _current!;
-
-        object? IEnumerator.Current => Current;
-
-        void IEnumerator.Reset()
-        {
-            _index = 0;
-            _current = default;
-        }
     }
 }

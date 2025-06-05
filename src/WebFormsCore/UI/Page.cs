@@ -26,6 +26,7 @@ public class Page : Control, INamingContainer, IStateContainer, IInternalPage
     internal List<object>? ChangedPostDataConsumers;
     private bool _validated;
     private List<IValidator>? _validators;
+    private List<Task>? _backgroundLoadTasks;
 
     public Page()
     {
@@ -255,5 +256,39 @@ public class Page : Control, INamingContainer, IStateContainer, IInternalPage
         {
             await base.RenderChildrenAsync(writer, token);
         }
+    }
+
+    public void RegisterAsyncTask(Task task)
+    {
+        _backgroundLoadTasks ??= [];
+        _backgroundLoadTasks.Add(task);
+    }
+
+    public async ValueTask ExecuteRegisteredAsyncTasksAsync(CancellationToken cancellationToken = default)
+    {
+        if (_backgroundLoadTasks is null || _backgroundLoadTasks.Count == 0)
+        {
+            return;
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+
+        if (_backgroundLoadTasks.All(t => t.IsCompleted))
+        {
+            // All tasks are already completed, no need to await.
+        }
+        else if (_backgroundLoadTasks.Count == 1)
+        {
+            await _backgroundLoadTasks[0].ConfigureAwait(false);
+        }
+        else
+        {
+            await Task.WhenAll(_backgroundLoadTasks).ConfigureAwait(false);
+        }
+
+        _backgroundLoadTasks.Clear();
     }
 }

@@ -54,6 +54,17 @@ public interface IPostBackLoadHandler
     void AfterPostBackLoad();
 }
 
+public interface IBackgroundLoadHandler
+{
+    /// <summary>
+    /// Loads the control in the background.
+    /// </summary>
+    /// <remarks>
+    /// This is called after the control has been initialized and its view state has been loaded.
+    /// </remarks>
+    Task OnBackgroundLoadAsync();
+}
+
 public interface IPostBackEventHandler
 {
     void RaisePostBackEvent(string? eventArgument);
