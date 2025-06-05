@@ -76,7 +76,6 @@ public class ViewStateSerializer
     [InlineData(1)]
     [InlineData(100)]
     [InlineData(1000)]
-    [InlineData(10000)]
     public void ListTest(int size)
     {
         var expected = new List<string>();

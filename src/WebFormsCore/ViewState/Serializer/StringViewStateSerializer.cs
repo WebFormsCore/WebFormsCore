@@ -13,12 +13,11 @@ public class StringViewStateSerializer(IOptions<ViewStateOptions>? options = nul
 
     public override void Write(Type type, ref ViewStateWriter writer, string? value, string? defaultValue)
     {
-        var sizeSpan = writer.Reserve(sizeof(ushort));
-
         if (value is null)
         {
             var size = ushort.MaxValue;
-            MemoryMarshal.Write(writer.GetUnsafeSpan(sizeSpan), ref size);
+            MemoryMarshal.Write(writer.GetUnsafeSpan(sizeof(ushort)), ref size);
+            writer.Skip(sizeof(ushort));
             return;
         }
 
