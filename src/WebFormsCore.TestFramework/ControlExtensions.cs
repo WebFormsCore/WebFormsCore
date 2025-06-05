@@ -23,6 +23,11 @@ public static class ControlExtensions
         return control.FindBrowserElement().ClickAsync();
     }
 
+    public static ValueTask SelectAsync(this Control control, string value)
+    {
+        return control.FindBrowserElement().SelectAsync(value);
+    }
+
     public static ValueTask ClearAsync(this Control control)
     {
         return control.FindBrowserElement().ClearAsync();

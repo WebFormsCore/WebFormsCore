@@ -2516,13 +2516,19 @@
         if (((_b = options === null || options === void 0 ? void 0 : options.validate) !== null && _b !== void 0 ? _b : true) && !await wfc.validate(element)) {
             return;
         }
-        const form = getForm(element);
-        const streamPanel = getStreamPanel(element);
-        if (streamPanel) {
-            await sendToStream(streamPanel, eventTarget, eventArgument);
+        element.dispatchEvent(new CustomEvent("wfc:postbackTriggered"));
+        try {
+            const form = getForm(element);
+            const streamPanel = getStreamPanel(element);
+            if (streamPanel) {
+                await sendToStream(streamPanel, eventTarget, eventArgument);
+            }
+            else {
+                await submitForm(element, form, eventTarget, eventArgument);
+            }
         }
-        else {
-            await submitForm(element, form, eventTarget, eventArgument);
+        finally {
+            element.dispatchEvent(new CustomEvent("wfc:afterPostbackTriggered"));
         }
     }
     function sendToStream(streamPanel, eventTarget, eventArgument) {
@@ -2940,7 +2946,7 @@
         if (wfcDisabled === "true") {
             return;
         }
-        postBackElement(e.target);
+        await postBackElement(e.target);
     });
     document.addEventListener('keypress', async function (e) {
         if (e.key !== 'Enter' && e.keyCode !== 13 && e.which !== 13) {

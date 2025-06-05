@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.Extensions;
+using OpenQA.Selenium.Support.UI;
 
 namespace WebFormsCore;
 
@@ -48,6 +49,13 @@ internal class SeleniumElement(IWebElement element) : IElement
     public ValueTask ClickAsync()
     {
         return element.ClickAndWaitForPageBackAsync();
+    }
+
+    public ValueTask SelectAsync(string value)
+    {
+        var dropDown = new SelectElement(element);
+        dropDown.SelectByValue(value);
+        return element.WaitForPostBack();
     }
 
     public async ValueTask PostBackAsync(string? argument = null, PostBackOptions? options = null)

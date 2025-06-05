@@ -46,6 +46,11 @@ public static class SeleniumExtensions
     {
         element.Click();
 
+        return WaitForPostBack(element, token);
+    }
+
+    internal static ValueTask WaitForPostBack(this IWebElement element, CancellationToken token = default)
+    {
         return element is IWrapsDriver wrapsDriver
             ? wrapsDriver.WrappedDriver.WaitForPageBackAsync(token)
             : default;

@@ -89,13 +89,19 @@ async function postBackElement(element: Element, eventTarget?: string, eventArgu
         return;
     }
 
-    const form = getForm(element);
-    const streamPanel = getStreamPanel(element);
+    element.dispatchEvent(new CustomEvent("wfc:postbackTriggered"));
 
-    if (streamPanel) {
-        await sendToStream(streamPanel, eventTarget, eventArgument);
-    } else {
-        await submitForm(element, form, eventTarget, eventArgument);
+    try {
+        const form = getForm(element);
+        const streamPanel = getStreamPanel(element);
+
+        if (streamPanel) {
+            await sendToStream(streamPanel, eventTarget, eventArgument);
+        } else {
+            await submitForm(element, form, eventTarget, eventArgument);
+        }
+    } finally {
+        element.dispatchEvent(new CustomEvent("wfc:afterPostbackTriggered"));
     }
 }
 
@@ -599,7 +605,7 @@ document.addEventListener('click', async function(e){
         return;
     }
 
-    postBackElement(e.target);
+    await postBackElement(e.target);
 });
 
 document.addEventListener('keypress', async function(e){

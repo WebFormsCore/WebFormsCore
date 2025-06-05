@@ -12,6 +12,8 @@ public interface IElement
 
     ValueTask ClickAsync();
 
+    ValueTask SelectAsync(string value);
+
     ValueTask PostBackAsync(string? argument = null, PostBackOptions? options = null);
 
     ValueTask TypeAsync(string text);

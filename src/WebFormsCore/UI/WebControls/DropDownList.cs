@@ -97,7 +97,7 @@ public partial class DropDownList() : WebControl(HtmlTextWriterTag.Select), IPos
             var isChanged = _selectedIndex != i;
             Items[i].Selected = true;
             _selectedIndex = i;
-            return true;
+            return isChanged;
         }
 
         _selectedIndex = -1;
