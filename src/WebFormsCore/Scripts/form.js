@@ -3106,7 +3106,6 @@
                     const { element } = e.detail;
                     if (element.matches(selectors)) {
                         destroy(element);
-                        e.preventDefault();
                     }
                 });
             }

@@ -805,7 +805,6 @@ const wfc: WebFormsCore = {
 
                 if (element.matches(selectors)) {
                     destroy(element);
-                    e.preventDefault();
                 }
             });
         }

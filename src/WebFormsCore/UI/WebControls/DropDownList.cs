@@ -83,7 +83,7 @@ public partial class DropDownList() : WebControl(HtmlTextWriterTag.Select), IPos
         set => SetSelectedValue(value);
     }
 
-    private void SetSelectedValue(string value, bool updateSelectedIndex = true)
+    private bool SetSelectedValue(string value)
     {
         ClearSelection();
 
@@ -94,13 +94,14 @@ public partial class DropDownList() : WebControl(HtmlTextWriterTag.Select), IPos
                 continue;
             }
 
+            var isChanged = _selectedIndex != i;
             Items[i].Selected = true;
-            if (updateSelectedIndex)
-            {
-                _selectedIndex = i;
-            }
-            return;
+            _selectedIndex = i;
+            return true;
         }
+
+        _selectedIndex = -1;
+        return false;
     }
 
     public void ClearSelection()
@@ -162,11 +163,7 @@ public partial class DropDownList() : WebControl(HtmlTextWriterTag.Select), IPos
             return new ValueTask<bool>(false);
         }
 
-        SetSelectedValue(value.ToString(), updateSelectedIndex: false);
-
-        var isChanged = SelectedIndex != _selectedIndex;
-        _selectedIndex = SelectedIndex;
-
+        var isChanged = SetSelectedValue(value.ToString());
         return new ValueTask<bool>(SelectedIndexChanged != null && isChanged);
     }
 
