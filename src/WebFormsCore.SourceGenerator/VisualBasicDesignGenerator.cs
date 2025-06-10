@@ -9,7 +9,8 @@ namespace WebFormsCore.SourceGenerator;
 [Generator(LanguageNames.VisualBasic)]
 public class VisualBasicDesignGenerator : DesignerGenerator
 {
-    protected override string? GetGenerateAssemblyTypeProvider(ImmutableArray<ControlType> source)
+    protected override string? GetGenerateAssemblyTypeProvider(ImmutableArray<ControlType> source,
+        string? rootNamespace)
     {
         return null;
     }

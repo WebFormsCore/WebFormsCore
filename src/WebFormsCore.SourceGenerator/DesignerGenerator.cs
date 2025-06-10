@@ -110,14 +110,19 @@ public abstract class DesignerGenerator : IIncrementalGenerator
                 return builder.ToImmutable();
             });
 
-        var allTypes = types.Combine(referencedControls);
+        var allTypes = types
+            .Combine(referencedControls)
+            .Combine(currentNamespace);
 
-        context.RegisterSourceOutput(allTypes, (spc, source) =>
+        context.RegisterSourceOutput(allTypes, (spc, tuple) =>
         {
+            var ((source, referencedControls), rootNamespace) = tuple;
             var addedPaths = new HashSet<string>();
             var builder = ImmutableArray.CreateBuilder<ControlType>();
 
-            foreach (var type in source.Left)
+            rootNamespace ??= source.FirstOrDefault(i => i.RootNamespace != null)?.RootNamespace;
+
+            foreach (var type in source)
             {
                 if (addedPaths.Add(type.RelativePath))
                 {
@@ -125,7 +130,7 @@ public abstract class DesignerGenerator : IIncrementalGenerator
                 }
             }
 
-            foreach (var type in source.Right)
+            foreach (var type in referencedControls)
             {
                 if (addedPaths.Add(type.RelativePath))
                 {
@@ -133,7 +138,7 @@ public abstract class DesignerGenerator : IIncrementalGenerator
                 }
             }
 
-            var code = GetGenerateAssemblyTypeProvider(builder.ToImmutable());
+            var code = GetGenerateAssemblyTypeProvider(builder.ToImmutable(), rootNamespace);
 
             if (code != null)
             {
@@ -142,7 +147,7 @@ public abstract class DesignerGenerator : IIncrementalGenerator
         });
     }
 
-    protected abstract string? GetGenerateAssemblyTypeProvider(ImmutableArray<ControlType> source);
+    protected abstract string? GetGenerateAssemblyTypeProvider(ImmutableArray<ControlType> source, string? rootNamespace);
 
     private ControlResult? Generate((ControlContext Left, WeakReference<Compilation> Right) items)
     {

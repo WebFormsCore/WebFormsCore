@@ -10,26 +10,26 @@ namespace WebFormsCore.SourceGenerator;
 [Generator(LanguageNames.CSharp)]
 public class CSharpDesignGenerator : DesignerGenerator
 {
-    protected override string? GetGenerateAssemblyTypeProvider(ImmutableArray<ControlType> source)
+    protected override string? GetGenerateAssemblyTypeProvider(ImmutableArray<ControlType> source, string? rootNamespace)
     {
         if (source.IsEmpty)
         {
             return null;
         }
 
-        var rootNamespace = source.FirstOrDefault(i => i.RootNamespace != null)?.RootNamespace;
+        rootNamespace ??= "WebFormsCore";
 
         var builder = new StringBuilder();
 
-        builder.Append("[assembly: WebFormsCore.AssemblyControlTypeProvider(typeof(").Append(rootNamespace).AppendLine(".AssemblyControlTypeProvider))]");
+        builder.Append("[assembly: WebFormsCore.AssemblyControlTypeProvider(typeof(").Append(rootNamespace).Append('.');
+
+        builder.AppendLine("AssemblyControlTypeProvider))]");
         builder.AppendLine();
 
-        if (!string.IsNullOrEmpty(rootNamespace))
-        {
-            builder.Append("namespace ").Append(rootNamespace).AppendLine();
-            builder.AppendLine("{");
-            builder.AppendLine();
-        }
+
+        builder.Append("namespace ").Append(rootNamespace).AppendLine();
+        builder.AppendLine("{");
+        builder.AppendLine();
 
         builder.AppendLine("internal class AssemblyControlTypeProvider : WebFormsCore.IControlTypeProvider");
         builder.AppendLine("{");
@@ -50,11 +50,8 @@ public class CSharpDesignGenerator : DesignerGenerator
 
         builder.AppendLine("}");
 
-        if (!string.IsNullOrEmpty(rootNamespace))
-        {
-            builder.AppendLine();
-            builder.AppendLine("}");
-        }
+        builder.AppendLine();
+        builder.AppendLine("}");
 
         return builder.ToString();
     }
