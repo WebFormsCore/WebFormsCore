@@ -100,9 +100,15 @@
 </div>
 
 <script>
-    document.addEventListener("wfc:submitError", function () {
-        alert('Invalid viewstate');
-    });
-    </script>
+document.addEventListener("wfc:submitError", function () {
+    alert('Invalid viewstate');
+});
+
+document.addEventListener("wfc:elementValidated", function(e) {
+    const { element, isValid } = e.detail;
+
+    element.classList.toggle("is-invalid", !isValid);
+});
+</script>
 </body>
 </html>

@@ -80,6 +80,10 @@
         <AdditionalFiles Update="Controls\DropDown\Pages\DropDownPage.aspx">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>
+
+        <AdditionalFiles Update="Controls\CustomValidators\Pages\TextBoxPage.aspx">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
     </ItemGroup>
 
     <ItemGroup>

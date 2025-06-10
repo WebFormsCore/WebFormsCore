@@ -43,4 +43,14 @@ public partial class TodoList : Control
 
         rptItems.Remove(item);
     }
+
+    protected Task tbItem_Validate(CustomValidator sender, ServerValidateEventArgs e)
+    {
+        if (string.Equals(e.Value, "todo", StringComparison.OrdinalIgnoreCase))
+        {
+            e.IsValid = false;
+        }
+
+        return Task.CompletedTask;
+    }
 }

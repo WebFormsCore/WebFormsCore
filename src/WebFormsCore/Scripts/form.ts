@@ -372,6 +372,23 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
         pendingPostbacks--;
         release();
         target.dispatchEvent(new CustomEvent("wfc:afterSubmit", {bubbles: true, detail: {target, container, form, eventTarget}}));
+
+        // Update the validators
+        const validationGroups = new Set<string>();
+
+        validationGroups.add("");
+
+        for (const element of document.querySelectorAll('[data-wfc-validate]')) {
+            const validationGroup = element.getAttribute('data-wfc-validate') ?? "";
+
+            if (validationGroup) {
+                validationGroups.add(validationGroup);
+            }
+        }
+
+        for (const validationGroup of validationGroups) {
+            await wfc.validate(validationGroup, true);
+        }
     }
 }
 
@@ -714,7 +731,7 @@ const wfc: WebFormsCore = {
         }
     },
 
-    validate: async function (validationGroup = "") {
+    validate: async function (validationGroup = "", serverOnly: boolean = false) {
         if (typeof validationGroup === "object" && validationGroup instanceof Element) {
             if (!validationGroup.hasAttribute('data-wfc-validate')) {
                 return true;
@@ -723,10 +740,19 @@ const wfc: WebFormsCore = {
             validationGroup = validationGroup.getAttribute('data-wfc-validate') ?? "";
         }
 
-        const validators =[];
+        const validators: Array<(serverOnly: boolean) => (boolean | Promise<boolean>)> = [];
+        const validatorsByElement = new Map<HTMLElement, Array<(serverOnly: boolean) => (boolean | Promise<boolean>)>>();
         const detail: WfcValidateEvent = {
-            addValidator(validator) {
-                validators.push(validator);
+            addValidator(validator, element) {
+                if (element) {
+                    if (!validatorsByElement.has(element)) {
+                        validatorsByElement.set(element, []);
+                    }
+
+                    validatorsByElement.get(element).push(validator);
+                } else {
+                    validators.push(validator);
+                }
             }
         }
 
@@ -746,10 +772,49 @@ const wfc: WebFormsCore = {
         let isValid = true;
 
         for (const validator of validators) {
-            if (!await validator()) {
+            try {
+                if (!await validator(serverOnly)) {
+                    isValid = false;
+                }
+            } catch (e) {
+                console.error('Validation error:', e);
                 isValid = false;
             }
         }
+
+        for (const [element, elementValidators] of validatorsByElement.entries()) {
+            let isElementValid = true;
+
+            for (const validator of elementValidators) {
+                try {
+                    if (!await validator(serverOnly)) {
+                        isElementValid = false;
+                    }
+                } catch (e) {
+                    console.error('Validation error:', e);
+                    isElementValid = false;
+                }
+            }
+
+            if (!isElementValid) {
+                isValid = false;
+            }
+
+            element.dispatchEvent(new CustomEvent('wfc:elementValidated', {
+                bubbles: true,
+                detail: {
+                    isValid: isElementValid,
+                    element
+                }
+            }));
+        }
+
+        document.dispatchEvent(new CustomEvent('wfc:validated', {
+            bubbles: true,
+            detail: {
+                isValid
+            }
+        }));
 
         return isValid;
     },
@@ -864,13 +929,17 @@ const wfc: WebFormsCore = {
                 }
 
                 element._callback = async function (e: CustomEvent<WfcValidateEvent>) {
-                    e.detail.addValidator(async function() {
+                    e.detail.addValidator(async function(serverOnly) {
+                        if (serverOnly) {
+                            return element._isValid;
+                        }
+
                         const disabled = element.hasAttribute('data-wfc-disabled');
-                        const isValid = disabled || await options.validate(elementToValidate, element);
+                        const isValid = disabled || (options.validate ? await options.validate(elementToValidate, element) : this._isValid);
                         element._isValid = isValid;
                         wfc.toggle(element, !isValid);
                         return isValid;
-                    });
+                    }, elementToValidate);
                 };
 
                 elementToValidate.addEventListener('wfc:validate', element._callback);
@@ -1006,6 +1075,12 @@ if ('wfc' in window) {
 wfc.bindValidator('[data-wfc-requiredvalidator]', {
     validate: async function(elementToValidate: HTMLInputElement, validator) {
         return !(await wfc.isEmpty(elementToValidate, validator.getAttribute('data-wfc-requiredvalidator')));
+    }
+});
+
+wfc.bindValidator('[data-wfc-customvalidator]', {
+    validate: function() {
+        return true;
     }
 });
 

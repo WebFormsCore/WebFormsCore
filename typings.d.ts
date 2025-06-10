@@ -22,10 +22,10 @@ export interface WebFormsCore {
 
     bindValidator: (selectors: string, options: {
         init?: (element: HTMLElement) => void;
-        validate: (elementToValidate: HTMLElement, validator: HTMLElement) => boolean | Promise<boolean>
+        validate?: (elementToValidate: HTMLElement, validator: HTMLElement) => boolean | Promise<boolean>
     }) => void;
 
-    validate: (validationGroup?: string | Element) => Promise<boolean>;
+    validate: (validationGroup?: string | Element, serverOnly?: boolean) => Promise<boolean>;
     getStringValue: (element: Element) => Promise<string>;
     isEmpty: (element: Element, initialValue?: string) => Promise<boolean | null>;
 }
@@ -68,7 +68,7 @@ export interface WfcBeforeSubmitEvent {
 }
 
 export interface WfcValidateEvent {
-    addValidator(validator: () => boolean | Promise<boolean>): void;
+    addValidator(validator: (serverOnly: boolean) => (boolean | Promise<boolean>), element?: HTMLElement): void;
 }
 
 declare global {
@@ -83,6 +83,8 @@ declare global {
     interface WebFormsCoreEvent {
         addEventListener(event: "wfc:beforeSubmit", listener: (this: this, ev: CustomEvent<WfcBeforeSubmitEvent>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(event: "wfc:validate", listener: (this: this, ev: CustomEvent<WfcValidateEvent>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(event: "wfc:elementValidated", listener: (this: this, ev: CustomEvent<{ element: Element, valid: boolean }>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(event: "wfc:validated", listener: (this: this, ev: CustomEvent<{ valid: boolean }>) => any, options?: boolean | AddEventListenerOptions): void;
     }
     
     interface Document extends WebFormsCoreEvent {

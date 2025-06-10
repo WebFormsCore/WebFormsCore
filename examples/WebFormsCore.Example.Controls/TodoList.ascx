@@ -3,7 +3,8 @@
 
 <wfc:Label runat="server" AssociatedControlID="tbItem" Text="Text:" /><br />
 <wfc:TextBox runat="server" ID="tbItem" class="form-control" OnEnterPressed="tbItem_OnEnterPressed" />
-<wfc:RequiredFieldValidator runat="server" ControlToValidate="tbItem" Text="Required!" ValidationGroup="NewTodoItem" />
+<wfc:RequiredFieldValidator runat="server" ControlToValidate="tbItem" Text="Required!" CssClass="invalid-feedback" ValidationGroup="NewTodoItem" />
+<wfc:CustomValidator runat="server" ControlToValidate="tbItem" OnServerValidate="tbItem_Validate" Text="A 'todo' is not a valid todo" CssClass="invalid-feedback" ValidationGroup="NewTodoItem" />
 
 <wfc:Repeater runat="server" ID="rptItems" OnItemDataBound="rptItems_OnItemDataBound" ItemType="System.String">
     <ItemTemplate ControlsType="ItemControls">

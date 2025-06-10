@@ -90,6 +90,7 @@ public static class ServiceExtensions
         builder.TryAddPooledControl<HtmlStyle>();
         builder.TryAddPooledControl<HtmlImage>();
         builder.TryAddPooledControl<RequiredFieldValidator>();
+        builder.TryAddPooledControl<CustomValidator>();
         builder.TryAddPooledControl<Panel>();
         builder.TryAddPooledControl<PlaceHolder>();
         builder.TryAddPooledControl<LinkButton>();

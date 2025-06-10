@@ -207,8 +207,10 @@ public abstract partial class BaseValidator : Label, IValidator
         }
     }
 
-    protected override ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
+    protected override async ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
+        await base.AddAttributesToRender(writer, token);
+
         var options = Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>();
 
         if (IsValid)
@@ -237,8 +239,6 @@ public abstract partial class BaseValidator : Label, IValidator
         {
             writer.AddAttribute("data-wfc-validated", IsValid ? "true" : "false");
         }
-
-        return base.AddAttributesToRender(writer, token);
     }
 
     public override ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
