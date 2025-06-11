@@ -33,7 +33,7 @@
     "@rollup/plugin-babel": "^6.0.3",
     "async-mutex": "^0.4.0",
     "choices.js": "^11.0.2",
-    "dompurify": "^3.1.6",
+    "dompurify": "^3.2.6",
     "morphdom": "^2.7.0",
     "tinymce": "^6.7.0"
   }
