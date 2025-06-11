@@ -30,7 +30,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@rollup/plugin-babel": "^6.0.3",
+    "@rollup/plugin-babel": "^6.0.4",
     "async-mutex": "^0.4.0",
     "choices.js": "^11.0.2",
     "dompurify": "^3.1.6",
