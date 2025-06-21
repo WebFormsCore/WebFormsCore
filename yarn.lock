@@ -695,10 +695,10 @@ terser@^5.0.0:
     commander "^2.20.0"
     source-map-support "~0.5.20"
 
-tinymce@^6.7.0:
-  version "6.7.0"
-  resolved "https://registry.yarnpkg.com/tinymce/-/tinymce-6.7.0.tgz#0ec245502cdefbfa0ff9042b423ac9a01e781423"
-  integrity sha512-Wf2RSobIXQ7XNw3/v4z1lPGiH3Pjsmc/6/7fG28aIS6uVWj/7IhvOPuwfJJDeOx0o0D3nSnoLHgR2KU8JAdE+w==
+tinymce@^6.8.6:
+  version "6.8.6"
+  resolved "https://registry.yarnpkg.com/tinymce/-/tinymce-6.8.6.tgz#799e4f03eeb4399399dfdeb12ba17b3b91887adf"
+  integrity sha512-++XYEs8lKWvZxDCjrr8Baiw7KiikraZ5JkLMg6EdnUVNKJui0IsrAADj5MsyUeFkcEryfn2jd3p09H7REvewyg==
 
 to-fast-properties@^2.0.0:
   version "2.0.0"
