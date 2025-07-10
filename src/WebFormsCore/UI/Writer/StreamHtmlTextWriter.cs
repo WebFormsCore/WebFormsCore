@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -49,6 +50,18 @@ public class StreamHtmlTextWriter : HtmlTextWriter
     {
         await FlushAsync();
         await _stream.WriteAsync(buffer);
+    }
+
+    public override bool TryGetStream([NotNullWhen(true)] out Stream? stream)
+    {
+        if (HasPendingCharacters)
+        {
+            stream = null;
+            return false;
+        }
+
+        stream = _stream;
+        return true;
     }
 
     protected override async ValueTask DisposeAsyncCore()

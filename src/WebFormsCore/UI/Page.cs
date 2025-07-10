@@ -141,7 +141,7 @@ public class Page : Control, INamingContainer, IStateContainer, IInternalPage
             Page.ClientScript.RegisterStartupScript(
                 typeof(Page),
                 "FormPostback",
-                $$$"""window.wfc={hiddenClass:'{{{options?.HiddenClass ?? ""}}}',_:[],bind:function(a,b){this._.push([0,a,b])},bindValidator:function(a,b){this._.push([1,a,b])},init:function(a){this._.push([2,'',a])}};""",
+                $$$"""window.wfc={hiddenClass:'{{{options?.HiddenClass ?? ""}}}',_:[],bind:function(a,b){this._.push([0,a,b])},bindValidator:function(a,b){this._.push([1,a,b])},init:function(a){this._.push([2,'',a])},registerCallback:function(a,b){this._.push([3,a,b])}};""",
                 position: ScriptPosition.HeadStart);
         }
 

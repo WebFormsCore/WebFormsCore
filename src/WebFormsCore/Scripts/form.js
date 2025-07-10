@@ -2449,6 +2449,8 @@
         }
     }
 
+    const callbackDefinitions = {};
+    const pendingCallbacks = {};
     const sanitise = (input, options) => {
         const allowedTags = [];
         if (options.updateScripts) {
@@ -2841,6 +2843,9 @@
                     if (node.nodeName === 'SCRIPT' && (node.src || node.innerHTML)) {
                         return node.src || node.innerHTML;
                     }
+                    if (node.nodeName === 'TEMPLATE' && node.innerHTML) {
+                        return node.innerHTML;
+                    }
                     if (node.nodeName === 'STYLE' && node.innerHTML) {
                         return node.innerHTML;
                     }
@@ -2849,6 +2854,13 @@
                     }
                     return (node.getAttribute && node.getAttribute('id')) || node.id;
                 }
+            },
+            onBeforeNodeAdded: function (node) {
+                if (node.nodeName === 'TEMPLATE' && node.hasAttribute('data-wfc-callbacks')) {
+                    handleCallbacks(node);
+                    return false;
+                }
+                return node;
             },
             onNodeAdded(node) {
                 document.dispatchEvent(new CustomEvent("wfc:addNode", { detail: { node, form } }));
@@ -2938,6 +2950,54 @@
             originalSubmit.call(this);
         }
     };
+    async function handleCallbacks(element) {
+        const callbacks = JSON.parse(element.innerHTML);
+        if (!callbacks || !Array.isArray(callbacks)) {
+            return;
+        }
+        for (const callback of callbacks) {
+            const { k: key, a: argument } = callback;
+            if (key in callbackDefinitions) {
+                const cb = callbackDefinitions[key];
+                if (typeof cb === 'function') {
+                    try {
+                        cb(argument);
+                    }
+                    catch (e) {
+                        console.error(`Error executing callback ${key}`, e);
+                    }
+                }
+                else {
+                    console.warn(`Callback ${key} is not a function`, cb);
+                }
+            }
+            else if (key in pendingCallbacks) {
+                const arr = pendingCallbacks[key];
+                if (arr.length < 100) {
+                    arr.push(argument);
+                }
+                else {
+                    console.warn(`Too many pending callbacks for ${key}, discarding callback`, callback);
+                }
+            }
+            else {
+                pendingCallbacks[key] = [argument];
+            }
+        }
+    }
+    document.addEventListener('DOMContentLoaded', async function () {
+        const release = await postbackMutex.acquire();
+        try {
+            const callbacks = document.querySelectorAll('template[data-wfc-callbacks]');
+            for (const callback of callbacks) {
+                handleCallbacks(callback);
+                callback.remove();
+            }
+        }
+        finally {
+            release();
+        }
+    });
     document.addEventListener('submit', async function (e) {
         if (e.target instanceof Element && e.target.hasAttribute('data-wfc-form')) {
             e.preventDefault();
@@ -3012,6 +3072,8 @@
         }
     });
     const wfc = {
+        _callbacks: callbackDefinitions,
+        _pendingCallbacks: pendingCallbacks,
         hiddenClass: '',
         postBackChange,
         postBack,
@@ -3173,6 +3235,22 @@
                 });
             }
         },
+        registerCallback: async function (name, callback) {
+            callbackDefinitions[name] = callback;
+            if (!(name in pendingCallbacks)) {
+                return;
+            }
+            const pending = pendingCallbacks[name];
+            delete pendingCallbacks[name];
+            for (const arg of pending) {
+                try {
+                    callback(arg);
+                }
+                catch (e) {
+                    console.error(`Error executing callback ${name}`, e);
+                }
+            }
+        },
         bindValidator: function (selectors, options) {
             wfc.bind(selectors, {
                 init: function (element) {
@@ -3317,15 +3395,18 @@
         window.wfc = wfc;
         if ('_' in current) {
             for (const bind of current._) {
-                const [type, selector, func] = bind;
+                const [type, p1, p2] = bind;
                 if (type === 0) {
-                    wfc.bind(selector, func);
+                    wfc.bind(p1, p2);
                 }
                 else if (type === 1) {
-                    wfc.bindValidator(selector, func);
+                    wfc.bindValidator(p1, p2);
                 }
                 else if (type === 2) {
-                    wfc.init(func);
+                    wfc.init(p2);
+                }
+                else if (type === 3) {
+                    wfc.registerCallback(p1, p2);
                 }
                 else {
                     console.warn('Unknown bind type', type);

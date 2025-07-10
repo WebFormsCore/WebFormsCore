@@ -84,6 +84,14 @@
         <AdditionalFiles Update="Controls\CustomValidators\Pages\TextBoxPage.aspx">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>
+
+        <AdditionalFiles Update="Callbacks\Pages\CallbackPage.aspx">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
+        <AdditionalFiles Update="Callbacks\Pages\CspSha256Test.aspx">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
     </ItemGroup>
 
     <ItemGroup>

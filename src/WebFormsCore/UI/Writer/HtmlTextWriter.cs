@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -95,6 +96,12 @@ public abstract class HtmlTextWriter : IAsyncDisposable
 
         _charPos = 0;
         return FlushAsync(_charBuffer.AsMemory(0, pos));
+    }
+
+    public virtual bool TryGetStream([NotNullWhen(true)] out Stream? stream)
+    {
+        stream = null;
+        return false;
     }
 
     public void Write(char tagRightChar)

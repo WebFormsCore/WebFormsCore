@@ -1,4 +1,7 @@
 export interface WebFormsCore {
+    _callbacks: { [name: string]: (arg: any) => void | Promise<void> };
+    _pendingCallbacks: { [name: string]: any[] };
+
     _?: [number, string, any][];
     hiddenClass: string;
 
@@ -25,6 +28,7 @@ export interface WebFormsCore {
         validate?: (elementToValidate: HTMLElement, validator: HTMLElement) => boolean | Promise<boolean>
     }) => void;
 
+    registerCallback: (name: string, callback: (arg: any) => void | Promise<void>) => void;
     validate: (validationGroup?: string | Element, serverOnly?: boolean) => Promise<boolean>;
     getStringValue: (element: Element) => Promise<string>;
     isEmpty: (element: Element, initialValue?: string) => Promise<boolean | null>;

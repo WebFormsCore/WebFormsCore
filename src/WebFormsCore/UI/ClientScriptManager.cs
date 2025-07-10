@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using JetBrains.Annotations;
@@ -7,6 +9,8 @@ using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 using WebFormsCore.Security;
 using ScriptList = System.Collections.Generic.List<WebFormsCore.UI.RegisteredScript>;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization.Metadata;
 
 namespace WebFormsCore.UI;
 
@@ -75,6 +79,14 @@ public enum ScriptPosition
     BodyEnd
 }
 
+internal record InvokeCallback(
+    [property: JsonPropertyName("k")] string Key,
+    [property: JsonPropertyName("a"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] JsonDocument? Argument
+);
+
+[JsonSerializable(typeof(InvokeCallback))]
+internal partial class PostbackJsonContext : JsonSerializerContext;
+
 public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>? options = null)
 {
     private static readonly ObjectPool<RegisteredScript> RegisteredScriptPool = new DefaultObjectPool<RegisteredScript>(new DefaultPooledObjectPolicy<RegisteredScript>());
@@ -93,6 +105,7 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
     private ScriptList? _bodyStart;
     private readonly ScriptPosition _defaultScriptPosition = options?.Value.DefaultScriptPosition ?? ScriptPosition.BodyEnd;
     private readonly ScriptPosition _defaultStylePosition = options?.Value.DefaultStylePosition ?? ScriptPosition.HeadEnd;
+    private List<InvokeCallback>? _callbacks;
 
     private ref ScriptList? GetList(ScriptPosition position)
     {
@@ -168,6 +181,46 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
     public void RegisterStartupStyleLink(Type type, string key, string url, bool addStyleTags = true, IAttributeRenderer? attributes = null, ScriptPosition? position = null)
     {
         RegisterBlock(ScriptType.Style, type, key, url, ref GetList(position ?? _defaultStylePosition), addStyleTags ? RegisterType.ExternalStyle : RegisterType.Raw, attribute: attributes);
+    }
+
+    /// <summary>
+    /// Invokes a callback with the specified key and optional argument.
+    /// </summary>
+    /// <remarks>
+    /// After the callback is written to the page, the <see cref="argument"/> will be disposed.
+    /// </remarks>
+    /// <param name="key">Key of the callback to invoke.</param>
+    /// <param name="argument">Optional argument to pass to the callback. If not provided, the callback will be invoked without arguments.</param>
+    public void InvokeCallback(string key, JsonDocument? argument = null)
+    {
+        _callbacks ??= [];
+        _callbacks.Add(new InvokeCallback(key, argument));
+    }
+
+    /// <summary>
+    /// Invokes a callback with the specified key and  argument.
+    /// </summary>
+    /// <param name="key">Key of the callback to invoke.</param>
+    /// <param name="argument">Argument to pass to the callback.</param>
+    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
+    public void InvokeCallback<T>(string key, T argument)
+    {
+        var document = JsonSerializer.SerializeToDocument(argument);
+
+        InvokeCallback(key, document);
+    }
+
+    /// <summary>
+    /// Invokes a callback with the specified key and optional argument.
+    /// </summary>
+    /// <param name="key">Key of the callback to invoke.</param>
+    /// <param name="argument">Argument to pass to the callback.</param>
+    /// <param name="jsonTypeInfo">The JSON type information for the argument.</param>
+    public void InvokeCallback<T>(string key, T argument, JsonTypeInfo<T> jsonTypeInfo)
+    {
+        var document = JsonSerializer.SerializeToDocument(argument, jsonTypeInfo);
+
+        InvokeCallback(key, document);
     }
 
     private void RegisterBlock(ScriptType scriptType, Type type, string key, string content, ref ScriptList? list, RegisterType registerType, IAttributeRenderer? attribute)
@@ -388,5 +441,44 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
     public ValueTask RenderBodyEnd(HtmlTextWriter writer, ScriptType scriptType)
     {
         return _bodyEnd is null ? default : Render(writer, _bodyEnd, scriptType);
+    }
+
+    public async ValueTask RenderCallbacksAndClear(HtmlTextWriter writer)
+    {
+        if (_callbacks is not { Count: > 0 } callbacks)
+        {
+            return;
+        }
+
+        _callbacks = null;
+
+        await writer.WriteAsync("<template data-wfc-callbacks>[");
+
+        for (var i = 0; i < callbacks.Count; i++)
+        {
+            var callback = callbacks[i];
+
+            if (i > 0)
+            {
+                await writer.WriteAsync(',');
+            }
+
+            await writer.FlushAsync();
+
+            if (writer.TryGetStream(out var stream))
+            {
+                await JsonSerializer.SerializeAsync(stream, callback, PostbackJsonContext.Default.InvokeCallback);
+            }
+            else
+            {
+                var str = JsonSerializer.Serialize(callback, PostbackJsonContext.Default.InvokeCallback);
+
+                await writer.WriteAsync(str);
+            }
+
+            callback.Argument?.Dispose();
+        }
+
+        await writer.WriteAsync("]</template>");
     }
 }

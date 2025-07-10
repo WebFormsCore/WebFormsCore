@@ -66,7 +66,6 @@ public class HtmlBody() : HtmlContainerControl("body")
             await renderer.RenderBodyAsync(page, writer, token);
         }
 
-
         if (HtmlStyle.RenderStyles(control))
         {
             await page.ClientScript.RenderBodyEnd(writer, ScriptType.Style);
@@ -76,6 +75,8 @@ public class HtmlBody() : HtmlContainerControl("body")
         {
             await page.ClientScript.RenderBodyEnd(writer, ScriptType.Script);
         }
+
+        await page.ClientScript.RenderCallbacksAndClear(writer);
 
         var viewStateManager = control.Context.RequestServices.GetRequiredService<IViewStateManager>();
 
