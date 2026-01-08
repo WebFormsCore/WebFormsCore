@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Testing;
@@ -10,7 +11,7 @@ namespace WebFormsCore.SourceGenerator.Tests;
 
 public class ControlEventHandlerCodeFixTest
 {
-    [Fact]
+    [SkippableFact]
     public async Task CodeFix_Adds_BaseCall_To_Empty_Async_Method()
     {
         const string code =
@@ -51,7 +52,7 @@ public class ControlEventHandlerCodeFixTest
         await VerifyCodeFixAsync(code, fixedCode);
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task CodeFix_Adds_BaseCall_And_Async_To_NonAsync_Method()
     {
         const string code =
@@ -93,7 +94,7 @@ public class ControlEventHandlerCodeFixTest
         await VerifyCodeFixAsync(code, fixedCode);
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task CodeFix_Adds_BaseCall_And_Converts_ValueTaskCompletedTask()
     {
         const string code =
@@ -135,7 +136,7 @@ public class ControlEventHandlerCodeFixTest
         await VerifyCodeFixAsync(code, fixedCode);
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task CodeFix_Converts_ExpressionBody_To_Block()
     {
         const string code =
@@ -175,7 +176,7 @@ public class ControlEventHandlerCodeFixTest
         await VerifyCodeFixAsync(code, fixedCode);
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task CodeFix_Replaces_Return_Default_With_Return_In_Branch()
     {
         const string code =
@@ -227,6 +228,8 @@ public class ControlEventHandlerCodeFixTest
 
     private static async Task VerifyCodeFixAsync(string source, string fixedSource)
     {
+        Skip.IfNot(OperatingSystem.IsWindows(), "Line endings are different");
+
         var expected = new DiagnosticResult(ControlEventHandlerAnalyzer.DiagnosticId, DiagnosticSeverity.Error)
             .WithLocation(0);
 
