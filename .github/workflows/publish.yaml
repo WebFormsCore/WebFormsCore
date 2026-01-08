@@ -86,6 +86,8 @@ jobs:
             src/WebFormsCore.Extensions.EntityFrameworkCore/WebFormsCore.Extensions.EntityFrameworkCore.csproj
             src/WebFormsCore.Extensions.Grid/WebFormsCore.Extensions.Grid.csproj
             src/WebFormsCore.Extensions.TinyMCE/WebFormsCore.Extensions.TinyMCE.csproj
+            src/WebFormsCore.TestFramework/WebFormsCore.TestFramework.csproj
+            src/WebFormsCore.TestFramework.Selenium/WebFormsCore.TestFramework.Selenium.csproj
       
   test:
     strategy:
