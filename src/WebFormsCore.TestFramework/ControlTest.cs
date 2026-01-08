@@ -66,7 +66,7 @@ public class ControlTest
     }
 
     public static async Task<ITestContext<TControl>> StartBrowserAsync<TControl>(
-        Func<IWebHost, WebServerContext<TControl>> contextFactory,
+        Func<IWebHost, Task<WebServerContext<TControl>>> contextFactory,
         Action<IServiceCollection>? configure = null,
         Action<IApplicationBuilder>? configureApp = null,
         bool enableViewState = true,
@@ -178,7 +178,7 @@ public class ControlTest
 
         var host = builder.Build();
 
-        context.Value = contextFactory(host);
+        context.Value = await contextFactory(host);
 
         await host.StartAsync();
         await context.Value.GoToUrlAsync(context.Value.Url);

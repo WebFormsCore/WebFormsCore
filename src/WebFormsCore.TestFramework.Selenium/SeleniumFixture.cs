@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -21,8 +22,8 @@ public sealed class SeleniumFixture : IDisposable
     private static readonly Lazy<string> ChromePath = new(() => new DriverManager().SetUpDriver(new ChromeConfig(), "MatchingBrowser"));
     private static readonly Lazy<string> FirefoxPath = new(() => new DriverManager().SetUpDriver(new FirefoxConfig()));
 
-    private readonly ConcurrentBag<IWebDriver> _chromeDrivers = [];
-    private readonly ConcurrentBag<IWebDriver> _firefoxDrivers = [];
+    private readonly Context _chromeDrivers = new();
+    private readonly Context _firefoxDrivers = new();
 
     public Task<ITestContext<TControl>> StartAsync<TControl>(
         Browser browser,
@@ -51,15 +52,10 @@ public sealed class SeleniumFixture : IDisposable
         HttpProtocols protocols = HttpProtocols.Http1AndHttp2
     ) where TControl : Control, new()
     {
-        return await StartBrowserAsync<TControl>(DriverFactory, configure, configureApp, enableViewState, protocols);
+        return await StartBrowserAsync<TControl>(_chromeDrivers, DriverFactory, configure, configureApp, enableViewState, protocols);
 
         IWebDriver DriverFactory()
         {
-            if (_chromeDrivers.TryTake(out var driver))
-            {
-                return driver;
-            }
-
             var chromeOptions = new ChromeOptions();
             if (headless) chromeOptions.AddArgument("--headless");
             chromeOptions.AddArgument("--disable-search-engine-choice-screen");
@@ -78,11 +74,11 @@ public sealed class SeleniumFixture : IDisposable
         HttpProtocols protocols = HttpProtocols.Http1AndHttp2
     ) where TControl : Control, new()
     {
-        return await StartBrowserAsync<TControl>(DriverFactory, configure, configureApp, enableViewState, protocols);
+        return await StartBrowserAsync<TControl>(_firefoxDrivers, DriverFactory, configure, configureApp, enableViewState, protocols);
 
         IWebDriver DriverFactory()
         {
-            if (_firefoxDrivers.TryTake(out var driver))
+            if (_firefoxDrivers.Drivers.TryTake(out var driver))
             {
                 return driver;
             }
@@ -101,7 +97,8 @@ public sealed class SeleniumFixture : IDisposable
         }
     }
 
-    public Task<ITestContext<TControl>> StartBrowserAsync<TControl>(
+    private Task<ITestContext<TControl>> StartBrowserAsync<TControl>(
+        Context context,
         Func<IWebDriver> driverFactory,
         Action<IServiceCollection>? configure = null,
         Action<IApplicationBuilder>? configureApp = null,
@@ -109,51 +106,45 @@ public sealed class SeleniumFixture : IDisposable
         HttpProtocols protocols = HttpProtocols.Http1AndHttp2
     ) where TControl : Control, new()
     {
-        return ControlTest.StartBrowserAsync(host => new SeleniumTestContext<TControl>(host, driverFactory(), this), configure, configureApp, enableViewState, protocols);
-    }
+        return ControlTest.StartBrowserAsync(CreateDriver, configure, configureApp, enableViewState, protocols);
 
-    internal bool ReturnDriver(IWebDriver driver)
-    {
-        switch (driver)
+        async Task<WebServerContext<TControl>> CreateDriver(IWebHost host)
         {
-            case ChromeDriver chromeDriver:
-                _chromeDrivers.Add(chromeDriver);
-                return true;
-            case FirefoxDriver firefoxDriver:
-                _firefoxDrivers.Add(firefoxDriver);
-                return true;
-            default:
-                return false;
+            await context.Semaphore.WaitAsync(TimeSpan.FromSeconds(30));
+
+            if (!context.Drivers.TryTake(out var driver))
+            {
+                driver = driverFactory();
+            }
+
+            return new SeleniumTestContext<TControl>(host, driver, context);
         }
     }
 
     public void Dispose()
     {
-        foreach (var driver in _chromeDrivers)
-        {
-            try
-            {
-                driver.Dispose();
-            }
-            catch
-            {
-                // Ignore
-            }
-        }
-
-        foreach (var driver in _firefoxDrivers)
-        {
-            try
-            {
-                driver.Dispose();
-            }
-            catch
-            {
-                // Ignore
-            }
-        }
-
         _chromeDrivers.Clear();
         _firefoxDrivers.Clear();
+    }
+
+    internal class Context
+    {
+        public readonly ConcurrentBag<IWebDriver> Drivers = [];
+        public readonly SemaphoreSlim Semaphore = new(4); // Limit to 4 concurrent drivers
+
+        public void Clear()
+        {
+            while (Drivers.TryTake(out var driver))
+            {
+                try
+                {
+                    driver.Dispose();
+                }
+                catch
+                {
+                    // Ignore
+                }
+            }
+        }
     }
 }
