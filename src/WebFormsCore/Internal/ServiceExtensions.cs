@@ -141,6 +141,9 @@ public static class ServiceExtensions
         builder.Services.TryAddSingleton<IAttributeParser<IList<string>>, ListAttributeParser<string>>();
         builder.Services.TryAddSingleton<IAttributeParser<ScriptPosition>, EnumAttributeParser<ScriptPosition>>();
         builder.Services.TryAddSingleton<IAttributeParser<TextBoxMode>, EnumAttributeParser<TextBoxMode>>();
+
+        builder.Services.TryAddSingleton(typeof(IAttributeParser<>), typeof(GenericAttributeParser<>));
+
         return builder;
     }
 
