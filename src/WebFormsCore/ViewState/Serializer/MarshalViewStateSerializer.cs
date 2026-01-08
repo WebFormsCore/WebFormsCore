@@ -14,7 +14,7 @@ public class MarshalViewStateSerializer<T> : ViewStateSerializer<T>
 
     public override void Write(Type type, ref ViewStateWriter writer, T value, T defaultValue)
     {
-        MemoryMarshal.Write(writer.AllocateUnsafe(Size), ref value);
+        MemoryMarshal.Write(writer.AllocateUnsafe(Size), in value);
     }
 
     public override T Read([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, ref ViewStateReader reader, T defaultValue)
