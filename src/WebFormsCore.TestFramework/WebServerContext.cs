@@ -12,7 +12,7 @@ using WebFormsCore.UI;
 
 namespace WebFormsCore;
 
-public abstract class WebServerContext<T>(IWebHost host) : IWebServerContext<T>
+public abstract class WebServerContext<T>(IHost host) : IWebServerContext<T>
     where T : Control, new()
 {
     private T? _control;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using WebFormsCore.Internal;
@@ -11,7 +12,7 @@ using WebFormsCore.UI;
 namespace WebFormsCore;
 
 internal class SeleniumTestContext<T>(
-    IWebHost host,
+    IHost host,
     IWebDriver driver,
     SeleniumFixture.Context context
 ) : WebServerContext<T>(host)

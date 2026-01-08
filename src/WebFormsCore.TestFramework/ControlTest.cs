@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http2;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using WebFormsCore.Containers;
 using WebFormsCore.Features;
 using WebFormsCore.UI;
@@ -66,113 +67,116 @@ public class ControlTest
     }
 
     public static async Task<ITestContext<TControl>> StartBrowserAsync<TControl>(
-        Func<IWebHost, Task<WebServerContext<TControl>>> contextFactory,
+        Func<IHost, Task<WebServerContext<TControl>>> contextFactory,
         Action<IServiceCollection>? configure = null,
         Action<IApplicationBuilder>? configureApp = null,
         bool enableViewState = true,
         HttpProtocols protocols = HttpProtocols.Http1AndHttp2
     ) where TControl : Control, new()
     {
-        var builder = WebHost.CreateDefaultBuilder();
+        var builder = Host.CreateDefaultBuilder();
         var context = new StrongBox<WebServerContext<TControl>>();
 
-        builder.UseKestrel(options =>
+        builder.ConfigureWebHostDefaults(webBuilder =>
         {
-            options.Limits.MaxResponseBufferSize = null;
-            options.Listen(IPAddress.Loopback, 0, listenOptions =>
+            webBuilder.UseKestrel(options =>
             {
-                listenOptions.UseHttps(Certificate);
-                listenOptions.Protocols = protocols;
-            });
-        });
-
-        builder.ConfigureServices(services =>
-        {
-            services.AddWebFormsCore();
-
-            var typeProvider = typeof(TControl).Assembly.GetCustomAttribute<AssemblyControlTypeProviderAttribute>()?.Type;
-
-            if (typeProvider is null)
-            {
-                throw new InvalidOperationException("Type provider not found");
-            }
-
-            services.AddSingleton(typeof(IControlTypeProvider), typeProvider);
-            services.AddSingleton<IWebFormsEnvironment, TestEnvironment>();
-            services.AddSingleton<IControlAccessor, ControlAccessor>();
-
-            services.AddOptions<ViewStateOptions>()
-                .Configure(options =>
+                options.Limits.MaxResponseBufferSize = null;
+                options.Listen(IPAddress.Loopback, 0, listenOptions =>
                 {
-                    options.Enabled = enableViewState;
+                    listenOptions.UseHttps(Certificate);
+                    listenOptions.Protocols = protocols;
                 });
+            });
 
-            configure?.Invoke(services);
-        });
-
-        builder.Configure(app =>
-        {
-            configureApp?.Invoke(app);
-
-            app.Run(async ctx =>
+            webBuilder.ConfigureServices(services =>
             {
-                try
+                services.AddWebFormsCore();
+
+                var typeProvider = typeof(TControl).Assembly.GetCustomAttribute<AssemblyControlTypeProviderAttribute>()?.Type;
+
+                if (typeProvider is null)
                 {
-                    if (ctx.Request.Path == "/favicon.ico")
+                    throw new InvalidOperationException("Type provider not found");
+                }
+
+                services.AddSingleton(typeof(IControlTypeProvider), typeProvider);
+                services.AddSingleton<IWebFormsEnvironment, TestEnvironment>();
+                services.AddSingleton<IControlAccessor, ControlAccessor>();
+
+                services.AddOptions<ViewStateOptions>()
+                    .Configure(options =>
                     {
-                        ctx.Response.StatusCode = 404;
-                        return;
-                    }
-
-                    Debug.Assert(context.Value != null);
-                    ctx.Features.Set<ITestContextFeature>(new TestContextFeature(context.Value!));
-
-                    var activator = ctx.RequestServices.GetRequiredService<IWebObjectActivator>();
-                    var control = activator.CreateControl<TControl>();
-
-                    if (ctx.RequestServices.GetRequiredService<IControlAccessor>() is not ControlAccessor controlAccessor)
-                    {
-                        throw new InvalidOperationException("Control accessor cannot be overridden.");
-                    }
-
-                    controlAccessor.Control = control;
-
-                    if (control is Page page)
-                    {
-                        await ctx.ExecutePageAsync(page);
-                    }
-                    else
-                    {
-                        page = new Page();
-
-                        var literal = activator.CreateControl<LiteralControl>();
-                        literal.Text = "<!DOCTYPE html>";
-                        page.Controls.AddWithoutPageEvents(literal);
-                        page.Controls.AddWithoutPageEvents(activator.CreateControl<HtmlHead>());
-
-                        var body = activator.CreateControl<HtmlBody>();
-                        body.Controls.AddWithoutPageEvents(control);
-
-                        page.Controls.AddWithoutPageEvents(body);
-
-                        await ctx.ExecutePageAsync(page);
-                    }
-
-                    ctx.Response.OnCompleted(async () =>
-                    {
-                        // For some reason, ASP.NET Core decides to leave the streams open when calling OnCompleted.
-                        // The browser waits until the connection is closed before the 'fetch' promise is resolved.
-                        // We need to close the streams manually.
-                        await ctx.Response.CompleteAsync();
-
-                        await context.Value!.SetControlAsync(control);
-                        controlAccessor.Control = null!;
+                        options.Enabled = enableViewState;
                     });
-                }
-                catch (Exception e)
+
+                configure?.Invoke(services);
+            });
+
+            webBuilder.Configure(app =>
+            {
+                configureApp?.Invoke(app);
+
+                app.Run(async ctx =>
                 {
-                    context.Value!.SetException(e);
-                }
+                    try
+                    {
+                        if (ctx.Request.Path == "/favicon.ico")
+                        {
+                            ctx.Response.StatusCode = 404;
+                            return;
+                        }
+
+                        Debug.Assert(context.Value != null);
+                        ctx.Features.Set<ITestContextFeature>(new TestContextFeature(context.Value!));
+
+                        var activator = ctx.RequestServices.GetRequiredService<IWebObjectActivator>();
+                        var control = activator.CreateControl<TControl>();
+
+                        if (ctx.RequestServices.GetRequiredService<IControlAccessor>() is not ControlAccessor controlAccessor)
+                        {
+                            throw new InvalidOperationException("Control accessor cannot be overridden.");
+                        }
+
+                        controlAccessor.Control = control;
+
+                        if (control is Page page)
+                        {
+                            await ctx.ExecutePageAsync(page);
+                        }
+                        else
+                        {
+                            page = new Page();
+
+                            var literal = activator.CreateControl<LiteralControl>();
+                            literal.Text = "<!DOCTYPE html>";
+                            page.Controls.AddWithoutPageEvents(literal);
+                            page.Controls.AddWithoutPageEvents(activator.CreateControl<HtmlHead>());
+
+                            var body = activator.CreateControl<HtmlBody>();
+                            body.Controls.AddWithoutPageEvents(control);
+
+                            page.Controls.AddWithoutPageEvents(body);
+
+                            await ctx.ExecutePageAsync(page);
+                        }
+
+                        ctx.Response.OnCompleted(async () =>
+                        {
+                            // For some reason, ASP.NET Core decides to leave the streams open when calling OnCompleted.
+                            // The browser waits until the connection is closed before the 'fetch' promise is resolved.
+                            // We need to close the streams manually.
+                            await ctx.Response.CompleteAsync();
+
+                            await context.Value!.SetControlAsync(control);
+                            controlAccessor.Control = null!;
+                        });
+                    }
+                    catch (Exception e)
+                    {
+                        context.Value!.SetException(e);
+                    }
+                });
             });
         });
 

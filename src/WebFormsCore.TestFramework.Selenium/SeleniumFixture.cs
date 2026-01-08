@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Firefox;
@@ -108,7 +109,7 @@ public sealed class SeleniumFixture : IDisposable
     {
         return ControlTest.StartBrowserAsync(CreateDriver, configure, configureApp, enableViewState, protocols);
 
-        async Task<WebServerContext<TControl>> CreateDriver(IWebHost host)
+        async Task<WebServerContext<TControl>> CreateDriver(IHost host)
         {
             await context.Semaphore.WaitAsync(TimeSpan.FromSeconds(30));
 
