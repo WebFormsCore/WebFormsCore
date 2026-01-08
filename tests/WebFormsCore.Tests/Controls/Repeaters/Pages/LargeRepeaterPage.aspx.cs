@@ -12,6 +12,8 @@ public partial class LargeRepeaterPage : Page
 
     protected override async ValueTask OnLoadAsync(CancellationToken token)
     {
+        await base.OnLoadAsync(token);
+
         if (!IsPostBack)
         {
             await rptItems.DataBindAsync(token);

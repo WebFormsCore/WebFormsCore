@@ -7,6 +7,7 @@ public partial class NestedRepeaterPage : Page
 {
     protected override async ValueTask OnInitAsync(CancellationToken token)
     {
+        await base.OnInitAsync(token);
         a.DataSource = new[] { 1, 2 };
         await a.DataBindAsync(token);
     }
