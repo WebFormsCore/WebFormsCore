@@ -15,9 +15,9 @@ public class HtmlScript : HtmlGenericControl
     {
     }
 
-    protected override void OnInit(EventArgs args)
+    protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        base.OnInit(args);
+        await base.OnInitAsync(token);
 
         if (Attributes.TryGetValue("src", out var href)
             && href != null

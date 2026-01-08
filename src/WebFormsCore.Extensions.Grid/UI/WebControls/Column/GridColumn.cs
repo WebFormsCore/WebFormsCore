@@ -44,9 +44,9 @@ public abstract partial class GridColumn : WebControl
         set => _uniqueName = value;
     }
 
-    protected override void OnInit(EventArgs args)
+    protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        base.OnInit(args);
+        await base.OnInitAsync(token);
         Controls.Clear();
         HeaderTemplate?.InstantiateIn(this);
     }

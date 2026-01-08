@@ -18,19 +18,19 @@ public interface IInternalControl
 
     bool IsInPage { get; }
 
-    void InvokeFrameworkInit(CancellationToken token);
+    ValueTask FrameworkInitAsync(CancellationToken token);
 
     void InvokeTrackViewState(CancellationToken token);
 
-    ValueTask InvokePreInitAsync(CancellationToken token);
+    ValueTask PreInitAsync(CancellationToken token);
 
-    ValueTask InvokeInitAsync(CancellationToken token);
+    ValueTask InitAsync(CancellationToken token);
 
-    ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument);
+    ValueTask PostbackAsync(CancellationToken token, string? target, string? argument);
 
-    ValueTask InvokeLoadAsync(CancellationToken token, HtmlForm? form);
+    ValueTask LoadAsync(CancellationToken token);
 
-    ValueTask InvokePreRenderAsync(CancellationToken token, HtmlForm? form);
+    ValueTask PreRenderAsync(CancellationToken token);
 
     ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token);
 }

@@ -28,9 +28,9 @@ public abstract partial class ClientDependencyInclude : Control, IClientDependen
         ForceVersion = false;
     }
 
-    protected override void OnInit(EventArgs args)
+    protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        base.OnInit(args);
+        await base.OnInitAsync(token);
 
         var service = Context.RequestServices.GetService<IClientDependencyCollection>();
 
@@ -42,8 +42,10 @@ public abstract partial class ClientDependencyInclude : Control, IClientDependen
         service.Add(this);
     }
 
-    protected override void OnUnload(EventArgs args)
+    protected override async ValueTask OnUnloadAsync(CancellationToken token)
     {
+        await base.OnUnloadAsync(token);
+
         var service = Context.RequestServices.GetService<IClientDependencyCollection>();
         service?.Remove(this);
     }

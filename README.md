@@ -34,7 +34,7 @@ Create a new `.csproj` file that uses the SDK `WebFormsCore.SDK`:
 <Project Sdk="WebFormsCore.SDK.AspNetCore/0.0.1-alpha.68">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
     </PropertyGroup>
 
 </Project>

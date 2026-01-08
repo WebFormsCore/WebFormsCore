@@ -12,16 +12,16 @@ public class HtmlHead() : HtmlContainerControl("head")
 {
     protected override bool GenerateAutomaticID => false;
 
-    protected override void FrameworkInitialize()
+    protected override async ValueTask OnFrameworkInitAsync(CancellationToken token)
     {
-        base.FrameworkInitialize();
+        await base.OnFrameworkInitAsync(token);
 
         Page.Header ??= this;
     }
 
-    protected override void OnUnload(EventArgs args)
+    protected override async ValueTask OnUnloadAsync(CancellationToken token)
     {
-        base.OnUnload(args);
+        await base.OnUnloadAsync(token);
 
         if (Page.Header == this)
         {

@@ -15,9 +15,9 @@ public class TinyEditor : TextBox
         TextMode = TextBoxMode.MultiLine;
     }
 
-    protected override void OnInit(EventArgs args)
+    protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        base.OnInit(args);
+        await base.OnInitAsync(token);
 
         Page.Csp.StyleSrc.Add("'unsafe-inline'");
         Page.ClientScript.RegisterStartupStyleLink(typeof(TinyEditor), "Oxide", "https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.7.0/skins/ui/oxide/skin.min.css");

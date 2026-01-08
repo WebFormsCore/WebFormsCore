@@ -1,4 +1,6 @@
-﻿using WebFormsCore.UI;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using WebFormsCore.UI;
 using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
 
@@ -8,9 +10,9 @@ public partial class DropDownPage : Page
 {
     public int EventCount;
 
-    protected override void OnInit(EventArgs e)
+    protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        base.OnInit(e);
+        await base.OnInitAsync(token);
 
         ddl.Items.Add(new ListItem("Select an option", ""));
         ddl.Items.Add(new ListItem("Option 1", "1"));

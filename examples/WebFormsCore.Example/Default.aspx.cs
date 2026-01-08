@@ -22,6 +22,8 @@ public partial class Default : Page
 
     protected override async ValueTask OnInitAsync(CancellationToken token)
     {
+        await base.OnInitAsync(token);
+
         // Csp.Enabled = true;
         Csp.DefaultMode = CspMode.Nonce;
         Csp.RequireTrustedTypesFor.Add("'script'");
@@ -44,8 +46,9 @@ public partial class Default : Page
         }
     }
 
-    protected override void OnLoad(EventArgs args)
+    protected override async ValueTask OnLoadAsync(CancellationToken token)
     {
+        await base.OnLoadAsync(token);
         title.InnerText = (PostbackCount++).ToString();
     }
 

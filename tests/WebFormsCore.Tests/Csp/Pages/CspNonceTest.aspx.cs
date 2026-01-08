@@ -1,13 +1,15 @@
-﻿using WebFormsCore.Security;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using WebFormsCore.Security;
 using WebFormsCore.UI;
 
 namespace WebFormsCore.Tests.Csp.Pages;
 
 public partial class CspNonceTest : Page
 {
-    protected override void OnInit(EventArgs args)
+    protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        base.OnInit(args);
+        await base.OnInitAsync(token);
 
         Csp.Enabled = true;
         Csp.DefaultMode = CspMode.Nonce;

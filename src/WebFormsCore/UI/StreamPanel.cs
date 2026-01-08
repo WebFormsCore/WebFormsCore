@@ -165,7 +165,7 @@ public class StreamPanel : Control, INamingContainer
         Page.IsPostBack = true;
 
         var pageManager = Context.RequestServices.GetRequiredService<IPageManager>();
-        await InvokePostbackAsync(default, null);
+        await PostbackAsync(default);
         await pageManager.TriggerPostBackAsync(Page, command.EventTarget, command.EventArgument);
         Page.ClearChangedPostDataConsumers();
 
@@ -198,7 +198,7 @@ public class StreamPanel : Control, INamingContainer
 
         Context.Response.Body = new FlushHtmlStream(memory, writer);
 
-        await InvokePreRenderAsync(default, null);
+        await PreRenderAsync(default);
         await RenderAsync(writer, token);
         await writer.FlushAsync();
 

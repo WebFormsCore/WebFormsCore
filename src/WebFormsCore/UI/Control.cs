@@ -527,38 +527,33 @@ public partial class Control
         {
             namingContainer.DirtyNameTable();
         }
-
-        if (_state >= ControlState.FrameworkInitialized)
-        {
-            control.InvokeFrameworkInit(default);
-        }
     }
 
     internal async ValueTask InvokeStateMethodsAsync(ControlState state, Control control)
     {
         if (state >= ControlState.FrameworkInitialized && control._state < ControlState.FrameworkInitialized)
         {
-            control.InvokeFrameworkInit(default);
+            await control.FrameworkInitAsync(default);
         }
 
         if (state >= ControlState.PreInitialized && control._state < ControlState.PreInitialized)
         {
-            await control.InvokePreInitAsync(default);
+            await control.PreInitAsync(default);
         }
 
         if (state >= ControlState.Initialized && control._state < ControlState.Initialized)
         {
-            await control.InvokeInitAsync(default);
+            await control.InitAsync(default);
         }
 
         if (state >= ControlState.Loaded && control._state < ControlState.Loaded)
         {
-            await control.InvokeLoadAsync(default, Page.ActiveForm);
+            await control.LoadAsync(default);
         }
 
         if (state >= ControlState.PreRendered && control._state < ControlState.PreRendered)
         {
-            await control.InvokePreRenderAsync(default, Page.ActiveForm);
+            await control.PreRenderAsync(default);
         }
     }
 
@@ -569,7 +564,7 @@ public partial class Control
 
     protected internal virtual void RemovedControlInternal(Control control)
     {
-        control.InvokeUnload();
+        _ = control.UnloadAsync(default);
 
         if (control._hasGeneratedId)
         {
@@ -854,17 +849,51 @@ public partial class Control
         Controls.AddWithoutPageEvents(control);
     }
 
-    protected virtual void OnPreInit(EventArgs args)
+    protected virtual async ValueTask OnFrameworkInitAsync(CancellationToken token)
+    {
+        FrameworkInitialize();
+        FrameworkInitialized();
+
+        if (ProcessChildren)
+        {
+            foreach (var control in Controls)
+            {
+                await control.FrameworkInitAsync(token);
+            }
+        }
+    }
+
+    /// <summary>Initializes the control that is derived from the <see cref="T:System.Web.UI.TemplateControl" /> class.</summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    protected virtual void FrameworkInitialize()
     {
     }
 
-    protected virtual ValueTask OnPreInitAsync(CancellationToken token)
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    protected virtual void FrameworkInitialized()
     {
-        return default;
     }
 
-    protected virtual void OnInit(EventArgs args)
+    protected virtual async ValueTask OnPreInitAsync(CancellationToken token)
     {
+        if (ProcessChildren)
+        {
+            foreach (var control in Controls)
+            {
+                await control.PreInitAsync(token);
+            }
+        }
+    }
+
+    protected virtual async ValueTask OnInitAsync(CancellationToken token)
+    {
+        if (ProcessChildren)
+        {
+            foreach (var control in Controls)
+            {
+                await control.InitAsync(token);
+            }
+        }
     }
 
     protected virtual void TrackViewState(ViewStateProvider provider)
@@ -873,31 +902,43 @@ public partial class Control
         _trackViewState = true;
     }
 
-    protected virtual ValueTask OnInitAsync(CancellationToken token)
+    protected virtual async ValueTask OnLoadAsync(CancellationToken token)
     {
-        return default;
+        if (ProcessChildren)
+        {
+            var form = Page.ActiveForm;
+
+            foreach (var control in Controls)
+            {
+                if (form != null && control is HtmlForm && control != form) continue;
+                await control.LoadAsync(token);
+            }
+        }
     }
 
-    protected virtual void OnUnload(EventArgs args)
+    protected virtual async ValueTask OnPreRenderAsync(CancellationToken token)
     {
+        if (ProcessChildren)
+        {
+            var form = Page.ActiveForm;
+
+            foreach (var control in Controls)
+            {
+                if (form != null && control is HtmlForm && control != form) continue;
+                await control.PreRenderAsync(token);
+            }
+        }
     }
 
-    protected virtual void OnLoad(EventArgs args)
+    protected virtual async ValueTask OnUnloadAsync(CancellationToken token)
     {
-    }
-
-    protected virtual ValueTask OnLoadAsync(CancellationToken token)
-    {
-        return default;
-    }
-
-    protected virtual void OnPreRender(EventArgs args)
-    {
-    }
-
-    protected virtual ValueTask OnPreRenderAsync(CancellationToken token)
-    {
-        return default;
+        if (ProcessChildren)
+        {
+            foreach (var control in Controls)
+            {
+                await control.UnloadAsync(token);
+            }
+        }
     }
 
     protected virtual void OnWriteViewState(ref ViewStateWriter writer)
@@ -933,17 +974,6 @@ public partial class Control
                 ViewState.Read(ref reader, length);
             }
         }
-    }
-
-    /// <summary>Initializes the control that is derived from the <see cref="T:System.Web.UI.TemplateControl" /> class.</summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    protected virtual void FrameworkInitialize()
-    {
-    }
-
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    protected virtual void FrameworkInitialized()
-    {
     }
 
     public virtual void StateHasChanged()

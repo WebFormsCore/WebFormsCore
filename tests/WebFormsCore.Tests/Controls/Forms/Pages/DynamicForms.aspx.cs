@@ -1,4 +1,6 @@
-﻿using WebFormsCore.UI;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using WebFormsCore.UI;
 using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
 
@@ -8,9 +10,9 @@ public partial class DynamicForms : Page, IPostBackAsyncLoadHandler
 {
     [ViewState] private bool _createForm;
 
-    protected override void OnInit(EventArgs e)
+    protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        base.OnInit(e);
+        await base.OnInitAsync(token);
     }
 
     private async Task InitFormAsync()

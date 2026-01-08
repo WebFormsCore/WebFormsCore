@@ -16,16 +16,16 @@ public class HtmlBody() : HtmlContainerControl("body")
 
     public string? LastViewState { get; set; }
 
-    protected override void FrameworkInitialize()
+    protected override async ValueTask OnFrameworkInitAsync(CancellationToken token)
     {
-        base.FrameworkInitialize();
+        await base.OnFrameworkInitAsync(token);
 
         Page.Body ??= this;
     }
 
-    protected override void OnUnload(EventArgs args)
+    protected override async ValueTask OnUnloadAsync(CancellationToken token)
     {
-        base.OnUnload(args);
+        await base.OnUnloadAsync(token);
 
         if (Page.Body == this)
         {

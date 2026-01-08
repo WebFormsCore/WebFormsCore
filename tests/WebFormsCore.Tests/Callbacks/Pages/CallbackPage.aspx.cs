@@ -1,4 +1,6 @@
-﻿using WebFormsCore.Security;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using WebFormsCore.Security;
 using WebFormsCore.UI;
 using WebFormsCore.UI.WebControls;
 
@@ -6,9 +8,9 @@ namespace WebFormsCore.Tests.Callbacks.Pages;
 
 public partial class CallbackPage : Page
 {
-    protected override void OnInit(EventArgs args)
+    protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        base.OnInit(args);
+        await base.OnInitAsync(token);
 
         if (!IsPostBack)
         {

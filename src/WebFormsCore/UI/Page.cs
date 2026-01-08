@@ -109,16 +109,16 @@ public class Page : Control, INamingContainer, IStateContainer, IInternalPage
 
     internal HtmlForm? ActiveForm { get; set; }
 
-    protected override void OnInit(EventArgs args)
+    protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        base.OnInit(args);
+        await base.OnInitAsync(token);
 
         RegisterScript();
     }
 
-    protected override void OnPreRender(EventArgs args)
+    protected override async ValueTask OnPreRenderAsync(CancellationToken token)
     {
-        base.OnPreRender(args);
+        await base.OnPreRenderAsync(token);
 
         ClientScript.OnPreRender();
     }

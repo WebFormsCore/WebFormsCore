@@ -20,9 +20,10 @@ Public Partial Class DefaultPage
         Await rptItems.DataBindAsync()
     End Function
 
-    Protected Overrides Sub OnPreRender(args As EventArgs)
+    Protected Overrides Function OnPreRenderAsync(token As System.Threading.CancellationToken) As ValueTask
         litValue.Text = Counter.ToString()
-    End Sub
+        Return MyBase.OnPreRenderAsync(token)
+    End Function
 
     Protected Function rptItems_OnItemDataBound(sender As Object, e As RepeaterItemEventArgs) As Task
         Dim item = e.Item.FindControls(Of ItemControls)()

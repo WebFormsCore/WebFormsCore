@@ -13,9 +13,9 @@ public class HtmlLink : HtmlGenericControl
     {
     }
 
-    protected override void OnInit(EventArgs args)
+    protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        base.OnInit(args);
+        await base.OnInitAsync(token);
 
         if (Attributes["rel"] == "stylesheet" &&
             Attributes.TryGetValue("href", out var href)

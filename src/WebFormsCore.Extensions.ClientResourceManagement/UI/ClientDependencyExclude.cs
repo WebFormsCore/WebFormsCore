@@ -10,9 +10,9 @@ public partial class ClientDependencyExclude : Control
 	/// <summary>Name of the script (e.g. <c>jQuery</c>, <c>Bootstrap</c>, <c>Angular</c>, etc.</summary>
 	[ViewState] public string? Name { get; set; }
 
-	protected override void OnInit(EventArgs args)
+	protected override async ValueTask OnInitAsync(CancellationToken token)
 	{
-		base.OnInit(args);
+		await base.OnInitAsync(token);
 
 		if (Name is not null)
 		{
