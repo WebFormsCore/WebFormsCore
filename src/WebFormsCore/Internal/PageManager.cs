@@ -142,7 +142,7 @@ public partial class PageManager : IPageManager
         var serviceProvider = internalPage.Context.RequestServices;
         var pageServices = serviceProvider.GetServices<IPageService>() as IPageService[] ?? Array.Empty<IPageService>();
 
-        await internalPage.FrameworkInitAsync(token);
+        internalPage.FrameworkInit();
 
         await internalPage.PreInitAsync(token);
 
@@ -523,7 +523,7 @@ public partial class PageManager : IPageManager
         page.ActiveStreamPanel = streamPanel;
         streamPanel.IsConnected = true;
 
-        await streamPanel.FrameworkInitAsync(token);
+        streamPanel.FrameworkInit();
         await streamPanel.InitAsync(token);
         await ProcessRequestAsync(context, page, form, render: true, token);
 

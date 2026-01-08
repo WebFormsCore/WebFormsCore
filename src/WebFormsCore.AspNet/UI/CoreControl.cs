@@ -82,8 +82,7 @@ public class CoreControl : System.Web.UI.Control
         base.OnInit(e);
 
         InitializeControl();
-        Page.RegisterAsyncTask(new FxPageAsyncTask(token => _control.FrameworkInitAsync(token).AsTask()));
-        Page.ExecuteRegisteredAsyncTasks();
+        _control.FrameworkInit(CancellationToken.None);
 
         LoadViewState();
 

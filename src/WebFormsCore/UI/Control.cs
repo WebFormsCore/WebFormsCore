@@ -533,7 +533,7 @@ public partial class Control
     {
         if (state >= ControlState.FrameworkInitialized && control._state < ControlState.FrameworkInitialized)
         {
-            await control.FrameworkInitAsync(default);
+            control.FrameworkInit();
         }
 
         if (state >= ControlState.PreInitialized && control._state < ControlState.PreInitialized)
@@ -849,7 +849,7 @@ public partial class Control
         Controls.AddWithoutPageEvents(control);
     }
 
-    protected virtual async ValueTask OnFrameworkInitAsync(CancellationToken token)
+    protected virtual void OnFrameworkInit()
     {
         FrameworkInitialize();
         FrameworkInitialized();
@@ -858,7 +858,7 @@ public partial class Control
         {
             foreach (var control in Controls)
             {
-                await control.FrameworkInitAsync(token);
+                control.FrameworkInit();
             }
         }
     }

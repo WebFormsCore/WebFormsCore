@@ -16,9 +16,9 @@ public class HtmlBody() : HtmlContainerControl("body")
 
     public string? LastViewState { get; set; }
 
-    protected override async ValueTask OnFrameworkInitAsync(CancellationToken token)
+    protected override void OnFrameworkInit()
     {
-        await base.OnFrameworkInitAsync(token);
+        base.OnFrameworkInit();
 
         Page.Body ??= this;
     }

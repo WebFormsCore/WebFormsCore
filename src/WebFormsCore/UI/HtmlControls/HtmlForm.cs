@@ -53,9 +53,9 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
 
     public override string TagName => IsDiv ? "div" : "form";
 
-    protected override async ValueTask OnFrameworkInitAsync(CancellationToken token)
+    protected override void OnFrameworkInit()
     {
-        await base.OnFrameworkInitAsync(token);
+        base.OnFrameworkInit();
 
         // Dynamically added form
         if (Page._state > ControlState.Initialized)

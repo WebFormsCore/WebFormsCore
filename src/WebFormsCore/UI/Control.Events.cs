@@ -216,16 +216,14 @@ public partial class Control : IInternalControl
         OnWriteViewState(ref writer);
     }
 
-    internal async ValueTask FrameworkInitAsync(CancellationToken token)
+    internal void FrameworkInit()
     {
         if (_state >= ControlState.FrameworkInitialized)
         {
             return;
         }
 
-        if (token.IsCancellationRequested) return;
-
-        await OnFrameworkInitAsync(token);
+        OnFrameworkInit();
 
         _state = ControlState.FrameworkInitialized;
     }
@@ -452,9 +450,9 @@ public partial class Control : IInternalControl
 
     HttpContext IInternalControl.Context => Context;
 
-    ValueTask IInternalControl.FrameworkInitAsync(CancellationToken token)
+    void IInternalControl.FrameworkInit()
     {
-        return FrameworkInitAsync(token);
+        FrameworkInit();
     }
 
     void IInternalControl.InvokeTrackViewState(CancellationToken token)

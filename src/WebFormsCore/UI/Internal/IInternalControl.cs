@@ -18,7 +18,7 @@ public interface IInternalControl
 
     bool IsInPage { get; }
 
-    ValueTask FrameworkInitAsync(CancellationToken token);
+    void FrameworkInit();
 
     void InvokeTrackViewState(CancellationToken token);
 

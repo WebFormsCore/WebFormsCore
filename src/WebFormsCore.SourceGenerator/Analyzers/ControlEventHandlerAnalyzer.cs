@@ -25,7 +25,7 @@ public class ControlEventHandlerAnalyzer : DiagnosticAnalyzer
 
     private static readonly HashSet<string> Methods = new()
     {
-        "OnFrameworkInitAsync",
+        "OnFrameworkInit",
         "OnPreInitAsync",
         "OnInitAsync",
         "OnLoadAsync",
