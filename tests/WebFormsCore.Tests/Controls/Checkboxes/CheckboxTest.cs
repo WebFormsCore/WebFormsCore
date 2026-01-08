@@ -36,5 +36,11 @@ public class CheckboxTest(SeleniumFixture fixture)
 
         await result.Control.checkbox.ClickAsync();
         Assert.Equal("Unchecked", result.Control.label.FindBrowserElement().Text);
+
+        await result.Control.checkbox.ClickAsync();
+        Assert.Equal("Checked", result.Control.label.FindBrowserElement().Text);
+
+        await result.Control.checkbox.ClickAsync();
+        Assert.Equal("Unchecked", result.Control.label.FindBrowserElement().Text);
     }
 }

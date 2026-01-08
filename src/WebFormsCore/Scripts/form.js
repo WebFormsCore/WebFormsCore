@@ -2891,7 +2891,7 @@
                 if (fromEl.tagName === "INPUT" && fromEl.type !== "hidden") {
                     const hasValue = toEl.hasAttribute('value');
                     // If the 'value' attribute is not set, set it to the current value
-                    if (!hasValue) {
+                    if (!hasValue && fromEl.hasAttribute('value')) {
                         toEl.setAttribute('value', (_a = fromEl.getAttribute('value')) !== null && _a !== void 0 ? _a : "");
                     }
                     morphAttrs(fromEl, toEl);

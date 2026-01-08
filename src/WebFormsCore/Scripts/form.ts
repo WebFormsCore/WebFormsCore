@@ -542,7 +542,7 @@ function getMorpdomSettings(options: { updateScripts: boolean, updateStyles: boo
                 const hasValue = toEl.hasAttribute('value');
 
                 // If the 'value' attribute is not set, set it to the current value
-                if (!hasValue) {
+                if (!hasValue && fromEl.hasAttribute('value')) {
                     toEl.setAttribute('value', fromEl.getAttribute('value') ?? "");
                 }
 
