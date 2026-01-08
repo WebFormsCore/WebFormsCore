@@ -82,11 +82,11 @@ public class CoreControl : System.Web.UI.Control
         base.OnInit(e);
 
         InitializeControl();
-        _control.InvokeFrameworkInit(CancellationToken.None);
+        _control.FrameworkInit(CancellationToken.None);
 
         LoadViewState();
 
-        Page.RegisterAsyncTask(new FxPageAsyncTask(token => _control.InvokeInitAsync(token).AsTask()));
+        Page.RegisterAsyncTask(new FxPageAsyncTask(token => _control.InitAsync(token).AsTask()));
         Page.ExecuteRegisteredAsyncTasks();
 
         if (LoadViewState())
@@ -94,7 +94,7 @@ public class CoreControl : System.Web.UI.Control
             var postbackTarget = Context.Request.Form["wfcTarget"];
             var postbackArgument = Context.Request.Form["wfcArgument"];
 
-            Page.RegisterAsyncTask(new FxPageAsyncTask(token => _control.InvokePostbackAsync(token, null, postbackTarget, postbackArgument).AsTask()));
+            Page.RegisterAsyncTask(new FxPageAsyncTask(token => _control.PostbackAsync(token, null, postbackTarget, postbackArgument).AsTask()));
             Page.ExecuteRegisteredAsyncTasks();
         }
 
@@ -105,7 +105,7 @@ public class CoreControl : System.Web.UI.Control
     {
         base.OnLoad(e);
 
-        Page.RegisterAsyncTask(new FxPageAsyncTask(token => _control.InvokeLoadAsync(token, null).AsTask()));
+        Page.RegisterAsyncTask(new FxPageAsyncTask(token => _control.LoadAsync(token, null).AsTask()));
         Page.ExecuteRegisteredAsyncTasks();
     }
 
@@ -115,7 +115,7 @@ public class CoreControl : System.Web.UI.Control
 
         Page.RegisterAsyncTask(new FxPageAsyncTask(async token =>
         {
-            await _control.InvokePreRenderAsync(token, null);
+            await _control.PreRenderAsync(token, null);
 
             using var writer = new StreamWriter(_memoryStream, Utf8WithoutBom, 1024, true);
             var innerWriter = new HtmlTextWriter(writer);

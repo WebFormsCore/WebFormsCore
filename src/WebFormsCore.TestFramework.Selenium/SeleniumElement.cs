@@ -20,6 +20,11 @@ internal class SeleniumElement(IWebElement element) : IElement
                 case "input":
                     return element.GetAttribute("value");
                 case "textarea":
+                    if (element is IWrapsDriver wrapsDriver)
+                    {
+                        return wrapsDriver.WrappedDriver.ExecuteJavaScript<string>("return arguments[0].value;", element) ?? string.Empty;
+                    }
+
                     return element.Text;
                 default:
                     throw new NotSupportedException($"Element tag name '{element.TagName}' is not supported.");

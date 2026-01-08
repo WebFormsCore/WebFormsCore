@@ -1,6 +1,7 @@
 #nullable enable
 #pragma warning disable CS8601 // Possible null reference assignment.
 #pragma warning disable IL2074 // Value stored in field 'target field' does not satisfy 'DynamicallyAccessedMembersAttribute' requirements.
+#pragma warning disable IL2066 // Type passed to generic parameter 'T' of 'WebFormsCore.ViewStateReader.Read<T>(T)' can not be statically determined and may not meet 'DynamicallyAccessedMembersAttribute' requirements.
 
 using System;
 using System.Collections;

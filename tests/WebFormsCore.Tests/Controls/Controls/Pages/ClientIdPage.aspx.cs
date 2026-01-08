@@ -1,13 +1,15 @@
-﻿using WebFormsCore.UI;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using WebFormsCore.UI;
 using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.Tests.Controls.Pages;
 
 public partial class ClientIdPage : Page
 {
-    protected override void OnInit(EventArgs args)
+    protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        base.OnInit(args);
+        await base.OnInitAsync(token);
 
         serverId.ClientID = "clientId";
     }

@@ -1,5 +1,8 @@
-﻿using WebFormsCore.Security;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using WebFormsCore.Security;
 using WebFormsCore.UI;
+using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.Tests.EarlyHints.Pages;
 
@@ -7,9 +10,9 @@ public partial class EarlyHintsPage : Page
 {
     private readonly TaskCompletionSource<object?> _scriptLoadedTcs = new();
 
-    protected override void OnInit(EventArgs args)
+    protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        base.OnInit(args);
+        await base.OnInitAsync(token);
 
         // The script is not in the page, we only want to hint it to validate the test
         EarlyHints.AddScript("/script.js");

@@ -1,12 +1,15 @@
-﻿using WebFormsCore.UI;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using WebFormsCore.UI;
+using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.Tests.Controls.HtmlGenericControls.Pages;
 
 public partial class DivAttributes : Page
 {
-    protected override void OnInit(EventArgs e)
+    protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        base.OnInit(e);
+        await base.OnInitAsync(token);
 
         content.Style["color"] = "red";
         content.Style["font-size"] = "12px";
@@ -15,9 +18,9 @@ public partial class DivAttributes : Page
     }
 
 
-    protected override void OnLoad(EventArgs e)
+    protected override async ValueTask OnLoadAsync(CancellationToken token)
     {
-        base.OnLoad(e);
+        await base.OnLoadAsync(token);
 
         if (!IsPostBack)
         {

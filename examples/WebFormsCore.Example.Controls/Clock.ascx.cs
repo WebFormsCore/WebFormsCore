@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using WebFormsCore.UI;
+using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.Example.Controls;
 
@@ -9,9 +11,9 @@ public partial class Clock : Control, IDisposable
 {
     private Timer? _timer;
 
-    protected override void OnLoad(EventArgs args)
+    protected override async ValueTask OnLoadAsync(CancellationToken token)
     {
-        base.OnLoad(args);
+        await base.OnLoadAsync(token);
 
         if (Page.IsStreaming)
         {

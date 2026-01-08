@@ -216,22 +216,16 @@ public partial class Control : IInternalControl
         OnWriteViewState(ref writer);
     }
 
-    internal void InvokeFrameworkInit(CancellationToken token)
+    internal void FrameworkInit()
     {
         if (_state >= ControlState.FrameworkInitialized)
         {
             return;
         }
 
+        OnFrameworkInit();
+
         _state = ControlState.FrameworkInitialized;
-
-        FrameworkInitialize();
-        FrameworkInitialized();
-
-        foreach (var control in Controls)
-        {
-            control.InvokeFrameworkInit(token);
-        }
     }
 
     public void InvokeTrackViewState(bool force = false)
@@ -254,49 +248,33 @@ public partial class Control : IInternalControl
         }
     }
 
-    internal async ValueTask InvokePreInitAsync(CancellationToken token)
+    internal async ValueTask PreInitAsync(CancellationToken token)
     {
+        if (_state >= ControlState.PreInitialized) return;
+
+        if (token.IsCancellationRequested) return;
+
+        await OnPreInitAsync(token);
+
         if (ProcessControl)
         {
-            if (token.IsCancellationRequested) return;
-
-            OnPreInit(EventArgs.Empty);
-            await OnPreInitAsync(token);
             await PreInit.InvokeAsync(this, EventArgs.Empty);
 
             _state = ControlState.PreInitialized;
         }
-
-        if (ProcessChildren)
-        {
-            foreach (var control in Controls)
-            {
-                await control.InvokePreInitAsync(token);
-            }
-        }
     }
 
-    internal async ValueTask InvokeInitAsync(CancellationToken token)
+    internal async ValueTask InitAsync(CancellationToken token)
     {
+        if (_state >= ControlState.Initialized) return;
+
+        if (token.IsCancellationRequested) return;
+
+        await OnInitAsync(token);
+
         if (ProcessControl)
         {
-            if (token.IsCancellationRequested) return;
-
-            OnInit(EventArgs.Empty);
-            await OnInitAsync(token);
             await Init.InvokeAsync(this, EventArgs.Empty);
-        }
-
-        if (ProcessChildren)
-        {
-            foreach (var control in Controls)
-            {
-                await control.InvokeInitAsync(token);
-            }
-        }
-
-        if (ProcessControl)
-        {
             InvokeTrackViewState();
 
             _state = ControlState.Initialized;
@@ -304,23 +282,17 @@ public partial class Control : IInternalControl
         }
     }
 
-    internal void InvokeUnload()
+    internal async ValueTask UnloadAsync(CancellationToken token)
     {
+        await OnUnloadAsync(token);
+
         if (ProcessControl)
         {
-            OnUnload(EventArgs.Empty);
-        }
-
-        if (ProcessChildren)
-        {
-            foreach (var control in Controls)
-            {
-                control.InvokeUnload();
-            }
+            // Unload event doesn't exist currently, but we follow the pattern
         }
     }
 
-    internal async ValueTask InvokePostbackAsync(CancellationToken token, HtmlForm? form)
+    internal async ValueTask PostbackAsync(CancellationToken token)
     {
         IsNew = false;
 
@@ -352,6 +324,8 @@ public partial class Control : IInternalControl
 
         if (ProcessChildren)
         {
+            var form = Page.ActiveForm;
+
             foreach (var control in Controls)
             {
                 if (!control.IsInPage)
@@ -361,34 +335,26 @@ public partial class Control : IInternalControl
 
                 if (form != null && control is HtmlForm && control != form) continue;
 
-                await control.InvokePostbackAsync(token, form);
+                await control.PostbackAsync(token);
             }
         }
     }
 
-    internal async ValueTask InvokeLoadAsync(CancellationToken token, HtmlForm? form)
+    internal async ValueTask LoadAsync(CancellationToken token)
     {
+        if (_state >= ControlState.Loaded) return;
+
+        if (token.IsCancellationRequested) return;
+
+        await OnLoadAsync(token);
+
         if (ProcessControl)
         {
-            if (token.IsCancellationRequested) return;
-
-            OnLoad(EventArgs.Empty);
-            await OnLoadAsync(token);
             await Load.InvokeAsync(this, EventArgs.Empty);
 
             if (!Page.IsPostBack) RegisterBackgroundControl();
 
             _state = ControlState.Loaded;
-        }
-
-        if (ProcessChildren)
-        {
-            foreach (var control in Controls)
-            {
-                if (form != null && control is HtmlForm && control != form) continue;
-
-                await control.InvokeLoadAsync(token, form);
-            }
         }
     }
 
@@ -422,27 +388,19 @@ public partial class Control : IInternalControl
         }
     }
 
-    internal async ValueTask InvokePreRenderAsync(CancellationToken token, HtmlForm? form)
+    internal async ValueTask PreRenderAsync(CancellationToken token)
     {
+        if (_state >= ControlState.PreRendered) return;
+
+        if (token.IsCancellationRequested) return;
+
+        await OnPreRenderAsync(token);
+
         if (ProcessControl)
         {
-            if (token.IsCancellationRequested) return;
-
-            OnPreRender(EventArgs.Empty);
-            await OnPreRenderAsync(token);
             await PreRender.InvokeAsync(this, EventArgs.Empty);
 
             _state = ControlState.PreRendered;
-        }
-
-        if (ProcessChildren)
-        {
-            foreach (var control in Controls)
-            {
-                if (form != null && control is HtmlForm && control != form) continue;
-
-                await control.InvokePreRenderAsync(token, form);
-            }
         }
     }
 
@@ -492,9 +450,9 @@ public partial class Control : IInternalControl
 
     HttpContext IInternalControl.Context => Context;
 
-    void IInternalControl.InvokeFrameworkInit(CancellationToken token)
+    void IInternalControl.FrameworkInit()
     {
-        InvokeFrameworkInit(token);
+        FrameworkInit();
     }
 
     void IInternalControl.InvokeTrackViewState(CancellationToken token)
@@ -502,29 +460,29 @@ public partial class Control : IInternalControl
         InvokeTrackViewState();
     }
 
-    ValueTask IInternalControl.InvokePreInitAsync(CancellationToken token)
+    ValueTask IInternalControl.PreInitAsync(CancellationToken token)
     {
-        return InvokePreInitAsync(token);
+        return PreInitAsync(token);
     }
 
-    ValueTask IInternalControl.InvokeInitAsync(CancellationToken token)
+    ValueTask IInternalControl.InitAsync(CancellationToken token)
     {
-        return InvokeInitAsync(token);
+        return InitAsync(token);
     }
 
-    ValueTask IInternalControl.InvokePostbackAsync(CancellationToken token, HtmlForm? form, string? target, string? argument)
+    ValueTask IInternalControl.PostbackAsync(CancellationToken token, string? target, string? argument)
     {
-        return InvokePostbackAsync(token, form);
+        return PostbackAsync(token);
     }
 
-    ValueTask IInternalControl.InvokeLoadAsync(CancellationToken token, HtmlForm? form)
+    ValueTask IInternalControl.LoadAsync(CancellationToken token)
     {
-        return InvokeLoadAsync(token, form);
+        return LoadAsync(token);
     }
 
-    ValueTask IInternalControl.InvokePreRenderAsync(CancellationToken token, HtmlForm? form)
+    ValueTask IInternalControl.PreRenderAsync(CancellationToken token)
     {
-        return InvokePreRenderAsync(token, form);
+        return PreRenderAsync(token);
     }
 
     #endregion

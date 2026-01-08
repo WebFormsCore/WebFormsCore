@@ -25,7 +25,7 @@ public abstract class EnumerableViewStateSerializer<T>(IOptions<ViewStateOptions
         if (value is null)
         {
             count = ushort.MaxValue;
-            MemoryMarshal.Write(writer.GetUnsafeSpan(countSpan), ref count);
+            MemoryMarshal.Write(writer.GetUnsafeSpan(countSpan), in count);
             return;
         }
 
@@ -47,7 +47,7 @@ public abstract class EnumerableViewStateSerializer<T>(IOptions<ViewStateOptions
             throw new ViewStateException("Collection size is too large");
         }
 
-        MemoryMarshal.Write(writer.GetUnsafeSpan(countSpan), ref count);
+        MemoryMarshal.Write(writer.GetUnsafeSpan(countSpan), in count);
     }
 
     public object? Read([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, ref ViewStateReader reader, object? defaultCollectionObject)

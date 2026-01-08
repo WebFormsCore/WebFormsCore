@@ -65,7 +65,7 @@ public partial class TextBox : WebControl, IPostBackAsyncEventHandler, IPostBack
 
     protected virtual bool SaveTextViewState => TextMode != TextBoxMode.Password && (TextChanged != null || !IsEnabled || ReadOnly);
 
-    protected virtual bool  WriteValue=> !Page.IsPostBack || _changedText;
+    protected virtual bool  WriteValue=> !Page.IsPostBack || _changedText || IsMultiLine;
 
     protected override async ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {

@@ -16,7 +16,7 @@ public class StringViewStateSerializer(IOptions<ViewStateOptions>? options = nul
         if (value is null)
         {
             var size = ushort.MaxValue;
-            MemoryMarshal.Write(writer.GetUnsafeSpan(sizeof(ushort)), ref size);
+            MemoryMarshal.Write(writer.GetUnsafeSpan(sizeof(ushort)), in size);
             writer.Skip(sizeof(ushort));
             return;
         }
@@ -38,7 +38,7 @@ public class StringViewStateSerializer(IOptions<ViewStateOptions>? options = nul
             throw new ViewStateException("String is too long");
         }
 
-        MemoryMarshal.Write(writer.GetUnsafeSpan(sizeSpan), ref size);
+        MemoryMarshal.Write(writer.GetUnsafeSpan(sizeSpan), in size);
         writer.Skip(byteCount);
     }
 

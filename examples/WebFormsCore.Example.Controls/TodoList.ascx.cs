@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using WebFormsCore.UI;
+using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.Example.Controls;
@@ -11,9 +12,9 @@ public partial class TodoList : Control
 {
     [ViewState] public TextBoxMode? TextMode { get; set; }
 
-    protected override void OnLoad(EventArgs args)
+    protected override async ValueTask OnLoadAsync(CancellationToken token)
     {
-        base.OnLoad(args);
+        await base.OnLoadAsync(token);
 
         TextMode = TextBoxMode.MultiLine;
     }

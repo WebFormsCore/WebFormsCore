@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls.Internal;
 
 namespace WebFormsCore.UI.WebControls;
@@ -57,7 +58,7 @@ public partial class TextChoices : ChoicesBase, IPostBackAsyncDataHandler, IPost
         }
     }
 
-    protected override void OnPreRender(EventArgs args)
+    protected override async ValueTask OnPreRenderAsync(CancellationToken token)
     {
         if (_values != null)
         {
@@ -66,7 +67,7 @@ public partial class TextChoices : ChoicesBase, IPostBackAsyncDataHandler, IPost
             _json = json;
         }
 
-        base.OnPreRender(args);
+        await base.OnPreRenderAsync(token);
     }
 
     public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)

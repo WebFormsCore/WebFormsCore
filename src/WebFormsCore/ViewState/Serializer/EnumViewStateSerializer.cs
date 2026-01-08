@@ -19,7 +19,7 @@ public class EnumViewStateSerializer : IViewStateSerializer
         var span = writer.AllocateUnsafe(Unsafe.SizeOf<T>());
         var unbox = Unsafe.Unbox<T>(value);
 
-        MemoryMarshal.Write(span, ref unbox);
+        MemoryMarshal.Write(span, in unbox);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -142,16 +142,16 @@ public partial class PageManager : IPageManager
         var serviceProvider = internalPage.Context.RequestServices;
         var pageServices = serviceProvider.GetServices<IPageService>() as IPageService[] ?? Array.Empty<IPageService>();
 
-        internalPage.InvokeFrameworkInit(token);
+        internalPage.FrameworkInit();
 
-        await internalPage.InvokePreInitAsync(token);
+        await internalPage.PreInitAsync(token);
 
         foreach (var pageService in pageServices)
         {
             await pageService.BeforeInitializeAsync(page, token);
         }
 
-        await internalPage.InvokeInitAsync(token);
+        await internalPage.InitAsync(token);
 
         foreach (var pageService in pageServices)
         {
@@ -315,10 +315,10 @@ public partial class PageManager : IPageManager
                 await service.BeforePostbackAsync(page, token);
             }
 
-            await target.InvokePostbackAsync(token, form);
+            await target.PostbackAsync(token);
         }
 
-        await target.InvokeLoadAsync(token, form);
+        await target.LoadAsync(token);
 
         foreach (var service in pageServices)
         {
@@ -364,7 +364,7 @@ public partial class PageManager : IPageManager
             await service.BeforePreRenderAsync(page, token);
         }
 
-        await target.InvokePreRenderAsync(token, form);
+        await target.PreRenderAsync(token);
 
         foreach (var service in pageServices)
         {
@@ -523,8 +523,8 @@ public partial class PageManager : IPageManager
         page.ActiveStreamPanel = streamPanel;
         streamPanel.IsConnected = true;
 
-        streamPanel.InvokeFrameworkInit(token);
-        await streamPanel.InvokeInitAsync(token);
+        streamPanel.FrameworkInit();
+        await streamPanel.InitAsync(token);
         await ProcessRequestAsync(context, page, form, render: true, token);
 
         await streamPanel.StartAsync(context, socket);

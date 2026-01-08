@@ -1,7 +1,7 @@
 <Project>
 
     <PropertyGroup>
-        <Version>0.0.1-alpha.74</Version>
+        <Version>0.0.1-alpha.75</Version>
         <PackageVersion>$(Version)</PackageVersion>
         <Authors>WebFormsCore</Authors>
         <RepositoryUrl>https://github.com/WebFormsCore/WebFormsCore</RepositoryUrl>
@@ -9,20 +9,15 @@
         <PackageTags>webformscore</PackageTags>
         <PackageProjectUrl>https://github.com/WebFormsCore/WebFormsCore</PackageProjectUrl>
         <PackageLicense>https://github.com/WebFormsCore/WebFormsCore/blob/main/LICENSE</PackageLicense>
-        <NoWarn>$(NoWarn);CS9191;IL2066;NU5128;xUnit1051</NoWarn>
+        <NoWarn>$(NoWarn);xUnit1051</NoWarn>
         <WarningsNotAsErrors>NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
     </PropertyGroup>
 
     <PropertyGroup>
-        <DotNetVersions>net8.0;net9.0</DotNetVersions>
-        <ExeDotNetVersions>net8.0;net9.0</ExeDotNetVersions>
+        <DotNetVersions>net8.0;net9.0;net10.0</DotNetVersions>
+        <ExeDotNetVersions>net8.0;net9.0;net10.0</ExeDotNetVersions>
     </PropertyGroup>
-
-    <!-- Print the value of DotNetVersions -->
-    <Target Name="PrintDotNetVersions" BeforeTargets="Build">
-        <Message Importance="high" Text="DotNetVersions: $(DotNetVersions)" />
-    </Target>
 
 </Project>

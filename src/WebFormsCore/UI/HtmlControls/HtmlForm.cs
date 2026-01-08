@@ -53,9 +53,9 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
 
     public override string TagName => IsDiv ? "div" : "form";
 
-    protected override void FrameworkInitialize()
+    protected override void OnFrameworkInit()
     {
-        base.FrameworkInitialize();
+        base.OnFrameworkInit();
 
         // Dynamically added form
         if (Page._state > ControlState.Initialized)
@@ -69,16 +69,16 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         await Submit.InvokeAsync(this, EventArgs.Empty);
     }
 
-    protected override void OnInit(EventArgs args)
+    protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        base.OnInit(args);
+        await base.OnInitAsync(token);
 
         Page.Forms.Add(this);
     }
 
-    protected override void OnUnload(EventArgs args)
+    protected override async ValueTask OnUnloadAsync(CancellationToken token)
     {
-        base.OnUnload(args);
+        await base.OnUnloadAsync(token);
 
         Page.Forms.Remove(this);
     }

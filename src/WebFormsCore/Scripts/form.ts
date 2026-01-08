@@ -539,13 +539,32 @@ function getMorpdomSettings(options: { updateScripts: boolean, updateStyles: boo
             }
 
             if (fromEl.tagName === "INPUT" && fromEl.type !== "hidden") {
+                const hasValue = toEl.hasAttribute('value');
+
                 // If the 'value' attribute is not set, set it to the current value
-                if (!toEl.hasAttribute('value')) {
+                if (!hasValue && fromEl.hasAttribute('value')) {
                     toEl.setAttribute('value', fromEl.getAttribute('value') ?? "");
                 }
 
                 morphAttrs(fromEl, toEl);
+
+                if (hasValue && fromEl.value !== (toEl as HTMLInputElement).value) {
+                    fromEl.value = (toEl as HTMLInputElement).value;
+                }
+
                 syncBooleanAttrProp(fromEl, toEl, 'checked');
+                syncBooleanAttrProp(fromEl, toEl, 'disabled');
+
+                return false;
+            }
+
+            if (fromEl.tagName === "TEXTAREA") {
+                morphAttrs(fromEl, toEl);
+
+                if (fromEl.value !== (toEl as HTMLTextAreaElement).value) {
+                    fromEl.value = (toEl as HTMLTextAreaElement).value;
+                }
+
                 syncBooleanAttrProp(fromEl, toEl, 'disabled');
 
                 return false;
@@ -1175,3 +1194,4 @@ wfc.bindValidator('[data-wfc-customvalidator]', {
 });
 
 window.wfc = wfc;
+

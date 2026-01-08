@@ -9,6 +9,7 @@ using System.Web;
 using System.Web.UI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI.WebControls;
 
@@ -60,16 +61,16 @@ public abstract partial class BaseValidator : Label, IValidator
         }
     }
 
-    protected override void OnInit(EventArgs args)
+    protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        base.OnInit(args);
+        await base.OnInitAsync(token);
 
         Page.Validators.Add(this);
     }
 
-    protected override void OnUnload(EventArgs args)
+    protected override async ValueTask OnUnloadAsync(CancellationToken token)
     {
-        base.OnUnload(args);
+        await base.OnUnloadAsync(token);
 
         Page.Validators.Remove(this);
     }
@@ -195,9 +196,9 @@ public abstract partial class BaseValidator : Label, IValidator
         return null;
     }
 
-    protected override void OnPreRender(EventArgs args)
+    protected override async ValueTask OnPreRenderAsync(CancellationToken token)
     {
-        base.OnPreRender(args);
+        await base.OnPreRenderAsync(token);
 
         var options = Context.RequestServices.GetService<IOptions<WebFormsCoreOptions>>();
 

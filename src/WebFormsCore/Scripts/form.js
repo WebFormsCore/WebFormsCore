@@ -2889,12 +2889,24 @@
                     return false;
                 }
                 if (fromEl.tagName === "INPUT" && fromEl.type !== "hidden") {
+                    const hasValue = toEl.hasAttribute('value');
                     // If the 'value' attribute is not set, set it to the current value
-                    if (!toEl.hasAttribute('value')) {
+                    if (!hasValue && fromEl.hasAttribute('value')) {
                         toEl.setAttribute('value', (_a = fromEl.getAttribute('value')) !== null && _a !== void 0 ? _a : "");
                     }
                     morphAttrs(fromEl, toEl);
+                    if (hasValue && fromEl.value !== toEl.value) {
+                        fromEl.value = toEl.value;
+                    }
                     syncBooleanAttrProp(fromEl, toEl, 'checked');
+                    syncBooleanAttrProp(fromEl, toEl, 'disabled');
+                    return false;
+                }
+                if (fromEl.tagName === "TEXTAREA") {
+                    morphAttrs(fromEl, toEl);
+                    if (fromEl.value !== toEl.value) {
+                        fromEl.value = toEl.value;
+                    }
                     syncBooleanAttrProp(fromEl, toEl, 'disabled');
                     return false;
                 }

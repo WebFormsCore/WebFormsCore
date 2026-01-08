@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.Providers;
+using WebFormsCore.UI.HtmlControls;
 
 namespace WebFormsCore.UI.WebControls;
 
@@ -139,11 +140,13 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
         throw new InvalidOperationException("The NeedDataSource event must be handled.");
     }
 
+#pragma warning disable WFC0001
     public override async ValueTask DataBindAsync(CancellationToken token = default)
     {
         await LoadAsync(dataBinding: true, filterByKeys: false, token);
         await InvokeDataBindingAsync(token);
     }
+#pragma warning restore WFC0001
 
     protected async ValueTask LoadAsync(bool dataBinding, bool filterByKeys, CancellationToken token = default)
     {
