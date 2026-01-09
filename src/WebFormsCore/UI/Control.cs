@@ -564,7 +564,12 @@ public partial class Control
 
     protected internal virtual void RemovedControlInternal(Control control)
     {
-        _ = control.UnloadAsync(default);
+        var unloadTask = control.UnloadAsync(CancellationToken.None);
+
+        if (!unloadTask.IsCompletedSuccessfully)
+        {
+            Page.ScopedContainer.RegisterTask(unloadTask.AsTask());
+        }
 
         if (control._hasGeneratedId)
         {

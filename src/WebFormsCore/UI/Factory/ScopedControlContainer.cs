@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WebFormsCore.UI;
@@ -7,10 +9,18 @@ namespace WebFormsCore.UI;
 internal sealed class ScopedControlContainer : IAsyncDisposable, IDisposable
 {
     private readonly HashSet<Control> _controls = new();
+    private readonly HashSet<Task> _unloadedControls = new();
+
+    internal IReadOnlyList<Task> UnloadedTasks => _unloadedControls.ToList();
 
     public void Register(Control control)
     {
         _controls.Add(control);
+    }
+
+    public void RegisterTask(Task task)
+    {
+        _unloadedControls.Add(task);
     }
 
     /// <summary>
@@ -18,6 +28,11 @@ internal sealed class ScopedControlContainer : IAsyncDisposable, IDisposable
     /// </summary>
     public async ValueTask DisposeFloatingControlsAsync()
     {
+        if (_unloadedControls.Count > 0)
+        {
+            await Task.WhenAll(_unloadedControls);
+        }
+
         foreach (var control in _controls)
         {
             if (!control.IsInPage)

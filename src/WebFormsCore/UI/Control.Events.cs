@@ -285,11 +285,6 @@ public partial class Control : IInternalControl
     internal async ValueTask UnloadAsync(CancellationToken token)
     {
         await OnUnloadAsync(token);
-
-        if (ProcessControl)
-        {
-            // Unload event doesn't exist currently, but we follow the pattern
-        }
     }
 
     internal async ValueTask PostbackAsync(CancellationToken token)
