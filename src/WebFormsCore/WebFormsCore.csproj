@@ -32,4 +32,8 @@
 	  <EmbeddedResource Include="Scripts\**\*.min.js" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="WebFormsCore.Tests" />
+	</ItemGroup>
+
 </Project>

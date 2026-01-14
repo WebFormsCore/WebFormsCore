@@ -5,8 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "rollup -c",
-    "watch": "rollup -c -w"
+    "build": "rolldown -c",
+    "watch": "rolldown -c -w"
   },
   "repository": {
     "type": "git",
@@ -20,17 +20,11 @@
   "homepage": "https://github.com/WebFormsCore/WebFormsCore#readme",
   "devDependencies": {
     "@babel/core": "^7.23.0",
-    "@chiogen/rollup-plugin-terser": "^7.0.2",
-    "@rollup/plugin-commonjs": "^25.0.4",
-    "@rollup/plugin-node-resolve": "^15.2.0",
-    "@rollup/plugin-typescript": "^11.1.2",
-    "rollup": "^3.28.0",
-    "rollup-plugin-import-css": "^3.3.4",
+    "rolldown": "^1.0.0-beta.59",
     "tslib": "^2.6.1",
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@rollup/plugin-babel": "^6.0.3",
     "async-mutex": "^0.4.0",
     "choices.js": "^11.0.2",
     "dompurify": "^3.1.6",

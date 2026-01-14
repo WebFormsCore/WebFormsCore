@@ -67,7 +67,7 @@ public class Page : Control, INamingContainer, IStateContainer, IInternalPage
 
     protected override IServiceProvider ServiceProvider => Context.RequestServices;
 
-    private ScopedControlContainer ScopedContainer => _scopedContainer ??= ServiceProvider.GetRequiredService<ScopedControlContainer>();
+    internal ScopedControlContainer ScopedContainer => _scopedContainer ??= ServiceProvider.GetRequiredService<ScopedControlContainer>();
 
     public List<HtmlForm> Forms { get; set; } = new();
 

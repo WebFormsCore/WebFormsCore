@@ -183,11 +183,32 @@ public sealed class SeleniumFixture : IDisposable
 
             if (!context.Drivers.TryTake(out var driver))
             {
-                driver = driverFactory();
+                driver = await CreateDriverWithRetryAsync(driverFactory);
             }
 
             return new SeleniumTestContext<TControl>(host, driver, context);
         }
+    }
+
+    private static async Task<IWebDriver> CreateDriverWithRetryAsync(Func<IWebDriver> driverFactory, int maxRetries = 3)
+    {
+        Exception? lastException = null;
+
+        for (var attempt = 0; attempt < maxRetries; attempt++)
+        {
+            try
+            {
+                return driverFactory();
+            }
+            catch (WebDriverException ex) when (ex.Message.Contains("Cannot start the driver service"))
+            {
+                lastException = ex;
+                // Wait before retrying, with exponential backoff
+                await Task.Delay(TimeSpan.FromMilliseconds(500 * (attempt + 1)));
+            }
+        }
+
+        throw new WebDriverException($"Failed to start driver after {maxRetries} attempts", lastException);
     }
 
     public void Dispose()

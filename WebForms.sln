@@ -34,6 +34,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solution Items", "{B877EA5F-01EF-4767-A1AF-3E5186E7BD6F}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
+		rolldown.config.js = rolldown.config.js
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebFormsCore.Compiler", "src\WebFormsCore.Compiler\WebFormsCore.Compiler.csproj", "{AF5CFBF4-A099-4F3C-8B3D-45BA22D000D3}"
