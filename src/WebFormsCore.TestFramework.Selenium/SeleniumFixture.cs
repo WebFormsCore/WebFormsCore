@@ -29,15 +29,13 @@ public class CurrentState<T> : IAsyncDisposable
     }
 }
 
-public class TestControl<TState>(Func<Control, Task<TState>> stateFactory) : Control
+internal class TestControl<TState>(Func<Control, Task<TState>> stateFactory, CurrentState<TState> stateContainer) : Control
 {
     protected override async ValueTask OnPreInitAsync(CancellationToken token)
     {
+        stateContainer.State = await stateFactory(this);
+
         await base.OnPreInitAsync(token);
-
-        var currentState = Context.RequestServices.GetRequiredService<CurrentState<TState>>();
-
-        currentState.State = await stateFactory(this);
     }
 }
 
@@ -45,6 +43,36 @@ public sealed class SeleniumFixture : IDisposable
 {
     private readonly Context _chromeDrivers = new();
     private readonly Context _firefoxDrivers = new();
+
+    public async Task<CurrentState<TControl>> StartAsync<TControl>(
+        Browser browser,
+        Func<TControl> stateFactory,
+        Action<IServiceCollection>? configure = null,
+        Action<IApplicationBuilder>? configureApp = null,
+        bool? headless = null,
+        bool enableViewState = true,
+        HttpProtocols protocols = HttpProtocols.Http1AndHttp2)
+        where TControl : Control
+    {
+        return await StartAsync(browser, async control =>
+        {
+            var innerControl = stateFactory();
+            await control.Controls.AddAsync(innerControl);
+            return innerControl;
+        }, configure, configureApp, headless, enableViewState, protocols);
+    }
+
+    public async Task<CurrentState<TState>> StartAsync<TState>(
+        Browser browser,
+        Func<Control, TState> stateFactory,
+        Action<IServiceCollection>? configure = null,
+        Action<IApplicationBuilder>? configureApp = null,
+        bool? headless = null,
+        bool enableViewState = true,
+        HttpProtocols protocols = HttpProtocols.Http1AndHttp2)
+    {
+        return await StartAsync(browser, control => Task.FromResult(stateFactory(control)), configure, configureApp, headless, enableViewState, protocols);
+    }
 
     public async Task<CurrentState<TState>> StartAsync<TState>(
         Browser browser,
@@ -55,13 +83,10 @@ public sealed class SeleniumFixture : IDisposable
         bool enableViewState = true,
         HttpProtocols protocols = HttpProtocols.Http1AndHttp2)
     {
-        headless ??= !Debugger.IsAttached;
-
         var state = new CurrentState<TState>();
         var testContext = await StartAsync<TestControl<TState>>(browser, services =>
         {
-            services.AddSingleton(state);
-            services.AddSingleton<IControlFactory<TestControl<TState>>>(new FuncControlFactory<TestControl<TState>>(_ => new TestControl<TState>(stateFactory)));
+            services.AddSingleton<IControlFactory<TestControl<TState>>>(new FuncControlFactory<TestControl<TState>>(_ => new TestControl<TState>(stateFactory, state)));
             configure?.Invoke(services);
         }, configureApp, headless, enableViewState, protocols);
 

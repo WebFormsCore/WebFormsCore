@@ -201,7 +201,7 @@ public struct Unit
         if (value[0] is 'p' or 'P' && value[1] is 'x' or 'X')
             return UnitType.Pixel;
         if (value[0] is 'p' or 'P' && value[1] is 't' or 'T')
-            return UnitType.Percentage;
+            return UnitType.Point;
         if (value[0] is 'p' or 'P' && value[1] is 'c' or 'C')
             return UnitType.Pica;
         if (value[0] is 'i' or 'I' && value[1] is 'n' or 'N')

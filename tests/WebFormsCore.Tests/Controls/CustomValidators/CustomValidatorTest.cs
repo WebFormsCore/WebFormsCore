@@ -85,4 +85,51 @@ public class CustomValidatorTest(SeleniumFixture fixture)
         Assert.False(await result.Control.validator.FindBrowserElement().IsVisibleAsync());
         Assert.Equal("valid", result.Control.labelValue.Text);
     }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task ValidateEmptyValue(Browser type)
+    {
+        await using var result = await fixture.StartAsync(type, async control =>
+        {
+            var textBox = new UI.WebControls.TextBox
+            {
+                ID = "textBox"
+            };
+
+            var validator = new UI.WebControls.CustomValidator
+            {
+                ID = "validator",
+                ControlToValidate = "textBox",
+                ErrorMessage = "Invalid",
+                ValidateEmptyText = true
+            };
+
+            validator.ServerValidate += (_, args) =>
+            {
+                args.IsValid = !string.IsNullOrEmpty(args.Value);
+                return Task.CompletedTask;
+            };
+
+            var button = new UI.WebControls.Button
+            {
+                ID = "button",
+                Text = "Submit"
+            };
+
+            await control.Controls.AddAsync(textBox);
+            await control.Controls.AddAsync(validator);
+            await control.Controls.AddAsync(button);
+
+            return (textBox, validator, button);
+        });
+
+        // Should fail validation with empty value when ValidateEmptyText is true
+        await result.State.button.ClickAsync();
+        Assert.True(await result.State.validator.FindBrowserElement().IsVisibleAsync());
+
+        // Change to valid value
+        await result.State.textBox.TypeAsync("value");
+        await result.State.button.ClickAsync();
+        Assert.False(await result.State.validator.FindBrowserElement().IsVisibleAsync());
+    }
 }
