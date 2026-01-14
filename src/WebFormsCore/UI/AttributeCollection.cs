@@ -152,7 +152,7 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
         KeyToId = IdToKey.ToDictionary(x => x.Value, x => x.Key, StringComparer.OrdinalIgnoreCase);
     }
 
-    private readonly Dictionary<string, string?> _bag = new();
+    private readonly Dictionary<string, string?> _bag = new(StringComparer.OrdinalIgnoreCase);
     private readonly CssStyleCollection _styleColl = new();
     private readonly HashSet<string> _trackedKeys = new(StringComparer.OrdinalIgnoreCase);
 

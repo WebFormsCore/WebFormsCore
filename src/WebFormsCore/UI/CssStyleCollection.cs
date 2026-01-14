@@ -55,19 +55,23 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
     {
         get
         {
-            _table ??= ParseString();
-            var value = _table[key];
+            if (string.IsNullOrEmpty(key)) return null;
 
-            if (value == null)
+            _table ??= ParseString();
+
+            if (_table.TryGetValue(key, out var value))
             {
-                var style = CssTextWriter.GetStyleKey(key);
-                if (style != (HtmlTextWriterStyle)(-1))
-                {
-                    value = this[style];
-                }
+                return value;
             }
 
-            return value;
+            var styleKey = CssTextWriter.GetStyleKey(key);
+
+            if (styleKey != (HtmlTextWriterStyle)(-1))
+            {
+                return this[styleKey];
+            }
+
+            return null;
         }
         set => Add(key, value);
     }
@@ -78,7 +82,11 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
     /// </devdoc>
     public string? this[HtmlTextWriterStyle key]
     {
-        get => _intTable?[key];
+        get
+        {
+            _table ??= ParseString();
+            return _intTable != null && _intTable.TryGetValue(key, out var value) ? value : null;
+        }
         set => Add(key, value);
     }
 
@@ -170,6 +178,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
             }
 
             _table = null;
+            _intTable = null;
         }
     }
 
@@ -186,20 +195,17 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
             throw new ArgumentNullException(nameof(key));
         }
 
+        var styleKey = CssTextWriter.GetStyleKey(key);
+
+        if (styleKey != (HtmlTextWriterStyle)(-1))
+        {
+            Add(styleKey, value);
+            return;
+        }
+
         _table ??= ParseString();
         _table[key] = value;
         _trackedKeys.Add(key);
-
-        if (_intTable != null)
-        {
-            // Remove from the other table to avoid duplicates.
-            var style = CssTextWriter.GetStyleKey(key);
-            if (style != (HtmlTextWriterStyle)(-1))
-            {
-                _intTable.Remove(style);
-                _trackedIntKeys.Remove(style);
-            }
-        }
 
         if (_state != null)
         {
@@ -243,13 +249,28 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
     /// </devdoc>
     public void Remove(string key)
     {
+        if (string.IsNullOrEmpty(key)) return;
+
         _table ??= ParseString();
 
-        if (_table[key] != null)
+        var removed = _table.Remove(key);
+        if (removed)
         {
-            _table.Remove(key);
             _trackedKeys.Add(key);
+        }
 
+        var styleKey = CssTextWriter.GetStyleKey(key);
+        if (styleKey != (HtmlTextWriterStyle)(-1))
+        {
+            if (_intTable != null && _intTable.Remove(styleKey))
+            {
+                _trackedIntKeys.Add(styleKey);
+                removed = true;
+            }
+        }
+
+        if (removed)
+        {
             if (_state != null)
             {
                 // keep style attribute synchronized
@@ -341,10 +362,20 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
 
             for (var i = 0; i < name.Count; i++)
             {
-                var styleName = name[i].ToString();
-                var styleValue = values[i].ToString();
+                var styleName = name[i].ToString().Trim();
+                var styleValue = values[i].ToString().Trim();
 
-                table[styleName] = styleValue;
+                var styleKey = CssTextWriter.GetStyleKey(styleName);
+
+                if (styleKey != (HtmlTextWriterStyle)(-1))
+                {
+                    _intTable ??= new Dictionary<HtmlTextWriterStyle, string?>();
+                    _intTable[styleKey] = styleValue;
+                }
+                else
+                {
+                    table[styleName] = styleValue;
+                }
             }
         }
 
@@ -382,6 +413,8 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
     /// </devdoc>
     internal void Render(HtmlTextWriter writer)
     {
+        _table ??= ParseString();
+
         if (_table is { Count: > 0 })
         {
             foreach (var entry in _table)
@@ -401,7 +434,9 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
 
     public async Task RenderAsync(HtmlTextWriter writer)
     {
-        if (_table is null or { Count: 0} && _intTable is null or { Count: 0 })
+        _table ??= ParseString();
+
+        if (_table is {Count: 0} && (_intTable is null or { Count: 0 }))
         {
             return;
         }
@@ -472,42 +507,38 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
 
-        var left = _table ?? ParseString();
-        var right = other._table ?? other.ParseString();
+        var leftTable = _table ?? ParseString();
+        var rightTable = other._table ?? other.ParseString();
 
-        if (left.Count != right.Count)
+        if (leftTable.Count != rightTable.Count)
         {
             return false;
         }
 
-        foreach (var (key, value) in left)
+        foreach (var (key, value) in leftTable)
         {
-            if (!right.TryGetValue(key, out var otherValue) || value != otherValue)
+            if (!rightTable.TryGetValue(key, out var otherValue) || value != otherValue)
             {
                 return false;
             }
         }
 
-        if (_intTable is null && other._intTable is null)
-        {
-            return true;
-        }
+        var leftIntCount = _intTable?.Count ?? 0;
+        var rightIntCount = other._intTable?.Count ?? 0;
 
-        if ((_intTable?.Count ?? 0) != (other._intTable?.Count ?? 0))
+        if (leftIntCount != rightIntCount)
         {
             return false;
         }
 
-        if (_intTable is null || other._intTable is null)
+        if (leftIntCount > 0)
         {
-            return false;
-        }
-
-        foreach (var (key, value) in _intTable)
-        {
-            if (!other._intTable.TryGetValue(key, out var otherValue) || value != otherValue)
+            foreach (var (key, value) in _intTable!)
             {
-                return false;
+                if (!other._intTable!.TryGetValue(key, out var otherValue) || value != otherValue)
+                {
+                    return false;
+                }
             }
         }
 
@@ -521,7 +552,27 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(_table, _intTable);
+        var hashCode = 0;
+
+        var table = _table ?? ParseString();
+        foreach (var (key, value) in table)
+        {
+            var keyHash = StringComparer.OrdinalIgnoreCase.GetHashCode(key);
+            var valueHash = value?.GetHashCode() ?? 0;
+            hashCode ^= HashCode.Combine(keyHash, valueHash);
+        }
+
+        if (_intTable != null)
+        {
+            foreach (var (key, value) in _intTable)
+            {
+                var keyHash = key.GetHashCode();
+                var valueHash = value?.GetHashCode() ?? 0;
+                hashCode ^= HashCode.Combine(keyHash, valueHash);
+            }
+        }
+
+        return hashCode;
     }
 
     public static bool operator ==(CssStyleCollection? left, CssStyleCollection? right)

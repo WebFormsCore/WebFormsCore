@@ -58,4 +58,47 @@ public class RequiredFieldValidatorTest(SeleniumFixture fixture)
         Assert.True(await result.Control.validator.FindBrowserElement().IsVisibleAsync());
         Assert.Empty(result.Control.labelValue.Text);
     }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task InitialValue(Browser type)
+    {
+        await using var result = await fixture.StartAsync(type, container =>
+        {
+            var textBox = new UI.WebControls.TextBox
+            {
+                ID = "textBox",
+                Text = "initial"
+            };
+
+            var validator = new UI.WebControls.RequiredFieldValidator
+            {
+                ID = "validator",
+                ControlToValidate = "textBox",
+                InitialValue = "initial",
+                ErrorMessage = "Required"
+            };
+
+            var btn = new UI.WebControls.Button
+            {
+                ID = "button",
+                Text = "Submit"
+            };
+
+            var panel = new UI.WebControls.Panel { Controls = [textBox, validator, btn] };
+
+            container.Controls = [panel];
+
+            return (panel, textBox, validator, btn);
+        });
+
+        // Should fail validation with initial value
+        await result.State.btn.ClickAsync();
+        Assert.True(await result.State.validator.FindBrowserElement().IsVisibleAsync());
+
+        // Change to valid value
+        await result.State.textBox.ClearAsync();
+        await result.State.textBox.TypeAsync("changed");
+        await result.State.btn.ClickAsync();
+        Assert.False(await result.State.validator.FindBrowserElement().IsVisibleAsync());
+    }
 }

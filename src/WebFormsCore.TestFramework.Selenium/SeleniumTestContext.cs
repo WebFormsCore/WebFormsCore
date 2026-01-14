@@ -16,7 +16,7 @@ internal class SeleniumTestContext<T>(
     IWebDriver driver,
     SeleniumFixture.Context context
 ) : WebServerContext<T>(host)
-    where T : Control, new()
+    where T : Control
 {
     public override async Task GoToUrlAsync(string url)
     {

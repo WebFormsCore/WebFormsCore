@@ -85,4 +85,18 @@ public class RepeaterTests(SeleniumFixture fixture)
         Assert.NotNull(clientId);
         Assert.Equal(clientId, result.QuerySelector(".result")?.Text);
     }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task RepeaterTemplateTest(Browser type)
+    {
+        await using var result = await fixture.StartAsync<RepeaterTemplatePage>(type);
+
+        Assert.Equal("Header", result.QuerySelector("header")?.Text);
+        Assert.Equal("Footer", result.QuerySelector("footer")?.Text);
+        Assert.Equal(3, await result.QuerySelectorAll(".item").CountAsync());
+        Assert.Equal(2, await result.QuerySelectorAll("hr").CountAsync());
+
+        var items = await result.QuerySelectorAll(".item").Select(x => x.Text).ToListAsync();
+        Assert.Equal(["Item 1", "Item 2", "Item 3"], items);
+    }
 }

@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace WebFormsCore;
 
-public interface ITestContext
+public interface ITestContext : IAsyncDisposable
 {
     ValueTask<string> GetHtmlAsync();
 

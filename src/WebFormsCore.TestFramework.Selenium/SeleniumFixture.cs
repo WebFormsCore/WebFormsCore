@@ -5,26 +5,95 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Firefox;
-using WebDriverManager;
-using WebDriverManager.DriverConfigs.Impl;
 using WebFormsCore.UI;
 using static WebFormsCore.SeleniumTest;
 
 namespace WebFormsCore;
 
+public class CurrentState<T> : IAsyncDisposable
+{
+    public T State { get; set; } = default!;
+
+    public ITestContext Browser { get; set; } = null!;
+
+    public async ValueTask DisposeAsync()
+    {
+        await Browser.DisposeAsync();
+    }
+}
+
+internal class TestControl<TState>(Func<Control, Task<TState>> stateFactory, CurrentState<TState> stateContainer) : Control
+{
+    protected override async ValueTask OnPreInitAsync(CancellationToken token)
+    {
+        stateContainer.State = await stateFactory(this);
+
+        await base.OnPreInitAsync(token);
+    }
+}
+
 public sealed class SeleniumFixture : IDisposable
 {
-    private static readonly Lazy<string> ChromePath = new(() => new DriverManager().SetUpDriver(new ChromeConfig(), "MatchingBrowser"));
-    private static readonly Lazy<string> FirefoxPath = new(() => new DriverManager().SetUpDriver(new FirefoxConfig()));
-
     private readonly Context _chromeDrivers = new();
     private readonly Context _firefoxDrivers = new();
+
+    public async Task<CurrentState<TControl>> StartAsync<TControl>(
+        Browser browser,
+        Func<TControl> stateFactory,
+        Action<IServiceCollection>? configure = null,
+        Action<IApplicationBuilder>? configureApp = null,
+        bool? headless = null,
+        bool enableViewState = true,
+        HttpProtocols protocols = HttpProtocols.Http1AndHttp2)
+        where TControl : Control
+    {
+        return await StartAsync(browser, async control =>
+        {
+            var innerControl = stateFactory();
+            await control.Controls.AddAsync(innerControl);
+            return innerControl;
+        }, configure, configureApp, headless, enableViewState, protocols);
+    }
+
+    public async Task<CurrentState<TState>> StartAsync<TState>(
+        Browser browser,
+        Func<Control, TState> stateFactory,
+        Action<IServiceCollection>? configure = null,
+        Action<IApplicationBuilder>? configureApp = null,
+        bool? headless = null,
+        bool enableViewState = true,
+        HttpProtocols protocols = HttpProtocols.Http1AndHttp2)
+    {
+        return await StartAsync(browser, control => Task.FromResult(stateFactory(control)), configure, configureApp, headless, enableViewState, protocols);
+    }
+
+    public async Task<CurrentState<TState>> StartAsync<TState>(
+        Browser browser,
+        Func<Control, Task<TState>> stateFactory,
+        Action<IServiceCollection>? configure = null,
+        Action<IApplicationBuilder>? configureApp = null,
+        bool? headless = null,
+        bool enableViewState = true,
+        HttpProtocols protocols = HttpProtocols.Http1AndHttp2)
+    {
+        var state = new CurrentState<TState>();
+        var testContext = await StartAsync<TestControl<TState>>(browser, services =>
+        {
+            services.AddSingleton<IControlFactory<TestControl<TState>>>(new FuncControlFactory<TestControl<TState>>(_ => new TestControl<TState>(stateFactory, state)));
+            configure?.Invoke(services);
+        }, configureApp, headless, enableViewState, protocols);
+
+        state.Browser = testContext;
+
+        return state;
+    }
 
     public Task<ITestContext<TControl>> StartAsync<TControl>(
         Browser browser,
@@ -33,7 +102,7 @@ public sealed class SeleniumFixture : IDisposable
         bool? headless = null,
         bool enableViewState = true,
         HttpProtocols protocols = HttpProtocols.Http1AndHttp2)
-        where TControl : Control, new()
+        where TControl : Control
     {
         headless ??= !Debugger.IsAttached;
 
@@ -51,7 +120,7 @@ public sealed class SeleniumFixture : IDisposable
         bool headless = true,
         bool enableViewState = true,
         HttpProtocols protocols = HttpProtocols.Http1AndHttp2
-    ) where TControl : Control, new()
+    ) where TControl : Control
     {
         return await StartBrowserAsync<TControl>(_chromeDrivers, DriverFactory, configure, configureApp, enableViewState, protocols);
 
@@ -63,7 +132,7 @@ public sealed class SeleniumFixture : IDisposable
             chromeOptions.AddArgument("--no-sandbox");
             chromeOptions.AddArgument("--ignore-certificate-errors");
 
-            return new ChromeDriver(ChromePath.Value, chromeOptions);
+            return new ChromeDriver(chromeOptions);
         }
     }
 
@@ -73,7 +142,7 @@ public sealed class SeleniumFixture : IDisposable
         bool headless = true,
         bool enableViewState = true,
         HttpProtocols protocols = HttpProtocols.Http1AndHttp2
-    ) where TControl : Control, new()
+    ) where TControl : Control
     {
         return await StartBrowserAsync<TControl>(_firefoxDrivers, DriverFactory, configure, configureApp, enableViewState, protocols);
 
@@ -93,8 +162,7 @@ public sealed class SeleniumFixture : IDisposable
             firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_RDD_SANDBOX", "1");
             firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_SOCKET_PROCESS_SANDBOX", "1");
             if (headless) firefoxOptions.AddArgument("-headless");
-
-            return new FirefoxDriver(FirefoxPath.Value, firefoxOptions);
+            return new FirefoxDriver(firefoxOptions);
         }
     }
 
@@ -105,7 +173,7 @@ public sealed class SeleniumFixture : IDisposable
         Action<IApplicationBuilder>? configureApp = null,
         bool enableViewState = true,
         HttpProtocols protocols = HttpProtocols.Http1AndHttp2
-    ) where TControl : Control, new()
+    ) where TControl : Control
     {
         return ControlTest.StartBrowserAsync(CreateDriver, configure, configureApp, enableViewState, protocols);
 
