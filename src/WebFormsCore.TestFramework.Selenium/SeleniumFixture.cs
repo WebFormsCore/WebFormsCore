@@ -11,8 +11,6 @@ using Microsoft.Extensions.Hosting;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Firefox;
-using WebDriverManager;
-using WebDriverManager.DriverConfigs.Impl;
 using WebFormsCore.UI;
 using static WebFormsCore.SeleniumTest;
 
@@ -20,9 +18,6 @@ namespace WebFormsCore;
 
 public sealed class SeleniumFixture : IDisposable
 {
-    private static readonly Lazy<string> ChromePath = new(() => new DriverManager().SetUpDriver(new ChromeConfig(), "MatchingBrowser"));
-    private static readonly Lazy<string> FirefoxPath = new(() => new DriverManager().SetUpDriver(new FirefoxConfig()));
-
     private readonly Context _chromeDrivers = new();
     private readonly Context _firefoxDrivers = new();
 
@@ -63,7 +58,7 @@ public sealed class SeleniumFixture : IDisposable
             chromeOptions.AddArgument("--no-sandbox");
             chromeOptions.AddArgument("--ignore-certificate-errors");
 
-            return new ChromeDriver(ChromePath.Value, chromeOptions);
+            return new ChromeDriver(chromeOptions);
         }
     }
 
@@ -93,8 +88,7 @@ public sealed class SeleniumFixture : IDisposable
             firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_RDD_SANDBOX", "1");
             firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_SOCKET_PROCESS_SANDBOX", "1");
             if (headless) firefoxOptions.AddArgument("-headless");
-
-            return new FirefoxDriver(FirefoxPath.Value, firefoxOptions);
+            return new FirefoxDriver(firefoxOptions);
         }
     }
 
