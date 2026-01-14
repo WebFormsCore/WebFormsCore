@@ -72,7 +72,7 @@ public class ControlTest
         Action<IApplicationBuilder>? configureApp = null,
         bool enableViewState = true,
         HttpProtocols protocols = HttpProtocols.Http1AndHttp2
-    ) where TControl : Control, new()
+    ) where TControl : Control
     {
         var builder = Host.CreateDefaultBuilder();
         var context = new StrongBox<WebServerContext<TControl>>();
@@ -95,12 +95,11 @@ public class ControlTest
 
                 var typeProvider = typeof(TControl).Assembly.GetCustomAttribute<AssemblyControlTypeProviderAttribute>()?.Type;
 
-                if (typeProvider is null)
+                if (typeProvider is not null)
                 {
-                    throw new InvalidOperationException("Type provider not found");
+                    services.AddSingleton(typeof(IControlTypeProvider), typeProvider);
                 }
 
-                services.AddSingleton(typeof(IControlTypeProvider), typeProvider);
                 services.AddSingleton<IWebFormsEnvironment, TestEnvironment>();
                 services.AddSingleton<IControlAccessor, ControlAccessor>();
 
@@ -191,8 +190,14 @@ public class ControlTest
     }
 }
 
-public interface ITestContext<out T> : ITestContext, IAsyncDisposable
+public interface ITestContext<out T> : ITestContext
     where T : Control
 {
     T Control { get; }
+}
+
+public interface ITestContextState<out TState, out T> : ITestContext<T>
+    where T : Control
+{
+    TState State { get; }
 }

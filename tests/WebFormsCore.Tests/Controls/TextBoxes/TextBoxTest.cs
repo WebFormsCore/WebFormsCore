@@ -1,4 +1,6 @@
 ﻿using WebFormsCore.Tests.Controls.TextBoxes.Pages;
+using WebFormsCore.UI;
+using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.Tests.Controls.TextBoxes;
 
@@ -46,5 +48,26 @@ public class TextBoxTest(SeleniumFixture fixture)
         await result.Control.btnClear.ClickAsync();
         Assert.Equal("", result.Control.textBox.FindBrowserElement().Value);
         Assert.Equal("", result.Control.txtMulti.FindBrowserElement().Value);
+    }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task TestMode(Browser type)
+    {
+        await using var result = await fixture.StartAsync(type, async control =>
+        {
+            var textBox = new TextBox
+            {
+                ID = "textBox",
+                TextMode = TextBoxMode.Password
+            };
+
+            await control.Controls.AddAsync(textBox);
+
+            return textBox;
+        });
+
+        var textBoxElement = result.State.FindBrowserElement();
+
+        Assert.Equal("password", await textBoxElement.GetAttributeAsync("type"));
     }
 }
