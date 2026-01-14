@@ -85,6 +85,8 @@ public partial class DropDownList() : WebControl(HtmlTextWriterTag.Select), IPos
 
     private bool SetSelectedValue(string value)
     {
+        var oldIndex = _selectedIndex;
+
         ClearSelection();
 
         for (var i = 0; i < Items.Count; i++)
@@ -94,14 +96,14 @@ public partial class DropDownList() : WebControl(HtmlTextWriterTag.Select), IPos
                 continue;
             }
 
-            var isChanged = _selectedIndex != i;
+            var isChanged = oldIndex != i;
             Items[i].Selected = true;
             _selectedIndex = i;
             return isChanged;
         }
 
         _selectedIndex = -1;
-        return false;
+        return oldIndex != -1;
     }
 
     public void ClearSelection()
@@ -110,6 +112,8 @@ public partial class DropDownList() : WebControl(HtmlTextWriterTag.Select), IPos
         {
             item.Selected = false;
         }
+
+        _selectedIndex = -1;
     }
 
     public event AsyncEventHandler<DropDownList, EventArgs>? SelectedIndexChanged;
@@ -201,13 +205,14 @@ public partial class DropDownList() : WebControl(HtmlTextWriterTag.Select), IPos
 
     void IPostBackLoadHandler.AfterPostBackLoad()
     {
-        ClearSelection();
-
         var index = _selectedIndex;
+
+        ClearSelection();
 
         if (index >= 0 && index < Items.Count)
         {
             Items[index].Selected = true;
+            _selectedIndex = index;
         }
     }
 }

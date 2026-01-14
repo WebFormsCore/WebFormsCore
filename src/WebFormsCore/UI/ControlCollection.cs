@@ -8,16 +8,39 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI;
 
+[CollectionBuilder(typeof(ControlCollection), nameof(Create))]
 public class ControlCollection : IReadOnlyCollection<Control>
 {
+    public static ControlCollection Create(ReadOnlySpan<Control> values)
+    {
+        var collection = new ControlCollection
+        {
+            _readOnlyErrorMsg = "The ControlCollection is read-only."
+        };
+
+        foreach (var value in values)
+        {
+            collection._list.Add(value);
+        }
+
+        return collection;
+    }
+
     private readonly List<Control> _list = new();
     private string? _readOnlyErrorMsg;
     private readonly List<Control> _namingContainerChildren = new();
+
+    private ControlCollection()
+    {
+        Owner = null!;
+    }
 
     public ControlCollection(Control owner)
     {
         Owner = owner ?? throw new ArgumentNullException(nameof(owner));
     }
+
+    internal bool HasOwner => Owner != null;
 
     internal void AddNamingContainerChild(Control control) => _namingContainerChildren.Add(control);
 
@@ -25,14 +48,24 @@ public class ControlCollection : IReadOnlyCollection<Control>
 
     public IReadOnlyList<Control> NamingContainerChildren => _namingContainerChildren;
 
+    private void CheckReadOnly()
+    {
+        if (_readOnlyErrorMsg != null)
+        {
+            throw new InvalidOperationException(_readOnlyErrorMsg);
+        }
+    }
+
     public virtual void AddWithoutPageEvents(Control child)
     {
+        CheckReadOnly();
         _list.Add(child);
         Owner.AddedControlInternal(child, true);
     }
 
     public virtual ValueTask AddAsync(Control child)
     {
+        CheckReadOnly();
         AddWithoutPageEvents(child);
 
         var state = Owner._state;
@@ -44,6 +77,7 @@ public class ControlCollection : IReadOnlyCollection<Control>
 
     public void Swap(Control control, int newIndex)
     {
+        CheckReadOnly();
         if (!_list.Remove(control)) return;
         
         _list.Insert(newIndex, control);
@@ -52,6 +86,7 @@ public class ControlCollection : IReadOnlyCollection<Control>
 
     public void MoveToLast(Control control)
     {
+        CheckReadOnly();
         if (!_list.Remove(control)) return;
 
         _list.Add(control);
@@ -60,6 +95,7 @@ public class ControlCollection : IReadOnlyCollection<Control>
 
     public void MoveToFront(Control control)
     {
+        CheckReadOnly();
         if (!_list.Remove(control)) return;
 
         _list.Insert(0, control);
@@ -68,6 +104,7 @@ public class ControlCollection : IReadOnlyCollection<Control>
 
     public virtual void Clear()
     {
+        CheckReadOnly();
         while (_list.Count > 0)
         {
             RemoveAt(_list.Count - 1);
@@ -92,7 +129,7 @@ public class ControlCollection : IReadOnlyCollection<Control>
 
     public virtual int Count => _list.Count;
 
-    public Control Owner { get; }
+    public Control Owner { get; private set; }
 
     public virtual int IndexOf(Control value)
     {
@@ -140,6 +177,7 @@ public class ControlCollection : IReadOnlyCollection<Control>
 
     public virtual void RemoveAt(int index)
     {
+        CheckReadOnly();
         var child = _list[index];
         _list.RemoveAt(index);
         Owner.RemovedControlInternal(child);
@@ -147,6 +185,7 @@ public class ControlCollection : IReadOnlyCollection<Control>
 
     public virtual bool Remove(Control child)
     {
+        CheckReadOnly();
         if (!_list.Remove(child))
         {
             return false;

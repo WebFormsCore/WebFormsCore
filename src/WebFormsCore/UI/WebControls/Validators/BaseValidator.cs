@@ -242,6 +242,23 @@ public abstract partial class BaseValidator : Label, IValidator
         }
     }
 
+    protected override ValueTask RenderContentsAsync(HtmlTextWriter writer, CancellationToken token)
+    {
+        if (HasControls())
+        {
+            return base.RenderContentsAsync(writer, token);
+        }
+
+        var text = Text;
+
+        if (string.IsNullOrEmpty(text))
+        {
+            text = ErrorMessage;
+        }
+
+        return writer.WriteAsync(text);
+    }
+
     public override ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
         return base.RenderAsync(writer, token);

@@ -401,7 +401,29 @@ public partial class Control
     /// <returns>The collection of child controls for the specified server control.</returns>
     [Browsable(false)]
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public virtual ControlCollection Controls => _controls ??= CreateControlCollection();
+    public virtual ControlCollection Controls
+    {
+        get => _controls ??= CreateControlCollection();
+        set
+        {
+            if (_state > ControlState.FrameworkInitialized)
+            {
+                throw new InvalidOperationException("Controls can only be set during construction.");
+            }
+
+            if (value.Count == 0)
+            {
+                return;
+            }
+
+            _controls ??= CreateControlCollection();
+
+            foreach (var control in value)
+            {
+                _controls.AddWithoutPageEvents(control);
+            }
+        }
+    }
 
     public virtual bool HasControls() => _controls is { Count: > 0 };
 
@@ -505,6 +527,12 @@ public partial class Control
         }
 
         control.UpdateNamingContainer(namingContainer);
+        
+        // Recursively update naming container for children that were added before this control had a naming container
+        if (control.HasControls())
+        {
+            control.UpdateChildNamingContainers(namingContainer);
+        }
 
         if (control._id == null)
         {
@@ -526,6 +554,31 @@ public partial class Control
         else if (control._id != null || control._controls != null)
         {
             namingContainer.DirtyNameTable();
+        }
+    }
+    
+    private void UpdateChildNamingContainers(Control parentNamingContainer)
+    {
+        foreach (var child in Controls)
+        {
+            // If child is a naming container, it becomes its own naming container for its children
+            var childNamingContainer = child is INamingContainer ? child : parentNamingContainer;
+            
+            if (child._namingContainer == null)
+            {
+                child.UpdateNamingContainer(childNamingContainer);
+                
+                // Mark the naming container's name table as dirty so it will be rebuilt
+                if (child._id != null)
+                {
+                    parentNamingContainer.DirtyNameTable();
+                }
+            }
+            
+            if (child.HasControls())
+            {
+                child.UpdateChildNamingContainers(childNamingContainer);
+            }
         }
     }
 

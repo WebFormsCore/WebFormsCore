@@ -436,7 +436,6 @@ public abstract class HtmlTextWriter : IAsyncDisposable
         await WriteAsync(StyleEqualsChar);
         if (encode) await WriteEncodedTextAsync(value);
         else await WriteAsync(value);
-        await WriteAsync(value);
         await WriteAsync(SemicolonChar);
         await WriteAsync(SpaceChar);
     }
