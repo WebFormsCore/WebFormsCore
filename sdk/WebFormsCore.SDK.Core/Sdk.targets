@@ -8,6 +8,7 @@
     <ItemGroup Condition="$(ImplicitUsings) == 'enable'">
         <Using Include="WebFormsCore" />
         <Using Include="WebFormsCore.UI" />
+        <Using Include="WebFormsCore.UI.WebControls" />
     </ItemGroup>
 
     <!-- .NET Framework -->

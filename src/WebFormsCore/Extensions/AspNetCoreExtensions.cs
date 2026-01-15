@@ -3,7 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI;
 
 namespace WebFormsCore;
@@ -42,6 +44,73 @@ public static class AspNetCoreExtensions
         });
 
         return builder;
+    }
+
+    public static IEndpointConventionBuilder MapPage(this IEndpointRouteBuilder endpoints, string pattern)
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        ArgumentException.ThrowIfNullOrWhiteSpace(pattern);
+
+        return endpoints.Map(pattern, async context =>
+        {
+            await ExecutePageAsync(context, pattern, true);
+        });
+    }
+
+    public static IEndpointConventionBuilder MapPage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IEndpointRouteBuilder endpoints, string pattern)
+        where T : Page
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        ArgumentException.ThrowIfNullOrWhiteSpace(pattern);
+
+        return endpoints.Map(pattern, async context =>
+        {
+            await ExecutePageAsync<T>(context);
+        });
+    }
+
+    public static IEndpointConventionBuilder MapPage(this IEndpointRouteBuilder endpoints, string pattern, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type page)
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        ArgumentException.ThrowIfNullOrWhiteSpace(pattern);
+        ArgumentNullException.ThrowIfNull(page);
+
+        return endpoints.Map(pattern, async context =>
+        {
+            await ExecutePageAsync(context, page);
+        });
+    }
+
+    public static IEndpointConventionBuilder MapControl<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TControl>(this IEndpointRouteBuilder endpoints, string pattern)
+        where TControl : Control
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        ArgumentException.ThrowIfNullOrWhiteSpace(pattern);
+
+        return endpoints.Map(pattern, context =>
+        {
+            var activator = context.RequestServices.GetRequiredService<IWebObjectActivator>();
+            var control = activator.CreateControl<TControl>();
+            return ExecuteControlAsync(context, control);
+        });
+    }
+
+    public static IEndpointConventionBuilder MapControl(this IEndpointRouteBuilder endpoints, string pattern, Func<Control> controlFactory)
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        ArgumentException.ThrowIfNullOrWhiteSpace(pattern);
+        ArgumentNullException.ThrowIfNull(controlFactory);
+
+        return endpoints.Map(pattern, context => ExecuteControlAsync(context, controlFactory()));
+    }
+
+    public static IEndpointConventionBuilder MapControl(this IEndpointRouteBuilder endpoints, string pattern, Func<IServiceProvider, Control> controlFactory)
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        ArgumentException.ThrowIfNullOrWhiteSpace(pattern);
+        ArgumentNullException.ThrowIfNull(controlFactory);
+
+        return endpoints.Map(pattern, context => ExecuteControlAsync(context, controlFactory(context.RequestServices)));
     }
 
     public static async Task<Page?> ExecutePageAsync(this HttpContext context, string? path = null, bool throwOnError = false)
@@ -85,6 +154,28 @@ public static class AspNetCoreExtensions
         var application = context.RequestServices.GetRequiredService<IPageManager>();
 
         await application.RenderPageAsync(context, page, context.RequestAborted);
+    }
+
+    private static async Task ExecuteControlAsync(HttpContext context, Control control)
+    {
+        if (control is Page page)
+        {
+            await ExecutePageAsync(context, page);
+            return;
+        }
+
+        var activator = context.RequestServices.GetRequiredService<IWebObjectActivator>();
+        page = activator.CreateControl<Page>();
+
+        var doctype = activator.CreateLiteral("<!DOCTYPE html>");
+        page.Controls.AddWithoutPageEvents(doctype);
+        page.Controls.AddWithoutPageEvents(activator.CreateControl<HtmlHead>());
+
+        var body = activator.CreateControl<HtmlBody>();
+        body.Controls.AddWithoutPageEvents(control);
+        page.Controls.AddWithoutPageEvents(body);
+
+        await ExecutePageAsync(context, page);
     }
 
     public static void RunPage(this IApplicationBuilder builder, string path)

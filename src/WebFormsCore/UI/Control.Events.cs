@@ -13,7 +13,7 @@ using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI;
 
-public static class ControlExtensions
+public static partial class ControlExtensions
 {
     public static async ValueTask<string> RenderToStringAsync(this Control control, CancellationToken token = default)
     {

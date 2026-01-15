@@ -13,10 +13,7 @@ public class ControlCollection : IReadOnlyCollection<Control>
 {
     public static ControlCollection Create(ReadOnlySpan<Control> values)
     {
-        var collection = new ControlCollection
-        {
-            _readOnlyErrorMsg = "The ControlCollection is read-only."
-        };
+        var collection = new ControlCollection();
 
         foreach (var value in values)
         {
@@ -39,8 +36,6 @@ public class ControlCollection : IReadOnlyCollection<Control>
     {
         Owner = owner ?? throw new ArgumentNullException(nameof(owner));
     }
-
-    internal bool HasOwner => Owner != null;
 
     internal void AddNamingContainerChild(Control control) => _namingContainerChildren.Add(control);
 
@@ -193,5 +188,30 @@ public class ControlCollection : IReadOnlyCollection<Control>
 
         Owner.RemovedControlInternal(child);
         return true;
+    }
+
+    internal void AddRangeDangerously(ControlCollection value)
+    {
+        _list.AddRange(value._list);
+    }
+
+    internal void CheckOwnerNotSet()
+    {
+        CheckReadOnly();
+
+        if (Owner != null)
+        {
+            throw new InvalidOperationException("ControlCollection cannot be reassigned to a different owner.");
+        }
+    }
+
+    internal void SetOwner(Control owner)
+    {
+        Owner = owner;
+
+        foreach (var list in _list)
+        {
+            Owner.AddedControlInternal(list, true);
+        }
     }
 }

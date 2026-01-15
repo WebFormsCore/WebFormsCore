@@ -8,6 +8,7 @@ using WebFormsCore;
 using WebFormsCore.Example;
 using WebFormsCore.Options;
 using WebFormsCore.UI;
+using WebFormsCore.UI.WebControls;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,7 +70,30 @@ app.UseWebSockets();
 
 app.UseWebFormsCore();
 
+app.MapControl("/button", () =>
+{
+    var label = new Ref<Label>();
+
+    return new Panel
+    {
+        Controls =
+        [
+            new Label
+            {
+                Ref = label,
+                Text = "Not clicked"
+            },
+            new Button
+            {
+                Text = "Click me",
+                OnClick = (_, _) => label.Value.Text = "Clicked",
+            }
+        ]
+    };
+});
+
+app.MapPage<Default>("/");
+
 app.UsePage();
-app.RunPage<Default>();
 
 app.Run();

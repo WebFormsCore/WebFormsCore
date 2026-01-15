@@ -406,22 +406,24 @@ public partial class Control
         get => _controls ??= CreateControlCollection();
         set
         {
-            if (_state > ControlState.FrameworkInitialized)
-            {
-                throw new InvalidOperationException("Controls can only be set during construction.");
-            }
-
             if (value.Count == 0)
             {
                 return;
             }
 
-            _controls ??= CreateControlCollection();
+            value.CheckOwnerNotSet();
 
-            foreach (var control in value)
+            if (_controls is null or { Count: 0 })
             {
-                _controls.AddWithoutPageEvents(control);
+                _controls = value;
             }
+            else
+            {
+                value.SetCollectionReadOnly("Cannot re-use ControlCollection instance after it has been assigned to a Control.");
+                _controls.AddRangeDangerously(value);
+            }
+
+            value.SetOwner(this);
         }
     }
 

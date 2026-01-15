@@ -47,7 +47,7 @@ internal sealed class ControlFactory<[DynamicallyAccessedMembers(DynamicallyAcce
             return Activator.CreateInstance<T>();
         }
 
-        if (_viewPaths.Length == 0)
+        if (_viewPaths.Length == 0 || typeof(T) == typeof(Control) || typeof(T) == typeof(Page))
         {
             return ActivatorUtilities.CreateInstance<T>(provider);
         }

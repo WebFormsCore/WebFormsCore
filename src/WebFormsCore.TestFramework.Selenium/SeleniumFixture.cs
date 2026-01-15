@@ -126,6 +126,11 @@ public sealed class SeleniumFixture : IDisposable
 
         IWebDriver DriverFactory()
         {
+            if (_chromeDrivers.Drivers.TryTake(out var driver))
+            {
+                return driver;
+            }
+
             var chromeOptions = new ChromeOptions();
             if (headless) chromeOptions.AddArgument("--headless");
             chromeOptions.AddArgument("--disable-search-engine-choice-screen");
@@ -179,7 +184,10 @@ public sealed class SeleniumFixture : IDisposable
 
         async Task<WebServerContext<TControl>> CreateDriver(IHost host)
         {
-            await context.Semaphore.WaitAsync(TimeSpan.FromSeconds(30));
+            if (!await context.Semaphore.WaitAsync(TimeSpan.FromMinutes(2)))
+            {
+                throw new TimeoutException("Timed out waiting for a browser driver slot. This may indicate browser drivers are not being properly released.");
+            }
 
             if (!context.Drivers.TryTake(out var driver))
             {
@@ -228,7 +236,7 @@ public sealed class SeleniumFixture : IDisposable
             {
                 try
                 {
-                    driver.Dispose();
+                    driver.Quit();
                 }
                 catch
                 {
