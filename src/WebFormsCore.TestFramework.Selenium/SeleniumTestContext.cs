@@ -14,7 +14,8 @@ namespace WebFormsCore;
 internal class SeleniumTestContext<T>(
     IHost host,
     IWebDriver driver,
-    SeleniumFixture.Context context
+    string tabHandle,
+    SeleniumFixture.BrowserPool pool
 ) : WebServerContext<T>(host)
     where T : Control
 {
@@ -22,7 +23,7 @@ internal class SeleniumTestContext<T>(
     {
         await driver.Navigate().GoToUrlAsync(url);
 
-        var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
+        var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(60));
         wait.Until(static d => ((IJavaScriptExecutor)d).ExecuteScript("return document.readyState").Equals("complete"));
     }
 
@@ -74,8 +75,7 @@ internal class SeleniumTestContext<T>(
 
     protected override ValueTask DisposeCoreAsync()
     {
-        context.Drivers.Add(driver);
-        context.Semaphore.Release();
+        pool.ReleaseTab(driver, tabHandle);
         return base.DisposeCoreAsync();
     }
 }

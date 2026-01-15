@@ -41,8 +41,8 @@ internal class TestControl<TState>(Func<Control, Task<TState>> stateFactory, Cur
 
 public sealed class SeleniumFixture : IDisposable
 {
-    private readonly Context _chromeDrivers = new();
-    private readonly Context _firefoxDrivers = new();
+    private readonly BrowserPool _chromePool = new();
+    private readonly BrowserPool _firefoxPool = new();
 
     public async Task<CurrentState<TControl>> StartAsync<TControl>(
         Browser browser,
@@ -122,23 +122,20 @@ public sealed class SeleniumFixture : IDisposable
         HttpProtocols protocols = HttpProtocols.Http1AndHttp2
     ) where TControl : Control
     {
-        return await StartBrowserAsync<TControl>(_chromeDrivers, DriverFactory, configure, configureApp, enableViewState, protocols);
+        return await StartBrowserAsync<TControl>(_chromePool, () => CreateChromeDriver(headless), configure, configureApp, enableViewState, protocols);
+    }
 
-        IWebDriver DriverFactory()
-        {
-            if (_chromeDrivers.Drivers.TryTake(out var driver))
-            {
-                return driver;
-            }
+    private static IWebDriver CreateChromeDriver(bool headless)
+    {
+        var chromeOptions = new ChromeOptions();
+        if (headless) chromeOptions.AddArgument("--headless");
+        chromeOptions.AddArgument("--disable-search-engine-choice-screen");
+        chromeOptions.AddArgument("--no-sandbox");
+        chromeOptions.AddArgument("--ignore-certificate-errors");
+        chromeOptions.AddArgument("--disable-gpu");
+        chromeOptions.AddArgument("--disable-dev-shm-usage");
 
-            var chromeOptions = new ChromeOptions();
-            if (headless) chromeOptions.AddArgument("--headless");
-            chromeOptions.AddArgument("--disable-search-engine-choice-screen");
-            chromeOptions.AddArgument("--no-sandbox");
-            chromeOptions.AddArgument("--ignore-certificate-errors");
-
-            return new ChromeDriver(chromeOptions);
-        }
+        return new ChromeDriver(chromeOptions);
     }
 
     public async Task<ITestContext<TControl>> StartFirefoxAsync<TControl>(
@@ -149,30 +146,25 @@ public sealed class SeleniumFixture : IDisposable
         HttpProtocols protocols = HttpProtocols.Http1AndHttp2
     ) where TControl : Control
     {
-        return await StartBrowserAsync<TControl>(_firefoxDrivers, DriverFactory, configure, configureApp, enableViewState, protocols);
+        return await StartBrowserAsync<TControl>(_firefoxPool, () => CreateFirefoxDriver(headless), configure, configureApp, enableViewState, protocols);
+    }
 
-        IWebDriver DriverFactory()
-        {
-            if (_firefoxDrivers.Drivers.TryTake(out var driver))
-            {
-                return driver;
-            }
-
-            var firefoxOptions = new FirefoxOptions();
-            firefoxOptions.AcceptInsecureCertificates = true;
-            firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_CONTENT_SANDBOX", "1");
-            firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_GMP_SANDBOX", "1");
-            firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_NPAPI_SANDBOX", "1");
-            firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_GPU_SANDBOX", "1");
-            firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_RDD_SANDBOX", "1");
-            firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_SOCKET_PROCESS_SANDBOX", "1");
-            if (headless) firefoxOptions.AddArgument("-headless");
-            return new FirefoxDriver(firefoxOptions);
-        }
+    private static IWebDriver CreateFirefoxDriver(bool headless)
+    {
+        var firefoxOptions = new FirefoxOptions();
+        firefoxOptions.AcceptInsecureCertificates = true;
+        firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_CONTENT_SANDBOX", "1");
+        firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_GMP_SANDBOX", "1");
+        firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_NPAPI_SANDBOX", "1");
+        firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_GPU_SANDBOX", "1");
+        firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_RDD_SANDBOX", "1");
+        firefoxOptions.SetEnvironmentVariable("MOZ_DISABLE_SOCKET_PROCESS_SANDBOX", "1");
+        if (headless) firefoxOptions.AddArgument("-headless");
+        return new FirefoxDriver(firefoxOptions);
     }
 
     private Task<ITestContext<TControl>> StartBrowserAsync<TControl>(
-        Context context,
+        BrowserPool pool,
         Func<IWebDriver> driverFactory,
         Action<IServiceCollection>? configure = null,
         Action<IApplicationBuilder>? configureApp = null,
@@ -180,69 +172,87 @@ public sealed class SeleniumFixture : IDisposable
         HttpProtocols protocols = HttpProtocols.Http1AndHttp2
     ) where TControl : Control
     {
-        return ControlTest.StartBrowserAsync(CreateDriver, configure, configureApp, enableViewState, protocols);
+        return ControlTest.StartBrowserAsync(CreateContext, configure, configureApp, enableViewState, protocols);
 
-        async Task<WebServerContext<TControl>> CreateDriver(IHost host)
+        async Task<WebServerContext<TControl>> CreateContext(IHost host)
         {
-            if (!await context.Semaphore.WaitAsync(TimeSpan.FromMinutes(2)))
-            {
-                throw new TimeoutException("Timed out waiting for a browser driver slot. This may indicate browser drivers are not being properly released.");
-            }
-
-            if (!context.Drivers.TryTake(out var driver))
-            {
-                driver = await CreateDriverWithRetryAsync(driverFactory);
-            }
-
-            return new SeleniumTestContext<TControl>(host, driver, context);
+            var (driver, tabHandle) = await pool.AcquireTabAsync(driverFactory);
+            return new SeleniumTestContext<TControl>(host, driver, tabHandle, pool);
         }
-    }
-
-    private static async Task<IWebDriver> CreateDriverWithRetryAsync(Func<IWebDriver> driverFactory, int maxRetries = 3)
-    {
-        Exception? lastException = null;
-
-        for (var attempt = 0; attempt < maxRetries; attempt++)
-        {
-            try
-            {
-                return driverFactory();
-            }
-            catch (WebDriverException ex) when (ex.Message.Contains("Cannot start the driver service"))
-            {
-                lastException = ex;
-                // Wait before retrying, with exponential backoff
-                await Task.Delay(TimeSpan.FromMilliseconds(500 * (attempt + 1)));
-            }
-        }
-
-        throw new WebDriverException($"Failed to start driver after {maxRetries} attempts", lastException);
     }
 
     public void Dispose()
     {
-        _chromeDrivers.Clear();
-        _firefoxDrivers.Clear();
+        _chromePool.Dispose();
+        _firefoxPool.Dispose();
     }
 
-    internal class Context
+    internal class BrowserPool : IDisposable
     {
-        public readonly ConcurrentBag<IWebDriver> Drivers = [];
-        public readonly SemaphoreSlim Semaphore = new(4); // Limit to 4 concurrent drivers
+        private IWebDriver? _driver;
+        private string? _anchorHandle;
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
+        private bool _disposed;
 
-        public void Clear()
+        public async Task<(IWebDriver Driver, string TabHandle)> AcquireTabAsync(Func<IWebDriver> driverFactory)
         {
-            while (Drivers.TryTake(out var driver))
+            await _semaphore.WaitAsync();
+
+            if (_disposed)
             {
-                try
-                {
-                    driver.Quit();
-                }
-                catch
-                {
-                    // Ignore
-                }
+                _semaphore.Release();
+                throw new ObjectDisposedException(nameof(BrowserPool));
             }
+
+            try
+            {
+                if (_driver is null)
+                {
+                    _driver = driverFactory();
+                    _anchorHandle = _driver.CurrentWindowHandle;
+                }
+
+                // Open a new tab for this test
+                _driver.SwitchTo().NewWindow(WindowType.Tab);
+
+                return (_driver, _driver.CurrentWindowHandle);
+            }
+            catch
+            {
+                _semaphore.Release();
+                throw;
+            }
+        }
+
+        public void ReleaseTab(IWebDriver driver, string tabHandle)
+        {
+            try
+            {
+                driver.SwitchTo().Window(tabHandle);
+                driver.Close();
+
+                driver.SwitchTo().Window(_anchorHandle!);
+            }
+            catch
+            {
+                // If something goes wrong, recreate the browser on next acquire
+                try { _driver?.Quit(); } catch { /* ignore */ }
+                _driver = null;
+                _anchorHandle = null;
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        public void Dispose()
+        {
+            _semaphore.Wait();
+            _disposed = true;
+            try { _driver?.Quit(); } catch { /* ignore */ }
+            _driver = null;
+            _semaphore.Release();
         }
     }
 }
