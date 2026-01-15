@@ -68,12 +68,18 @@ public class ControlTest
 
     public static async Task<ITestContext<TControl>> StartBrowserAsync<TControl>(
         Func<IHost, Task<WebServerContext<TControl>>> contextFactory,
-        Action<IServiceCollection>? configure = null,
-        Action<IApplicationBuilder>? configureApp = null,
-        bool enableViewState = true,
-        HttpProtocols protocols = HttpProtocols.Http1AndHttp2
+        SeleniumFixtureOptions? options = null
     ) where TControl : Control
     {
+        options ??= new SeleniumFixtureOptions();
+
+        var configure = options.Configure;
+        var configureApp = options.ConfigureApp;
+        var enableViewState = options.EnableViewState;
+        var protocols = options.Protocols;
+        var enableWebSockets = options.EnableWebSockets;
+        var enableWebFormsCoreMiddleware = options.EnableWebFormsCoreMiddleware;
+
         var builder = Host.CreateDefaultBuilder();
         var context = new StrongBox<WebServerContext<TControl>>();
 
@@ -115,6 +121,16 @@ public class ControlTest
             webBuilder.Configure(app =>
             {
                 configureApp?.Invoke(app);
+
+                if (enableWebSockets)
+                {
+                    app.UseWebSockets();
+                }
+
+                if (enableWebFormsCoreMiddleware)
+                {
+                    app.UseWebFormsCore();
+                }
 
                 app.Run(async ctx =>
                 {

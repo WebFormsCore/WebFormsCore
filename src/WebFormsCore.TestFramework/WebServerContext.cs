@@ -44,6 +44,8 @@ public abstract class WebServerContext<T>(IHost host) : IWebServerContext<T>
         return requestLock.Task;
     }
 
+    public Exception? LastException => _exception;
+
     public void SetException(Exception exception)
     {
         _exception = exception;

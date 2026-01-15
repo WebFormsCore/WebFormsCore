@@ -22,25 +22,29 @@ public class EarlyHintsTest(SeleniumFixture fixture)
     {
         var loaded = new StrongBox<bool>();
 
-        await using var result = await fixture.StartAsync<EarlyHintsPage>(type, protocols: protocols, configureApp: app =>
+        await using var result = await fixture.StartAsync<EarlyHintsPage>(type, new SeleniumFixtureOptions
         {
-            app.Use(async (ctx, next) =>
+            Protocols = protocols,
+            ConfigureApp = app =>
             {
-                if (ctx.Request.Path != "/script.js")
+                app.Use(async (ctx, next) =>
                 {
-                    await next();
-                }
-                else
-                {
-                    if (ctx.RequestServices.GetService<IControlAccessor>()?.Control is EarlyHintsPage page)
+                    if (ctx.Request.Path != "/script.js")
                     {
-                        page.MarkScriptLoaded();
+                        await next();
                     }
+                    else
+                    {
+                        if (ctx.RequestServices.GetService<IControlAccessor>()?.Control is EarlyHintsPage page)
+                        {
+                            page.MarkScriptLoaded();
+                        }
 
-                    ctx.Response.ContentType = "application/javascript";
-                    loaded.Value = true;
-                }
-            });
+                        ctx.Response.ContentType = "application/javascript";
+                        loaded.Value = true;
+                    }
+                });
+            }
         });
 
         Assert.True(result.Control.Page.EnableEarlyHints);

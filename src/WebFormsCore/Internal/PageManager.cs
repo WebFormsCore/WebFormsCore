@@ -449,10 +449,22 @@ public partial class PageManager : IPageManager
 
         if (!_options.Value.AllowStreamPanel)
         {
-            throw new InvalidOperationException("Stream panels are not allowed.");
+            throw new StreamPanelConfigurationException(
+                "StreamPanel is disabled. To enable StreamPanel, set 'AllowStreamPanel = true' in WebFormsCoreOptions.");
         }
 
-        var socket = await context.WebSockets.AcceptWebSocketAsync();
+        WebSocket socket;
+        try
+        {
+            socket = await context.WebSockets.AcceptWebSocketAsync();
+        }
+        catch (NotSupportedException ex)
+        {
+            throw new StreamPanelConfigurationException(
+                "WebSockets middleware is not configured. " +
+                "To use StreamPanel, add 'app.UseWebSockets()' before 'app.UseWebFormsCore()' in your application startup.",
+                ex);
+        }
 
         // Wait for the viewstate to be loaded
         using (var stream = StreamPanel.MemoryStreamManager.GetStream())

@@ -20,12 +20,15 @@ public class MorphdomTests(SeleniumFixture fixture)
     [Theory, ClassData(typeof(BrowserData))]
     public async Task UpdateScript(Browser type)
     {
-        await using var result = await fixture.StartAsync<UpdateScriptPage>(type, services =>
+        await using var result = await fixture.StartAsync<UpdateScriptPage>(type, new SeleniumFixtureOptions
         {
-            services.Configure<WebFormsCoreOptions>(options =>
+            Configure = services =>
             {
-                options.RenderScriptOnPostBack = true;
-            });
+                services.Configure<WebFormsCoreOptions>(options =>
+                {
+                    options.RenderScriptOnPostBack = true;
+                });
+            }
         });
 
         Assert.Equal("null", await result.ExecuteScriptAsync("return window.counter ?? 'null'"));

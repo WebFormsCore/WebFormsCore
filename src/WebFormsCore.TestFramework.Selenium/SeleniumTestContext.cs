@@ -16,9 +16,11 @@ internal class SeleniumTestContext<T>(
     IWebDriver driver,
     string tabHandle,
     SeleniumFixture.BrowserPool pool
-) : WebServerContext<T>(host)
+) : WebServerContext<T>(host), ISeleniumTestContext
     where T : Control
 {
+    public IWebDriver Driver => driver;
+
     public override async Task GoToUrlAsync(string url)
     {
         await driver.Navigate().GoToUrlAsync(url);

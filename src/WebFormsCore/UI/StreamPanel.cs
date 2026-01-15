@@ -227,7 +227,7 @@ public class StreamPanel : Control, INamingContainer
 
         await writer.RenderBeginTagAsync("div");
 
-        if (ProcessControl)
+        if (ProcessControl || !Page.IsStreaming)
         {
             await base.RenderAsync(writer, token);
         }
