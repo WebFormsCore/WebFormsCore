@@ -165,6 +165,9 @@ public sealed class SeleniumFixture : IDisposable
 
     internal class BrowserPool : IDisposable
     {
+        private const int MaxRetries = 3;
+        private const int BaseDelayMs = 500;
+
         private IWebDriver? _driver;
         private string? _anchorHandle;
         private readonly SemaphoreSlim _semaphore = new(1, 1);
@@ -184,7 +187,7 @@ public sealed class SeleniumFixture : IDisposable
             {
                 if (_driver is null)
                 {
-                    _driver = driverFactory();
+                    _driver = await CreateDriverWithRetryAsync(driverFactory);
                     _anchorHandle = _driver.CurrentWindowHandle;
                 }
 
@@ -198,6 +201,29 @@ public sealed class SeleniumFixture : IDisposable
                 _semaphore.Release();
                 throw;
             }
+        }
+
+        private static async Task<IWebDriver> CreateDriverWithRetryAsync(Func<IWebDriver> driverFactory)
+        {
+            Exception? lastException = null;
+
+            for (var attempt = 0; attempt < MaxRetries; attempt++)
+            {
+                try
+                {
+                    return driverFactory();
+                }
+                catch (WebDriverException ex) when (ex.Message.Contains("Cannot start the driver service"))
+                {
+                    lastException = ex;
+
+                    // Exponential backoff before retry
+                    var delay = BaseDelayMs * (1 << attempt);
+                    await Task.Delay(delay);
+                }
+            }
+
+            throw lastException!;
         }
 
         public void ReleaseTab(IWebDriver driver, string tabHandle)
