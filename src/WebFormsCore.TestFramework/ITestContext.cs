@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace WebFormsCore;
 
@@ -10,6 +11,11 @@ public interface ITestContext : IAsyncDisposable
     /// Gets the last exception that occurred during server-side processing.
     /// </summary>
     Exception? LastException { get; }
+
+    /// <summary>
+    /// Gets the HttpContext from the last request.
+    /// </summary>
+    HttpContext HttpContext { get; }
 
     ValueTask<string> GetHtmlAsync();
 

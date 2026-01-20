@@ -17,13 +17,29 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
     {
     }
 
+    /// <summary>
+    /// Gets the parent form if this form is nested inside another form.
+    /// Returns null if this is a root form.
+    /// </summary>
+    internal HtmlForm? ParentForm => base.Form;
+
+    /// <summary>
+    /// Gets a value indicating whether this form is a root form (not nested inside another form).
+    /// Only root forms render the wfcForm hidden field and can be the ActiveForm.
+    /// </summary>
+    internal bool IsRootForm => ParentForm == null;
+
     protected override bool ProcessControl => ProcessAndRenderControl || _state <= ControlState.Initialized;
 
-    private bool ProcessAndRenderControl => _processControl || !Page.IsPostBack || Page.ActiveForm == this;
+    /// <summary>
+    /// Gets the root form for this form. If this form is nested, returns the outermost parent form.
+    /// If this form is already a root form, returns this form.
+    /// </summary>
+    internal HtmlForm RootForm => ParentForm?.RootForm ?? this;
+
+    private bool ProcessAndRenderControl => _processControl || !Page.IsPostBack || Page.ActiveForm == RootForm;
 
     public event AsyncEventHandler<HtmlForm, EventArgs>? Submit;
-
-    private bool IsDiv => Page.IsExternal;
 
     public string? LastViewState { get; set; }
 
@@ -51,7 +67,9 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         set => Attributes["enctype"] = value;
     }
 
-    public override string TagName => IsDiv ? "div" : "form";
+    private bool ShouldRenderAsDiv => Page.IsExternal || !IsRootForm;
+
+    public override string TagName => ShouldRenderAsDiv ? "div" : "form";
 
     protected override void OnFrameworkInit()
     {
@@ -87,7 +105,7 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
     {
         await base.RenderAttributesAsync(writer);
 
-        if (!IsDiv)
+        if (!ShouldRenderAsDiv)
         {
             await writer.WriteAttributeAsync("method", "post");
         }
@@ -102,20 +120,25 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
 
         await base.RenderChildrenAsync(writer, token);
 
-        await writer.WriteAsync(@"<input type=""hidden"" name=""wfcForm"" value=""");
-        await writer.WriteAsync(UniqueID);
-        await writer.WriteAsync(@"""/>");
-        await writer.WriteLineAsync();
-
-        if (viewStateManager.EnableViewState && !Page.IsStreaming)
+        // Only render the wfcForm hidden field for root forms.
+        // Nested forms are processed as part of their root form's postback.
+        if (IsRootForm)
         {
-            await writer.WriteAsync(@"<input type=""hidden"" name=""wfcFormState"" value=""");
-            using (var viewState = await viewStateManager.WriteAsync(this, out var length))
-            {
-                await writer.WriteAsync(viewState.Memory.Slice(0, length));
-            }
-
+            await writer.WriteAsync(@"<input type=""hidden"" name=""wfcForm"" value=""");
+            await writer.WriteAsync(UniqueID);
             await writer.WriteAsync(@"""/>");
+            await writer.WriteLineAsync();
+
+            if (viewStateManager.EnableViewState && !Page.IsStreaming)
+            {
+                await writer.WriteAsync(@"<input type=""hidden"" name=""wfcFormState"" value=""");
+                using (var viewState = await viewStateManager.WriteAsync(this, out var length))
+                {
+                    await writer.WriteAsync(viewState.Memory.Slice(0, length));
+                }
+
+                await writer.WriteAsync(@"""/>");
+            }
         }
     }
 

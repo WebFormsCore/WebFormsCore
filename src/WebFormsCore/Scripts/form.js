@@ -2283,7 +2283,7 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 		if ((options?.validate ?? true) && !await wfc.validate(element)) return;
 		element.dispatchEvent(new CustomEvent("wfc:postbackTriggered"));
 		try {
-			const form = getForm(element);
+			const form = getRootForm(element);
 			const streamPanel = getStreamPanel(element);
 			if (streamPanel) await sendToStream(streamPanel, eventTarget, eventArgument);
 			else await submitForm(element, form, eventTarget, eventArgument);
@@ -2320,6 +2320,21 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 	}
 	function getForm(element) {
 		return element.closest("[data-wfc-form]");
+	}
+	/**
+	* Gets the root form (the actual <form> element) for an element.
+	* Nested forms are rendered as <div> elements with data-wfc-form attribute,
+	* so we need to find the outermost form element.
+	*/
+	function getRootForm(element) {
+		let form = element.closest("[data-wfc-form]");
+		if (!form) return null;
+		while (form && form.tagName !== "FORM") {
+			const parent = form.parentElement?.closest("[data-wfc-form]");
+			if (!parent) break;
+			form = parent;
+		}
+		return form;
 	}
 	function getStreamPanel(element) {
 		return element.closest("[data-wfc-stream]");

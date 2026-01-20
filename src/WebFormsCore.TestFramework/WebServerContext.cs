@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WebFormsCore.UI;
@@ -19,6 +20,7 @@ public abstract class WebServerContext<T>(IHost host) : IWebServerContext<T>
     private string? _url;
     private TaskCompletionSource<bool>? _requestLock;
     private Exception? _exception;
+    private HttpContext? _httpContext;
 
     public T Control
     {
@@ -37,6 +39,7 @@ public abstract class WebServerContext<T>(IHost host) : IWebServerContext<T>
     {
         var requestLock = new TaskCompletionSource<bool>();
         _control = control;
+        _httpContext = control.Page.Context;
 
         var oldLock = Interlocked.Exchange(ref _requestLock, requestLock);
         oldLock?.SetResult(true);
@@ -45,6 +48,8 @@ public abstract class WebServerContext<T>(IHost host) : IWebServerContext<T>
     }
 
     public Exception? LastException => _exception;
+
+    public HttpContext HttpContext => Control.Page.Context;
 
     public void SetException(Exception exception)
     {

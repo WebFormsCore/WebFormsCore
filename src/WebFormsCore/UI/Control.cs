@@ -978,7 +978,7 @@ public partial class Control
 
             foreach (var control in Controls)
             {
-                if (form != null && control is HtmlForm && control != form) continue;
+                if (form != null && control is HtmlForm childForm && childForm.RootForm != form) continue;
                 await control.LoadAsync(token);
             }
         }
@@ -992,7 +992,7 @@ public partial class Control
 
             foreach (var control in Controls)
             {
-                if (form != null && control is HtmlForm && control != form) continue;
+                if (form != null && control is HtmlForm childForm && childForm.RootForm != form) continue;
                 await control.PreRenderAsync(token);
             }
         }

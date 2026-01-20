@@ -95,7 +95,7 @@ async function postBackElement(element: Element, eventTarget?: string, eventArgu
     element.dispatchEvent(new CustomEvent("wfc:postbackTriggered"));
 
     try {
-        const form = getForm(element);
+        const form = getRootForm(element);
         const streamPanel = getStreamPanel(element);
 
         if (streamPanel) {
@@ -162,6 +162,23 @@ function hasElementFile(element: HTMLElement) {
 
 function getForm(element: Element) {
     return element.closest('[data-wfc-form]') as HTMLElement
+}
+function getRootForm(element: Element): HTMLElement | null {
+    let form = element.closest('[data-wfc-form]') as HTMLElement | null;
+    
+    if (!form) {
+        return null;
+    }
+    
+    while (form && form.tagName !== 'FORM') {
+        const parent = form.parentElement?.closest('[data-wfc-form]') as HTMLElement | null;
+        if (!parent) {
+            break;
+        }
+        form = parent;
+    }
+    
+    return form;
 }
 
 function getStreamPanel(element: Element) {
