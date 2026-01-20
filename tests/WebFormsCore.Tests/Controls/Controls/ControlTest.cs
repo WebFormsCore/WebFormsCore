@@ -17,4 +17,12 @@ public class ControlTest(SeleniumFixture fixture)
         Assert.Equal("clientId", await result.Control.serverId.GetBrowserAttributeAsync("id"));
         Assert.Equal("Success", result.Control.serverId.Text);
     }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task LoadOrder(Browser type)
+    {
+        await using var result = await fixture.StartAsync<LoadOrder>(type);
+
+        Assert.Equal("Success", result.Control.loadControl.lbl.GetBrowserText());
+    }
 }

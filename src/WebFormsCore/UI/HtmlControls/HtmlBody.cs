@@ -18,9 +18,9 @@ public class HtmlBody() : HtmlContainerControl("body")
 
     protected override void OnFrameworkInit()
     {
-        base.OnFrameworkInit();
-
         Page.Body ??= this;
+
+        base.OnFrameworkInit();
     }
 
     protected override async ValueTask OnUnloadAsync(CancellationToken token)

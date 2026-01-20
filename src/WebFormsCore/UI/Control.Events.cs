@@ -94,14 +94,14 @@ public static partial class ControlExtensions
         return default;
     }
 
-    public static ControlEnumerable EnumerateControls(this Control control, Func<Control, bool> filter, int depth = 512)
+    public static ControlEnumerable EnumerateSelfAndChildControls(this Control control, Func<Control, bool> filter, int depth = 512)
     {
         if (depth <= 0) throw new ArgumentOutOfRangeException(nameof(depth));
 
         return new ControlEnumerable(control, filter, depth);
     }
 
-    public static ControlEnumerable EnumerateControls(this Control control, int depth = 512)
+    public static ControlEnumerable EnumerateSelfAndChildControls(this Control control, int depth = 512)
     {
         if (depth <= 0) throw new ArgumentOutOfRangeException(nameof(depth));
 
@@ -216,7 +216,7 @@ public partial class Control : IInternalControl
         OnWriteViewState(ref writer);
     }
 
-    internal void FrameworkInit()
+    internal void InvokeFrameworkInit()
     {
         if (_state >= ControlState.FrameworkInitialized)
         {
@@ -224,8 +224,6 @@ public partial class Control : IInternalControl
         }
 
         OnFrameworkInit();
-
-        _state = ControlState.FrameworkInitialized;
     }
 
     public void InvokeTrackViewState(bool force = false)
@@ -447,7 +445,7 @@ public partial class Control : IInternalControl
 
     void IInternalControl.FrameworkInit()
     {
-        FrameworkInit();
+        InvokeFrameworkInit();
     }
 
     void IInternalControl.InvokeTrackViewState(CancellationToken token)

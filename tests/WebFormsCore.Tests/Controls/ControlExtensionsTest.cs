@@ -30,7 +30,7 @@ public class ControlExtensionsTest
 		var c2_c2 = new Control();
 		c2.Controls.AddWithoutPageEvents(c2_c2);
 
-		using var enumerator = root.EnumerateControls().GetEnumerator();
+		using var enumerator = root.EnumerateSelfAndChildControls().GetEnumerator();
 
 		Assert.True(enumerator.MoveNext());
 		Assert.Equal(root, enumerator.Current);
@@ -83,7 +83,7 @@ public class ControlExtensionsTest
 		c2.Controls.AddWithoutPageEvents(c2_c2);
 
 		using var enumerator = root
-			.EnumerateControls(filter: static c => c.ID != null && c.ID.EndsWith("c1", StringComparison.Ordinal))
+			.EnumerateSelfAndChildControls(filter: static c => c.ID != null && c.ID.EndsWith("c1", StringComparison.Ordinal))
 			.GetEnumerator();
 
 		Assert.True(enumerator.MoveNext());

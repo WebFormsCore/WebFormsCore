@@ -535,7 +535,7 @@ public partial class PageManager : IPageManager
         page.ActiveStreamPanel = streamPanel;
         streamPanel.IsConnected = true;
 
-        streamPanel.FrameworkInit();
+        streamPanel.InvokeFrameworkInit();
         await streamPanel.InitAsync(token);
         await ProcessRequestAsync(context, page, form, render: true, token);
 
@@ -564,7 +564,7 @@ public partial class PageManager : IPageManager
         {
             if (page.Header != null)
             {
-                foreach (var control in page.Header.EnumerateControls())
+                foreach (var control in page.Header.EnumerateSelfAndChildControls())
                 {
                     switch (control)
                     {
