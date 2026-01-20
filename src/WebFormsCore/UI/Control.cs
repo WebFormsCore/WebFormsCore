@@ -287,9 +287,18 @@ public partial class Control
                 EffectiveClientIDModeValue = ClientIDMode;
                 if (EffectiveClientIDModeValue == ClientIDMode.Inherit)
                 {
-                    if (NamingContainer != null)
+                    var namingContainer = NamingContainer;
+                    
+                    // Safeguard: if naming container is this control, skip to parent's
+                    // naming container to prevent infinite recursion
+                    if (namingContainer == this)
                     {
-                        EffectiveClientIDModeValue = NamingContainer.EffectiveClientIDMode;
+                        namingContainer = _parent?.NamingContainer;
+                    }
+                    
+                    if (namingContainer != null)
+                    {
+                        EffectiveClientIDModeValue = namingContainer.EffectiveClientIDMode;
                     }
                     else
                     {
@@ -568,12 +577,11 @@ public partial class Control
     {
         foreach (var child in Controls)
         {
-            // If child is a naming container, it becomes its own naming container for its children
-            var childNamingContainer = child is INamingContainer ? child : parentNamingContainer;
-            
             if (child._namingContainer == null)
             {
-                child.UpdateNamingContainer(childNamingContainer);
+                // The child's naming container is always the parent naming container,
+                // not the child itself (even if the child is an INamingContainer)
+                child.UpdateNamingContainer(parentNamingContainer);
                 
                 // Mark the naming container's name table as dirty so it will be rebuilt
                 if (child._id != null)
@@ -584,6 +592,8 @@ public partial class Control
             
             if (child.HasControls())
             {
+                // If child is an INamingContainer, it becomes the naming container for its own children
+                var childNamingContainer = child is INamingContainer ? child : parentNamingContainer;
                 child.UpdateChildNamingContainers(childNamingContainer);
             }
         }

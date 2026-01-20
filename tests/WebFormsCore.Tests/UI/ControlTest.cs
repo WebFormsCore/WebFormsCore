@@ -307,4 +307,80 @@ public class ControlTest
         Assert.Equal("child1", found1.ID);
         Assert.Equal("child2", found2.ID);
     }
+
+    [Fact]
+    public void EffectiveClientIDMode_NamingContainerWithInherit_DoesNotCauseStackOverflow()
+    {
+        // Reproduces stack overflow: when a control is an INamingContainer and its
+        // _namingContainer is set to itself (which happens in UpdateChildNamingContainers),
+        // accessing EffectiveClientIDMode would recurse infinitely because
+        // NamingContainer.EffectiveClientIDMode would call itself.
+        var page = new Page();
+        var parentNamingContainer = new TestNamingContainer { ID = "parent" };
+        var childNamingContainer = new TestNamingContainer { ID = "child" };
+        var grandChild = new TestControl { ID = "grandchild" };
+
+        page.Controls.AddWithoutPageEvents(parentNamingContainer);
+        parentNamingContainer.Controls.AddWithoutPageEvents(childNamingContainer);
+        childNamingContainer.Controls.AddWithoutPageEvents(grandChild);
+
+        // This should NOT throw a StackOverflowException
+        // The childNamingContainer's _namingContainer is set to itself by UpdateChildNamingContainers,
+        // so EffectiveClientIDMode needs to handle this case properly.
+        var clientId = childNamingContainer.ClientID;
+
+        Assert.Equal("parent_child", clientId);
+    }
+
+    [Fact]
+    public void EffectiveClientIDMode_ChildAddedBeforeParentHasNamingContainer_DoesNotCauseStackOverflow()
+    {
+        // This test reproduces the exact scenario that causes stack overflow:
+        // 1. A naming container child is added to a parent BEFORE the parent has a naming container
+        // 2. Later, the parent is added to a page
+        // 3. UpdateChildNamingContainers is called, which sets the child's naming container to ITSELF
+        // 4. When ClientID is accessed, it causes infinite recursion
+
+        var page = new Page();
+        var parentControl = new TestControl { ID = "parent" };
+        var childNamingContainer = new TestNamingContainer { ID = "child" };
+        var grandChild = new TestControl { ID = "grandchild" };
+
+        // First, build the hierarchy without a page
+        childNamingContainer.Controls.AddWithoutPageEvents(grandChild);
+        parentControl.Controls.AddWithoutPageEvents(childNamingContainer);
+
+        // Now add to page - this triggers UpdateChildNamingContainers
+        // which sets childNamingContainer._namingContainer = childNamingContainer (itself)
+        page.Controls.AddWithoutPageEvents(parentControl);
+
+        // This should NOT throw a StackOverflowException
+        var clientId = childNamingContainer.ClientID;
+
+        Assert.NotNull(clientId);
+    }
+
+    [Fact]
+    public void EffectiveClientIDMode_DeeplyNestedNamingContainers_DoesNotCauseStackOverflow()
+    {
+        // Test with deeply nested naming containers all with ClientIDMode.Inherit
+        var page = new Page();
+        var level1 = new TestNamingContainer { ID = "l1" };
+        var level2 = new TestNamingContainer { ID = "l2" };
+        var level3 = new TestNamingContainer { ID = "l3" };
+        var level4 = new TestNamingContainer { ID = "l4" };
+        var leaf = new TestControl { ID = "leaf" };
+
+        page.Controls.AddWithoutPageEvents(level1);
+        level1.Controls.AddWithoutPageEvents(level2);
+        level2.Controls.AddWithoutPageEvents(level3);
+        level3.Controls.AddWithoutPageEvents(level4);
+        level4.Controls.AddWithoutPageEvents(leaf);
+
+        // All controls have ClientIDMode.Inherit (default), this should not overflow
+        var clientId = level4.ClientID;
+
+        // Should use AutoID mode (the default fallback)
+        Assert.NotNull(clientId);
+    }
 }
