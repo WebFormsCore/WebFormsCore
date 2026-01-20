@@ -14,9 +14,9 @@ public class HtmlHead() : HtmlContainerControl("head")
 
     protected override void OnFrameworkInit()
     {
-        base.OnFrameworkInit();
-
         Page.Header ??= this;
+
+        base.OnFrameworkInit();
     }
 
     protected override async ValueTask OnUnloadAsync(CancellationToken token)

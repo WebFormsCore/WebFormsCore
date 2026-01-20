@@ -557,6 +557,11 @@ public partial class Control
         {
             namingContainer.DirtyNameTable();
         }
+
+        if (_state >= ControlState.FrameworkInitialized)
+        {
+            control.InvokeFrameworkInit();
+        }
     }
     
     private void UpdateChildNamingContainers(Control parentNamingContainer)
@@ -588,7 +593,7 @@ public partial class Control
     {
         if (state >= ControlState.FrameworkInitialized && control._state < ControlState.FrameworkInitialized)
         {
-            control.FrameworkInit();
+            control.InvokeFrameworkInit();
         }
 
         if (state >= ControlState.PreInitialized && control._state < ControlState.PreInitialized)
@@ -911,16 +916,19 @@ public partial class Control
 
     protected virtual void OnFrameworkInit()
     {
+        _state = ControlState.FrameworkInitialized;
+
         FrameworkInitialize();
-        FrameworkInitialized();
 
         if (ProcessChildren)
         {
             foreach (var control in Controls)
             {
-                control.FrameworkInit();
+                control.InvokeFrameworkInit();
             }
         }
+
+        FrameworkInitialized();
     }
 
     /// <summary>Initializes the control that is derived from the <see cref="T:System.Web.UI.TemplateControl" /> class.</summary>

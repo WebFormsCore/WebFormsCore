@@ -420,7 +420,7 @@ public class Parser
                 return;
             }
 
-            Diagnostics.Add(ReportedDiagnostic.Create(Descriptors.ControlNotFound, src.Range, lexer.File));
+            Diagnostics.Add(ReportedDiagnostic.Create(Descriptors.ControlNotFound, src.Range, src.Value));
             _controlTypes.Add(key, ("WebFormsCore.UI.Control", path));
             return;
         }
@@ -430,7 +430,7 @@ public class Parser
 
         if (typeName is null)
         {
-            Diagnostics.Add(ReportedDiagnostic.Create(Descriptors.InheritNotFound, src.Range, lexer.File));
+            Diagnostics.Add(ReportedDiagnostic.Create(Descriptors.InheritNotFound, src.Range, src.Value));
 
             return;
         }
