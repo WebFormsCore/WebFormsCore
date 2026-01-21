@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using WebFormsCore.UI;
@@ -18,17 +19,24 @@ public class ViewStateManager : IViewStateManager
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IOptions<ViewStateOptions> _options;
-    private readonly HashAlgorithm _hashAlgorithm;
+    private readonly ThreadLocal<HashAlgorithm> _hashAlgorithm;
     private readonly int _hashLength;
 
     public ViewStateManager(IServiceProvider serviceProvider, IOptions<ViewStateOptions>? options = null)
     {
         _serviceProvider = serviceProvider;
         _options = options ?? Options.Create(new ViewStateOptions());
-        _hashAlgorithm = !string.IsNullOrEmpty(options?.Value.EncryptionKey)
-            ? new HMACSHA256(Encoding.UTF8.GetBytes(options!.Value.EncryptionKey!))
-            : SHA256.Create();
-        _hashLength = _hashAlgorithm.HashSize / 8;
+        if (!string.IsNullOrEmpty(options?.Value.EncryptionKey))
+        {
+            var bytes = Encoding.UTF8.GetBytes(options!.Value.EncryptionKey!);
+
+            _hashAlgorithm = new ThreadLocal<HashAlgorithm>(() => new HMACSHA256(bytes));
+        }
+        else
+        {
+            _hashAlgorithm = new ThreadLocal<HashAlgorithm>(() => SHA256.Create());
+        }
+        _hashLength = _hashAlgorithm.Value!.HashSize / 8;
     }
 
     /// <summary>
@@ -99,8 +107,9 @@ public class ViewStateManager : IViewStateManager
 
     private void ComputeHash(byte[] data, int dataLength, Span<byte> hash)
     {
+        var hashAlgorithm = _hashAlgorithm.Value!;
         var offset = HeaderLength + _hashLength;
-        var success = _hashAlgorithm.TryComputeHash(data.AsSpan(offset, dataLength), hash, out var bytesWritten);
+        var success = hashAlgorithm.TryComputeHash(data.AsSpan(offset, dataLength), hash, out var bytesWritten);
 
         if (success)
         {
@@ -111,7 +120,7 @@ public class ViewStateManager : IViewStateManager
         }
         else
         {
-            var result = _hashAlgorithm.ComputeHash(data, offset, dataLength);
+            var result = hashAlgorithm.ComputeHash(data, offset, dataLength);
 
             CopyToHash(ref hash, result);
         }

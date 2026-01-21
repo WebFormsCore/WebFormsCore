@@ -152,7 +152,7 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
         KeyToId = IdToKey.ToDictionary(x => x.Value, x => x.Key, StringComparer.OrdinalIgnoreCase);
     }
 
-    private readonly Dictionary<string, string?> _bag = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, StringOrFunc> _bag = new(StringComparer.OrdinalIgnoreCase);
     private readonly CssStyleCollection _styleColl = new();
     private readonly HashSet<string> _trackedKeys = new(StringComparer.OrdinalIgnoreCase);
 
@@ -164,10 +164,23 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
 
     public bool TryGetValue(string key, out string? value)
     {
-        return _bag.TryGetValue(key, out value);
+        if (_bag.TryGetValue(key, out var val))
+        {
+            value = val.ToString();
+            return true;
+        }
+
+        value = null;
+        return false;
     }
 
-    public string? this[string key]
+    string?  IDictionary<string, string?>.this[string key]
+    {
+        get => this[key];
+        set => this[key] = value;
+    }
+
+    public StringOrFunc this[string key]
     {
         get
         {
@@ -176,19 +189,16 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
                 return _styleColl.Value;
             }
 
-            if (_bag.TryGetValue(key, out var value))
-            {
-                return value;
-            }
-
-            return null;
+            return _bag.GetValueOrDefault(key);
         }
         set => Add(key, value);
     }
 
     ICollection<string> IDictionary<string, string?>.Keys => _bag.Keys;
 
-    public ICollection<string?> Values => _bag.Values;
+    public ICollection<string?> Values => _bag.Values
+        .Select(v => v.ToString())
+        .ToList();
 
     public ICollection Keys => _bag.Keys;
 
@@ -203,7 +213,17 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
         _trackedKeys.Add(key);
     }
 
-    public void Add(string key, string? value)
+    void IDictionary<string, string?>.Add(string key, string? value)
+    {
+        Add(key, value);
+    }
+
+    public void Add(string key, Func<string> value)
+    {
+        Add(key, new StringOrFunc(value));
+    }
+
+    public void Add(string key, StringOrFunc value)
     {
         Track(key);
 
@@ -270,9 +290,11 @@ public sealed class AttributeCollection : IDictionary<string, string?>, IViewSta
         _styleColl.AddAttributes(writer);
     }
 
-    public Dictionary<string, string?>.Enumerator GetEnumerator() => _bag.GetEnumerator();
+    public Dictionary<string, StringOrFunc>.Enumerator GetEnumerator() => _bag.GetEnumerator();
 
-    IEnumerator<KeyValuePair<string, string?>> IEnumerable<KeyValuePair<string, string?>>.GetEnumerator() => _bag.GetEnumerator();
+    IEnumerator<KeyValuePair<string, string?>> IEnumerable<KeyValuePair<string, string?>>.GetEnumerator() => _bag
+        .Select(kv => new KeyValuePair<string, string?>(kv.Key, kv.Value.ToString()))
+        .GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => _bag.GetEnumerator();
 

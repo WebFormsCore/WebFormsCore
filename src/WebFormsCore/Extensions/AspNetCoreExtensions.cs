@@ -162,22 +162,32 @@ public static class AspNetCoreExtensions
         });
     }
 
-    public static IEndpointConventionBuilder MapControl(this IEndpointRouteBuilder endpoints, string pattern, Func<Control> controlFactory)
+    public static IEndpointConventionBuilder MapControl<T>(this IEndpointRouteBuilder endpoints, string pattern, Func<T> controlFactory)
+        where T : Control
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         ArgumentException.ThrowIfNullOrWhiteSpace(pattern);
         ArgumentNullException.ThrowIfNull(controlFactory);
 
-        return endpoints.Map(pattern, context => ExecuteControlAsync(context, controlFactory()));
+        return endpoints.Map(pattern, context => ExecuteControlAsync(context, new FuncRefControl(c =>
+        {
+            c.Controls.AddWithoutPageEvents(controlFactory());
+            return Task.CompletedTask;
+        })));
     }
 
-    public static IEndpointConventionBuilder MapControl(this IEndpointRouteBuilder endpoints, string pattern, Func<IServiceProvider, Control> controlFactory)
+    public static IEndpointConventionBuilder MapControl<T>(this IEndpointRouteBuilder endpoints, string pattern, Func<IServiceProvider, T> controlFactory)
+        where T : Control
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         ArgumentException.ThrowIfNullOrWhiteSpace(pattern);
         ArgumentNullException.ThrowIfNull(controlFactory);
 
-        return endpoints.Map(pattern, context => ExecuteControlAsync(context, controlFactory(context.RequestServices)));
+        return endpoints.Map(pattern, context => ExecuteControlAsync(context, new FuncRefControl(c =>
+        {
+            c.Controls.AddWithoutPageEvents(controlFactory(context.RequestServices));
+            return Task.CompletedTask;
+        })));
     }
 
     public static async Task<Page?> ExecutePageAsync(this HttpContext context, string? path = null, bool throwOnError = false)
@@ -231,18 +241,9 @@ public static class AspNetCoreExtensions
             return;
         }
 
-        var activator = context.RequestServices.GetRequiredService<IWebObjectActivator>();
-        page = activator.CreateControl<Page>();
+        var pageFactory = context.RequestServices.GetRequiredService<IPageFactory>();
 
-        var doctype = activator.CreateLiteral("<!DOCTYPE html>");
-        page.Controls.AddWithoutPageEvents(doctype);
-        page.Controls.AddWithoutPageEvents(activator.CreateControl<HtmlHead>());
-
-        var body = activator.CreateControl<HtmlBody>();
-        body.Controls.AddWithoutPageEvents(control);
-        page.Controls.AddWithoutPageEvents(body);
-
-        await ExecutePageAsync(context, page);
+        await ExecutePageAsync(context, await pageFactory.CreatePageForControlAsync(context, control));
     }
 
     private static void ApplyPageMetadata(IEndpointConventionBuilder builder, Type pageType)

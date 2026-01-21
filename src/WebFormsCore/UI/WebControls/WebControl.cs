@@ -73,6 +73,8 @@ public partial class WebControl : Control, IAttributeAccessor
     /// <returns>A <see cref="T:WebFormsCore.UI.AttributeCollection" /> object that contains all attribute name and value pairs expressed on a server control tag within the Web page.</returns>
     public AttributeCollection Attributes => _attributes;
 
+    public CssStyleCollection Style => _attributes.CssStyle;
+
     protected virtual ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
     {
         if (AddClientIdToAttributes && ClientID is {} clientId)
@@ -91,6 +93,11 @@ public partial class WebControl : Control, IAttributeAccessor
         }
 
         _attributes.AddAttributes(writer);
+
+        if (!_attributes.ContainsKey("class"))
+        {
+            ServiceProvider.GetService<IControlHtmlClassProvider>()?.WriteDefaultClass(this, writer);
+        }
 
         if (!IsEnabled)
         {

@@ -9,6 +9,7 @@
         <Using Include="WebFormsCore" />
         <Using Include="WebFormsCore.UI" />
         <Using Include="WebFormsCore.UI.WebControls" />
+        <Using Include="WebFormsCore.UI.WebControls.LiteralMethods" Static="True" />
     </ItemGroup>
 
     <!-- .NET Framework -->
