@@ -23,6 +23,10 @@ public class RefControlTests(SeleniumFixture fixture)
                 [
                     new Label
                     {
+                        Attributes =
+                        {
+                            { "data-count", () => count.Value.ToString() }
+                        },
                         Controls =
                         [
                             new Literal(() => $"Count: {count.Value}")
@@ -38,10 +42,13 @@ public class RefControlTests(SeleniumFixture fixture)
         });
 
         Assert.Equal("Count: 0", result.Browser.QuerySelector("span")?.Text);
+        Assert.Equal("0", await result.Browser.QuerySelector("span")!.GetAttributeAsync("data-count"));
         await result.Browser.QuerySelector("button")!.ClickAsync();
         Assert.Equal("Count: 1", result.Browser.QuerySelector("span")?.Text);
+        Assert.Equal("1", await result.Browser.QuerySelector("span")!.GetAttributeAsync("data-count"));
         await result.Browser.QuerySelector("button")!.ClickAsync();
         Assert.Equal("Count: 2", result.Browser.QuerySelector("span")?.Text);
+        Assert.Equal("2", await result.Browser.QuerySelector("span")!.GetAttributeAsync("data-count"));
     }
 
     [Theory, CombinatorialData]
