@@ -76,6 +76,7 @@ public static class ServiceExtensions
         services.TryAddSingleton<IWebFormsApplication, WebFormsApplications>();
         services.TryAddScoped<IWebObjectActivator, DefaultWebObjectActivator>();
         services.TryAddSingleton<IControlManager, DefaultControlManager>();
+        services.TryAddSingleton<IPageFactory, DefaultPageFactory>();
     }
 
     public static IWebFormsCoreBuilder TryAddDefaultPooledControls(this IWebFormsCoreBuilder builder)
