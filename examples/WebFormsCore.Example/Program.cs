@@ -72,22 +72,31 @@ app.UseWebFormsCore();
 
 app.MapControl("/button", () =>
 {
-    var label = new Ref<Label>();
+    var counter = new Ref<int>();
 
     return new Panel
     {
         Controls =
         [
-            new Label
-            {
-                Ref = label,
-                Text = "Not clicked"
-            },
             new Button
             {
-                Text = "Click me",
-                OnClick = (_, _) => label.Value.Text = "Clicked",
-            }
+                Text = "Increment",
+                OnClick = (_, _) =>
+                {
+                    counter.Value++;
+                }
+            },
+            new Panel
+            {
+                Controls =
+                [
+                    Text(() => $"Counter: {counter.Value}")
+                ],
+                Style =
+                {
+                    { "padding", () => $"{counter.Value}px" }
+                }
+            },
         ]
     };
 });

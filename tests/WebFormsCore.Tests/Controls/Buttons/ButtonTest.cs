@@ -19,7 +19,6 @@ public class ButtonTest(SeleniumFixture fixture)
         Assert.Equal("Success", result.Control.lblResult.FindBrowserElement().Text);
     }
 
-
     [Theory, ClassData(typeof(BrowserData))]
     public async Task ClickRef(Browser type)
     {
