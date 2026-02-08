@@ -11,6 +11,27 @@ namespace WebFormsCore.SourceGenerator;
 
 public abstract class DesignerGenerator : IIncrementalGenerator
 {
+    private const string LogDirectory = @"D:\Temp";
+
+    private static void LogException(string context, Exception ex)
+    {
+        try
+        {
+            if (!Directory.Exists(LogDirectory))
+            {
+                Directory.CreateDirectory(LogDirectory);
+            }
+
+            var logFile = Path.Combine(LogDirectory, $"WebFormsCore.SourceGenerator.{DateTime.Now:yyyyMMdd}.log");
+            var message = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [{context}] {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}\n\n";
+            File.AppendAllText(logFile, message);
+        }
+        catch
+        {
+            // Ignore logging failures
+        }
+    }
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Directory of the project
@@ -48,23 +69,30 @@ public abstract class DesignerGenerator : IIncrementalGenerator
                 RootNamespace: i.Right.Right,
                 ProjectDirectory: i.Right.Left.Left,
                 Namespaces: i.Right.Left.Right))
-            .Combine(context.CompilationProvider.Select((cp, _) => new WeakReference<Compilation>(cp)))
-            .WithComparer(new ControlComparer());
+            .Combine(context.CompilationProvider);
 
         IncrementalValuesProvider<ControlResult> results = controlContexts
-            .Select((i, _) => Generate(i))
+            .Select((i, _) => Generate(i.Left, i.Right))
             .Where(i => i is not null)!;
 
         context.RegisterSourceOutput(results, (spc, source) =>
         {
-            foreach (var diagnostic in source.Diagnostics)
+            try
             {
-                spc.ReportDiagnostic(diagnostic);
-            }
+                foreach (var diagnostic in source.Diagnostics)
+                {
+                    spc.ReportDiagnostic(diagnostic);
+                }
 
-            if (source.Context is { Code: { } code })
+                if (source.Context is { Code: { } code })
+                {
+                    spc.AddSource(source.Context.ClassName, code);
+                }
+            }
+            catch (Exception ex)
             {
-                spc.AddSource(source.Context.ClassName, code);
+                LogException("RegisterSourceOutput:results", ex);
+                throw;
             }
         });
 
@@ -117,52 +145,55 @@ public abstract class DesignerGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(allTypes, (spc, tuple) =>
         {
-            var ((source, referencedControls), rootNamespace) = tuple;
-            var addedPaths = new HashSet<string>();
-            var builder = ImmutableArray.CreateBuilder<ControlType>();
-
-            rootNamespace ??= source.FirstOrDefault(i => i.RootNamespace != null)?.RootNamespace;
-
-            foreach (var type in source)
+            try
             {
-                if (addedPaths.Add(type.RelativePath))
+                var ((source, referencedControls), rootNamespace) = tuple;
+                var addedPaths = new HashSet<string>();
+                var builder = ImmutableArray.CreateBuilder<ControlType>();
+
+                rootNamespace ??= source.FirstOrDefault(i => i.RootNamespace != null)?.RootNamespace;
+
+                foreach (var type in source)
                 {
-                    builder.Add(type);
+                    if (addedPaths.Add(type.RelativePath))
+                    {
+                        builder.Add(type);
+                    }
+                }
+
+                foreach (var type in referencedControls)
+                {
+                    if (addedPaths.Add(type.RelativePath))
+                    {
+                        builder.Add(type);
+                    }
+                }
+
+                var code = GetGenerateAssemblyTypeProvider(builder.ToImmutable(), rootNamespace);
+
+                if (code != null)
+                {
+                    spc.AddSource("GenerateAssemblyTypeProvider", code);
                 }
             }
-
-            foreach (var type in referencedControls)
+            catch (Exception ex)
             {
-                if (addedPaths.Add(type.RelativePath))
-                {
-                    builder.Add(type);
-                }
-            }
-
-            var code = GetGenerateAssemblyTypeProvider(builder.ToImmutable(), rootNamespace);
-
-            if (code != null)
-            {
-                spc.AddSource("GenerateAssemblyTypeProvider", code);
+                LogException("RegisterSourceOutput:allTypes", ex);
+                throw;
             }
         });
     }
 
     protected abstract string? GetGenerateAssemblyTypeProvider(ImmutableArray<ControlType> source, string? rootNamespace);
 
-    private ControlResult? Generate((ControlContext Left, WeakReference<Compilation> Right) items)
+    private ControlResult? Generate(ControlContext controlContext, Compilation compilation)
     {
-        var ((path, content, rootNamespace, projectDirectory, namespaces), weakReference) = items;
-
-        if (!weakReference.TryGetTarget(out var compilation))
-        {
-            throw new InvalidOperationException("Compilation is null");
-        }
-
-        rootNamespace ??= compilation.AssemblyName;
-
         try
         {
+            var (path, content, rootNamespace, projectDirectory, namespaces) = controlContext;
+
+            rootNamespace ??= compilation.AssemblyName;
+
             var fullPathRaw = projectDirectory is null ? path : Path.Combine(projectDirectory, path);
             var fullPath = fullPathRaw.Replace('\\', '/');
             var relativePath = fullPath;
@@ -214,35 +245,32 @@ public abstract class DesignerGenerator : IIncrementalGenerator
         }
         catch (Exception ex)
         {
-            var diagnostic = Diagnostic.Create(
-                Descriptors.SourceGeneratorException,
-                Location.None,
-                ex.ToString());
+            LogException($"Generate:{controlContext.Path}", ex);
 
-            return new ControlResult(
-                EquatableArray.FromEnumerable(new[]
-                {
-                    ReportedDiagnostic.Create(diagnostic.Descriptor, diagnostic.Location)
-                })
-            );
+            try
+            {
+                var diagnostic = Diagnostic.Create(
+                    Descriptors.SourceGeneratorException,
+                    Location.None,
+                    ex.ToString());
+
+                return new ControlResult(
+                    EquatableArray.FromEnumerable(new[]
+                    {
+                        ReportedDiagnostic.Create(diagnostic.Descriptor, diagnostic.Location)
+                    })
+                );
+            }
+            catch (Exception innerEx)
+            {
+                LogException($"Generate:DiagnosticCreation:{controlContext.Path}", innerEx);
+                // If even creating the diagnostic fails, return null to avoid crashing
+                return null;
+            }
         }
     }
 
     protected abstract string GenerateCode(DesignerModel output);
 }
 
-public class ControlComparer : IEqualityComparer<(ControlContext Left, WeakReference<Compilation> Right)>
-{
-    public bool Equals((ControlContext Left, WeakReference<Compilation> Right) x, (ControlContext Left, WeakReference<Compilation> Right) y)
-    {
-        return x.Left.Equals(y.Left);
-    }
-
-    public int GetHashCode((ControlContext Left, WeakReference<Compilation> Right) obj)
-    {
-        return obj.Left.GetHashCode();
-    }
-}
-
 public record ControlContext(string Path, string Content, string? RootNamespace, string? ProjectDirectory, ImmutableArray<KeyValuePair<string, string>> Namespaces);
-

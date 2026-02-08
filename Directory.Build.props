@@ -1,11 +1,11 @@
 <Project>
 
     <PropertyGroup>
-        <Version>0.0.1-alpha.78</Version>
+        <Version>0.0.1-alpha.79</Version>
         <PackageVersion>$(Version)</PackageVersion>
         <Authors>WebFormsCore</Authors>
         <RepositoryUrl>https://github.com/WebFormsCore/WebFormsCore</RepositoryUrl>
-        <Copyright>Copyright © 2025 WebFormsCore</Copyright>
+        <Copyright>Copyright © 2026 WebFormsCore</Copyright>
         <PackageTags>webformscore</PackageTags>
         <PackageProjectUrl>https://github.com/WebFormsCore/WebFormsCore</PackageProjectUrl>
         <PackageLicense>https://github.com/WebFormsCore/WebFormsCore/blob/main/LICENSE</PackageLicense>
