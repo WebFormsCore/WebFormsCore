@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -66,10 +67,13 @@ public static class AspNetCoreExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
         ArgumentException.ThrowIfNullOrWhiteSpace(pattern);
 
-        return endpoints.Map(pattern, async context =>
+        var builder = endpoints.Map(pattern, async context =>
         {
             await ExecutePageAsync<T>(context);
         });
+
+        ApplyPageMetadata(builder, typeof(T));
+        return builder;
     }
 
     public static IEndpointConventionBuilder MapPage(this IEndpointRouteBuilder endpoints, string pattern, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type page)
@@ -78,10 +82,13 @@ public static class AspNetCoreExtensions
         ArgumentException.ThrowIfNullOrWhiteSpace(pattern);
         ArgumentNullException.ThrowIfNull(page);
 
-        return endpoints.Map(pattern, async context =>
+        var builder = endpoints.Map(pattern, async context =>
         {
             await ExecutePageAsync(context, page);
         });
+
+        ApplyPageMetadata(builder, page);
+        return builder;
     }
 
     /// <summary>
@@ -132,10 +139,12 @@ public static class AspNetCoreExtensions
             var pattern = attribute.Pattern;
             var pageType = attribute.PageType;
 
-            endpoints.Map(pattern, async context =>
+            var builder = endpoints.Map(pattern, async context =>
             {
                 await ExecutePageAsync(context, pageType);
             });
+
+            ApplyPageMetadata(builder, pageType);
         }
     }
 
@@ -234,6 +243,32 @@ public static class AspNetCoreExtensions
         page.Controls.AddWithoutPageEvents(body);
 
         await ExecutePageAsync(context, page);
+    }
+
+    private static void ApplyPageMetadata(IEndpointConventionBuilder builder, Type pageType)
+    {
+        var attributes = pageType.GetCustomAttributes(true);
+
+        var authorizeData = attributes.OfType<IAuthorizeData>().ToArray();
+        if (authorizeData.Length > 0)
+        {
+            builder.RequireAuthorization(authorizeData);
+        }
+
+        if (attributes.OfType<IAllowAnonymous>().Any())
+        {
+            builder.AllowAnonymous();
+        }
+
+        foreach (var attribute in attributes)
+        {
+            if (attribute is IAuthorizeData or IAllowAnonymous)
+            {
+                continue;
+            }
+
+            builder.WithMetadata(attribute);
+        }
     }
 
     public static void RunPage(this IApplicationBuilder builder, string path)
