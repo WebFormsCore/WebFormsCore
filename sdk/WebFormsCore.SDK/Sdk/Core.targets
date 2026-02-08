@@ -22,6 +22,7 @@
     <ItemGroup>
         <Compile Remove="**/**.ascx.designer.cs" />
         <Compile Remove="**/**.aspx.designer.cs" />
+        <Compile Remove="**/**.Master.designer.cs" />
     </ItemGroup>
 
     <!-- Source Generator Configuration -->
@@ -37,8 +38,8 @@
 
     <!-- NuGet references -->
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true'">
-        <PackageReference Include="WebFormsCore" Version="0.0.1-alpha.76" />
-        <PackageReference Include="WebFormsCore.SourceGenerator" Version="0.0.1-alpha.76" OutputItemType="Analyzer" />
+        <PackageReference Include="WebFormsCore" Version="0.0.1-alpha.78" />
+        <PackageReference Include="WebFormsCore.SourceGenerator" Version="0.0.1-alpha.78" OutputItemType="Analyzer" />
     </ItemGroup>
 
     <!-- Control Compiler -->
@@ -50,9 +51,13 @@
         <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**">
             <CopyToOutputDirectory Condition="$(WebFormsCoreUseCompiler) == 'true'">PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>
+
+        <AdditionalFiles Include="**/*.Master" Exclude="bin\**;obj\**">
+            <CopyToOutputDirectory Condition="$(WebFormsCoreUseCompiler) == 'true'">PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
     </ItemGroup>
 
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true' and $(WebFormsCoreUseCompiler) == 'true'">
-        <PackageReference Include="WebFormsCore.Compiler" Version="0.0.1-alpha.76" />
+        <PackageReference Include="WebFormsCore.Compiler" Version="0.0.1-alpha.78" />
     </ItemGroup>
 </Project>

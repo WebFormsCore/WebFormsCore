@@ -16,7 +16,6 @@ public class Parser
         "CodeFile",
         "Description",
         "LinePragmas",
-        "MasterPageFile",
         "Src",
         "Strict"
     };
@@ -278,7 +277,7 @@ public class Parser
             Root.Namespaces.Add(nsImport.Value);
         }
 
-        if (element.DirectiveType is DirectiveType.Control or DirectiveType.Page)
+        if (element.DirectiveType is DirectiveType.Control or DirectiveType.Page or DirectiveType.Master)
         {
             if (element.Attributes.TryGetValue("language", out var languageStr))
             {
@@ -343,7 +342,9 @@ public class Parser
             }
             else
             {
-                Root.Inherits = _compilation.GetType("WebFormsCore.UI.Page");
+                Root.Inherits = element.DirectiveType == DirectiveType.Master
+                    ? _compilation.GetType("WebFormsCore.UI.MasterPage")
+                    : _compilation.GetType("WebFormsCore.UI.Page");
                 Root.Namespace = "WebFormsCore.UI";
             }
         }
@@ -359,6 +360,56 @@ public class Parser
                      element.Attributes.TryGetValue("src", out var src))
             {
                 RegisterControl(lexer, tagPrefix, tagName, src);
+            }
+        }
+
+        if (element.DirectiveType is DirectiveType.MasterType)
+        {
+            if (element.Attributes.TryGetValue("typename", out var typeName))
+            {
+                var masterType = _compilation.GetType(typeName.Value);
+
+                if (masterType != null)
+                {
+                    Root.MasterTypeName = masterType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                }
+            }
+            else if (element.Attributes.TryGetValue("virtualpath", out var virtualPath))
+            {
+                var masterPath = virtualPath.Value;
+
+                if (masterPath.StartsWith("~/"))
+                {
+                    masterPath = masterPath.Substring(2);
+                }
+                else if (masterPath.StartsWith("/"))
+                {
+                    masterPath = masterPath.Substring(1);
+                }
+
+                // Resolve the VirtualPath to a type by reading and parsing the master file
+                string? fullPath = null;
+
+                if (_rootDirectory is not null)
+                {
+                    fullPath = Path.Combine(_rootDirectory, masterPath).Replace('\\', '/');
+                }
+
+                if (fullPath != null && File.Exists(fullPath))
+                {
+                    var masterText = File.ReadAllText(fullPath);
+                    var masterInherits = RootNode.DetectInherits(masterText);
+
+                    if (masterInherits != null)
+                    {
+                        var masterType = _compilation.GetType(masterInherits);
+
+                        if (masterType != null)
+                        {
+                            Root.MasterTypeName = masterType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                        }
+                    }
+                }
             }
         }
     }

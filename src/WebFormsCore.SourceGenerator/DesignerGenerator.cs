@@ -36,7 +36,8 @@ public abstract class DesignerGenerator : IIncrementalGenerator
         // Controls
         var files = context.AdditionalTextsProvider
             .Where(a => a.Path.EndsWith(".aspx", StringComparison.OrdinalIgnoreCase) ||
-                        a.Path.EndsWith(".ascx", StringComparison.OrdinalIgnoreCase))
+                        a.Path.EndsWith(".ascx", StringComparison.OrdinalIgnoreCase) ||
+                        a.Path.EndsWith(".master", StringComparison.OrdinalIgnoreCase))
             .Select((text, cancellationToken) => (path: text.Path, content: text.GetText(cancellationToken)?.ToString() ?? ""));
 
         var controlContexts = files

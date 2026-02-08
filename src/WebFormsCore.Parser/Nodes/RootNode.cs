@@ -57,6 +57,8 @@ public class RootNode : ContainerNode
 
     public List<ControlId> Ids { get; set; } = new();
 
+    public string? MasterTypeName { get; set; }
+
     public List<ContainerNode> RenderMethods { get; set; } = new();
 
     public List<TokenString> InlineScripts { get; set; } = new();
@@ -109,7 +111,9 @@ public class RootNode : ContainerNode
     public string FullInheritsClassName => Inherits?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) ?? (
         Directives.Any(d => d.DirectiveType == DirectiveType.Page)
             ? "global::WebFormsCore.UI.Page"
-            : "global::WebFormsCore.UI.Control"
+            : Directives.Any(d => d.DirectiveType == DirectiveType.Master)
+                ? "global::WebFormsCore.UI.MasterPage"
+                : "global::WebFormsCore.UI.Control"
     );
 
     public string? ClassName { get; set; }

@@ -49,6 +49,10 @@ public class Page : Control, INamingContainer, IStateContainer, IInternalPage
 
     public HtmlBody? Body { get; internal set; }
 
+    public string? MasterPageFile { get; set; }
+
+    public MasterPage? Master { get; private set; }
+
     public Csp Csp { get; set; } = new();
 
     public EarlyHints EarlyHints { get; } = new();
@@ -195,6 +199,50 @@ public class Page : Control, INamingContainer, IStateContainer, IInternalPage
 
     protected override string GetUniqueIDPrefix() => "p$";
 
+    protected override void FrameworkInitialized()
+    {
+        base.FrameworkInitialized();
+
+        if (MasterPageFile is not { Length: > 0 } masterPageFile)
+        {
+            return;
+        }
+
+        // Resolve the path: strip ~/ prefix
+        var path = masterPageFile;
+
+        if (path.StartsWith("~/"))
+        {
+            path = path.Substring(2);
+        }
+        else if (path.StartsWith("/"))
+        {
+            path = path.Substring(1);
+        }
+
+        // Load the master page and add it to the control tree
+        var master = (MasterPage)LoadControl(path);
+        master.OwnerPage = this;
+        Master = master;
+        Controls.AddWithoutPageEvents(master);
+
+        // Match Content controls to ContentPlaceHolders
+        foreach (var control in Controls)
+        {
+            if (control is not Content { ContentPlaceHolderID: { } placeHolderId } content)
+            {
+                continue;
+            }
+
+            var placeHolder = master.FindContentPlaceHolder(placeHolderId);
+
+            if (placeHolder is not null)
+            {
+                placeHolder.Content = content;
+            }
+        }
+    }
+
     public void SetValidatorInvalidControlFocus(string? validateId)
     {
         // TODO: implement
@@ -240,6 +288,14 @@ public class Page : Control, INamingContainer, IStateContainer, IInternalPage
 
     protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
+        if (Master is not null)
+        {
+            // When using a master page, render through it.
+            // Content controls are rendered by their matched ContentPlaceHolders.
+            await Master.RenderAsync(writer, token);
+            return;
+        }
+
         if (Header is null)
         {
             await HtmlHead.RenderHeadStartAsync(this, writer);

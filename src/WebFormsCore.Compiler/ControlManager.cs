@@ -42,7 +42,7 @@ public class ControlManager : IDisposable, IControlManager
         {
             _logger?.LogDebug("Control watcher is enabled in {Path}", environment.ContentRootPath);
 
-            foreach (var extension in new[] { "*.aspx", "*.ascx" })
+            foreach (var extension in new[] { "*.aspx", "*.ascx", "*.master" })
             {
                 var watcher = new FileSystemWatcher(environment.ContentRootPath, extension)
                 {

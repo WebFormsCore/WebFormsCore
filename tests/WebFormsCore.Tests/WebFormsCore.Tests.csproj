@@ -30,6 +30,7 @@
     <ItemGroup>
         <AdditionalFiles Include="**/*.aspx" Exclude="bin\**;obj\**" />
         <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**" />
+        <AdditionalFiles Include="**/*.master" Exclude="bin\**;obj\**" />
         <AdditionalFiles Condition="Exists('web.config')" Include="web.config" Exclude="bin\**;obj\**" />
         <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
 
@@ -38,6 +39,10 @@
         </AdditionalFiles>
 
         <AdditionalFiles Update="**/*.ascx">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
+        <AdditionalFiles Update="**/*.master">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>
 
