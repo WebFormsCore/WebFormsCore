@@ -16,7 +16,6 @@ public class Parser
         "CodeFile",
         "Description",
         "LinePragmas",
-        "MasterPageFile",
         "Src",
         "Strict"
     };
@@ -278,7 +277,7 @@ public class Parser
             Root.Namespaces.Add(nsImport.Value);
         }
 
-        if (element.DirectiveType is DirectiveType.Control or DirectiveType.Page)
+        if (element.DirectiveType is DirectiveType.Control or DirectiveType.Page or DirectiveType.Master)
         {
             if (element.Attributes.TryGetValue("language", out var languageStr))
             {
@@ -343,7 +342,9 @@ public class Parser
             }
             else
             {
-                Root.Inherits = _compilation.GetType("WebFormsCore.UI.Page");
+                Root.Inherits = element.DirectiveType == DirectiveType.Master
+                    ? _compilation.GetType("WebFormsCore.UI.MasterPage")
+                    : _compilation.GetType("WebFormsCore.UI.Page");
                 Root.Namespace = "WebFormsCore.UI";
             }
         }

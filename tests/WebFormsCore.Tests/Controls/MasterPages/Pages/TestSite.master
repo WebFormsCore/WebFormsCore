@@ -1,0 +1,21 @@
+<%@ Master Language="C#" Inherits="WebFormsCore.Tests.Controls.MasterPages.Pages.TestSite" %>
+<%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI.WebControls" Assembly="WebFormsCore" %>
+<%@ Register TagPrefix="wfc" Namespace="WebFormsCore.UI.HtmlControls" Assembly="WebFormsCore" %>
+<!DOCTYPE html>
+<html lang="en">
+<head runat="server">
+    <title>Master Page Test</title>
+    <wfc:ContentPlaceHolder ID="head" runat="server" />
+</head>
+<body>
+    <div id="header">
+        <wfc:Label runat="server" ID="lblSiteTitle" Text="Test Site" />
+    </div>
+    <div id="content">
+        <wfc:ContentPlaceHolder ID="main" runat="server">
+            <p>Default content</p>
+        </wfc:ContentPlaceHolder>
+    </div>
+    <div id="footer">Footer</div>
+</body>
+</html>
