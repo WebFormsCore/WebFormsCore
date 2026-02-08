@@ -9,10 +9,10 @@ using WebFormsCore.UI;
 
 namespace WebFormsCore.SourceGenerator.Tests;
 
-public class EndPointDirectiveTests
+public class RouteDirectiveTests
 {
     [SkippableFact]
-    public void Designer_EmitsAssemblyEndPointAttribute()
+    public void Designer_EmitsAssemblyRouteAttribute()
     {
         Skip.IfNot(OperatingSystem.IsWindows(), "Line endings are different");
 
@@ -30,7 +30,7 @@ public class EndPointDirectiveTests
 
             namespace Tests
             {
-                public partial class EndPointPage : Page
+                public partial class RoutePage : Page
                 {
                 }
             }
@@ -45,9 +45,9 @@ public class EndPointDirectiveTests
         driver = driver.AddAdditionalTexts(
             ImmutableArray.Create<AdditionalText>(
                 new MemoryAdditionalText(
-                    "EndPointPage.aspx",
+                    "RoutePage.aspx",
                     """
-                    <%@ Page language="C#" Inherits="Tests.EndPointPage" EndPoint="/edit/{Id:int}" %>
+                    <%@ Page language="C#" Inherits="Tests.RoutePage" Route="/edit/{Id:int}" %>
                     <html>
                     <head runat="server"><title></title></head>
                     <body>
@@ -86,12 +86,12 @@ public class EndPointDirectiveTests
             runResult.Results.Single().GeneratedSources
                 .Select(s => s.SourceText.ToString()));
 
-        Assert.Contains("AssemblyEndPointAttribute", allGeneratedText);
+        Assert.Contains("AssemblyRouteAttribute", allGeneratedText);
         Assert.Contains(@"/edit/{Id:int}", allGeneratedText);
     }
 
     [SkippableFact]
-    public void Designer_OmitsAssemblyEndPointAttribute_WhenNoEndPoint()
+    public void Designer_OmitsAssemblyRouteAttribute_WhenNoRoute()
     {
         Skip.IfNot(OperatingSystem.IsWindows(), "Line endings are different");
 
@@ -166,6 +166,6 @@ public class EndPointDirectiveTests
                 .Select(s => s.SourceText.ToString()));
 
         Assert.Contains("AssemblyViewAttribute", allGeneratedText);
-        Assert.DoesNotContain("AssemblyEndPointAttribute", allGeneratedText);
+        Assert.DoesNotContain("AssemblyRouteAttribute", allGeneratedText);
     }
 }

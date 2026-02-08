@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace WebFormsCore;
 
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-public class AssemblyEndPointAttribute(
+public class AssemblyRouteAttribute(
     string pattern,
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type pageType
 ) : Attribute

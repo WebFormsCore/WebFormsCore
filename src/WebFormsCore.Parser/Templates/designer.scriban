@@ -167,8 +167,8 @@
 
 {{ for type in Types -}}
 [assembly:WebFormsCore.AssemblyViewAttribute(@"{{ type.RelativePath }}", typeof({{ type.Namespace ? (type.Namespace + ".") : ""  }}CompiledViews_{{ type.AssemblyName }}.{{ type.ClassName }}))]
-{{- if type.EndPoint }}
-[assembly:WebFormsCore.AssemblyEndPointAttribute(@"{{ type.EndPoint }}", typeof({{ type.Namespace ? (type.Namespace + ".") : ""  }}CompiledViews_{{ type.AssemblyName }}.{{ type.ClassName }}))]
+{{- if type.Route }}
+[assembly:WebFormsCore.AssemblyRouteAttribute(@"{{ type.Route }}", typeof({{ type.Namespace ? (type.Namespace + ".") : ""  }}CompiledViews_{{ type.AssemblyName }}.{{ type.ClassName }}))]
 {{- end }}
 {{ if type.Namespace }}
 namespace {{ type.Namespace }}

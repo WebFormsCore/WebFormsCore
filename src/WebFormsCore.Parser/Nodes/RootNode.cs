@@ -153,7 +153,7 @@ public class RootNode : ContainerNode
         }
     }
 
-    public string? EndPoint { get; set; }
+    public string? Route { get; set; }
 
     public string? Hash { get; set; }
 

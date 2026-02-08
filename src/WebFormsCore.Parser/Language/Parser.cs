@@ -18,7 +18,7 @@ public class Parser
         "LinePragmas",
         "Src",
         "Strict",
-        "EndPoint"
+        "Route"
     };
 
     private readonly Compilation _compilation;
@@ -350,9 +350,9 @@ public class Parser
             }
 
             if (element.DirectiveType is DirectiveType.Page &&
-                element.Attributes.TryGetValue("endpoint", out var endpointValue))
+                element.Attributes.TryGetValue("route", out var routeValue))
             {
-                Root.EndPoint = endpointValue.Value;
+                Root.Route = routeValue.Value;
             }
         }
 

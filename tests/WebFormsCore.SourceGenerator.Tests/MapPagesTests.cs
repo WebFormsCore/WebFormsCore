@@ -9,7 +9,7 @@ using WebFormsCore;
 using WebFormsCore.UI;
 
 // Assembly-level attribute applied at compile time for testing
-[assembly: AssemblyEndPointAttribute("/test/{Id:int}", typeof(WebFormsCore.SourceGenerator.Tests.MapPagesTestPage))]
+[assembly: AssemblyRouteAttribute("/test/{Id:int}", typeof(WebFormsCore.SourceGenerator.Tests.MapPagesTestPage))]
 
 namespace WebFormsCore.SourceGenerator.Tests;
 
@@ -20,10 +20,10 @@ public class MapPagesTestPage : Page
 public class MapPagesTests
 {
     [Fact]
-    public void AssemblyEndPointAttribute_IsAppliedCorrectly()
+    public void AssemblyRouteAttribute_IsAppliedCorrectly()
     {
         var assembly = typeof(MapPagesTestPage).Assembly;
-        var attributes = assembly.GetCustomAttributes<AssemblyEndPointAttribute>().ToList();
+        var attributes = assembly.GetCustomAttributes<AssemblyRouteAttribute>().ToList();
 
         Assert.NotEmpty(attributes);
         var attr = attributes.Single(a => a.PageType == typeof(MapPagesTestPage));
@@ -58,7 +58,7 @@ public class MapPagesTests
 
         var dataSourceCountBefore = ((IEndpointRouteBuilder)app).DataSources.Count;
 
-        // mscorlib/System.Runtime has no AssemblyEndPointAttributes
+        // mscorlib/System.Runtime has no AssemblyRouteAttributes
         AspNetCoreExtensions.MapPagesFromAssembly(app, typeof(object).Assembly);
 
         var dataSourceCountAfter = ((IEndpointRouteBuilder)app).DataSources.Count;

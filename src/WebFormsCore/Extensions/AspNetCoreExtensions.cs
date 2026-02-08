@@ -127,7 +127,7 @@ public static class AspNetCoreExtensions
 
     internal static void MapPagesFromAssembly(IEndpointRouteBuilder endpoints, Assembly assembly)
     {
-        foreach (var attribute in assembly.GetCustomAttributes<AssemblyEndPointAttribute>())
+        foreach (var attribute in assembly.GetCustomAttributes<AssemblyRouteAttribute>())
         {
             var pattern = attribute.Pattern;
             var pageType = attribute.PageType;
