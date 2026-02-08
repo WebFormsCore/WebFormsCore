@@ -23,7 +23,10 @@
 *.nupkg binary
 *.snupkg binary
 
-# Verify
-*.verified.cs text eol=lf working-tree-encoding=UTF-8
-*.verified.txt text eol=lf working-tree-encoding=UTF-8
-*.verified.vb text eol=lf working-tree-encoding=UTF-8
+# Test verification files
+*.verified.cs text eol=lf
+*.verified.txt text eol=lf
+*.verified.vb text eol=lf
+*.received.cs text eol=lf
+*.received.txt text eol=lf
+*.received.vb text eol=lf
