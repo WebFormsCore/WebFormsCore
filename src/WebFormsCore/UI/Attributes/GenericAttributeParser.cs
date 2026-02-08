@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
@@ -54,6 +54,8 @@ internal sealed class GenericAttributeParser<T> : IAttributeParser<T>
             throw new NotSupportedException($"Type {type.FullName} is not supported by GenericAttributeParser");
         }
     }
+
+    public bool SupportsRouteConstraint(string name) => _inner.SupportsRouteConstraint(name);
 
     public T Parse(string value) => _inner.Parse(value);
 }

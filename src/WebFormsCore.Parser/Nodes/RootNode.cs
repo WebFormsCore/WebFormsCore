@@ -153,6 +153,8 @@ public class RootNode : ContainerNode
         }
     }
 
+    public string? Route { get; set; }
+
     public string? Hash { get; set; }
 
     public string? VbNamespace { get; set; }

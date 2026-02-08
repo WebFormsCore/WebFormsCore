@@ -5,11 +5,7 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -54,14 +50,14 @@ jobs:
       - name: Upload Combined Coverage XML
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.os }}
+          name: coverage
           path: ${{ github.workspace }}/Cobertura.xml
           retention-days: 5
 
       - name: Upload Test Result Files
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.os }}
+          name: test-results
           path: ${{ github.workspace }}/**/TestResults/**/*
           retention-days: 5
 
@@ -70,7 +66,7 @@ jobs:
 
       - name: Publish WebFormsCore
         uses: GerardSmit/publish-nuget@v3.1.2
-        if: github.ref == 'refs/heads/main' && matrix.os == 'ubuntu-latest'
+        if: github.ref == 'refs/heads/main'
         with:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: Directory.Build.props
@@ -90,10 +86,6 @@ jobs:
             src/WebFormsCore.TestFramework.Selenium/WebFormsCore.TestFramework.Selenium.csproj
       
   test:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-
     name: test summary
     needs: [build]
     runs-on: ubuntu-latest
@@ -102,12 +94,12 @@ jobs:
       - name: Download Combined Coverage XML
         uses: actions/download-artifact@v4
         with:
-          name: test-results-${{ matrix.os }}
+          name: test-results
 
       - name: Download Test Result Files
         uses: actions/download-artifact@v4
         with:
-          name: coverage-${{ matrix.os }}
+          name: coverage
 
       - name: Publish Code Coverage Report
         uses: irongut/CodeCoverageSummary@v1.3.0
@@ -124,7 +116,7 @@ jobs:
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request' && matrix.os == 'windows-latest'
+        if: github.event_name == 'pull_request'
         with:
           recreate: true
           path: code-coverage-results.md
@@ -133,4 +125,4 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2.18.0
         with:
           trx_files: "${{ github.workspace }}/**/*.trx"
-          check_name: "Results (${{ matrix.os }})"
+          check_name: "Test Results"

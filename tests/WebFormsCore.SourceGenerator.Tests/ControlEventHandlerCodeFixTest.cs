@@ -11,7 +11,7 @@ namespace WebFormsCore.SourceGenerator.Tests;
 
 public class ControlEventHandlerCodeFixTest
 {
-    [SkippableFact]
+    [Fact]
     public async Task CodeFix_Adds_BaseCall_To_Empty_Async_Method()
     {
         const string code =
@@ -52,7 +52,7 @@ public class ControlEventHandlerCodeFixTest
         await VerifyCodeFixAsync(code, fixedCode);
     }
 
-    [SkippableFact]
+    [Fact]
     public async Task CodeFix_Adds_BaseCall_And_Async_To_NonAsync_Method()
     {
         const string code =
@@ -94,7 +94,7 @@ public class ControlEventHandlerCodeFixTest
         await VerifyCodeFixAsync(code, fixedCode);
     }
 
-    [SkippableFact]
+    [Fact]
     public async Task CodeFix_Adds_BaseCall_And_Converts_ValueTaskCompletedTask()
     {
         const string code =
@@ -136,7 +136,7 @@ public class ControlEventHandlerCodeFixTest
         await VerifyCodeFixAsync(code, fixedCode);
     }
 
-    [SkippableFact]
+    [Fact]
     public async Task CodeFix_Converts_ExpressionBody_To_Block()
     {
         const string code =
@@ -176,7 +176,7 @@ public class ControlEventHandlerCodeFixTest
         await VerifyCodeFixAsync(code, fixedCode);
     }
 
-    [SkippableFact]
+    [Fact]
     public async Task CodeFix_Replaces_Return_Default_With_Return_In_Branch()
     {
         const string code =
@@ -228,8 +228,6 @@ public class ControlEventHandlerCodeFixTest
 
     private static async Task VerifyCodeFixAsync(string source, string fixedSource)
     {
-        Skip.IfNot(OperatingSystem.IsWindows(), "Line endings are different");
-
         var expected = new DiagnosticResult(ControlEventHandlerAnalyzer.DiagnosticId, DiagnosticSeverity.Error)
             .WithLocation(0);
 
@@ -242,6 +240,22 @@ public class ControlEventHandlerCodeFixTest
                 referenceAssemblyPackage: new PackageIdentity("Microsoft.NETCore.App.Ref", "10.0.0-rc.2.25502.107"),
                 referenceAssemblyPath: Path.Combine("ref", "net10.0"))
         };
+
+        // Configure EditorConfig to force LF line endings for cross-platform compatibility
+        test.TestState.AnalyzerConfigFiles.Add(("/.editorconfig", """
+            root = true
+            
+            [*]
+            end_of_line = lf
+            
+            """));
+        test.FixedState.AnalyzerConfigFiles.Add(("/.editorconfig", """
+            root = true
+            
+            [*]
+            end_of_line = lf
+            
+            """));
 
         test.TestState.AdditionalReferences.Add(typeof(Control).Assembly);
         test.TestState.ExpectedDiagnostics.Add(expected);

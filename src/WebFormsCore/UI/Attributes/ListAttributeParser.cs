@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace WebFormsCore.UI.Attributes;
 
@@ -11,6 +11,8 @@ public class ListAttributeParser<T> : IAttributeParser<List<T>>
     {
         _parser = parser;
     }
+
+    public bool SupportsRouteConstraint(string name) => false;
 
     public List<T> Parse(string value)
     {

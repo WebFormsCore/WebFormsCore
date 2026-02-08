@@ -38,6 +38,7 @@
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="WebFormsCore.Tests" />
+		<InternalsVisibleTo Include="WebFormsCore.SourceGenerator.Tests" />
 	</ItemGroup>
 
 </Project>

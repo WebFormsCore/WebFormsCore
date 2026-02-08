@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -79,6 +82,61 @@ public static class AspNetCoreExtensions
         {
             await ExecutePageAsync(context, page);
         });
+    }
+
+    /// <summary>
+    /// Discovers all pages with <c>EndPoint</c> directives and maps them as ASP.NET Core endpoints.
+    /// Pages declare their endpoint pattern in the .aspx file:
+    /// <code>&lt;%@ Page EndPoint="/edit/{Id:int}" %&gt;</code>
+    /// </summary>
+    public static IEndpointRouteBuilder MapPages(this IEndpointRouteBuilder endpoints)
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+
+        var visited = new HashSet<Assembly>();
+        var entry = Assembly.GetEntryAssembly();
+
+        if (entry != null)
+        {
+            MapPagesFromAssemblies(endpoints, entry, visited);
+        }
+
+        return endpoints;
+    }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Assembly references are needed for endpoint discovery")]
+    private static void MapPagesFromAssemblies(IEndpointRouteBuilder endpoints, Assembly assembly, HashSet<Assembly> visited)
+    {
+        if (!visited.Add(assembly))
+        {
+            return;
+        }
+
+        MapPagesFromAssembly(endpoints, assembly);
+
+        var loaded = AppDomain.CurrentDomain.GetAssemblies().ToDictionary(a => a.GetName().FullName);
+
+        foreach (var referencedName in assembly.GetReferencedAssemblies())
+        {
+            if (loaded.TryGetValue(referencedName.FullName, out var referenced))
+            {
+                MapPagesFromAssemblies(endpoints, referenced, visited);
+            }
+        }
+    }
+
+    internal static void MapPagesFromAssembly(IEndpointRouteBuilder endpoints, Assembly assembly)
+    {
+        foreach (var attribute in assembly.GetCustomAttributes<AssemblyRouteAttribute>())
+        {
+            var pattern = attribute.Pattern;
+            var pageType = attribute.PageType;
+
+            endpoints.Map(pattern, async context =>
+            {
+                await ExecutePageAsync(context, pageType);
+            });
+        }
     }
 
     public static IEndpointConventionBuilder MapControl<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TControl>(this IEndpointRouteBuilder endpoints, string pattern)

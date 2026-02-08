@@ -13,7 +13,7 @@ public class LegacyEventHandlerCodeFixTest
 {
     #region Code Fix Tests - Legacy Page_X Methods
 
-    [SkippableFact]
+    [Fact]
     public async Task CodeFix_Converts_Page_Init_To_OnInitAsync()
     {
         const string code =
@@ -64,7 +64,7 @@ public class LegacyEventHandlerCodeFixTest
         await VerifyCodeFixAsync(code, expected, fixedCode);
     }
 
-    [SkippableFact]
+    [Fact]
     public async Task CodeFix_Converts_Page_Load_To_OnLoadAsync()
     {
         const string code =
@@ -115,7 +115,7 @@ public class LegacyEventHandlerCodeFixTest
         await VerifyCodeFixAsync(code, expected, fixedCode);
     }
 
-    [SkippableFact]
+    [Fact]
     public async Task CodeFix_Page_Init_Adds_Base_Call()
     {
         // Page_Init doesn't have base call in original, but async version MUST have it
@@ -167,7 +167,7 @@ public class LegacyEventHandlerCodeFixTest
         await VerifyCodeFixAsync(code, expected, fixedCode);
     }
 
-    [SkippableFact]
+    [Fact]
     public async Task CodeFix_Page_PreRender_To_OnPreRenderAsync()
     {
         const string code =
@@ -222,7 +222,7 @@ public class LegacyEventHandlerCodeFixTest
 
     #region Code Fix Tests - Preserves Using Statements
 
-    [SkippableFact]
+    [Fact]
     public async Task CodeFix_Does_Not_Duplicate_Using_Statements()
     {
         const string code =
@@ -279,8 +279,6 @@ public class LegacyEventHandlerCodeFixTest
 
     private static async Task VerifyCodeFixAsync(string source, DiagnosticResult expected, string fixedSource)
     {
-        Skip.IfNot(OperatingSystem.IsWindows(), "Line endings are different");
-
         var test = new CSharpCodeFixTest<LegacyEventHandlerAnalyzer, LegacyEventHandlerCodeFixProvider, DefaultVerifier>
         {
             TestCode = source,
@@ -290,6 +288,22 @@ public class LegacyEventHandlerCodeFixTest
                 referenceAssemblyPackage: new PackageIdentity("Microsoft.NETCore.App.Ref", "10.0.0-rc.2.25502.107"),
                 referenceAssemblyPath: Path.Combine("ref", "net10.0"))
         };
+
+        // Configure EditorConfig to force LF line endings for cross-platform compatibility
+        test.TestState.AnalyzerConfigFiles.Add(("/.editorconfig", """
+            root = true
+            
+            [*]
+            end_of_line = lf
+            
+            """));
+        test.FixedState.AnalyzerConfigFiles.Add(("/.editorconfig", """
+            root = true
+            
+            [*]
+            end_of_line = lf
+            
+            """));
 
         test.TestState.AdditionalReferences.Add(typeof(Control).Assembly);
         test.ExpectedDiagnostics.Add(expected);
