@@ -185,6 +185,11 @@ partial class {{ type.InheritsClassName }}
 {{- end }}
 {{- end }}
 
+    {{- if type.MasterTypeName }}
+
+    public new {{ type.MasterTypeName }} Master => ({{ type.MasterTypeName }})base.Master!;
+    {{- end }}
+
     {{- for template in type.Templates }}
     {{- if template.ControlsType }}
 

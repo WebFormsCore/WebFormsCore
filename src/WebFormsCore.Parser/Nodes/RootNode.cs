@@ -57,6 +57,8 @@ public class RootNode : ContainerNode
 
     public List<ControlId> Ids { get; set; } = new();
 
+    public string? MasterTypeName { get; set; }
+
     public List<ContainerNode> RenderMethods { get; set; } = new();
 
     public List<TokenString> InlineScripts { get; set; } = new();

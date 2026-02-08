@@ -22,6 +22,7 @@
     <ItemGroup>
         <Compile Remove="**/**.ascx.designer.cs" />
         <Compile Remove="**/**.aspx.designer.cs" />
+        <Compile Remove="**/**.Master.designer.cs" />
     </ItemGroup>
 
     <!-- Source Generator Configuration -->
@@ -48,6 +49,10 @@
         </AdditionalFiles>
 
         <AdditionalFiles Include="**/*.ascx" Exclude="bin\**;obj\**">
+            <CopyToOutputDirectory Condition="$(WebFormsCoreUseCompiler) == 'true'">PreserveNewest</CopyToOutputDirectory>
+        </AdditionalFiles>
+
+        <AdditionalFiles Include="**/*.Master" Exclude="bin\**;obj\**">
             <CopyToOutputDirectory Condition="$(WebFormsCoreUseCompiler) == 'true'">PreserveNewest</CopyToOutputDirectory>
         </AdditionalFiles>
     </ItemGroup>
