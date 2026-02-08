@@ -7,6 +7,8 @@ namespace WebFormsCore.UI.Attributes;
 
 public class TypeAttributeParser : IAttributeParser<Type>
 {
+    public bool SupportsRouteConstraint(string name) => false;
+
     public Type Parse(string value)
     {
         var type = Type.GetType(value, false);

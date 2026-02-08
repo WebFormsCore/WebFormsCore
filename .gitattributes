@@ -1,0 +1,24 @@
+* text=auto eol=lf
+
+# Binary file
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.bmp binary
+*.webp binary
+*.dll binary
+*.exe binary
+*.pdb binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+*.ttf binary
+*.otf binary
+*.zip binary
+*.7z binary
+*.gz binary
+*.tar binary
+*.nupkg binary
+*.snupkg binary

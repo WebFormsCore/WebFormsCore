@@ -1,0 +1,63 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# Top-most EditorConfig file
+root = true
+
+# All files
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+end_of_line = lf
+
+# Code files
+[*.{cs,csx,vb,vbx}]
+indent_size = 4
+indent_style = space
+
+# XML project files
+[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}]
+indent_size = 4
+indent_style = space
+
+# XML config files
+[*.{props,targets,ruleset,config,nuspec,resx,vsixmanifest,vsct}]
+indent_size = 4
+indent_style = space
+
+# JSON files
+[*.json]
+indent_size = 2
+indent_style = space
+
+# YAML files
+[*.{yml,yaml}]
+indent_size = 2
+indent_style = space
+
+# JavaScript/TypeScript files
+[*.{js,ts,tsx,jsx}]
+indent_size = 4
+indent_style = space
+
+# HTML/CSS files
+[*.{html,htm,css,scss,less}]
+indent_size = 2
+indent_style = space
+
+# ASP.NET files
+[*.{aspx,ascx,master,ashx,asmx,cshtml,vbhtml}]
+indent_size = 4
+indent_style = space
+
+# Markdown files
+[*.md]
+trim_trailing_whitespace = false
+
+# Shell scripts
+[*.sh]
+end_of_line = lf
+
+# Batch scripts
+[*.{cmd,bat}]
+end_of_line = crlf

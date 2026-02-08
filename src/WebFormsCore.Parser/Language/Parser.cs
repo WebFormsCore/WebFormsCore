@@ -17,7 +17,8 @@ public class Parser
         "Description",
         "LinePragmas",
         "Src",
-        "Strict"
+        "Strict",
+        "EndPoint"
     };
 
     private readonly Compilation _compilation;
@@ -346,6 +347,12 @@ public class Parser
                     ? _compilation.GetType("WebFormsCore.UI.MasterPage")
                     : _compilation.GetType("WebFormsCore.UI.Page");
                 Root.Namespace = "WebFormsCore.UI";
+            }
+
+            if (element.DirectiveType is DirectiveType.Page &&
+                element.Attributes.TryGetValue("endpoint", out var endpointValue))
+            {
+                Root.EndPoint = endpointValue.Value;
             }
         }
 

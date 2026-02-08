@@ -134,6 +134,14 @@ public static class ServiceExtensions
         builder.Services.TryAddSingleton<IAttributeParser<int>, Int32AttributeParser>();
         builder.Services.TryAddSingleton<IAttributeParser<int?>, NullableAttributeParser<int>>();
         builder.Services.TryAddSingleton<IAttributeParser<bool>, BoolAttributeParser>();
+        builder.Services.TryAddSingleton<IAttributeParser<long>, Int64AttributeParser>();
+        builder.Services.TryAddSingleton<IAttributeParser<short>, Int16AttributeParser>();
+        builder.Services.TryAddSingleton<IAttributeParser<byte>, ByteAttributeParser>();
+        builder.Services.TryAddSingleton<IAttributeParser<double>, DoubleAttributeParser>();
+        builder.Services.TryAddSingleton<IAttributeParser<float>, SingleAttributeParser>();
+        builder.Services.TryAddSingleton<IAttributeParser<decimal>, DecimalAttributeParser>();
+        builder.Services.TryAddSingleton<IAttributeParser<Guid>, GuidAttributeParser>();
+        builder.Services.TryAddSingleton<IAttributeParser<DateTime>, DateTimeAttributeParser>();
         builder.Services.TryAddSingleton<IAttributeParser<Unit>, UnitAttributeParser>();
         builder.Services.TryAddSingleton<IAttributeParser<string[]>, ArrayAttributeParser<string>>();
         builder.Services.TryAddSingleton<IAttributeParser<IReadOnlyList<string>>, ArrayAttributeParser<string>>();

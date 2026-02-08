@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace WebFormsCore.UI.Attributes;
@@ -12,6 +12,16 @@ public class ArrayAttributeParser<T> : IAttributeParser<T[]>
     public ArrayAttributeParser(IAttributeParser<T> parser)
     {
         _parser = parser;
+    }
+
+    public bool SupportsRouteConstraint(string name)
+    {
+        if (!name.EndsWith("[]", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return _parser.SupportsRouteConstraint(name[..^2]);
     }
 
     public T[] Parse(string value)

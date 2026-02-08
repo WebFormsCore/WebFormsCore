@@ -10,6 +10,8 @@ public class NullableAttributeParser<T> : IAttributeParser<T?>
         _parser = parser;
     }
 
+    public bool SupportsRouteConstraint(string name) => _parser is IAttributeParser p && p.SupportsRouteConstraint(name);
+
     public T? Parse(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
