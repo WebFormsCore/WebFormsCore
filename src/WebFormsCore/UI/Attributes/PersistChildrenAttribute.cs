@@ -1,5 +1,4 @@
-﻿#if !NETFRAMEWORK
-// ReSharper disable once CheckNamespace
+﻿// ReSharper disable once CheckNamespace
 
 using System.Diagnostics.CodeAnalysis;
 
@@ -62,4 +61,3 @@ public sealed class PersistChildrenAttribute : Attribute
     /// <returns>true if the value of the current instance of the <see cref="T:System.Web.UI.PersistChildrenAttribute" /> is the default instance; otherwise, false. </returns>
     public override bool IsDefaultAttribute() => Equals(Default);
 }
-#endif

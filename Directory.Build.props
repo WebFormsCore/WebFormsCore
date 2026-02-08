@@ -16,8 +16,8 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <DotNetVersions>net8.0;net9.0;net10.0</DotNetVersions>
-        <ExeDotNetVersions>net8.0;net9.0;net10.0</ExeDotNetVersions>
+        <DotNetVersions>net10.0</DotNetVersions>
+        <ExeDotNetVersions>net10.0</ExeDotNetVersions>
     </PropertyGroup>
 
 </Project>

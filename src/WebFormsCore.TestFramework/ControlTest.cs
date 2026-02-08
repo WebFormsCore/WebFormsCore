@@ -51,19 +51,11 @@ public class ControlTest
 
         var certificate = request.CreateSelfSigned(new DateTimeOffset(DateTime.UtcNow.AddDays(-1)), new DateTimeOffset(DateTime.UtcNow.AddDays(3650)));
 
-    #if NET9_0_OR_GREATER
         Certificate = X509CertificateLoader.LoadPkcs12(
             certificate.Export(X509ContentType.Pfx, Password),
             Password,
             X509KeyStorageFlags.PersistKeySet
         );
-#else
-        Certificate = new X509Certificate2(
-            certificate.Export(X509ContentType.Pfx, Password),
-            Password,
-            X509KeyStorageFlags.PersistKeySet
-        );
-#endif
     }
 
     public static async Task<ITestContext<TControl>> StartBrowserAsync<TControl>(

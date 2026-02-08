@@ -1,5 +1,4 @@
-﻿#if !NETFRAMEWORK
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 
 // ReSharper disable once CheckNamespace
@@ -25,8 +24,3 @@ public sealed class ValidationPropertyAttribute : Attribute
     /// </summary>
     public string Name { get; }
 }
-#else
-using System.Runtime.CompilerServices;
-
-[assembly: TypeForwardedTo(typeof(System.Web.UI.ValidationPropertyAttribute))]
-#endif

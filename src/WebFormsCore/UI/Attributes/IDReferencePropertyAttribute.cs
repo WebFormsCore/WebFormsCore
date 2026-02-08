@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-#if !NETFRAMEWORK
 // ReSharper disable once CheckNamespace
 namespace System.Web.UI;
 
@@ -39,8 +38,3 @@ public sealed class IDReferencePropertyAttribute : Attribute
     /// </summary>
     public Type? ReferencedControlType { get; }
 }
-#else
-using System.Runtime.CompilerServices;
-
-[assembly: TypeForwardedTo(typeof(System.Web.UI.IDReferencePropertyAttribute))]
-#endif
