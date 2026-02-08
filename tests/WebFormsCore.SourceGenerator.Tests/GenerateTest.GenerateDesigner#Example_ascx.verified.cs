@@ -43,7 +43,7 @@ public partial class CompiledViews_Tests
 
             
             this.litTest = ctrl0;
-            this.AddParsedSubObject(WebActivator.CreateLiteral("\r\n"));
+            this.AddParsedSubObject(WebActivator.CreateLiteral("\n"));
             var ctrl1 = WebActivator.CreateControl<global::WebFormsCore.UI.WebControls.Button>();
             ctrl1.ID = "btnIncrement";
             this.AddParsedSubObject(ctrl1);

@@ -11,10 +11,9 @@ namespace WebFormsCore.SourceGenerator.Tests;
 
 public class RouteDirectiveTests
 {
-    [SkippableFact]
+    [Fact]
     public void Designer_EmitsAssemblyRouteAttribute()
     {
-        Skip.IfNot(OperatingSystem.IsWindows(), "Line endings are different");
 
         var generator = new CSharpDesignGenerator();
         GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
@@ -90,10 +89,9 @@ public class RouteDirectiveTests
         Assert.Contains(@"/edit/{Id:int}", allGeneratedText);
     }
 
-    [SkippableFact]
+    [Fact]
     public void Designer_OmitsAssemblyRouteAttribute_WhenNoRoute()
     {
-        Skip.IfNot(OperatingSystem.IsWindows(), "Line endings are different");
 
         var generator = new CSharpDesignGenerator();
         GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);

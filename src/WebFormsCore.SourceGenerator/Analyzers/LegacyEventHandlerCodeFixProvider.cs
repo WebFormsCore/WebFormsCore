@@ -131,7 +131,7 @@ public class LegacyEventHandlerCodeFixProvider : CodeFixProvider
                         SyntaxFactory.SingletonSeparatedList(
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")))))))
             .WithLeadingTrivia(SyntaxFactory.Whitespace(bodyIndent))
-            .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
+            .WithTrailingTrivia(SyntaxFactory.LineFeed);
 
         // Get the existing method body statements
         var existingStatements = new List<StatementSyntax>();
@@ -155,7 +155,7 @@ public class LegacyEventHandlerCodeFixProvider : CodeFixProvider
                 existingStatements.Add(
                     SyntaxFactory.ExpressionStatement(expr)
                         .WithLeadingTrivia(SyntaxFactory.Whitespace(bodyIndent))
-                        .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
+                        .WithTrailingTrivia(SyntaxFactory.LineFeed));
             }
         }
 
@@ -166,10 +166,10 @@ public class LegacyEventHandlerCodeFixProvider : CodeFixProvider
         var body = SyntaxFactory.Block(statements)
             .WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
                 .WithLeadingTrivia(SyntaxFactory.Whitespace(methodIndent))
-                .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed))
+                .WithTrailingTrivia(SyntaxFactory.LineFeed))
             .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken)
                 .WithLeadingTrivia(SyntaxFactory.Whitespace(methodIndent))
-                .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
+                .WithTrailingTrivia(SyntaxFactory.LineFeed));
 
         // Create the new method
         var newMethod = SyntaxFactory.MethodDeclaration(
@@ -179,7 +179,7 @@ public class LegacyEventHandlerCodeFixProvider : CodeFixProvider
             .WithParameterList(
                 SyntaxFactory.ParameterList(
                     SyntaxFactory.SingletonSeparatedList(parameter))
-                .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed))
+                .WithTrailingTrivia(SyntaxFactory.LineFeed))
             .WithBody(body)
             .WithLeadingTrivia(originalMethod.GetLeadingTrivia());
 
@@ -200,7 +200,7 @@ public class LegacyEventHandlerCodeFixProvider : CodeFixProvider
         // Preserve the statement with proper indentation
         return statement
             .WithLeadingTrivia(SyntaxFactory.Whitespace(indent))
-            .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
+            .WithTrailingTrivia(SyntaxFactory.LineFeed);
     }
 
     private static bool IsLegacyBaseCall(ExpressionSyntax expression)
@@ -240,13 +240,13 @@ public class LegacyEventHandlerCodeFixProvider : CodeFixProvider
         if (!hasThreading)
         {
             newUsings.Add(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Threading"))
-                .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
+                .WithTrailingTrivia(SyntaxFactory.LineFeed));
         }
 
         if (!hasTasks)
         {
             newUsings.Add(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Threading.Tasks"))
-                .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
+                .WithTrailingTrivia(SyntaxFactory.LineFeed));
         }
 
         if (newUsings.Count > 0)

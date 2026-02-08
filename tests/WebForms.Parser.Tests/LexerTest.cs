@@ -5,21 +5,20 @@ namespace WebFormsCore.Parser.Tests;
 
 public class LexerTest
 {
-    [SkippableTheory]
+    [Theory]
     [InlineData("text", """<div>Test</div>""")]
     [InlineData("control", """<div runat="server"><Inner><span runat="server" /></Inner></div>""")]
     [InlineData("script", "<html><body><script></script></body></html>")]
-    [InlineData("include", """<!--#include file="Common/Include.ascx" -->""")]
-    [InlineData("img", """<img src="test.png" />""")]
-    [InlineData("img-expression", """<img src="<%= Var %>" />""")]
+    [InlineData("include", """<!--#include file="Common/Include.ascx" -->""")] 
+    [InlineData("img", """<img src="test.png" />""")] 
+    [InlineData("img-expression", """<img src="<%= Var %>" />""")] 
     [InlineData("newline", """
        <fortyfingers:STYLEHELPER ID="favicon" runat="server" AddToHead='
           <link rel="icon" type="image/ico" href="[S]img/favicon.ico" />
        ' AddAtEnd="False" />
-       """)]
+       """ )]
     public Task TestLexer(string name, string input)
     {
-        Skip.IfNot(OperatingSystem.IsWindows(), "Line endings are different");
 
         var lexer = new Lexer("Tests.aspx", input);
         var output = new List<Token>();

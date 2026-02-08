@@ -69,7 +69,7 @@ public class ControlEventHandlerCodeFixProvider : CodeFixProvider
                         SyntaxFactory.SingletonSeparatedList(
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName(parameterName)))))))
             .WithLeadingTrivia(SyntaxFactory.Whitespace(bodyIndent))
-            .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
+            .WithTrailingTrivia(SyntaxFactory.LineFeed);
 
         MethodDeclarationSyntax newMethod;
 
@@ -89,23 +89,23 @@ public class ControlEventHandlerCodeFixProvider : CodeFixProvider
                 // Keep the await as a statement
                 statements.Add(SyntaxFactory.ExpressionStatement(existingExpression)
                     .WithLeadingTrivia(SyntaxFactory.Whitespace(bodyIndent))
-                    .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
+                    .WithTrailingTrivia(SyntaxFactory.LineFeed));
             }
             else
             {
                 // Keep as return statement
                 statements.Add(SyntaxFactory.ReturnStatement(existingExpression)
                     .WithLeadingTrivia(SyntaxFactory.Whitespace(bodyIndent))
-                    .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
+                    .WithTrailingTrivia(SyntaxFactory.LineFeed));
             }
 
             var block = SyntaxFactory.Block(statements)
                 .WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
                     .WithLeadingTrivia(SyntaxFactory.Whitespace(methodIndent))
-                    .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed))
+                    .WithTrailingTrivia(SyntaxFactory.LineFeed))
                 .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken)
                     .WithLeadingTrivia(SyntaxFactory.Whitespace(methodIndent))
-                    .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
+                    .WithTrailingTrivia(SyntaxFactory.LineFeed));
 
             // Remove trailing whitespace/newlines from the method signature before adding the body
             var cleanedMethod = methodDeclaration
@@ -117,7 +117,7 @@ public class ControlEventHandlerCodeFixProvider : CodeFixProvider
             if (paramList.CloseParenToken.TrailingTrivia.Any(t => t.IsKind(SyntaxKind.EndOfLineTrivia) || t.IsKind(SyntaxKind.WhitespaceTrivia)))
             {
                 paramList = paramList.WithCloseParenToken(
-                    paramList.CloseParenToken.WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
+                    paramList.CloseParenToken.WithTrailingTrivia(SyntaxFactory.LineFeed));
                 cleanedMethod = cleanedMethod.WithParameterList(paramList);
             }
 

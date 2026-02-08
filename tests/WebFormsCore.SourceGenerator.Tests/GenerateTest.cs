@@ -15,10 +15,9 @@ namespace WebFormsCore.SourceGenerator.Tests;
 
 public class GenerateTest
 {
-    [SkippableFact]
+    [Fact]
     public Task GenerateDesigner()
     {
-        Skip.IfNot(OperatingSystem.IsWindows(), "Line endings are different");
 
         var generator = new CSharpDesignGenerator();
         GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
@@ -146,10 +145,9 @@ public class GenerateTest
         return Verifier.Verify(driver);
     }
 
-    [SkippableFact]
+    [Fact]
     public Task GenerateViewState()
     {
-        Skip.IfNot(OperatingSystem.IsWindows(), "Line endings are different");
 
         var generator = new ViewStateGenerator();
         GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
@@ -186,10 +184,9 @@ public class GenerateTest
         return Verifier.Verify(driver);
     }
 
-    [SkippableFact]
+    [Fact]
     public Task GenerateDesignerVisualBasic()
     {
-        Skip.IfNot(OperatingSystem.IsWindows(), "Line endings are different");
 
         var generator = new VisualBasicDesignGenerator();
         

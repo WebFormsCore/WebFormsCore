@@ -228,7 +228,7 @@
         Column: 65
       },
       End: {
-        Offset: 134,
+        Offset: 132,
         Line: 2
       }
     },
@@ -236,8 +236,8 @@
       Value:
    <link rel="icon" type="image/ico" href="[S]img/favicon.ico" />
 ,
-      CodeString: "\r\n   <link rel=\"icon\" type=\"image/ico\" href=\"[S]img/favicon.ico\" />\r\n",
-      VbCodeString: "" + vbCrLf + "   <link rel=""icon"" type=""image/ico"" href=""[S]img/favicon.ico"" />" + vbCrLf + "",
+      CodeString: "\n   <link rel=\"icon\" type=\"image/ico\" href=\"[S]img/favicon.ico\" />\n",
+      VbCodeString: "" + vbLf + "   <link rel=""icon"" type=""image/ico"" href=""[S]img/favicon.ico"" />" + vbLf + "",
       Range: {
         File: {CurrentDirectory}Tests.aspx,
         Start: {
@@ -245,7 +245,7 @@
           Column: 65
         },
         End: {
-          Offset: 134,
+          Offset: 132,
           Line: 2
         }
       }
@@ -256,12 +256,12 @@
     Range: {
       File: {CurrentDirectory}Tests.aspx,
       Start: {
-        Offset: 136,
+        Offset: 134,
         Line: 2,
         Column: 2
       },
       End: {
-        Offset: 144,
+        Offset: 142,
         Line: 2,
         Column: 10
       }
@@ -273,12 +273,12 @@
       Range: {
         File: {CurrentDirectory}Tests.aspx,
         Start: {
-          Offset: 136,
+          Offset: 134,
           Line: 2,
           Column: 2
         },
         End: {
-          Offset: 144,
+          Offset: 142,
           Line: 2,
           Column: 10
         }
@@ -290,12 +290,12 @@
     Range: {
       File: {CurrentDirectory}Tests.aspx,
       Start: {
-        Offset: 146,
+        Offset: 144,
         Line: 2,
         Column: 12
       },
       End: {
-        Offset: 151,
+        Offset: 149,
         Line: 2,
         Column: 17
       }
@@ -307,12 +307,12 @@
       Range: {
         File: {CurrentDirectory}Tests.aspx,
         Start: {
-          Offset: 146,
+          Offset: 144,
           Line: 2,
           Column: 12
         },
         End: {
-          Offset: 151,
+          Offset: 149,
           Line: 2,
           Column: 17
         }
@@ -324,12 +324,12 @@
     Range: {
       File: {CurrentDirectory}Tests.aspx,
       Start: {
-        Offset: 153,
+        Offset: 151,
         Line: 2,
         Column: 19
       },
       End: {
-        Offset: 155,
+        Offset: 153,
         Line: 2,
         Column: 21
       }

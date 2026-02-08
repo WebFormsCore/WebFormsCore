@@ -23,7 +23,7 @@
 *.nupkg binary
 *.snupkg binary
 
-# Test verification files
+# Test verification files - all use LF
 *.verified.cs text eol=lf
 *.verified.txt text eol=lf
 *.verified.vb text eol=lf
