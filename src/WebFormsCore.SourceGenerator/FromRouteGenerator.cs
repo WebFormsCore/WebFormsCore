@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
 using System.Text;
+using WebFormsCore.SourceGenerator.Models;
 
 namespace WebFormsCore.SourceGenerator;
 
@@ -18,9 +19,12 @@ public class FromRouteGenerator : IIncrementalGenerator
                 transform: static (ctx, _) => Transform(ctx))
             .Where(static x => x.Properties.Length > 0);
 
+        var languageVersion = context.CompilationProvider
+            .Select(static (c, _) => c is CSharpCompilation cs ? (int)cs.LanguageVersion : 0);
+
         var compilationAndTypes = typeDeclarations
             .Collect()
-            .Combine(context.CompilationProvider);
+            .Combine(languageVersion);
 
         context.RegisterSourceOutput(compilationAndTypes, static (spc, source) => Execute(spc, source.Left, source.Right));
     }
@@ -111,7 +115,7 @@ public class FromRouteGenerator : IIncrementalGenerator
     private readonly record struct TypeInfo(
         string? Namespace,
         string TypeName,
-        ImmutableArray<RoutePropertyInfo> Properties
+        EquatableArray<RoutePropertyInfo> Properties
     );
 
     private static TypeInfo Transform(GeneratorSyntaxContext ctx)
@@ -217,9 +221,9 @@ public class FromRouteGenerator : IIncrementalGenerator
         );
     }
 
-    private static void Execute(SourceProductionContext context, ImmutableArray<TypeInfo> types, Compilation compilation)
+    private static void Execute(SourceProductionContext context, ImmutableArray<TypeInfo> types, int languageVersion)
     {
-        if (compilation is CSharpCompilation { LanguageVersion: < (LanguageVersion)1300 })
+        if (languageVersion is > 0 and < 1300)
         {
             return;
         }

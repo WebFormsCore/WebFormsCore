@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
 using System.Text;
+using WebFormsCore.SourceGenerator.Models;
 
 namespace WebFormsCore.SourceGenerator;
 
@@ -12,42 +13,171 @@ public class ControlEventsGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        var languageVersion = context.CompilationProvider
+            .Select(static (c, _) => c is CSharpCompilation cs ? (int)cs.LanguageVersion : 0);
+
         var controlTypes = context.SyntaxProvider
             .CreateSyntaxProvider(
                 predicate: static (node, _) => node is TypeDeclarationSyntax { BaseList.Types.Count: > 0 },
-                transform: static (ctx, token) => GetControlTypeSymbol(ctx, token))
-            .Where(static symbol => symbol is not null);
+                transform: static (ctx, token) => GetControlTypeInfo(ctx, token))
+            .Where(static info => info.Events.Length > 0);
 
         var compilationAndControls = controlTypes
             .Collect()
-            .Combine(context.CompilationProvider);
+            .Combine(languageVersion);
 
         context.RegisterSourceOutput(compilationAndControls, static (spc, source) => Execute(spc, source.Left, source.Right));
     }
 
-    private static INamedTypeSymbol? GetControlTypeSymbol(GeneratorSyntaxContext context, CancellationToken token)
+    private static ControlTypeModel GetControlTypeInfo(GeneratorSyntaxContext context, CancellationToken token)
     {
         if (context.Node is not TypeDeclarationSyntax typeDeclaration)
         {
-            return null;
+            return default;
         }
 
         if (context.SemanticModel.GetDeclaredSymbol(typeDeclaration, token) is not INamedTypeSymbol typeSymbol)
         {
-            return null;
+            return default;
         }
 
         if (typeSymbol.TypeKind != TypeKind.Class || typeSymbol.DeclaredAccessibility == Accessibility.Private)
         {
-            return null;
+            return default;
         }
 
         if (typeSymbol.IsAbstract)
         {
-            return null;
+            return default;
         }
 
-        return IsControl(typeSymbol) ? typeSymbol : null;
+        if (!IsControl(typeSymbol))
+        {
+            return default;
+        }
+
+        var compilation = context.SemanticModel.Compilation;
+        var asyncEventHandler = compilation.GetTypeByMetadataName("WebFormsCore.AsyncEventHandler");
+        var asyncEventHandlerGeneric = compilation.GetTypeByMetadataName("WebFormsCore.AsyncEventHandler`2");
+
+        var events = ImmutableArray.CreateBuilder<ControlEventInfo>();
+
+        foreach (var member in typeSymbol.GetMembers())
+        {
+            if (member is not IEventSymbol evt)
+            {
+                continue;
+            }
+
+            if (evt.IsStatic)
+            {
+                continue;
+            }
+
+            if (evt.ExplicitInterfaceImplementations.Length > 0)
+            {
+                continue;
+            }
+
+            if (evt.DeclaredAccessibility is not (Accessibility.Public or Accessibility.Internal))
+            {
+                continue;
+            }
+
+            if (evt.Type is not INamedTypeSymbol eventType)
+            {
+                continue;
+            }
+
+            var accessibility = GetEffectiveAccessibility(typeSymbol, evt, eventType);
+            var eventTypeDisplay = eventType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+            EventHandlerKind kind;
+            string? senderDisplay = null;
+            string? argsDisplay = null;
+
+            if (asyncEventHandler is not null && SymbolEqualityComparer.Default.Equals(eventType, asyncEventHandler))
+            {
+                kind = EventHandlerKind.Async;
+            }
+            else if (asyncEventHandlerGeneric is not null && SymbolEqualityComparer.Default.Equals(eventType.OriginalDefinition, asyncEventHandlerGeneric))
+            {
+                if (eventType.TypeArguments.Length != 2)
+                {
+                    continue;
+                }
+
+                kind = EventHandlerKind.AsyncGeneric;
+                senderDisplay = eventType.TypeArguments[0].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                argsDisplay = eventType.TypeArguments[1].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            }
+            else
+            {
+                kind = EventHandlerKind.Default;
+            }
+
+            events.Add(new ControlEventInfo(
+                EventName: evt.Name,
+                HandlerKind: kind,
+                Accessibility: accessibility,
+                EventTypeDisplay: eventTypeDisplay,
+                GenericSenderTypeDisplay: senderDisplay,
+                GenericArgsTypeDisplay: argsDisplay
+            ));
+        }
+
+        if (events.Count == 0)
+        {
+            return default;
+        }
+
+        // Extract type parameter info
+        var typeParams = ImmutableArray.CreateBuilder<TypeParameterModel>();
+
+        foreach (var param in typeSymbol.TypeParameters)
+        {
+            var constraints = ImmutableArray.CreateBuilder<string>();
+
+            if (param.HasUnmanagedTypeConstraint)
+            {
+                constraints.Add("unmanaged");
+            }
+            else if (param.HasReferenceTypeConstraint)
+            {
+                constraints.Add("class");
+            }
+            else if (param.HasValueTypeConstraint)
+            {
+                constraints.Add("struct");
+            }
+
+            if (param.HasNotNullConstraint)
+            {
+                constraints.Add("notnull");
+            }
+
+            foreach (var constraintType in param.ConstraintTypes)
+            {
+                constraints.Add(constraintType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+            }
+
+            if (param.HasConstructorConstraint)
+            {
+                constraints.Add("new()");
+            }
+
+            typeParams.Add(new TypeParameterModel(
+                Name: param.Name,
+                Constraints: constraints.ToImmutable()
+            ));
+        }
+
+        return new ControlTypeModel(
+            FullyQualifiedName: typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+            IsPublic: typeSymbol.DeclaredAccessibility == Accessibility.Public,
+            TypeParameters: typeParams.ToImmutable(),
+            Events: events.ToImmutable()
+        );
     }
 
     private static bool IsControl(INamedTypeSymbol typeSymbol)
@@ -67,21 +197,17 @@ public class ControlEventsGenerator : IIncrementalGenerator
         return false;
     }
 
-    private static void Execute(SourceProductionContext context, ImmutableArray<INamedTypeSymbol?> controlSymbols, Compilation compilation)
+    private static void Execute(SourceProductionContext context, ImmutableArray<ControlTypeModel> controls, int languageVersion)
     {
-        if (compilation is CSharpCompilation { LanguageVersion: < (LanguageVersion)1400 })
+        if (languageVersion is > 0 and < 1400)
         {
             return;
         }
 
-        var asyncEventHandler = compilation.GetTypeByMetadataName("WebFormsCore.AsyncEventHandler");
-        var asyncEventHandlerGeneric = compilation.GetTypeByMetadataName("WebFormsCore.AsyncEventHandler`2");
-
-        var distinctControls = controlSymbols
-            .Where(static symbol => symbol is not null)
-            .Distinct(SymbolEqualityComparer.Default)
-            .Cast<INamedTypeSymbol>()
-            .OrderBy(static symbol => symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))
+        var distinctControls = controls
+            .GroupBy(static c => c.FullyQualifiedName)
+            .Select(static g => g.First())
+            .OrderBy(static c => c.FullyQualifiedName)
             .ToArray();
 
         if (distinctControls.Length == 0)
@@ -100,11 +226,10 @@ public class ControlEventsGenerator : IIncrementalGenerator
 
         foreach (var control in distinctControls)
         {
-            var events = GetEventSymbols(control)
-                .SelectMany(evt => CreateEventModels(control, evt, asyncEventHandler, asyncEventHandlerGeneric, control.TypeParameters.Length == 0 ? ReceiverTypeParameterName : null))
-                .ToArray();
+            var receiverTypeParam = control.TypeParameters.Length == 0 ? ReceiverTypeParameterName : null;
+            var eventModels = CreateEventModels(control, receiverTypeParam);
 
-            if (events.Length == 0)
+            if (eventModels.Length == 0)
             {
                 continue;
             }
@@ -117,7 +242,7 @@ public class ControlEventsGenerator : IIncrementalGenerator
 
             sb.AppendLine("    {");
 
-            foreach (var evt in events)
+            foreach (var evt in eventModels)
             {
                 sb.AppendLine($"        {evt.Accessibility} {evt.PropertyType} {evt.Name}");
                 sb.AppendLine("        {");
@@ -140,174 +265,117 @@ public class ControlEventsGenerator : IIncrementalGenerator
         context.AddSource("ControlEvents.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
     }
 
-    private static IEnumerable<IEventSymbol> GetEventSymbols(INamedTypeSymbol controlType)
+    private static EventModel[] CreateEventModels(ControlTypeModel control, string? receiverTypeParameter)
     {
-        foreach (var evt in controlType.GetMembers().OfType<IEventSymbol>())
+        var models = new List<EventModel>();
+
+        foreach (var evt in control.Events)
         {
-            if (evt.IsStatic)
+            var asyncPropertyName = $"On{evt.EventName}Async";
+            var syncPropertyName = $"On{evt.EventName}";
+
+            switch (evt.HandlerKind)
             {
-                continue;
+                case EventHandlerKind.Async:
+                {
+                    var senderType = receiverTypeParameter ?? "global::System.Object";
+                    var funcType = $"global::System.Func<{senderType}, global::System.EventArgs, global::System.Threading.Tasks.Task>";
+                    var assignment = receiverTypeParameter is null
+                        ? "value.Invoke"
+                        : $"async (sender, args) => await value(({receiverTypeParameter})sender, args)";
+                    models.Add(new EventModel(asyncPropertyName, evt.EventName, evt.Accessibility, funcType, assignment));
+
+                    var actionType = $"global::System.Action<{senderType}, global::System.EventArgs>";
+                    var syncAssignment = receiverTypeParameter is null
+                        ? "(sender, args) => { value(sender, args); return global::System.Threading.Tasks.Task.CompletedTask; }"
+                        : $"(sender, args) => {{ value(({receiverTypeParameter})sender, args); return global::System.Threading.Tasks.Task.CompletedTask; }}";
+                    models.Add(new EventModel(syncPropertyName, evt.EventName, evt.Accessibility, actionType, syncAssignment));
+                    break;
+                }
+
+                case EventHandlerKind.AsyncGeneric:
+                {
+                    var senderType = receiverTypeParameter ?? evt.GenericSenderTypeDisplay!;
+                    var argsType = evt.GenericArgsTypeDisplay!;
+                    var funcType = $"global::System.Func<{senderType}, {argsType}, global::System.Threading.Tasks.Task>";
+                    var assignment = receiverTypeParameter is null
+                        ? "value.Invoke"
+                        : $"async (sender, args) => await value(({receiverTypeParameter})sender, args)";
+                    models.Add(new EventModel(asyncPropertyName, evt.EventName, evt.Accessibility, funcType, assignment));
+
+                    var actionType = $"global::System.Action<{senderType}, {argsType}>";
+                    var syncAssignment = receiverTypeParameter is null
+                        ? "(sender, args) => { value(sender, args); return global::System.Threading.Tasks.Task.CompletedTask; }"
+                        : $"(sender, args) => {{ value(({receiverTypeParameter})sender, args); return global::System.Threading.Tasks.Task.CompletedTask; }}";
+                    models.Add(new EventModel(syncPropertyName, evt.EventName, evt.Accessibility, actionType, syncAssignment));
+                    break;
+                }
+
+                default:
+                    models.Add(new EventModel(syncPropertyName, evt.EventName, evt.Accessibility, evt.EventTypeDisplay, "value"));
+                    break;
             }
-
-            if (evt.ExplicitInterfaceImplementations.Length > 0)
-            {
-                continue;
-            }
-
-            if (evt.DeclaredAccessibility is not (Accessibility.Public or Accessibility.Internal))
-            {
-                continue;
-            }
-
-            yield return evt;
-        }
-    }
-
-    private static IEnumerable<EventModel> CreateEventModels(INamedTypeSymbol controlType, IEventSymbol evt, INamedTypeSymbol? asyncEventHandler, INamedTypeSymbol? asyncEventHandlerGeneric, string? receiverTypeParameter)
-    {
-        if (evt.Type is not INamedTypeSymbol eventType)
-        {
-            yield break;
-        }
-
-        var access = GetEffectiveAccessibility(controlType, evt, eventType);
-        var eventTypeDisplay = eventType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-        var asyncPropertyName = $"On{evt.Name}Async";
-        var syncPropertyName = $"On{evt.Name}";
-
-        if (asyncEventHandler is not null && SymbolEqualityComparer.Default.Equals(eventType, asyncEventHandler))
-        {
-            var senderType = receiverTypeParameter ?? "global::System.Object";
-            var funcType = $"global::System.Func<{senderType}, global::System.EventArgs, global::System.Threading.Tasks.Task>";
-            var assignment = receiverTypeParameter is null
-                ? "value.Invoke"
-                : $"async (sender, args) => await value(({receiverTypeParameter})sender, args)";
-            yield return new EventModel(asyncPropertyName, evt.Name, access, funcType, assignment);
-
-            var actionType = $"global::System.Action<{senderType}, global::System.EventArgs>";
-            var syncAssignment = receiverTypeParameter is null
-                ? "(sender, args) => { value(sender, args); return global::System.Threading.Tasks.Task.CompletedTask; }"
-                : $"(sender, args) => {{ value(({receiverTypeParameter})sender, args); return global::System.Threading.Tasks.Task.CompletedTask; }}";
-            yield return new EventModel(syncPropertyName, evt.Name, access, actionType, syncAssignment);
-            yield break;
-        }
-
-        if (asyncEventHandlerGeneric is not null && SymbolEqualityComparer.Default.Equals(eventType.OriginalDefinition, asyncEventHandlerGeneric))
-        {
-            if (eventType.TypeArguments.Length != 2)
-            {
-                yield break;
-            }
-
-            var senderType = receiverTypeParameter ?? eventType.TypeArguments[0].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            var argsType = eventType.TypeArguments[1].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            var funcType = $"global::System.Func<{senderType}, {argsType}, global::System.Threading.Tasks.Task>";
-            var assignment = receiverTypeParameter is null
-                ? "value.Invoke"
-                : $"async (sender, args) => await value(({receiverTypeParameter})sender, args)";
-            yield return new EventModel(asyncPropertyName, evt.Name, access, funcType, assignment);
-
-            var actionType = $"global::System.Action<{senderType}, {argsType}>";
-            var syncAssignment = receiverTypeParameter is null
-                ? "(sender, args) => { value(sender, args); return global::System.Threading.Tasks.Task.CompletedTask; }"
-                : $"(sender, args) => {{ value(({receiverTypeParameter})sender, args); return global::System.Threading.Tasks.Task.CompletedTask; }}";
-            yield return new EventModel(syncPropertyName, evt.Name, access, actionType, syncAssignment);
-            yield break;
         }
 
-        yield return new EventModel(syncPropertyName, evt.Name, access, eventTypeDisplay, "value");
+        return models.ToArray();
     }
 
     private const string ReceiverTypeParameterName = "T";
 
-    private static ExtensionSignature GetExtensionSignature(INamedTypeSymbol controlType)
+    private static ExtensionSignature GetExtensionSignature(ControlTypeModel control)
     {
-        return controlType.TypeParameters.Length == 0
-            ? GetGenericReceiverSignature(controlType)
-            : GetConcreteReceiverSignature(controlType);
+        return control.TypeParameters.Length == 0
+            ? GetGenericReceiverSignature(control)
+            : GetConcreteReceiverSignature(control);
     }
 
-    private static ExtensionSignature GetGenericReceiverSignature(INamedTypeSymbol controlType)
+    private static ExtensionSignature GetGenericReceiverSignature(ControlTypeModel control)
     {
-        var controlTypeName = controlType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         var signature = $"extension<{ReceiverTypeParameterName}>({ReceiverTypeParameterName} control)";
-        var constraints = $"        where {ReceiverTypeParameterName} : {controlTypeName}{Environment.NewLine}";
+        var constraints = $"        where {ReceiverTypeParameterName} : {control.FullyQualifiedName}{Environment.NewLine}";
         return new ExtensionSignature(signature, constraints);
     }
 
-    private static ExtensionSignature GetConcreteReceiverSignature(INamedTypeSymbol controlType)
+    private static ExtensionSignature GetConcreteReceiverSignature(ControlTypeModel control)
     {
-        var typeParameters = GetTypeParameters(controlType);
-        var constraints = GetTypeConstraints(controlType);
-        var controlTypeName = controlType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-        var signature = $"extension{typeParameters}({controlTypeName} control)";
+        var typeParameters = GetTypeParameters(control);
+        var constraints = GetTypeConstraints(control);
+        var signature = $"extension{typeParameters}({control.FullyQualifiedName} control)";
         return new ExtensionSignature(signature, constraints.Length == 0 ? string.Empty : $"{constraints}{Environment.NewLine}");
     }
 
-    private static string GetTypeParameters(INamedTypeSymbol type)
+    private static string GetTypeParameters(ControlTypeModel control)
     {
-        if (type.TypeParameters.Length == 0)
+        if (control.TypeParameters.Length == 0)
         {
             return string.Empty;
         }
 
-        var parameters = string.Join(", ", type.TypeParameters.Select(static p => p.Name));
+        var parameters = string.Join(", ", control.TypeParameters.AsImmutableArray().Select(static p => p.Name));
         return $"<{parameters}>";
     }
 
-    private static string GetTypeConstraints(INamedTypeSymbol type)
+    private static string GetTypeConstraints(ControlTypeModel control)
     {
-        if (type.TypeParameters.Length == 0)
+        if (control.TypeParameters.Length == 0)
         {
             return string.Empty;
         }
 
         var sb = new StringBuilder();
 
-        foreach (var parameter in type.TypeParameters)
+        foreach (var parameter in control.TypeParameters)
         {
-            var constraints = new List<string>();
-
-            if (parameter.HasUnmanagedTypeConstraint)
-            {
-                constraints.Add("unmanaged");
-            }
-            else if (parameter.HasReferenceTypeConstraint)
-            {
-                constraints.Add("class");
-            }
-            else if (parameter.HasValueTypeConstraint)
-            {
-                constraints.Add("struct");
-            }
-
-            if (parameter.HasNotNullConstraint)
-            {
-                constraints.Add("notnull");
-            }
-
-            constraints.AddRange(parameter.ConstraintTypes.Select(static constraint =>
-                constraint.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
-
-            if (parameter.HasConstructorConstraint)
-            {
-                constraints.Add("new()");
-            }
-
-            if (constraints.Count == 0)
+            if (parameter.Constraints.Length == 0)
             {
                 continue;
             }
 
-            sb.AppendLine($"        where {parameter.Name} : {string.Join(", ", constraints)}");
+            sb.AppendLine($"        where {parameter.Name} : {string.Join(", ", parameter.Constraints)}");
         }
 
         return sb.ToString().TrimEnd();
     }
-
-    private sealed record EventModel(string Name, string EventName, string Accessibility, string PropertyType, string Assignment);
-
-    private sealed record ExtensionSignature(string Signature, string Constraints);
 
     private static string GetEffectiveAccessibility(INamedTypeSymbol controlType, IEventSymbol evt, INamedTypeSymbol eventType)
     {
@@ -361,4 +429,37 @@ public class ControlEventsGenerator : IIncrementalGenerator
                 return true;
         }
     }
+
+    // Pipeline data types — all use structural equality for proper incremental caching
+    private enum EventHandlerKind
+    {
+        Default,
+        Async,
+        AsyncGeneric
+    }
+
+    private readonly record struct ControlEventInfo(
+        string EventName,
+        EventHandlerKind HandlerKind,
+        string Accessibility,
+        string EventTypeDisplay,
+        string? GenericSenderTypeDisplay,
+        string? GenericArgsTypeDisplay
+    );
+
+    private readonly record struct TypeParameterModel(
+        string Name,
+        EquatableArray<string> Constraints
+    );
+
+    private readonly record struct ControlTypeModel(
+        string FullyQualifiedName,
+        bool IsPublic,
+        EquatableArray<TypeParameterModel> TypeParameters,
+        EquatableArray<ControlEventInfo> Events
+    );
+
+    private sealed record EventModel(string Name, string EventName, string Accessibility, string PropertyType, string Assignment);
+
+    private sealed record ExtensionSignature(string Signature, string Constraints);
 }

@@ -31,6 +31,15 @@ public readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnume
     }
 
     /// <summary>
+    /// Gets the number of elements in the array.
+    /// </summary>
+    public int Length
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => array?.Length ?? 0;
+    }
+
+    /// <summary>
     /// Gets a value indicating whether the current array is empty.
     /// </summary>
     public bool IsEmpty

@@ -136,7 +136,7 @@ public abstract class DesignerGenerator : IIncrementalGenerator
                     }
                 }
 
-                return builder.ToImmutable();
+                return new EquatableArray<ControlType>(builder.ToImmutable());
             });
 
         var allTypes = types
@@ -273,4 +273,4 @@ public abstract class DesignerGenerator : IIncrementalGenerator
     protected abstract string GenerateCode(DesignerModel output);
 }
 
-public record ControlContext(string Path, string Content, string? RootNamespace, string? ProjectDirectory, ImmutableArray<KeyValuePair<string, string>> Namespaces);
+public record ControlContext(string Path, string Content, string? RootNamespace, string? ProjectDirectory, EquatableArray<KeyValuePair<string, string>> Namespaces);

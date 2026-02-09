@@ -5,6 +5,7 @@ using Scriban;
 using System.Collections.Immutable;
 using System.Text;
 using WebFormsCore;
+using WebFormsCore.SourceGenerator.Models;
 
 namespace WebFormsCore.SourceGenerator
 {
@@ -18,7 +19,7 @@ namespace WebFormsCore.SourceGenerator
                     predicate: Predicate,
                     transform: static (ctx, _) =>
                     {
-                        var items = GetItems((TypeDeclarationSyntax)ctx.Node, ctx.SemanticModel.Compilation.GetSemanticModel(ctx.Node.SyntaxTree));
+                        var items = GetItems((TypeDeclarationSyntax)ctx.Node, ctx.SemanticModel);
                         var (ns, name) = ctx.Node switch
                         {
                             ClassDeclarationSyntax classDeclaration => (GetNamespace(classDeclaration), classDeclaration.Identifier.Text),
@@ -150,7 +151,7 @@ namespace WebFormsCore.SourceGenerator
         public record ClassItem(
             string? Namespace,
             string Type,
-            ImmutableArray<PropertyItem> Properties,
+            EquatableArray<PropertyItem> Properties,
             string FlagType,
             bool IsControl
         );
@@ -171,7 +172,7 @@ namespace WebFormsCore.SourceGenerator
         );
 
 
-        private void Execute(SourceProductionContext context, (string, ImmutableArray<ClassItem>) tuple)
+        private void Execute(SourceProductionContext context, (string, EquatableArray<ClassItem>) tuple)
         {
             const string file = "Templates/viewstate.scriban";
 
@@ -184,7 +185,7 @@ namespace WebFormsCore.SourceGenerator
             context.AddSource(name.Replace('.', '_'), SourceText.From(output, Encoding.UTF8));
         }
 
-        private static ImmutableArray<ClassItem> GetItems(TypeDeclarationSyntax typeDeclaration, SemanticModel model)
+        private static EquatableArray<ClassItem> GetItems(TypeDeclarationSyntax typeDeclaration, SemanticModel model)
         {
             var properties = new List<PropertyItem>();
             var id = 0;
@@ -283,19 +284,6 @@ namespace WebFormsCore.SourceGenerator
                 },
                 isControl
             ));
-        }
-
-        public static void Execute(Compilation compilation, ImmutableArray<TypeDeclarationSyntax> typeDeclarations, SourceProductionContext context)
-        {
-
-            var items = new List<ClassItem>();
-
-            foreach (var typeDeclaration in typeDeclarations)
-            {
-                var model = compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
-
-
-            }
         }
     }
 
