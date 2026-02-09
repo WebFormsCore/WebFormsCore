@@ -3,13 +3,14 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using WebFormsCore.SourceGenerator.Models;
 
 namespace WebFormsCore.SourceGenerator;
 
 [Generator]
-public class FromRouteGenerator : IIncrementalGenerator
+public class BindingSourceGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -38,7 +39,7 @@ public class FromRouteGenerator : IIncrementalGenerator
 
         foreach (var member in type.Members)
         {
-            if (member is PropertyDeclarationSyntax property && HasFromRouteAttribute(property))
+            if (member is PropertyDeclarationSyntax property && GetBindingSource(property) != null)
             {
                 return true;
             }
@@ -47,7 +48,7 @@ public class FromRouteGenerator : IIncrementalGenerator
         return false;
     }
 
-    private static bool HasFromRouteAttribute(PropertyDeclarationSyntax property)
+    private static BindingSource? GetBindingSource(PropertyDeclarationSyntax property)
     {
         foreach (var attributeList in property.AttributeLists)
         {
@@ -60,42 +61,10 @@ public class FromRouteGenerator : IIncrementalGenerator
                     _ => attribute.Name.ToString()
                 };
 
-                if (name is "FromRoute" or "FromRouteAttribute")
+                var source = GetBindingSourceFromName(name);
+                if (source != null)
                 {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private static string? GetFromRouteNameArgument(PropertyDeclarationSyntax property)
-    {
-        foreach (var attributeList in property.AttributeLists)
-        {
-            foreach (var attribute in attributeList.Attributes)
-            {
-                var name = attribute.Name switch
-                {
-                    IdentifierNameSyntax identifier => identifier.Identifier.Text,
-                    QualifiedNameSyntax qualified => qualified.Right.Identifier.Text,
-                    _ => attribute.Name.ToString()
-                };
-
-                if (name is "FromRoute" or "FromRouteAttribute")
-                {
-                    // Check for constructor argument: [FromRoute("paramName")]
-                    if (attribute.ArgumentList?.Arguments.FirstOrDefault(x => x.NameEquals is null)?.Expression is LiteralExpressionSyntax literal)
-                    {
-                        return literal.Token.ValueText;
-                    }
-
-                    // Check for named argument: [FromRoute(Name = "paramName")]
-                    if (attribute.ArgumentList?.Arguments.FirstOrDefault(x => x.NameEquals?.Name.Identifier.Text == "Name")?.Expression is LiteralExpressionSyntax namedLiteral)
-                    {
-                        return namedLiteral.Token.ValueText;
-                    }
+                    return source;
                 }
             }
         }
@@ -103,26 +72,89 @@ public class FromRouteGenerator : IIncrementalGenerator
         return null;
     }
 
-    private readonly record struct RoutePropertyInfo(
+    private static BindingSource? GetBindingSourceFromName(string name)
+    {
+        return name switch
+        {
+            "FromRoute" or "FromRouteAttribute" => BindingSource.Route,
+            "FromQuery" or "FromQueryAttribute" => BindingSource.Query,
+            "FromHeader" or "FromHeaderAttribute" => BindingSource.Header,
+            "FromServices" or "FromServicesAttribute" => BindingSource.Services,
+            _ => null
+        };
+    }
+
+    private static string? GetNameArgument(PropertyDeclarationSyntax property)
+    {
+        foreach (var attributeList in property.AttributeLists)
+        {
+            foreach (var attribute in attributeList.Attributes)
+            {
+                var name = attribute.Name switch
+                {
+                    IdentifierNameSyntax identifier => identifier.Identifier.Text,
+                    QualifiedNameSyntax qualified => qualified.Right.Identifier.Text,
+                    _ => attribute.Name.ToString()
+                };
+
+                if (GetBindingSourceFromName(name) == null)
+                {
+                    continue;
+                }
+
+                // Check for constructor argument: [FromRoute("paramName")]
+                if (attribute.ArgumentList?.Arguments.FirstOrDefault(x => x.NameEquals is null)?.Expression is LiteralExpressionSyntax literal)
+                {
+                    return literal.Token.ValueText;
+                }
+
+                // Check for named argument: [FromRoute(Name = "paramName")]
+                if (attribute.ArgumentList?.Arguments.FirstOrDefault(x => x.NameEquals?.Name.Identifier.Text == "Name")?.Expression is LiteralExpressionSyntax namedLiteral)
+                {
+                    return namedLiteral.Token.ValueText;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private enum BindingSource
+    {
+        Route,
+        Query,
+        Header,
+        Services
+    }
+
+    private readonly record struct BindingPropertyInfo(
         string PropertyName,
-        string RouteName,
+        string ParameterName,
         string TypeFullName,
         string TypeShortName,
         string AccessModifier,
-        bool IsNullable
-    );
+        bool IsNullable,
+        bool IsNullableReferenceType,
+        BindingSource Source
+    )
+    {
+        /// <summary>
+        /// The type name to use in field and property declarations, including ? for nullable reference types.
+        /// </summary>
+        public string DeclarationTypeName => IsNullableReferenceType ? TypeFullName + "?" : TypeFullName;
+    }
 
     private readonly record struct TypeInfo(
         string? Namespace,
         string TypeName,
-        EquatableArray<RoutePropertyInfo> Properties
+        EquatableArray<BindingPropertyInfo> Properties
     );
 
     private static TypeInfo Transform(GeneratorSyntaxContext ctx)
     {
         var typeDeclaration = (TypeDeclarationSyntax)ctx.Node;
         var semanticModel = ctx.SemanticModel;
-        var properties = ImmutableArray.CreateBuilder<RoutePropertyInfo>();
+        var properties = ImmutableArray.CreateBuilder<BindingPropertyInfo>();
 
         foreach (var member in typeDeclaration.Members)
         {
@@ -131,7 +163,8 @@ public class FromRouteGenerator : IIncrementalGenerator
                 continue;
             }
 
-            if (!HasFromRouteAttribute(property))
+            var bindingSource = GetBindingSource(property);
+            if (bindingSource == null)
             {
                 continue;
             }
@@ -156,7 +189,7 @@ public class FromRouteGenerator : IIncrementalGenerator
                 continue;
             }
 
-            var routeName = GetFromRouteNameArgument(property) ?? property.Identifier.Text;
+            var parameterName = GetNameArgument(property) ?? property.Identifier.Text;
             var typeFullName = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
             // Determine the short name for conversion
@@ -175,7 +208,10 @@ public class FromRouteGenerator : IIncrementalGenerator
             };
 
             var isNullable = typeSymbol.NullableAnnotation == NullableAnnotation.Annotated ||
-                             (typeSymbol is INamedTypeSymbol named && named.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T);
+                             (typeSymbol is INamedTypeSymbol named && named.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T) ||
+                             (property.Type is NullableTypeSyntax);
+
+            var isNullableReferenceType = property.Type is NullableTypeSyntax && typeSymbol.IsReferenceType;
 
             // Determine access modifier
             var accessModifier = "public";
@@ -202,13 +238,15 @@ public class FromRouteGenerator : IIncrementalGenerator
                 }
             }
 
-            properties.Add(new RoutePropertyInfo(
+            properties.Add(new BindingPropertyInfo(
                 PropertyName: property.Identifier.Text,
-                RouteName: routeName,
+                ParameterName: parameterName,
                 TypeFullName: typeFullName,
                 TypeShortName: typeShortName,
                 AccessModifier: accessModifier,
-                IsNullable: isNullable
+                IsNullable: isNullable,
+                IsNullableReferenceType: isNullableReferenceType,
+                Source: bindingSource.Value
             ));
         }
 
@@ -255,16 +293,17 @@ public class FromRouteGenerator : IIncrementalGenerator
             // Generate backing fields and partial property implementations
             foreach (var prop in type.Properties)
             {
+                var fieldPrefix = GetFieldPrefix(prop.Source);
                 var defaultAssignment = prop.TypeShortName == "string"
                     ? " = default!;"
                     : ";";
 
-                sb.Append("    private ").Append(prop.TypeFullName).Append(" _fromRoute_").Append(prop.PropertyName).AppendLine(defaultAssignment);
+                sb.Append("    private ").Append(prop.DeclarationTypeName).Append(' ').Append(fieldPrefix).Append(prop.PropertyName).AppendLine(defaultAssignment);
                 sb.AppendLine();
-                sb.Append("    ").Append(prop.AccessModifier).Append(" partial ").Append(prop.TypeFullName).Append(' ').AppendLine(prop.PropertyName);
+                sb.Append("    ").Append(prop.AccessModifier).Append(" partial ").Append(prop.DeclarationTypeName).Append(' ').AppendLine(prop.PropertyName);
                 sb.AppendLine("    {");
-                sb.Append("        get => _fromRoute_").Append(prop.PropertyName).AppendLine(";");
-                sb.Append("        set => _fromRoute_").Append(prop.PropertyName).AppendLine(" = value;");
+                sb.Append("        get => ").Append(fieldPrefix).Append(prop.PropertyName).AppendLine(";");
+                sb.Append("        set => ").Append(fieldPrefix).Append(prop.PropertyName).AppendLine(" = value;");
                 sb.AppendLine("    }");
                 sb.AppendLine();
             }
@@ -273,16 +312,42 @@ public class FromRouteGenerator : IIncrementalGenerator
             sb.AppendLine("    protected internal override void SetContext(Microsoft.AspNetCore.Http.HttpContext context)");
             sb.AppendLine("    {");
             sb.AppendLine("        base.SetContext(context);");
-            sb.AppendLine();
-            sb.AppendLine("        var routeValues = context.Request.RouteValues;");
+
+            var hasRouteProperties = false;
+            foreach (var prop in type.Properties)
+            {
+                if (prop.Source == BindingSource.Route)
+                {
+                    hasRouteProperties = true;
+                    break;
+                }
+            }
+
+            if (hasRouteProperties)
+            {
+                sb.AppendLine();
+                sb.AppendLine("        var routeValues = context.Request.RouteValues;");
+            }
 
             foreach (var prop in type.Properties)
             {
                 sb.AppendLine();
-                sb.Append("        if (routeValues.TryGetValue(\"").Append(prop.RouteName).Append("\", out var _rv_").Append(prop.PropertyName).AppendLine("))");
-                sb.AppendLine("        {");
-                GenerateConversion(sb, prop);
-                sb.AppendLine("        }");
+
+                switch (prop.Source)
+                {
+                    case BindingSource.Route:
+                        GenerateRouteBinding(sb, prop);
+                        break;
+                    case BindingSource.Query:
+                        GenerateStringValuesBinding(sb, prop, "context.Request.Query", "_qv_");
+                        break;
+                    case BindingSource.Header:
+                        GenerateStringValuesBinding(sb, prop, "context.Request.Headers", "_hv_");
+                        break;
+                    case BindingSource.Services:
+                        GenerateServicesBinding(sb, prop);
+                        break;
+                }
             }
 
             sb.AppendLine("    }");
@@ -295,33 +360,83 @@ public class FromRouteGenerator : IIncrementalGenerator
             }
 
             var fileName = type.Namespace != null
-                ? $"{type.Namespace}.{type.TypeName}.FromRoute.g.cs"
-                : $"{type.TypeName}.FromRoute.g.cs";
+                ? $"{type.Namespace}.{type.TypeName}.Binding.g.cs"
+                : $"{type.TypeName}.Binding.g.cs";
 
             context.AddSource(fileName, SourceText.From(sb.ToString(), Encoding.UTF8));
         }
     }
 
-    private static void GenerateConversion(StringBuilder sb, RoutePropertyInfo prop)
+    private static string GetFieldPrefix(BindingSource source)
+    {
+        return source switch
+        {
+            BindingSource.Route => "_fromRoute_",
+            BindingSource.Query => "_fromQuery_",
+            BindingSource.Header => "_fromHeader_",
+            BindingSource.Services => "_fromServices_",
+            _ => "_binding_"
+        };
+    }
+
+    private static void GenerateRouteBinding(StringBuilder sb, BindingPropertyInfo prop)
     {
         var varName = $"_rv_{prop.PropertyName}";
+
+        sb.Append("        if (routeValues.TryGetValue(\"").Append(prop.ParameterName).Append("\", out var ").Append(varName).AppendLine("))");
+        sb.AppendLine("        {");
 
         if (prop.TypeShortName == "string")
         {
             sb.Append("            ").Append(prop.PropertyName).Append(" = ").Append(varName);
             sb.AppendLine(prop.IsNullable ? "?.ToString();" : "?.ToString() ?? default!;");
-            return;
+        }
+        else
+        {
+            sb.Append("            if (").Append(varName).Append(" is ").Append(prop.TypeFullName).Append(" _typed_").Append(prop.PropertyName).AppendLine(")");
+            sb.AppendLine("            {");
+            sb.Append("                ").Append(prop.PropertyName).Append(" = _typed_").Append(prop.PropertyName).AppendLine(";");
+            sb.AppendLine("            }");
+            sb.Append("            else if (").Append(varName).AppendLine(" != null)");
+            sb.AppendLine("            {");
+            sb.Append("                ").Append(prop.PropertyName).Append(" = context.RequestServices.GetRequiredService<IAttributeParser<").Append(prop.TypeFullName).AppendLine(">>()");
+            sb.Append("                    .Parse(").Append(varName).AppendLine(".ToString()!);");
+            sb.AppendLine("            }");
         }
 
-        // Use IAttributeParser<T> for all non-string types
-        sb.Append("            if (").Append(varName).Append(" is ").Append(prop.TypeFullName).Append(" _typed_").Append(prop.PropertyName).AppendLine(")");
-        sb.AppendLine("            {");
-        sb.Append("                ").Append(prop.PropertyName).Append(" = _typed_").Append(prop.PropertyName).AppendLine(";");
-        sb.AppendLine("            }");
-        sb.Append("            else if (").Append(varName).AppendLine(" != null)");
-        sb.AppendLine("            {");
-        sb.Append("                ").Append(prop.PropertyName).Append(" = context.RequestServices.GetRequiredService<IAttributeParser<").Append(prop.TypeFullName).AppendLine(">>()");
-        sb.Append("                    .Parse(").Append(varName).AppendLine(".ToString()!);");
-        sb.AppendLine("            }");
+        sb.AppendLine("        }");
+    }
+
+    private static void GenerateStringValuesBinding(StringBuilder sb, BindingPropertyInfo prop, string collectionAccessor, string varPrefix)
+    {
+        var varName = $"{varPrefix}{prop.PropertyName}";
+
+        sb.Append("        if (").Append(collectionAccessor).Append(".TryGetValue(\"").Append(prop.ParameterName).Append("\", out var ").Append(varName).Append(") && ").Append(varName).AppendLine(".Count > 0)");
+        sb.AppendLine("        {");
+
+        if (prop.TypeShortName == "string")
+        {
+            sb.Append("            ").Append(prop.PropertyName).Append(" = ").Append(varName);
+            sb.AppendLine(prop.IsNullable ? ".ToString();" : ".ToString();");
+        }
+        else
+        {
+            sb.Append("            ").Append(prop.PropertyName).Append(" = context.RequestServices.GetRequiredService<IAttributeParser<").Append(prop.TypeFullName).AppendLine(">>()");
+            sb.Append("                .Parse(").Append(varName).AppendLine(".ToString());");
+        }
+
+        sb.AppendLine("        }");
+    }
+
+    private static void GenerateServicesBinding(StringBuilder sb, BindingPropertyInfo prop)
+    {
+        if (prop.IsNullable)
+        {
+            sb.Append("        ").Append(prop.PropertyName).Append(" = context.RequestServices.GetService<").Append(prop.TypeFullName).AppendLine(">();");
+        }
+        else
+        {
+            sb.Append("        ").Append(prop.PropertyName).Append(" = context.RequestServices.GetRequiredService<").Append(prop.TypeFullName).AppendLine(">();");
+        }
     }
 }
