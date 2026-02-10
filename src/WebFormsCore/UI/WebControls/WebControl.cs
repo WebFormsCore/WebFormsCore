@@ -94,7 +94,7 @@ public partial class WebControl : Control, IAttributeAccessor
 
         _attributes.AddAttributes(writer);
 
-        if (!_attributes.ContainsKey("class"))
+        if (!_attributes.ContainsKey("class") && IsInPage)
         {
             ServiceProvider.GetService<IControlHtmlClassProvider>()?.WriteDefaultClass(this, writer);
         }
