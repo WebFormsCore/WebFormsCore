@@ -111,6 +111,7 @@ public static class ServiceExtensions
         builder.TryAddViewStateSerializer<NullableViewStateSerializer>();
         builder.TryAddViewStateSerializer<Type, TypeViewStateSerializer>();
         builder.TryAddViewStateSerializer<string, StringViewStateSerializer>();
+        builder.TryAddViewStateSerializer<StringOrFunc, StringOrFuncViewStateSerializer>();
         builder.TryAddViewStateSpanSerializer<char, StringViewStateSerializer>();
         builder.TryAddMarshalViewStateSerializer<int>();
         builder.TryAddMarshalViewStateSerializer<uint>();
