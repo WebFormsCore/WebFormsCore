@@ -1,5 +1,5 @@
 <Project>
-    <Import Project="..\..\sdk\WebFormsCore.SDK.AspNetCore\Sdk\Sdk.props" />
+    <Import Project="..\..\sdk\WebFormsCore.SDK.AspNetCore\Sdk.props" />
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
@@ -12,5 +12,5 @@
         <ProjectReference Include="..\..\src\WebFormsCore.SourceGenerator\WebFormsCore.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
-    <Import Project="..\..\sdk\WebFormsCore.SDK.AspNetCore\Sdk\Sdk.targets" />
+    <Import Project="..\..\sdk\WebFormsCore.SDK.AspNetCore\Sdk.targets" />
 </Project>

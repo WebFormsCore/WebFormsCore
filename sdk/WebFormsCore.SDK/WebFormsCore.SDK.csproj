@@ -4,15 +4,20 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <Description>SDK package for WebFormsCore.AspNet</Description>
         <PackageTags>WebFormsCore</PackageTags>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <PackageType>MSBuildSdk</PackageType>
         <NoWarn>$(NoWarn);NU5128</NoWarn>
         <RootNamespace>WebFormsCore.SDK.NetFramework</RootNamespace>
     </PropertyGroup>
 
-    <Target Name="CopyCommon" BeforeTargets="BeforeBuild">
-        <Copy SourceFiles="$(MSBuildThisFileDirectory)..\WebFormsCore.SDK.Core\Sdk\Sdk.props" DestinationFiles="Sdk\Core.props" />
-        <Copy SourceFiles="$(MSBuildThisFileDirectory)..\WebFormsCore.SDK.Core\Sdk\Sdk.targets" DestinationFiles="Sdk\Core.targets" />
+    <ItemGroup>
+        <ProjectReference Include="..\WebFormsCore.SDK.Core\WebFormsCore.SDK.Core.csproj" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <Target Name="CopyCommon" AfterTargets="ResolveProjectReferences">
+        <MakeDir Directories="Sdk" Condition="!Exists('Sdk')" />
+        <Copy SourceFiles="$(MSBuildThisFileDirectory)..\WebFormsCore.SDK.Core\Sdk.props" DestinationFiles="Sdk\Core.props" />
+        <Copy SourceFiles="$(MSBuildThisFileDirectory)..\WebFormsCore.SDK.Core\Sdk.targets" DestinationFiles="Sdk\Core.targets" />
     </Target>
 
 </Project>

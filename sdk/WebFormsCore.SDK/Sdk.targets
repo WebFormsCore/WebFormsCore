@@ -1,4 +1,5 @@
 <Project>
-    <Import Project="Core.targets" />
+    <Import Project="Core.targets" Condition="Exists('$(MSBuildThisFileDirectory)Core.targets')" />
+    <Import Project="$(MSBuildThisFileDirectory)..\WebFormsCore.SDK.Core\Sdk.targets" Condition="!Exists('$(MSBuildThisFileDirectory)Core.targets')" />
     <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>
