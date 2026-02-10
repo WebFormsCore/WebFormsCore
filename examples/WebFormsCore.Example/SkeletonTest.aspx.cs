@@ -29,4 +29,11 @@ public partial class SkeletonTest : Page
         sender.Text = skeleton.Loading ? "Toggle Loading" : "Toggle Skeleton";
         return Task.CompletedTask;
     }
+
+    protected Task btnLazyAction_OnClick(Button sender, EventArgs e)
+    {
+        lblLazyTitle.Text = "Button clicked after loading!";
+        lblLazyTime.Text = $"Clicked at: {DateTime.Now:HH:mm:ss.fff}";
+        return Task.CompletedTask;
+    }
 }

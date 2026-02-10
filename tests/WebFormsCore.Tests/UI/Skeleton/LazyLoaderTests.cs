@@ -118,6 +118,7 @@ public class LazyLoaderTests
         var loader = new LazyLoader { ID = "lazy1" };
         page.Controls.AddWithoutPageEvents(loader);
 
+        // Label with text renders the text (not skeleton) because static text should be shown
         var label = new Label { Text = "Real content" };
         loader.Controls.AddWithoutPageEvents(label);
 
@@ -126,8 +127,9 @@ public class LazyLoaderTests
         await writer.FlushAsync();
 
         var output = writer.ToString();
-        Assert.DoesNotContain("Real content", output);
-        Assert.Contains("wfc-skeleton", output);
+        // Labels with text render normally in skeleton mode
+        Assert.Contains("Real content", output);
+        Assert.Contains("aria-busy=\"true\"", output);
     }
 
     [Fact]

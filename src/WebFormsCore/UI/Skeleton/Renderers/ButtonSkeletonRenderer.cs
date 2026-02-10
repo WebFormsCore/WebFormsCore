@@ -21,7 +21,7 @@ public class ButtonSkeletonRenderer : ISkeletonRenderer<Button>
         writer.AddAttribute(HtmlTextWriterAttribute.Disabled, "disabled");
 
         await writer.RenderBeginTagAsync(HtmlTextWriterTag.Button);
-        
+
         if (!hasContent)
         {
             await writer.WriteAsync("&nbsp;");

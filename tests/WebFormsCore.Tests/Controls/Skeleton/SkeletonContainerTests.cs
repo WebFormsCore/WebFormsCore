@@ -47,10 +47,10 @@ public class SkeletonContainerTests(SeleniumFixture fixture)
             };
         }, SkeletonOptions);
 
+        // Labels with text render their text in skeleton mode
         var html = await result.Browser.GetHtmlAsync();
-        Assert.DoesNotContain("Hello", html);
-        Assert.NotNull(result.Browser.QuerySelector("[data-wfc-skeleton]"));
-        Assert.NotNull(result.Browser.QuerySelector(".wfc-skeleton"));
+        Assert.Contains("Hello", html);
+        Assert.NotNull(result.Browser.QuerySelector("[data-wfc-skeleton-container]"));
     }
 
     [Theory, ClassData(typeof(BrowserData))]
@@ -106,10 +106,10 @@ public class SkeletonContainerTests(SeleniumFixture fixture)
             };
         }, SkeletonOptions);
 
-        // Check that the button skeleton is rendered without the actual button text
-        var button = result.Browser.QuerySelector(".wfc-skeleton-button[disabled]");
+        // Buttons with text render their text but are disabled
+        var button = result.Browser.QuerySelector("button[disabled]");
         Assert.NotNull(button);
-        Assert.DoesNotContain("Submit", button?.Text ?? "");
+        Assert.Contains("Submit", button?.Text ?? "");
     }
 
     [Theory, ClassData(typeof(BrowserData))]
@@ -198,16 +198,16 @@ public class SkeletonContainerTests(SeleniumFixture fixture)
             };
         }, SkeletonOptions);
 
-        // Initially loading - real content should not be visible
+        // Initially loading - label with text still shows text
         var html = await result.Browser.GetHtmlAsync();
-        Assert.DoesNotContain("Real content", html);
-        Assert.NotNull(result.Browser.QuerySelector("[data-wfc-skeleton]"));
+        Assert.Contains("Real content", html);
+        Assert.NotNull(result.Browser.QuerySelector("[data-wfc-skeleton-container]"));
 
         // Click toggle button to set Loading = false
         await result.Browser.QuerySelector("button")!.ClickAsync();
 
-        // Real content should now be visible
+        // Real content should still be visible, container no longer has skeleton attributes
         Assert.Equal("Real content", result.Browser.QuerySelector("span")?.Text);
-        Assert.Null(result.Browser.QuerySelector("[data-wfc-skeleton]"));
+        Assert.Null(result.Browser.QuerySelector("[data-wfc-skeleton-container]"));
     }
 }

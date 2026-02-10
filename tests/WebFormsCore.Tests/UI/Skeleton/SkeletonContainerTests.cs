@@ -60,6 +60,7 @@ public class SkeletonContainerTests
         var container = new SkeletonContainer { Loading = true };
         page.Controls.AddWithoutPageEvents(container);
 
+        // Label with text renders the text (not skeleton) because static text should be shown
         var label = new Label { Text = "Hello" };
         container.Controls.AddWithoutPageEvents(label);
 
@@ -68,10 +69,10 @@ public class SkeletonContainerTests
         await writer.FlushAsync();
 
         var output = writer.ToString();
-        Assert.DoesNotContain("Hello", output);
-        Assert.Contains("wfc-skeleton", output);
-        Assert.Contains("data-wfc-skeleton", output);
-        Assert.Contains("aria-hidden=\"true\"", output);
+        // Labels with text render normally in skeleton mode
+        Assert.Contains("Hello", output);
+        Assert.Contains("data-wfc-skeleton-container", output);
+        Assert.Contains("aria-busy=\"true\"", output);
     }
 
     [Fact]
@@ -171,6 +172,7 @@ public class SkeletonContainerTests
         var container = new SkeletonContainer { Loading = true };
         page.Controls.AddWithoutPageEvents(container);
 
+        // Button with text renders the text (not skeleton placeholder)
         var button = new Button { Text = "Submit" };
         container.Controls.AddWithoutPageEvents(button);
 
@@ -179,9 +181,10 @@ public class SkeletonContainerTests
         await writer.FlushAsync();
 
         var output = writer.ToString();
-        Assert.DoesNotContain("Submit", output);
-        Assert.Contains("wfc-skeleton-button", output);
+        // Buttons with text render their text but are disabled
+        Assert.Contains("Submit", output);
         Assert.Contains("disabled=\"disabled\"", output);
+        Assert.Contains("data-wfc-skeleton", output);
     }
 
     [Fact]

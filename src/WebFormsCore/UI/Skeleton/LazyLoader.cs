@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.WebControls;
 
 namespace WebFormsCore.UI.Skeleton;
@@ -9,17 +10,17 @@ namespace WebFormsCore.UI.Skeleton;
 /// <summary>
 /// A container that renders skeleton placeholders on initial page load, then
 /// automatically triggers a postback to load and render real content.
-/// Implements <see cref="INamingContainer"/> and <see cref="IStateContainer"/>
-/// for ViewState scoping.
+/// Extends <see cref="HtmlForm"/> with <see cref="Scoped"/> set to true so that
+/// lazy loaders have their own postback scope and don't block other elements.
 /// </summary>
-public partial class LazyLoader : HtmlContainerControl, INamingContainer, IStateContainer
+public partial class LazyLoader : HtmlForm
 {
-    private bool _processControl;
+    private bool _lazyProcessControl;
     private bool _initComplete;
 
     public LazyLoader()
-        : base("div")
     {
+        Scoped = true;
     }
 
     protected override bool AddClientIdToAttributes => true;
@@ -54,7 +55,7 @@ public partial class LazyLoader : HtmlContainerControl, INamingContainer, IState
     /// gets built and ViewState tracking is set up.
     /// After Init, children are only processed when the lazy content has loaded
     /// (IsLoaded restored from ViewState) or when this is the targeted lazy-load
-    /// postback (_processControl set during OnLoadAsync).
+    /// postback (_lazyProcessControl set during OnLoadAsync).
     /// </summary>
     protected override bool ProcessChildren
     {
@@ -62,7 +63,7 @@ public partial class LazyLoader : HtmlContainerControl, INamingContainer, IState
         {
             if (!_initComplete) return base.ProcessChildren;
 
-            if (IsLoaded || _processControl) return base.ProcessChildren;
+            if (IsLoaded || _lazyProcessControl) return base.ProcessChildren;
 
             return false;
         }
@@ -71,7 +72,8 @@ public partial class LazyLoader : HtmlContainerControl, INamingContainer, IState
     protected override async ValueTask RenderAttributesAsync(HtmlTextWriter writer)
     {
         await base.RenderAttributesAsync(writer);
-        await writer.WriteAttributeAsync("data-wfc-lazy", IsLoaded ? "" : UniqueClientID);
+        // Use UniqueID (not UniqueClientID) because the server checks against UniqueID in OnLoadAsync
+        await writer.WriteAttributeAsync("data-wfc-lazy", IsLoaded ? "" : UniqueID);
 
         if (!IsLoaded)
         {
@@ -92,17 +94,26 @@ public partial class LazyLoader : HtmlContainerControl, INamingContainer, IState
     {
         if (!Visible) return;
 
+        // Always render the same structure - RenderChildrenAsync handles skeleton vs content
+        await RenderBeginTagAsync(writer, token);
+        await RenderChildrenAsync(writer, token);
+        await RenderEndTagAsync(writer, token);
+    }
+
+    protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
+    {
         if (IsLoaded)
         {
-            // Render actual content
-            await base.RenderAsync(writer, token);
+            // Render actual children and viewstate fields (via base.RenderChildrenAsync which is HtmlForm's)
+            await base.RenderChildrenAsync(writer, token);
         }
         else
         {
-            // Render skeleton version
-            await RenderBeginTagAsync(writer, token);
+            // Render skeleton content first
             await RenderSkeletonContentAsync(writer, token);
-            await RenderEndTagAsync(writer, token);
+
+            // Render the viewstate hidden fields so the scoped form can be identified
+            await RenderViewStateFieldsAsync(writer);
         }
     }
 
@@ -143,13 +154,13 @@ public partial class LazyLoader : HtmlContainerControl, INamingContainer, IState
             if (!string.IsNullOrEmpty(target) &&
                 (target == UniqueID || target.StartsWith(GetUniqueIDPrefix())))
             {
-                _processControl = true;
+                _lazyProcessControl = true;
             }
         }
 
         await base.OnLoadAsync(token);
 
-        if (_processControl && !IsLoaded)
+        if (_lazyProcessControl && !IsLoaded)
         {
             IsLoaded = true;
             await ContentLoaded.InvokeAsync(this, EventArgs.Empty);
@@ -160,8 +171,10 @@ public partial class LazyLoader : HtmlContainerControl, INamingContainer, IState
     {
         base.ClearControl();
 
+        // Re-enable Scoped since base.ClearControl() resets it
+        Scoped = true;
         IsLoaded = false;
-        _processControl = false;
+        _lazyProcessControl = false;
         _initComplete = false;
         ContentLoaded = null;
         LoadingCssClass = null;

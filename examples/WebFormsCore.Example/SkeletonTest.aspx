@@ -69,7 +69,7 @@
                         <div class="mb-3">
                             <wfc:Label runat="server" ID="lblLazyTime" CssClass="form-label" />
                         </div>
-                        <wfc:Button runat="server" ID="btnLazyAction" Text="Loaded!" CssClass="btn btn-success" />
+                        <wfc:Button runat="server" ID="btnLazyAction" Text="Loaded!" CssClass="btn btn-success" OnClick="btnLazyAction_OnClick" />
                     </wfc:LazyLoader>
                 </div>
             </div>

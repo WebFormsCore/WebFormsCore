@@ -39,6 +39,31 @@ const morphdom = morphdomFactory((fromEl, toEl) => {
 
 const postbackMutex = new Mutex();
 
+const formMutexes = new WeakMap<HTMLElement, Mutex>();
+
+function getFormMutex(form: HTMLElement): Mutex {
+    let mutex = formMutexes.get(form);
+    if (!mutex) {
+        mutex = new Mutex();
+        formMutexes.set(form, mutex);
+    }
+    return mutex;
+}
+
+function isScopedForm(form: HTMLElement | null | undefined): boolean {
+    return form?.getAttribute('data-wfc-form') === 'self';
+}
+
+function getScopedAncestors(form: HTMLElement): HTMLElement[] {
+    const ancestors: HTMLElement[] = [];
+    let parent = form.parentElement?.closest('[data-wfc-form="self"]') as HTMLElement | null;
+    while (parent) {
+        ancestors.unshift(parent); // outermost first
+        parent = parent.parentElement?.closest('[data-wfc-form="self"]') as HTMLElement | null;
+    }
+    return ancestors;
+}
+
 let pendingPostbacks = 0;
 
 class ViewStateContainer {
@@ -95,13 +120,20 @@ async function postBackElement(element: Element, eventTarget?: string, eventArgu
     element.dispatchEvent(new CustomEvent("wfc:postbackTriggered"));
 
     try {
-        const form = getRootForm(element);
         const streamPanel = getStreamPanel(element);
 
         if (streamPanel) {
             await sendToStream(streamPanel, eventTarget, eventArgument);
         } else {
-            await submitForm(element, form, eventTarget, eventArgument);
+            // Check if we're inside a scoped form
+            const scopedForm = getScopedForm(element);
+
+            if (scopedForm) {
+                await submitForm(element, scopedForm, eventTarget, eventArgument);
+            } else {
+                const form = getRootForm(element);
+                await submitForm(element, form, eventTarget, eventArgument);
+            }
         }
     } finally {
         element.dispatchEvent(new CustomEvent("wfc:afterPostbackTriggered"));
@@ -163,6 +195,11 @@ function hasElementFile(element: HTMLElement) {
 function getForm(element: Element) {
     return element.closest('[data-wfc-form]') as HTMLElement
 }
+
+function getScopedForm(element: Element): HTMLElement | null {
+    return element.closest('[data-wfc-form="self"]') as HTMLElement | null;
+}
+
 function getRootForm(element: Element): HTMLElement | null {
     let form = element.closest('[data-wfc-form]') as HTMLElement | null;
     
@@ -185,7 +222,7 @@ function getStreamPanel(element: Element) {
     return element.closest('[data-wfc-stream]') as HTMLElement
 }
 
-function addInputs(formData: FormData, root: HTMLElement, addFormElements: boolean, allowFileUploads) {
+function addInputs(formData: FormData, root: HTMLElement, addFormElements: boolean, allowFileUploads, skipNestedScoped: boolean = false) {
     // Add all the form elements that are not in a form
     const elements = [];
 
@@ -214,6 +251,14 @@ function addInputs(formData: FormData, root: HTMLElement, addFormElements: boole
             continue;
         }
 
+        // When collecting for a scoped form, skip inputs inside nested scoped forms
+        if (skipNestedScoped) {
+            const closestScoped = element.closest('[data-wfc-form="self"]') as HTMLElement | null;
+            if (closestScoped && closestScoped !== root) {
+                continue;
+            }
+        }
+
         if (getStreamPanel(element)) {
             continue;
         }
@@ -228,19 +273,20 @@ function addInputs(formData: FormData, root: HTMLElement, addFormElements: boole
 
 function getFormData(form?: HTMLElement, eventTarget?: string, eventArgument?: string, allowFileUploads: boolean = true) {
     let formData: FormData
+    const scoped = isScopedForm(form);
 
     if (form) {
-        if (form.tagName === "FORM" && allowFileUploads) {
+        if (form.tagName === "FORM" && allowFileUploads && !scoped) {
             formData = new FormData(form as HTMLFormElement);
         } else {
             formData = new FormData()
-            addInputs(formData, form, true, allowFileUploads);
+            addInputs(formData, form, true, allowFileUploads, scoped);
         }
     } else {
         formData = new FormData();
     }
 
-    addInputs(formData, document.body, false, allowFileUploads);
+    addInputs(formData, document.body, false, allowFileUploads, false);
 
     if (eventTarget) {
         formData.append("wfcTarget", eventTarget);
@@ -275,12 +321,34 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
         target = document.body;
     }
 
+    const scoped = isScopedForm(form);
     const url = baseElement?.getAttribute('data-wfc-base') ?? location.toString();
     const formData = getFormData(form, eventTarget, eventArgument);
     const container = new ViewStateContainer(form, formData);
 
+    // For scoped forms, add the scoped indicator
+    if (scoped) {
+        formData.append("wfcScoped", "true");
+    }
+
     pendingPostbacks++;
-    const release = await postbackMutex.acquire();
+
+    // For scoped forms, acquire per-form mutex (and ancestor mutexes for nested scoped forms).
+    // For non-scoped forms, use the global mutex.
+    const releases: Array<() => void> = [];
+
+    if (scoped && form) {
+        // Acquire ancestor scoped form mutexes first (outermost to innermost)
+        const ancestors = getScopedAncestors(form);
+        for (const ancestor of ancestors) {
+            releases.push(await getFormMutex(ancestor).acquire());
+        }
+        // Acquire this form's own mutex
+        releases.push(await getFormMutex(form).acquire());
+    } else {
+        releases.push(await postbackMutex.acquire());
+    }
+
     const interceptors: Array<(request: RequestInit) => void | Promise<void>> = [];
 
     try {
@@ -390,7 +458,10 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
         }
     } finally {
         pendingPostbacks--;
-        release();
+        // Release all mutexes in reverse order (innermost first)
+        for (let i = releases.length - 1; i >= 0; i--) {
+            releases[i]();
+        }
         target.dispatchEvent(new CustomEvent("wfc:afterSubmit", {bubbles: true, detail: {target, container, form, eventTarget}}));
 
         // Update the validators
