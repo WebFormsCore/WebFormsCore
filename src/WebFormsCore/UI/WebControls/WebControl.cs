@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 namespace WebFormsCore.UI.WebControls;
 
-public partial class WebControl : Control, IAttributeAccessor
+public partial class WebControl : Control, IAttributeAccessor, IInternalWebControl
 {
     [ViewState] private AttributeCollection _attributes = new();
 
@@ -177,6 +177,13 @@ public partial class WebControl : Control, IAttributeAccessor
         ToolTip = null;
         TabIndex = 0;
     }
+
+    WebControl IInternalWebControl.Control => this;
+
+    string IInternalWebControl.TagName => TagName;
+
+    ValueTask IInternalWebControl.AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)
+        => AddAttributesToRender(writer, token);
 
     protected virtual string? GetAttribute(string name) => _attributes[name];
 

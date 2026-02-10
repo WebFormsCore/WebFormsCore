@@ -2252,6 +2252,51 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 		}))) return;
 	});
 	const postbackMutex = new Mutex();
+	const elementStates = /* @__PURE__ */ new WeakMap();
+	function getElementState(element) {
+		let state = elementStates.get(element);
+		if (!state) {
+			state = {};
+			elementStates.set(element, state);
+		}
+		return state;
+	}
+	function getFormMutex(form) {
+		const state = getElementState(form);
+		return state.mutex ??= new Mutex();
+	}
+	/**
+	* Cancels any in-flight lazy-load request for the element, creates a new
+	* AbortController, and returns it. Call this before starting a lazy-load
+	* postback to ensure only one request is active per element.
+	*/
+	function lazyAbort(element) {
+		const state = getElementState(element);
+		state.lazyAbort?.abort();
+		const controller = new AbortController();
+		state.lazyAbort = controller;
+		return controller;
+	}
+	/**
+	* Cleans up the AbortController for a completed lazy-load request, but only
+	* if it hasn't been superseded by a newer one.
+	*/
+	function lazyAbortCleanup(element, controller) {
+		const state = elementStates.get(element);
+		if (state?.lazyAbort === controller) state.lazyAbort = void 0;
+	}
+	function isScopedForm(form) {
+		return form?.getAttribute("data-wfc-form") === "self";
+	}
+	function getScopedAncestors(form) {
+		const ancestors = [];
+		let parent = form.parentElement?.closest("[data-wfc-form=\"self\"]");
+		while (parent) {
+			ancestors.unshift(parent);
+			parent = parent.parentElement?.closest("[data-wfc-form=\"self\"]");
+		}
+		return ancestors;
+	}
 	let pendingPostbacks = 0;
 	var ViewStateContainer = class {
 		constructor(element, formData) {
@@ -2283,10 +2328,13 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 		if ((options?.validate ?? true) && !await wfc.validate(element)) return;
 		element.dispatchEvent(new CustomEvent("wfc:postbackTriggered"));
 		try {
-			const form = getRootForm(element);
 			const streamPanel = getStreamPanel(element);
 			if (streamPanel) await sendToStream(streamPanel, eventTarget, eventArgument);
-			else await submitForm(element, form, eventTarget, eventArgument);
+			else {
+				const scopedForm = getScopedForm(element);
+				if (scopedForm) await submitForm(element, scopedForm, eventTarget, eventArgument, options?.signal);
+				else await submitForm(element, getRootForm(element), eventTarget, eventArgument, options?.signal);
+			}
 		} finally {
 			element.dispatchEvent(new CustomEvent("wfc:afterPostbackTriggered"));
 		}
@@ -2321,11 +2369,9 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 	function getForm(element) {
 		return element.closest("[data-wfc-form]");
 	}
-	/**
-	* Gets the root form (the actual <form> element) for an element.
-	* Nested forms are rendered as <div> elements with data-wfc-form attribute,
-	* so we need to find the outermost form element.
-	*/
+	function getScopedForm(element) {
+		return element.closest("[data-wfc-form=\"self\"]");
+	}
 	function getRootForm(element) {
 		let form = element.closest("[data-wfc-form]");
 		if (!form) return null;
@@ -2339,7 +2385,7 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 	function getStreamPanel(element) {
 		return element.closest("[data-wfc-stream]");
 	}
-	function addInputs(formData, root, addFormElements, allowFileUploads) {
+	function addInputs(formData, root, addFormElements, allowFileUploads, skipNestedScoped = false) {
 		const elements = [];
 		for (const element of root.querySelectorAll("input, select, textarea")) if (!element.closest("[data-wfc-ignore]")) elements.push(element);
 		document.dispatchEvent(new CustomEvent("wfc:addInputs", { detail: { elements } }));
@@ -2348,6 +2394,10 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 			if (element.hasAttribute("data-wfc-ignore") || element.type === "button" || element.type === "submit" || element.type === "reset") continue;
 			if (element.closest("[data-wfc-ignore]")) continue;
 			if (!addFormElements && getForm(element)) continue;
+			if (skipNestedScoped) {
+				const closestScoped = element.closest("[data-wfc-form=\"self\"]");
+				if (closestScoped && closestScoped !== root) continue;
+			}
 			if (getStreamPanel(element)) continue;
 			if (!allowFileUploads && element.type === "file") continue;
 			addElement(element, formData);
@@ -2355,13 +2405,14 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 	}
 	function getFormData(form, eventTarget, eventArgument, allowFileUploads = true) {
 		let formData;
-		if (form) if (form.tagName === "FORM" && allowFileUploads) formData = new FormData(form);
+		const scoped = isScopedForm(form);
+		if (form) if (form.tagName === "FORM" && allowFileUploads && !scoped) formData = new FormData(form);
 		else {
 			formData = new FormData();
-			addInputs(formData, form, true, allowFileUploads);
+			addInputs(formData, form, true, allowFileUploads, scoped);
 		}
 		else formData = new FormData();
-		addInputs(formData, document.body, false, allowFileUploads);
+		addInputs(formData, document.body, false, allowFileUploads, false);
 		if (eventTarget) formData.append("wfcTarget", eventTarget);
 		if (eventArgument) formData.append("wfcArgument", eventArgument);
 		return formData;
@@ -2372,16 +2423,23 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 			updateStyles: data[1] === "1"
 		};
 	}
-	async function submitForm(element, form, eventTarget, eventArgument) {
+	async function submitForm(element, form, eventTarget, eventArgument, signal) {
 		const baseElement = element.closest("[data-wfc-base]");
 		let target;
 		if (baseElement) target = baseElement;
 		else target = document.body;
+		const scoped = isScopedForm(form);
 		const url = baseElement?.getAttribute("data-wfc-base") ?? location.toString();
 		const formData = getFormData(form, eventTarget, eventArgument);
 		const container = new ViewStateContainer(form, formData);
+		if (scoped) formData.append("wfcScoped", "true");
 		pendingPostbacks++;
-		const release = await postbackMutex.acquire();
+		const releases = [];
+		if (scoped && form) {
+			const ancestors = getScopedAncestors(form);
+			for (const ancestor of ancestors) releases.push(await getFormMutex(ancestor).acquire());
+			releases.push(await getFormMutex(form).acquire());
+		} else releases.push(await postbackMutex.acquire());
 		const interceptors = [];
 		try {
 			if (!target.dispatchEvent(new CustomEvent("wfc:beforeSubmit", {
@@ -2401,7 +2459,8 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 				method: "POST",
 				redirect: "error",
 				credentials: "include",
-				headers: { "X-IsPostback": "true" }
+				headers: { "X-IsPostback": "true" },
+				signal
 			};
 			request.body = hasElementFile(document.body) ? formData : new URLSearchParams(formData);
 			for (const interceptor of interceptors) {
@@ -2412,6 +2471,7 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 			try {
 				response = await fetch(url, request);
 			} catch (e) {
+				if (e instanceof DOMException && e.name === "AbortError") return;
 				target.dispatchEvent(new CustomEvent("wfc:submitError", {
 					bubbles: true,
 					detail: {
@@ -2459,7 +2519,7 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 			}
 		} finally {
 			pendingPostbacks--;
-			release();
+			for (let i = releases.length - 1; i >= 0; i--) releases[i]();
 			target.dispatchEvent(new CustomEvent("wfc:afterSubmit", {
 				bubbles: true,
 				detail: {
@@ -2751,6 +2811,26 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 		hiddenClass: "",
 		postBackChange,
 		postBack,
+		retriggerLazy: async function(elementOrId) {
+			const element = typeof elementOrId === "string" ? document.getElementById(elementOrId) : elementOrId;
+			if (!element) throw new Error(`Lazy loader element not found: ${elementOrId}`);
+			const uniqueId = element.getAttribute("data-wfc-lazy");
+			if (uniqueId === null) throw new Error("Element is not a lazy loader (missing data-wfc-lazy attribute)");
+			let targetId = uniqueId;
+			if (!targetId) targetId = element.querySelector("input[name=\"wfcForm\"]")?.value ?? "";
+			if (!targetId) throw new Error("Cannot determine lazy loader UniqueID");
+			const abortController = lazyAbort(element);
+			element.setAttribute("data-wfc-lazy", targetId);
+			element.setAttribute("aria-busy", "true");
+			try {
+				await postBackElement(element, targetId, "LAZY_LOAD", {
+					validate: false,
+					signal: abortController.signal
+				});
+			} finally {
+				lazyAbortCleanup(element, abortController);
+			}
+		},
 		get hasPendingPostbacks() {
 			return pendingPostbacks > 0;
 		},
@@ -2961,6 +3041,46 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 		destroy: function(element) {
 			const webSocket = element.webSocket;
 			if (webSocket) webSocket.close();
+		}
+	});
+	const lazyRetriggerMap = /* @__PURE__ */ new WeakMap();
+	wfc.bind("[data-wfc-lazy]", {
+		init: async function(element) {
+			const uniqueId = element.getAttribute("data-wfc-lazy");
+			if (!uniqueId) return;
+			const abortController = lazyAbort(element);
+			setTimeout(async () => {
+				try {
+					await postBackElement(element, uniqueId, "LAZY_LOAD", {
+						validate: false,
+						signal: abortController.signal
+					});
+				} finally {
+					lazyAbortCleanup(element, abortController);
+				}
+			}, 0);
+		},
+		update: function(element, source) {
+			const elementLazy = element.getAttribute("data-wfc-lazy");
+			const sourceLazy = source.getAttribute("data-wfc-lazy");
+			if (elementLazy === "" && sourceLazy) lazyRetriggerMap.set(element, sourceLazy);
+		},
+		afterUpdate: function(element) {
+			const pendingId = lazyRetriggerMap.get(element);
+			if (pendingId) {
+				lazyRetriggerMap.delete(element);
+				const abortController = lazyAbort(element);
+				setTimeout(async () => {
+					try {
+						await postBackElement(element, pendingId, "LAZY_LOAD", {
+							validate: false,
+							signal: abortController.signal
+						});
+					} finally {
+						lazyAbortCleanup(element, abortController);
+					}
+				}, 0);
+			}
 		}
 	});
 	if ("wfc" in window) {

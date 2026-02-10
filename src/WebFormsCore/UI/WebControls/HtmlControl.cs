@@ -100,6 +100,9 @@ namespace WebFormsCore.UI.WebControls
         /// <summary>Gets the value of the named attribute on the <see cref="T:WebFormsCore.UI.WebControls.HtmlControl" /> control.</summary>
         /// <param name="name">The name of the attribute. This argument is case-insensitive.</param>
         /// <returns>The value of this attribute on the element, as a <see cref="T:System.String" /> value. If the specified attribute does not exist on this element, returns an empty string ("").</returns>
+        internal ValueTask RenderAttributesInternalAsync(HtmlTextWriter writer)
+            => RenderAttributesAsync(writer);
+
         protected virtual string? GetAttribute(string name) => Attributes[name];
 
         /// <summary>For a description of this member, see <see cref="M:WebFormsCore.UI.IAttributeAccessor.SetAttribute(System.String,System.String)" />. </summary>

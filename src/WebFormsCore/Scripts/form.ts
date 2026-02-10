@@ -39,6 +39,66 @@ const morphdom = morphdomFactory((fromEl, toEl) => {
 
 const postbackMutex = new Mutex();
 
+// Per-element state: scoped-form mutex and/or in-flight lazy-load abort controller.
+interface ElementState {
+    mutex?: Mutex;
+    lazyAbort?: AbortController;
+}
+
+const elementStates = new WeakMap<HTMLElement, ElementState>();
+
+function getElementState(element: HTMLElement): ElementState {
+    let state = elementStates.get(element);
+    if (!state) {
+        state = {};
+        elementStates.set(element, state);
+    }
+    return state;
+}
+
+function getFormMutex(form: HTMLElement): Mutex {
+    const state = getElementState(form);
+    return state.mutex ??= new Mutex();
+}
+
+/**
+ * Cancels any in-flight lazy-load request for the element, creates a new
+ * AbortController, and returns it. Call this before starting a lazy-load
+ * postback to ensure only one request is active per element.
+ */
+function lazyAbort(element: HTMLElement): AbortController {
+    const state = getElementState(element);
+    state.lazyAbort?.abort();
+    const controller = new AbortController();
+    state.lazyAbort = controller;
+    return controller;
+}
+
+/**
+ * Cleans up the AbortController for a completed lazy-load request, but only
+ * if it hasn't been superseded by a newer one.
+ */
+function lazyAbortCleanup(element: HTMLElement, controller: AbortController): void {
+    const state = elementStates.get(element);
+    if (state?.lazyAbort === controller) {
+        state.lazyAbort = undefined;
+    }
+}
+
+function isScopedForm(form: HTMLElement | null | undefined): boolean {
+    return form?.getAttribute('data-wfc-form') === 'self';
+}
+
+function getScopedAncestors(form: HTMLElement): HTMLElement[] {
+    const ancestors: HTMLElement[] = [];
+    let parent = form.parentElement?.closest('[data-wfc-form="self"]') as HTMLElement | null;
+    while (parent) {
+        ancestors.unshift(parent); // outermost first
+        parent = parent.parentElement?.closest('[data-wfc-form="self"]') as HTMLElement | null;
+    }
+    return ancestors;
+}
+
 let pendingPostbacks = 0;
 
 class ViewStateContainer {
@@ -95,13 +155,20 @@ async function postBackElement(element: Element, eventTarget?: string, eventArgu
     element.dispatchEvent(new CustomEvent("wfc:postbackTriggered"));
 
     try {
-        const form = getRootForm(element);
         const streamPanel = getStreamPanel(element);
 
         if (streamPanel) {
             await sendToStream(streamPanel, eventTarget, eventArgument);
         } else {
-            await submitForm(element, form, eventTarget, eventArgument);
+            // Check if we're inside a scoped form
+            const scopedForm = getScopedForm(element);
+
+            if (scopedForm) {
+                await submitForm(element, scopedForm, eventTarget, eventArgument, options?.signal);
+            } else {
+                const form = getRootForm(element);
+                await submitForm(element, form, eventTarget, eventArgument, options?.signal);
+            }
         }
     } finally {
         element.dispatchEvent(new CustomEvent("wfc:afterPostbackTriggered"));
@@ -163,6 +230,11 @@ function hasElementFile(element: HTMLElement) {
 function getForm(element: Element) {
     return element.closest('[data-wfc-form]') as HTMLElement
 }
+
+function getScopedForm(element: Element): HTMLElement | null {
+    return element.closest('[data-wfc-form="self"]') as HTMLElement | null;
+}
+
 function getRootForm(element: Element): HTMLElement | null {
     let form = element.closest('[data-wfc-form]') as HTMLElement | null;
     
@@ -185,7 +257,7 @@ function getStreamPanel(element: Element) {
     return element.closest('[data-wfc-stream]') as HTMLElement
 }
 
-function addInputs(formData: FormData, root: HTMLElement, addFormElements: boolean, allowFileUploads) {
+function addInputs(formData: FormData, root: HTMLElement, addFormElements: boolean, allowFileUploads, skipNestedScoped: boolean = false) {
     // Add all the form elements that are not in a form
     const elements = [];
 
@@ -214,6 +286,14 @@ function addInputs(formData: FormData, root: HTMLElement, addFormElements: boole
             continue;
         }
 
+        // When collecting for a scoped form, skip inputs inside nested scoped forms
+        if (skipNestedScoped) {
+            const closestScoped = element.closest('[data-wfc-form="self"]') as HTMLElement | null;
+            if (closestScoped && closestScoped !== root) {
+                continue;
+            }
+        }
+
         if (getStreamPanel(element)) {
             continue;
         }
@@ -228,19 +308,20 @@ function addInputs(formData: FormData, root: HTMLElement, addFormElements: boole
 
 function getFormData(form?: HTMLElement, eventTarget?: string, eventArgument?: string, allowFileUploads: boolean = true) {
     let formData: FormData
+    const scoped = isScopedForm(form);
 
     if (form) {
-        if (form.tagName === "FORM" && allowFileUploads) {
+        if (form.tagName === "FORM" && allowFileUploads && !scoped) {
             formData = new FormData(form as HTMLFormElement);
         } else {
             formData = new FormData()
-            addInputs(formData, form, true, allowFileUploads);
+            addInputs(formData, form, true, allowFileUploads, scoped);
         }
     } else {
         formData = new FormData();
     }
 
-    addInputs(formData, document.body, false, allowFileUploads);
+    addInputs(formData, document.body, false, allowFileUploads, false);
 
     if (eventTarget) {
         formData.append("wfcTarget", eventTarget);
@@ -265,7 +346,7 @@ function getOptions(data: string): JavaScriptOptions {
     }
 }
 
-async function submitForm(element: Element, form?: HTMLElement, eventTarget?: string, eventArgument?: string) {
+async function submitForm(element: Element, form?: HTMLElement, eventTarget?: string, eventArgument?: string, signal?: AbortSignal) {
     const baseElement = element.closest('[data-wfc-base]') as HTMLElement;
     let target: HTMLElement;
 
@@ -275,12 +356,34 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
         target = document.body;
     }
 
+    const scoped = isScopedForm(form);
     const url = baseElement?.getAttribute('data-wfc-base') ?? location.toString();
     const formData = getFormData(form, eventTarget, eventArgument);
     const container = new ViewStateContainer(form, formData);
 
+    // For scoped forms, add the scoped indicator
+    if (scoped) {
+        formData.append("wfcScoped", "true");
+    }
+
     pendingPostbacks++;
-    const release = await postbackMutex.acquire();
+
+    // For scoped forms, acquire per-form mutex (and ancestor mutexes for nested scoped forms).
+    // For non-scoped forms, use the global mutex.
+    const releases: Array<() => void> = [];
+
+    if (scoped && form) {
+        // Acquire ancestor scoped form mutexes first (outermost to innermost)
+        const ancestors = getScopedAncestors(form);
+        for (const ancestor of ancestors) {
+            releases.push(await getFormMutex(ancestor).acquire());
+        }
+        // Acquire this form's own mutex
+        releases.push(await getFormMutex(form).acquire());
+    } else {
+        releases.push(await postbackMutex.acquire());
+    }
+
     const interceptors: Array<(request: RequestInit) => void | Promise<void>> = [];
 
     try {
@@ -308,7 +411,8 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
             credentials: "include",
             headers: {
                 'X-IsPostback': 'true',
-            }
+            },
+            signal: signal,
         };
 
         request.body = hasElementFile(document.body) ? formData : new URLSearchParams(formData as any);
@@ -326,6 +430,11 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
         try {
             response = await fetch(url, request);
         } catch(e) {
+            if (e instanceof DOMException && e.name === 'AbortError') {
+                // Request was intentionally cancelled (e.g. lazy-load retrigger)
+                return;
+            }
+
             target.dispatchEvent(new CustomEvent("wfc:submitError", {
                 bubbles: true,
                 detail: {
@@ -390,7 +499,10 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
         }
     } finally {
         pendingPostbacks--;
-        release();
+        // Release all mutexes in reverse order (innermost first)
+        for (let i = releases.length - 1; i >= 0; i--) {
+            releases[i]();
+        }
         target.dispatchEvent(new CustomEvent("wfc:afterSubmit", {bubbles: true, detail: {target, container, form, eventTarget}}));
 
         // Update the validators
@@ -804,6 +916,46 @@ const wfc: WebFormsCore = {
     postBackChange,
     postBack,
 
+    retriggerLazy: async function(elementOrId: HTMLElement | string) {
+        const element = typeof elementOrId === 'string'
+            ? document.getElementById(elementOrId)
+            : elementOrId;
+
+        if (!element) {
+            throw new Error(`Lazy loader element not found: ${elementOrId}`);
+        }
+
+        const uniqueId = element.getAttribute('data-wfc-lazy');
+
+        if (uniqueId === null) {
+            throw new Error('Element is not a lazy loader (missing data-wfc-lazy attribute)');
+        }
+
+        // If already loaded (empty value), read the UniqueID from the wfcForm hidden input
+        let targetId = uniqueId;
+
+        if (!targetId) {
+            const formInput = element.querySelector<HTMLInputElement>('input[name="wfcForm"]');
+            targetId = formInput?.value ?? '';
+        }
+
+        if (!targetId) {
+            throw new Error('Cannot determine lazy loader UniqueID');
+        }
+
+        const abortController = lazyAbort(element);
+
+        // Reset the attribute to signal "not loaded" so morphdom treats the response correctly
+        element.setAttribute('data-wfc-lazy', targetId);
+        element.setAttribute('aria-busy', 'true');
+
+        try {
+            await postBackElement(element, targetId, 'LAZY_LOAD', { validate: false, signal: abortController.signal });
+        } finally {
+            lazyAbortCleanup(element, abortController);
+        }
+    },
+
     get hasPendingPostbacks() {
         return pendingPostbacks > 0;
     },
@@ -1169,6 +1321,61 @@ wfc.bind('[data-wfc-stream]', {
         }
     }
 })
+
+// Lazy loader: triggers postback after page load to replace skeletons with real content
+// Use a WeakMap to signal between update and afterUpdate, because morphAttrs runs
+// between them and removes any marker attributes we set on the DOM element.
+const lazyRetriggerMap = new WeakMap<HTMLElement, string>();
+
+wfc.bind('[data-wfc-lazy]', {
+    init: async function(element: HTMLElement) {
+        const uniqueId = element.getAttribute('data-wfc-lazy');
+
+        // Only trigger postback if not yet loaded (non-empty value)
+        if (!uniqueId) {
+            return;
+        }
+
+        const abortController = lazyAbort(element);
+
+        // Defer the postback to allow the page to finish loading
+        setTimeout(async () => {
+            try {
+                await postBackElement(element, uniqueId, 'LAZY_LOAD', { validate: false, signal: abortController.signal });
+            } finally {
+                lazyAbortCleanup(element, abortController);
+            }
+        }, 0);
+    },
+    update: function(element: HTMLElement, source: HTMLElement) {
+        const elementLazy = element.getAttribute('data-wfc-lazy');
+        const sourceLazy = source.getAttribute('data-wfc-lazy');
+
+        // When the server sends back an unloaded lazy loader (Retrigger),
+        // allow morphdom to update it and mark it for a new lazy-load postback.
+        if (elementLazy === '' && sourceLazy) {
+            lazyRetriggerMap.set(element, sourceLazy);
+        }
+    },
+    afterUpdate: function(element: HTMLElement) {
+        const pendingId = lazyRetriggerMap.get(element);
+
+        if (pendingId) {
+            lazyRetriggerMap.delete(element);
+
+            const abortController = lazyAbort(element);
+
+            // Trigger a new lazy-load postback since the server retriggered this loader
+            setTimeout(async () => {
+                try {
+                    await postBackElement(element, pendingId, 'LAZY_LOAD', { validate: false, signal: abortController.signal });
+                } finally {
+                    lazyAbortCleanup(element, abortController);
+                }
+            }, 0);
+        }
+    }
+});
 
 if ('wfc' in window) {
     const current = window.wfc;

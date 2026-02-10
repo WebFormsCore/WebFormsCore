@@ -8,6 +8,7 @@ export interface WebFormsCore {
     readonly hasPendingPostbacks: boolean;
     postBackChange: (target: Element, timeOut?: number, eventArgument?: string, options?: PostBackOptions) => void;
     postBack: (target: Element, eventArgument?: string, options?: PostBackOptions) => Promise<void>;
+    retriggerLazy: (elementOrId: HTMLElement | string) => Promise<void>;
 
     show: (element: HTMLElement) => void;
     hide: (element: HTMLElement) => void;
@@ -36,6 +37,7 @@ export interface WebFormsCore {
 
 export interface PostBackOptions {
     validate?: boolean;
+    signal?: AbortSignal;
 }
 
 export interface PageRequestManager {

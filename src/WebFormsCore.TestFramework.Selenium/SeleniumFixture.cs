@@ -66,7 +66,8 @@ public sealed class SeleniumFixture : IDisposable
         Func<Control, Task<TState>> stateFactory,
         SeleniumFixtureOptions? options = null)
     {
-        options ??= new SeleniumFixtureOptions();
+        options = options?.Clone() ?? new SeleniumFixtureOptions();
+
         var state = new CurrentState<TState>();
         var originalConfigure = options.Configure;
 

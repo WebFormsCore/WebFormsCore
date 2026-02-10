@@ -45,4 +45,18 @@ public class SeleniumFixtureOptions
     /// Gets or sets whether to enable WebFormsCore middleware.
     /// </summary>
     public bool EnableWebFormsCoreMiddleware { get; set; } = true;
+
+    /// <summary>
+    /// Creates a shallow clone of this options instance.
+    /// </summary>
+    public SeleniumFixtureOptions Clone() => new()
+    {
+        Configure = Configure,
+        ConfigureApp = ConfigureApp,
+        Headless = Headless,
+        EnableViewState = EnableViewState,
+        Protocols = Protocols,
+        EnableWebSockets = EnableWebSockets,
+        EnableWebFormsCoreMiddleware = EnableWebFormsCoreMiddleware
+    };
 }

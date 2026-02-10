@@ -77,6 +77,15 @@ public partial class PageManager : IPageManager
         page.SetContext(context);
         await InitPageAsync(page, token);
 
+        // Check if this is a scoped form postback
+        if (page.IsPostBack &&
+            context.Request.Form.TryGetValue("wfcScoped", out var scopedValue) &&
+            scopedValue == "true")
+        {
+            await RenderScopedFormAsync(page, context, token);
+            return;
+        }
+
         var control = await ProcessRequestAsync(context, page, render: true, token);
 
         if (control is null)
@@ -441,6 +450,139 @@ public partial class PageManager : IPageManager
         }
 
         await controlToRender.RenderAsync(writer, token);
+    }
+
+    /// <summary>
+    /// Handle a scoped form postback. The scoped form operates independently:
+    /// parent viewstates are loaded read-only, only the scoped form's viewstate is saved,
+    /// and only the scoped form HTML is returned in the response.
+    /// </summary>
+    private async Task RenderScopedFormAsync(Page page, HttpContext context, CancellationToken token)
+    {
+        var request = context.Request;
+
+        // Load viewstates: page state and parent form states are read-only (for tree construction)
+        if (_viewStateManager.EnableViewState)
+        {
+            if (request.Form.TryGetValue("wfcPageState", out var pageState) && !string.IsNullOrEmpty(pageState))
+            {
+                await _viewStateManager.LoadAsync(page, pageState.ToString()!);
+            }
+
+            // Load parent form viewstates
+            foreach (var key in request.Form.Keys)
+            {
+                if (!key.StartsWith("wfcParentForm_"))
+                {
+                    continue;
+                }
+
+                var parentFormId = key.Substring("wfcParentForm_".Length);
+                var parentForm = page.Forms.FirstOrDefault(f => f.UniqueID == parentFormId);
+
+                if (parentForm != null && request.Form.TryGetValue(key, out var parentState) && !string.IsNullOrEmpty(parentState))
+                {
+                    await _viewStateManager.LoadAsync(parentForm, parentState.ToString()!);
+                }
+            }
+        }
+
+        // Find and load the scoped form's own viewstate
+        HtmlForm? scopedForm = null;
+
+        if (request.Form.TryGetValue("wfcForm", out var formId))
+        {
+            scopedForm = page.Forms.FirstOrDefault(i => i.UniqueID == formId);
+        }
+
+        if (scopedForm == null)
+        {
+            return;
+        }
+
+        if (_viewStateManager.EnableViewState &&
+            request.Form.TryGetValue("wfcFormState", out var formState) &&
+            !string.IsNullOrEmpty(formState))
+        {
+            await _viewStateManager.LoadAsync(scopedForm, formState.ToString()!);
+        }
+
+        // Set the scoped form as active
+        page.ActiveForm = scopedForm;
+
+        // Process lifecycle on the scoped form
+        var serviceProvider = context.RequestServices;
+        var pageServices = serviceProvider.GetServices<IPageService>() as IPageService[] ?? Array.Empty<IPageService>();
+
+        foreach (var pageService in pageServices)
+        {
+            await pageService.BeforeLoadAsync(page, token);
+        }
+
+        foreach (var service in pageServices)
+        {
+            await service.BeforePostbackAsync(page, token);
+        }
+
+        await scopedForm.PostbackAsync(token);
+        await scopedForm.LoadAsync(token);
+
+        foreach (var service in pageServices)
+        {
+            await service.AfterLoadAsync(page, token);
+        }
+
+        var targetName = request.Form.TryGetValue("wfcTarget", out var eventTarget)
+            ? eventTarget.ToString()
+            : string.Empty;
+
+        var argument = request.Form.TryGetValue("wfcArgument", out var eventArgument)
+            ? eventArgument.ToString()
+            : string.Empty;
+
+        await TriggerPostBackAsync(page, targetName, argument, token, pageServices);
+
+        await page.ExecuteRegisteredAsyncTasksAsync(token);
+
+        // Handle redirects
+        if (context.Response.StatusCode is 301 or 302)
+        {
+            if (context.Request.Headers.ContainsKey("X-IsPostback"))
+            {
+                context.Response.StatusCode = 204;
+                context.Response.Headers["X-Redirect-To"] = context.Response.Headers["Location"];
+                context.Response.Headers.Remove("Location");
+            }
+
+            return;
+        }
+
+        foreach (var service in pageServices)
+        {
+            await service.BeforePreRenderAsync(page, token);
+        }
+
+        await scopedForm.PreRenderAsync(token);
+
+        foreach (var service in pageServices)
+        {
+            await service.AfterPreRenderAsync(page, token);
+        }
+
+        // Render only the scoped form
+        var response = context.Response;
+        response.Headers["x-wfc-options"] = ToJavaScriptOptions(_options.Value);
+
+        var stream = response.Body;
+        await using var writer = new StreamHtmlTextWriter(stream);
+
+        response.Body = new FlushHtmlStream(stream, writer);
+        response.ContentType = "text/html; charset=utf-8";
+
+        await scopedForm.RenderAsync(writer, token);
+
+        await writer.FlushAsync();
+        response.Body = stream;
     }
 
     private async Task RenderStreamPanelAsync(Page page, string panel, HttpContext context, CancellationToken token)

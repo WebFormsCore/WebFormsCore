@@ -18,6 +18,13 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether this form operates in its own independent scope.
+    /// When scoped, the form has its own postback mutex, receives partial responses,
+    /// and its viewstate is managed independently from other forms.
+    /// </summary>
+    public bool Scoped { get; set; }
+
+    /// <summary>
     /// Gets the parent form if this form is nested inside another form.
     /// Returns null if this is a root form.
     /// </summary>
@@ -37,7 +44,23 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
     /// </summary>
     internal HtmlForm RootForm => ParentForm?.RootForm ?? this;
 
-    private bool ProcessAndRenderControl => _processControl || !Page.IsPostBack || Page.ActiveForm == RootForm;
+    private bool ProcessAndRenderControl =>
+        _processControl ||
+        !Page.IsPostBack ||
+        Page.ActiveForm == RootForm ||
+        (Scoped && Page.ActiveForm == this);
+
+    /// <summary>
+    /// Gets a value indicating whether this form should render its own viewstate hidden fields.
+    /// Root forms always render them. Scoped forms also render them so they can operate independently.
+    /// </summary>
+    private bool ShouldRenderViewStateFields => IsRootForm || Scoped;
+
+    /// <summary>
+    /// Gets a value indicating whether this form should render as a div instead of a form element.
+    /// Non-root forms always render as divs since HTML doesn't allow nested form elements.
+    /// </summary>
+    private bool ShouldRenderAsDiv => Page.IsExternal || !IsRootForm;
 
     public event AsyncEventHandler<HtmlForm, EventArgs>? Submit;
 
@@ -66,8 +89,6 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         get => Attributes["enctype"];
         set => Attributes["enctype"] = value;
     }
-
-    private bool ShouldRenderAsDiv => Page.IsExternal || !IsRootForm;
 
     public override string TagName => ShouldRenderAsDiv ? "div" : "form";
 
@@ -111,38 +132,69 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         }
 
         await writer.WriteAttributeAsync("id", ClientID);
-        await writer.WriteAttributeAsync("data-wfc-form", null);
+        await writer.WriteAttributeAsync("data-wfc-form", Scoped ? "self" : null);
     }
 
     protected override async ValueTask RenderChildrenAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        var viewStateManager = ServiceProvider.GetRequiredService<IViewStateManager>();
-
         await base.RenderChildrenAsync(writer, token);
 
-        // Only render the wfcForm hidden field for root forms.
-        // Nested forms are processed as part of their root form's postback.
-        if (IsRootForm)
+        if (ShouldRenderViewStateFields)
         {
-            await writer.WriteAsync(@"<input type=""hidden"" name=""wfcForm"" value=""");
-            await writer.WriteAsync(UniqueID);
-            await writer.WriteAsync(@"""/>");
-            await writer.WriteLineAsync();
-
-            if (viewStateManager.EnableViewState && !Page.IsStreaming)
-            {
-                await writer.WriteAsync(@"<input type=""hidden"" name=""wfcFormState"" value=""");
-                using (var viewState = await viewStateManager.WriteAsync(this, out var length))
-                {
-                    await writer.WriteAsync(viewState.Memory.Slice(0, length));
-                }
-
-                await writer.WriteAsync(@"""/>");
-            }
+            await RenderViewStateFieldsAsync(writer);
         }
     }
 
+    /// <summary>
+    /// Renders the hidden input fields for form identification and viewstate.
+    /// Called by RenderChildrenAsync when ShouldRenderViewStateFields is true.
+    /// </summary>
+    protected virtual async ValueTask RenderViewStateFieldsAsync(HtmlTextWriter writer)
+    {
+        var viewStateManager = ServiceProvider.GetRequiredService<IViewStateManager>();
 
+        await writer.WriteAsync(@"<input type=""hidden"" name=""wfcForm"" value=""");
+        await writer.WriteAsync(UniqueID);
+        await writer.WriteAsync(@"""/>");
+        await writer.WriteLineAsync();
+
+        if (viewStateManager.EnableViewState && !Page.IsStreaming)
+        {
+            await writer.WriteAsync(@"<input type=""hidden"" name=""wfcFormState"" value=""");
+            using (var viewState = await viewStateManager.WriteAsync(this, out var length))
+            {
+                await writer.WriteAsync(viewState.Memory.Slice(0, length));
+            }
+
+            await writer.WriteAsync(@"""/>");
+        }
+
+        // Scoped forms also render parent form viewstates so the server can
+        // reconstruct the control tree hierarchy on scoped postback.
+        if (Scoped && ParentForm != null && viewStateManager.EnableViewState && !Page.IsStreaming)
+        {
+            await RenderParentViewStatesAsync(writer, viewStateManager);
+        }
+    }
+
+    private async ValueTask RenderParentViewStatesAsync(HtmlTextWriter writer, IViewStateManager viewStateManager)
+    {
+        var parent = ParentForm;
+
+        while (parent != null)
+        {
+            await writer.WriteAsync(@"<input type=""hidden"" name=""wfcParentForm_");
+            await writer.WriteAsync(parent.UniqueID);
+            await writer.WriteAsync(@""" value=""");
+            using (var viewState = await viewStateManager.WriteAsync(parent, out var length))
+            {
+                await writer.WriteAsync(viewState.Memory.Slice(0, length));
+            }
+            await writer.WriteAsync(@"""/>");
+
+            parent = parent.ParentForm;
+        }
+    }
 
     public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
@@ -167,5 +219,6 @@ public class HtmlForm : HtmlContainerControl, INamingContainer, IStateContainer
         Submit = null;
         LastViewState = null;
         _processControl = false;
+        Scoped = false;
     }
 }
