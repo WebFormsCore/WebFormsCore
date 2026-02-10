@@ -16,6 +16,7 @@
         <Using Include="WebFormsCore" />
         <Using Include="WebFormsCore.UI" />
         <Using Include="WebFormsCore.UI.WebControls" />
+        <Using Include="WebFormsCore.UI.WebControls.LiteralMethods" Static="True" />
     </ItemGroup>
 
     <!-- .NET Framework -->
@@ -38,8 +39,8 @@
 
     <!-- NuGet references -->
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true'">
-        <PackageReference Include="WebFormsCore" Version="0.0.1-alpha.79" />
-        <PackageReference Include="WebFormsCore.SourceGenerator" Version="0.0.1-alpha.79" OutputItemType="Analyzer" />
+        <PackageReference Include="WebFormsCore" Version="0.0.1-alpha.77" />
+        <PackageReference Include="WebFormsCore.SourceGenerator" Version="0.0.1-alpha.77" OutputItemType="Analyzer" />
     </ItemGroup>
 
     <!-- Control Compiler -->
@@ -58,6 +59,6 @@
     </ItemGroup>
 
     <ItemGroup Condition="$(WebFormsCoreUseNuget) == 'true' and $(WebFormsCoreUseCompiler) == 'true'">
-        <PackageReference Include="WebFormsCore.Compiler" Version="0.0.1-alpha.79" />
+        <PackageReference Include="WebFormsCore.Compiler" Version="0.0.1-alpha.77" />
     </ItemGroup>
 </Project>

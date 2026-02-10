@@ -42,7 +42,7 @@ public class AttributeCollectionTest
         attributes.Add("name", "value");
         attributes.Remove("name");
 
-        Assert.Null(attributes["name"]);
+        Assert.True(attributes["name"].IsEmpty);
         Assert.False(attributes.ContainsKey("name"));
     }
 
@@ -54,7 +54,7 @@ public class AttributeCollectionTest
         attributes.Remove("style");
 
         Assert.Equal(0, attributes.CssStyle.Count);
-        Assert.Null(attributes["style"]);
+        Assert.True(attributes["style"].IsEmpty);
     }
 
     [Fact]

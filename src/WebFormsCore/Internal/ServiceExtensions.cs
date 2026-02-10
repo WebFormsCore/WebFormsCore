@@ -76,6 +76,7 @@ public static class ServiceExtensions
         services.TryAddSingleton<IWebFormsApplication, WebFormsApplications>();
         services.TryAddScoped<IWebObjectActivator, DefaultWebObjectActivator>();
         services.TryAddSingleton<IControlManager, DefaultControlManager>();
+        services.TryAddSingleton<IPageFactory, DefaultPageFactory>();
     }
 
     public static IWebFormsCoreBuilder TryAddDefaultPooledControls(this IWebFormsCoreBuilder builder)
@@ -110,6 +111,7 @@ public static class ServiceExtensions
         builder.TryAddViewStateSerializer<NullableViewStateSerializer>();
         builder.TryAddViewStateSerializer<Type, TypeViewStateSerializer>();
         builder.TryAddViewStateSerializer<string, StringViewStateSerializer>();
+        builder.TryAddViewStateSerializer<StringOrFunc, StringOrFuncViewStateSerializer>();
         builder.TryAddViewStateSpanSerializer<char, StringViewStateSerializer>();
         builder.TryAddMarshalViewStateSerializer<int>();
         builder.TryAddMarshalViewStateSerializer<uint>();

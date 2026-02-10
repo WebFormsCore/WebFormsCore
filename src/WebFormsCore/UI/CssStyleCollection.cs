@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace WebFormsCore.UI;
 
-public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewStateObject
+public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewStateObject, IEnumerable
 {
     private static readonly Regex StyleAttribRegex = new(
         "\\G(\\s*(;\\s*)*" + // match leading semicolons and spaces
@@ -20,14 +20,14 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
         RegexOptions.Multiline |
         RegexOptions.ExplicitCapture);
 
-    private readonly IDictionary<string, string?>? _state;
-    private string? _style;
+    private readonly IDictionary<string, StringOrFunc>? _state;
+    private StringOrFunc _style;
 
     private readonly HashSet<string> _trackedKeys = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<HtmlTextWriterStyle> _trackedIntKeys = new();
 
-    private Dictionary<string, string?>? _table;
-    private Dictionary<HtmlTextWriterStyle, string?>? _intTable;
+    private Dictionary<string, StringOrFunc>? _table;
+    private Dictionary<HtmlTextWriterStyle, StringOrFunc>? _intTable;
 
 
     internal CssStyleCollection() : this(null)
@@ -37,7 +37,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
     /*
      * Constructs an CssStyleCollection given a StateBag.
      */
-    internal CssStyleCollection(IDictionary<string, string?>? state)
+    internal CssStyleCollection(IDictionary<string, StringOrFunc>? state)
     {
         _state = state;
     }
@@ -80,12 +80,12 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
     /// <devdoc>
     /// Gets or sets the specified known CSS value.
     /// </devdoc>
-    public string? this[HtmlTextWriterStyle key]
+    public StringOrFunc this[HtmlTextWriterStyle key]
     {
         get
         {
             _table ??= ParseString();
-            return _intTable != null && _intTable.TryGetValue(key, out var value) ? value : null;
+            return _intTable != null && _intTable.TryGetValue(key, out var value) ? value : default;
         }
         set => Add(key, value);
     }
@@ -148,14 +148,18 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
         }
     }
 
-
-    public string? Value
+    public StringOrFunc Value
     {
         get
         {
             if (_state == null)
             {
-                return _style ??= BuildString();
+                if (_style.IsEmpty)
+                {
+                    return BuildString();
+                }
+
+                return _style;
             }
 
             if (!_state.TryGetValue("style", out var value))
@@ -182,13 +186,17 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
         }
     }
 
+    public void Add(string key, Func<string> value)
+    {
+        Add(key, new StringOrFunc(value));
+    }
 
     /// <devdoc>
     ///    <para>
     ///       Adds a style to the CssStyleCollection.
     ///    </para>
     /// </devdoc>
-    public void Add(string key, string? value)
+    public void Add(string key, StringOrFunc value)
     {
         if (string.IsNullOrEmpty(key))
         {
@@ -213,13 +221,13 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
             _state["style"] = BuildString();
         }
 
-        _style = null;
+        _style = default;
     }
 
 
-    public void Add(HtmlTextWriterStyle key, string? value)
+    public void Add(HtmlTextWriterStyle key, StringOrFunc value)
     {
-        _intTable ??= new Dictionary<HtmlTextWriterStyle, string?>();
+        _intTable ??= new Dictionary<HtmlTextWriterStyle, StringOrFunc>();
         _intTable[key] = value;
         _trackedIntKeys.Add(key);
 
@@ -238,7 +246,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
             _state["style"] = BuildString();
         }
 
-        _style = null;
+        _style = default;
     }
 
 
@@ -277,7 +285,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
                 _state["style"] = BuildString();
             }
 
-            _style = null;
+            _style = default;
         }
     }
 
@@ -298,7 +306,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
             _state["style"] = BuildString();
         }
 
-        _style = null;
+        _style = default;
     }
 
 
@@ -317,7 +325,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
             _state.Remove("style");
         }
 
-        _style = null;
+        _style = default;
     }
 
     /*  BuildString
@@ -344,18 +352,25 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
      *  Parse the style string and fill the hash table with
      *  corresponding values.
      */
-    private Dictionary<string, string?> ParseString()
+    private Dictionary<string, StringOrFunc> ParseString()
     {
         // create a case-insensitive dictionary
-        var table = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        var table = new Dictionary<string, StringOrFunc>(StringComparer.OrdinalIgnoreCase);
 
         var s = _state == null ? _style : _state["style"];
-        if (s == null)
+        if (s.IsEmpty)
         {
             return table;
         }
 
-        foreach (Match match in StyleAttribRegex.Matches(s))
+        var result = s.ToString();
+
+        if (string.IsNullOrEmpty(result))
+        {
+            return table;
+        }
+
+        foreach (Match match in StyleAttribRegex.Matches(result))
         {
             var name = match.Groups["stylename"].Captures;
             var values = match.Groups["styleval"].Captures;
@@ -369,7 +384,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
 
                 if (styleKey != (HtmlTextWriterStyle)(-1))
                 {
-                    _intTable ??= new Dictionary<HtmlTextWriterStyle, string?>();
+                    _intTable ??= new Dictionary<HtmlTextWriterStyle, StringOrFunc>();
                     _intTable[styleKey] = styleValue;
                 }
                 else
@@ -558,7 +573,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
         foreach (var (key, value) in table)
         {
             var keyHash = StringComparer.OrdinalIgnoreCase.GetHashCode(key);
-            var valueHash = value?.GetHashCode() ?? 0;
+            var valueHash = value.GetHashCode();
             hashCode ^= HashCode.Combine(keyHash, valueHash);
         }
 
@@ -567,12 +582,30 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
             foreach (var (key, value) in _intTable)
             {
                 var keyHash = key.GetHashCode();
-                var valueHash = value?.GetHashCode() ?? 0;
+                var valueHash = value.GetHashCode();
                 hashCode ^= HashCode.Combine(keyHash, valueHash);
             }
         }
 
         return hashCode;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        _table ??= ParseString();
+
+        foreach (var key in _table.Keys)
+        {
+            yield return key;
+        }
+
+        if (_intTable != null)
+        {
+            foreach (var key in _intTable.Keys)
+            {
+                yield return CssTextWriter.GetStyleName(key);
+            }
+        }
     }
 
     public static bool operator ==(CssStyleCollection? left, CssStyleCollection? right)
@@ -602,7 +635,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
             foreach (var key in _trackedKeys)
             {
                 writer.Write(key);
-                writer.Write(_table != null && _table.TryGetValue(key, out var value) ? value : null);
+                writer.Write(_table != null && _table.TryGetValue(key, out var value) ? value : default);
             }
         }
 
@@ -613,7 +646,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
             foreach (var key in _trackedIntKeys)
             {
                 writer.Write((byte)key);
-                writer.Write(_intTable != null && _intTable.TryGetValue(key, out var value) ? value : null);
+                writer.Write(_intTable != null && _intTable.TryGetValue(key, out var value) ? value : default);
             }
         }
     }
@@ -648,7 +681,7 @@ public sealed class CssStyleCollection : IEquatable<CssStyleCollection>, IViewSt
 
         if (count > 0)
         {
-            _intTable ??= new Dictionary<HtmlTextWriterStyle, string?>();
+            _intTable ??= new Dictionary<HtmlTextWriterStyle, StringOrFunc>();
 
             for (var i = 0; i < count; i++)
             {

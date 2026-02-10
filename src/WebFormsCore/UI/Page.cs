@@ -15,13 +15,12 @@ using WebFormsCore.UI.WebControls;
 namespace WebFormsCore.UI;
 
 [ParseChildren(false)]
-public class Page : Control, INamingContainer, IStateContainer, IInternalPage
+public class Page : RefControl, INamingContainer, IStateContainer, IInternalPage
 #pragma warning disable CS0436 // Type conflicts with imported type
     , System.Web.UI.Page
 #pragma warning restore CS0436
 {
     private HttpContext? _context;
-    private ScopedControlContainer? _scopedContainer;
 
     internal List<object>? ChangedPostDataConsumers;
     private bool _validated;
@@ -71,7 +70,7 @@ public class Page : Control, INamingContainer, IStateContainer, IInternalPage
 
     protected override IServiceProvider ServiceProvider => Context.RequestServices;
 
-    internal ScopedControlContainer ScopedContainer => _scopedContainer ??= ServiceProvider.GetRequiredService<ScopedControlContainer>();
+    internal ScopedControlContainer ScopedContainer => field ??= ServiceProvider.GetRequiredService<ScopedControlContainer>();
 
     public List<HtmlForm> Forms { get; set; } = new();
 
@@ -113,9 +112,28 @@ public class Page : Control, INamingContainer, IStateContainer, IInternalPage
 
     internal HtmlForm? ActiveForm { get; set; }
 
+    protected override void OnFrameworkInit()
+    {
+        using (new RefScope(this))
+        {
+            base.OnFrameworkInit();
+        }
+    }
+
+    protected override async ValueTask OnPreInitAsync(CancellationToken token)
+    {
+        using (new RefScope(this))
+        {
+            await base.OnPreInitAsync(token);
+        }
+    }
+
     protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        await base.OnInitAsync(token);
+        using (new RefScope(this))
+        {
+            await base.OnInitAsync(token);
+        }
 
         RegisterScript();
     }
