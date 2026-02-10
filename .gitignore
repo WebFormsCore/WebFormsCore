@@ -403,3 +403,11 @@ FodyWeavers.xsd
 # Verify
 *.received.*
 *.received/
+
+# Compiled JavaScript from TypeScript
+src/WebFormsCore/Scripts/*.js
+src/WebFormsCore.Extensions.Choices/Scripts/*.js
+src/WebFormsCore.Extensions.TinyMCE/Scripts/*.js
+
+# Generated SDK files
+sdk/*/Sdk/
