@@ -10,7 +10,12 @@
         <RootNamespace>WebFormsCore.SDK</RootNamespace>
     </PropertyGroup>
 
-    <Target Name="CopyCommon" BeforeTargets="BeforeBuild">
+    <ItemGroup>
+        <ProjectReference Include="..\WebFormsCore.SDK.Core\WebFormsCore.SDK.Core.csproj" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <Target Name="CopyCommon" AfterTargets="ResolveProjectReferences">
+        <MakeDir Directories="Sdk" Condition="!Exists('Sdk')" />
         <Copy SourceFiles="$(MSBuildThisFileDirectory)..\WebFormsCore.SDK.Core\Sdk\Sdk.props" DestinationFiles="Sdk\Core.props" />
         <Copy SourceFiles="$(MSBuildThisFileDirectory)..\WebFormsCore.SDK.Core\Sdk\Sdk.targets" DestinationFiles="Sdk\Core.targets" />
     </Target>
