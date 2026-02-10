@@ -23,6 +23,7 @@ public static class SkeletonServiceExtensions
         builder.AddSkeletonRenderer<Label, LabelSkeletonRenderer>();
         builder.AddSkeletonRenderer<TextBox, TextBoxSkeletonRenderer>();
         builder.AddSkeletonRenderer<Button, ButtonSkeletonRenderer>();
+        builder.AddSkeletonRenderer<Repeater, RepeaterSkeletonRenderer>();
 
         return builder;
     }

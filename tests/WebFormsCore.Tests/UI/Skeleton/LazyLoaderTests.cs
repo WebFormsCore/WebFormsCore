@@ -396,4 +396,53 @@ public class LazyLoaderTests
         await loader.TriggerOnLoadAsync(CancellationToken.None);
         Assert.Equal(2, eventCount);
     }
+
+    [Fact]
+    public async Task WhenNonTargetedPostbackThenRendersIgnoreStub()
+    {
+        // Simulate a postback that targets a different control (e.g., a button outside the lazy loader).
+        // The lazy loader should render data-wfc-ignore so the client keeps existing DOM.
+        var page = CreatePostBackPage("some_other_control");
+        var loader = new LazyLoader { ID = "lazy1" };
+        page.Controls.AddWithoutPageEvents(loader);
+
+        // Advance past init to trigger the ProcessAndRenderControl check
+        await ((IInternalControl)loader).InitAsync(CancellationToken.None);
+        await ((IInternalControl)loader).LoadAsync(CancellationToken.None);
+
+        var writer = new StringHtmlTextWriter();
+        await loader.RenderAsync(writer, CancellationToken.None);
+        await writer.FlushAsync();
+
+        var output = writer.ToString();
+
+        // Should render the ignore stub instead of skeleton or content
+        Assert.Contains("data-wfc-ignore", output);
+        // Should NOT contain the lazy loader attribute (which would trigger client re-load)
+        Assert.DoesNotContain("data-wfc-lazy", output);
+    }
+
+    [Fact]
+    public async Task WhenTargetedPostbackThenRendersNormally()
+    {
+        // Simulate a postback that targets this lazy loader.
+        // The lazy loader should render its content (not data-wfc-ignore).
+        var page = CreatePostBackPage("lazy1");
+        var loader = new LazyLoader { ID = "lazy1" };
+        page.Controls.AddWithoutPageEvents(loader);
+
+        await ((IInternalControl)loader).InitAsync(CancellationToken.None);
+        await ((IInternalControl)loader).LoadAsync(CancellationToken.None);
+
+        var writer = new StringHtmlTextWriter();
+        await loader.RenderAsync(writer, CancellationToken.None);
+        await writer.FlushAsync();
+
+        var output = writer.ToString();
+
+        // Should NOT render ignore stub
+        Assert.DoesNotContain("data-wfc-ignore", output);
+        // Should render as loaded
+        Assert.Contains("data-wfc-lazy=\"\"", output);
+    }
 }

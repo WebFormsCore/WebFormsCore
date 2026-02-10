@@ -18,17 +18,17 @@ public class ViewStateManager : IViewStateManager
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IOptions<ViewStateOptions> _options;
-    private readonly HashAlgorithm _hashAlgorithm;
+    private readonly byte[]? _hmacKey;
     private readonly int _hashLength;
 
     public ViewStateManager(IServiceProvider serviceProvider, IOptions<ViewStateOptions>? options = null)
     {
         _serviceProvider = serviceProvider;
         _options = options ?? Options.Create(new ViewStateOptions());
-        _hashAlgorithm = !string.IsNullOrEmpty(options?.Value.EncryptionKey)
-            ? new HMACSHA256(Encoding.UTF8.GetBytes(options!.Value.EncryptionKey!))
-            : SHA256.Create();
-        _hashLength = _hashAlgorithm.HashSize / 8;
+        _hmacKey = !string.IsNullOrEmpty(options?.Value.EncryptionKey)
+            ? Encoding.UTF8.GetBytes(options!.Value.EncryptionKey!)
+            : null;
+        _hashLength = 256 / 8; // SHA256 and HMACSHA256 both produce 256-bit hashes
     }
 
     /// <summary>
@@ -97,40 +97,21 @@ public class ViewStateManager : IViewStateManager
         }
     }
 
+    /// <summary>
+    /// Computes the hash of the data using thread-safe static methods.
+    /// </summary>
     private void ComputeHash(byte[] data, int dataLength, Span<byte> hash)
     {
         var offset = HeaderLength + _hashLength;
-        var success = _hashAlgorithm.TryComputeHash(data.AsSpan(offset, dataLength), hash, out var bytesWritten);
+        var source = data.AsSpan(offset, dataLength);
 
-        if (success)
-        {
-            if (bytesWritten != hash.Length)
-            {
-                hash.Slice(bytesWritten).Fill(0);
-            }
-        }
-        else
-        {
-            var result = _hashAlgorithm.ComputeHash(data, offset, dataLength);
+        var bytesWritten = _hmacKey != null
+            ? HMACSHA256.HashData(_hmacKey, source, hash)
+            : SHA256.HashData(source, hash);
 
-            CopyToHash(ref hash, result);
-        }
-    }
-
-    private static void CopyToHash(ref Span<byte> hash, byte[] result)
-    {
-        if (hash.Length == result.Length)
+        if (bytesWritten != hash.Length)
         {
-            result.CopyTo(hash);
-        }
-        else if (hash.Length > result.Length)
-        {
-            result.CopyTo(hash);
-            hash.Slice(result.Length).Fill(0);
-        }
-        else
-        {
-            result.AsSpan(0, hash.Length).CopyTo(hash);
+            hash.Slice(bytesWritten).Fill(0);
         }
     }
 

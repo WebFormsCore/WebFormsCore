@@ -17,6 +17,7 @@ public partial class LazyLoader : HtmlForm, IPostBackAsyncEventHandler
 {
     private bool _lazyProcessControl;
     private bool _initComplete;
+    private bool _retriggered;
 
     public LazyLoader()
     {
@@ -52,6 +53,7 @@ public partial class LazyLoader : HtmlForm, IPostBackAsyncEventHandler
     {
         IsLoaded = false;
         _lazyProcessControl = false;
+        _retriggered = true;
     }
 
     /// <summary>
@@ -106,7 +108,21 @@ public partial class LazyLoader : HtmlForm, IPostBackAsyncEventHandler
     {
         if (!Visible) return;
 
-        // Always render the same structure - RenderChildrenAsync handles skeleton vs content
+        // During a postback that doesn't target this lazy loader and where
+        // Retrigger() was not explicitly called, IsLoaded may be false simply
+        // because the scoped form's viewstate was not loaded. In that case,
+        // render data-wfc-ignore so the client keeps its existing DOM
+        // (loaded or skeleton) and doesn't trigger a redundant lazy-load.
+        if (Page.IsPostBack && !_lazyProcessControl && !_retriggered && !IsLoaded)
+        {
+            await writer.WriteBeginTagAsync(TagName);
+            await writer.WriteAttributeAsync("id", ClientID);
+            await writer.WriteAttributeAsync("data-wfc-ignore", null);
+            await writer.WriteAsync('>');
+            await writer.WriteEndTagAsync(TagName);
+            return;
+        }
+
         await RenderBeginTagAsync(writer, token);
         await RenderChildrenAsync(writer, token);
         await RenderEndTagAsync(writer, token);
@@ -206,6 +222,7 @@ public partial class LazyLoader : HtmlForm, IPostBackAsyncEventHandler
         IsLoaded = false;
         _lazyProcessControl = false;
         _initComplete = false;
+        _retriggered = false;
         ContentLoaded = null;
         LoadingCssClass = null;
     }

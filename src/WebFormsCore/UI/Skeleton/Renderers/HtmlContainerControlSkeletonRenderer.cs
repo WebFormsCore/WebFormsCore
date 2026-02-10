@@ -13,7 +13,11 @@ public class HtmlContainerControlSkeletonRenderer : ISkeletonRenderer<HtmlContai
     public async ValueTask RenderSkeletonAsync(HtmlContainerControl control, HtmlTextWriter writer, CancellationToken token)
     {
         await writer.WriteBeginTagAsync(control.TagName);
-        await control.RenderAttributesInternalAsync(writer);
+
+        if (control.IsInPage)
+        {
+            await control.RenderAttributesInternalAsync(writer);
+        }
 
         var existingClass = control.Attributes["class"];
         var skeletonClass = string.IsNullOrEmpty(existingClass)

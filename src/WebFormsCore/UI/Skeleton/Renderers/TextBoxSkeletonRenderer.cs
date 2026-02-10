@@ -13,7 +13,12 @@ public class TextBoxSkeletonRenderer : ISkeletonRenderer<TextBox>
     public async ValueTask RenderSkeletonAsync(TextBox control, HtmlTextWriter writer, CancellationToken token)
     {
         var internalControl = (IInternalWebControl)control;
-        await internalControl.AddAttributesToRender(writer, token);
+
+        if (control.IsInPage)
+        {
+            await internalControl.AddAttributesToRender(writer, token);
+        }
+
         writer.MergeAttribute(HtmlTextWriterAttribute.Class, "wfc-skeleton wfc-skeleton-input");
         writer.AddAttribute("data-wfc-skeleton", null);
         writer.AddAttribute("aria-hidden", "true");

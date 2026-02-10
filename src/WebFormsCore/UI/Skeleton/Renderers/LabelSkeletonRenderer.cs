@@ -18,8 +18,12 @@ public class LabelSkeletonRenderer : ISkeletonRenderer<Label>
             return;
         }
 
-        var internalControl = (IInternalWebControl)control;
-        await internalControl.AddAttributesToRender(writer, token);
+        if (control.IsInPage)
+        {
+            var internalControl = (IInternalWebControl)control;
+            await internalControl.AddAttributesToRender(writer, token);
+        }
+
         writer.MergeAttribute(HtmlTextWriterAttribute.Class, "wfc-skeleton wfc-skeleton-text");
         writer.AddAttribute("data-wfc-skeleton", null);
         writer.AddAttribute("aria-hidden", "true");

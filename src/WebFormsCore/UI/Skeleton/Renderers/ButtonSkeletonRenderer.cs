@@ -13,8 +13,13 @@ public class ButtonSkeletonRenderer : ISkeletonRenderer<Button>
     public async ValueTask RenderSkeletonAsync(Button control, HtmlTextWriter writer, CancellationToken token)
     {
         var hasContent = !string.IsNullOrEmpty(control.Text) || control.HasControls();
-        var internalControl = (IInternalWebControl)control;
-        await internalControl.AddAttributesToRender(writer, token);
+
+        if (control.IsInPage)
+        {
+            var internalControl = (IInternalWebControl)control;
+            await internalControl.AddAttributesToRender(writer, token);
+        }
+
         if (!hasContent) writer.MergeAttribute(HtmlTextWriterAttribute.Class, "wfc-skeleton wfc-skeleton-button");
         writer.AddAttribute("data-wfc-skeleton", null);
         writer.AddAttribute("aria-hidden", "true");

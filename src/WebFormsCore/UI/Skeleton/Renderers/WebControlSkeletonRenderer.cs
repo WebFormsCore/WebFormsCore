@@ -14,7 +14,12 @@ public class WebControlSkeletonRenderer : ISkeletonRenderer<WebControl>
     public async ValueTask RenderSkeletonAsync(WebControl control, HtmlTextWriter writer, CancellationToken token)
     {
         var internalControl = (IInternalWebControl)control;
-        await internalControl.AddAttributesToRender(writer, token);
+
+        if (control.IsInPage)
+        {
+            await internalControl.AddAttributesToRender(writer, token);
+        }
+
         writer.MergeAttribute(HtmlTextWriterAttribute.Class, "wfc-skeleton");
         writer.AddAttribute("data-wfc-skeleton", null);
         writer.AddAttribute("aria-hidden", "true");

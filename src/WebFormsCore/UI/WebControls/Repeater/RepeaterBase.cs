@@ -27,6 +27,13 @@ public abstract partial class RepeaterBase<TItem> : Control, IPostBackAsyncLoadH
 
     public bool LoadDataOnPostBack { get; set; }
 
+    /// <summary>
+    /// Gets or sets the number of skeleton placeholder items to render when
+    /// the repeater is inside a <see cref="Skeleton.SkeletonContainer"/> or
+    /// <see cref="Skeleton.LazyLoader"/> and has no data yet. Defaults to 3.
+    /// </summary>
+    public int SkeletonItemCount { get; set; } = 3;
+
     [ViewState] private bool _loadFromViewState;
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties), ViewState(WriteAlways = true)] private Type? _itemType;
     [ViewState(WriteAlways = true)] private int _itemCount;

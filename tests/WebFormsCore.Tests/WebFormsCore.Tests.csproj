@@ -117,6 +117,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\WebFormsCore.Compiler\WebFormsCore.Compiler.csproj" />
+        <ProjectReference Include="..\..\src\WebFormsCore.Extensions.Grid\WebFormsCore.Extensions.Grid.csproj" />
         <ProjectReference Include="..\..\src\WebFormsCore.TestFramework.Selenium\WebFormsCore.TestFramework.Selenium.csproj" />
         <ProjectReference Include="..\..\src\WebFormsCore\WebFormsCore.csproj" />
         <ProjectReference Include="..\..\src\WebFormsCore.SourceGenerator\WebFormsCore.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
