@@ -337,4 +337,63 @@ public class LazyLoaderTests
 
         Assert.False(loader.IsLoaded);
     }
+
+    [Fact]
+    public async Task WhenRetriggerCalledThenIsLoadedResets()
+    {
+        var page = CreatePostBackPage("lazy1");
+        var loader = new LazyLoader { ID = "lazy1" };
+        page.Controls.AddWithoutPageEvents(loader);
+
+        await ((IInternalControl)loader).LoadAsync(CancellationToken.None);
+        Assert.True(loader.IsLoaded);
+
+        loader.Retrigger();
+
+        Assert.False(loader.IsLoaded);
+    }
+
+    [Fact]
+    public async Task WhenRetriggerCalledThenRendersLazyAttributeWithUniqueId()
+    {
+        var page = CreatePostBackPage("lazy1");
+        var loader = new LazyLoader { ID = "lazy1" };
+        page.Controls.AddWithoutPageEvents(loader);
+
+        await ((IInternalControl)loader).LoadAsync(CancellationToken.None);
+
+        loader.Retrigger();
+
+        var writer = new StringHtmlTextWriter();
+        await loader.RenderAsync(writer, CancellationToken.None);
+        await writer.FlushAsync();
+
+        var output = writer.ToString();
+        Assert.Contains("aria-busy=\"true\"", output);
+        Assert.DoesNotContain("data-wfc-lazy=\"\"", output);
+    }
+
+    [Fact]
+    public async Task WhenRetriggerCalledThenContentLoadedFiresAgainOnNextPostback()
+    {
+        var page = CreatePostBackPage("lazy1");
+        var loader = new TestLazyLoader { ID = "lazy1" };
+        page.Controls.AddWithoutPageEvents(loader);
+
+        var eventCount = 0;
+        loader.ContentLoaded += (_, _) =>
+        {
+            eventCount++;
+            return Task.CompletedTask;
+        };
+
+        await loader.TriggerOnLoadAsync(CancellationToken.None);
+        Assert.Equal(1, eventCount);
+
+        loader.Retrigger();
+
+        // Simulate a second lazy-load postback
+        await loader.TriggerOnLoadAsync(CancellationToken.None);
+        Assert.Equal(2, eventCount);
+    }
 }

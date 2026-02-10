@@ -2785,6 +2785,18 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 		hiddenClass: "",
 		postBackChange,
 		postBack,
+		retriggerLazy: async function(elementOrId) {
+			const element = typeof elementOrId === "string" ? document.getElementById(elementOrId) : elementOrId;
+			if (!element) throw new Error(`Lazy loader element not found: ${elementOrId}`);
+			const uniqueId = element.getAttribute("data-wfc-lazy");
+			if (uniqueId === null) throw new Error("Element is not a lazy loader (missing data-wfc-lazy attribute)");
+			let targetId = uniqueId;
+			if (!targetId) targetId = element.querySelector("input[name=\"wfcForm\"]")?.value ?? "";
+			if (!targetId) throw new Error("Cannot determine lazy loader UniqueID");
+			element.setAttribute("data-wfc-lazy", targetId);
+			element.setAttribute("aria-busy", "true");
+			await postBackElement(element, targetId, "LAZY_LOAD", { validate: false });
+		},
 		get hasPendingPostbacks() {
 			return pendingPostbacks > 0;
 		},
@@ -2997,6 +3009,7 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 			if (webSocket) webSocket.close();
 		}
 	});
+	const lazyRetriggerMap = /* @__PURE__ */ new WeakMap();
 	wfc.bind("[data-wfc-lazy]", {
 		init: async function(element) {
 			const uniqueId = element.getAttribute("data-wfc-lazy");
@@ -3008,7 +3021,16 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 		update: function(element, source) {
 			const elementLazy = element.getAttribute("data-wfc-lazy");
 			const sourceLazy = source.getAttribute("data-wfc-lazy");
-			if (elementLazy === "" && sourceLazy) return true;
+			if (elementLazy === "" && sourceLazy) lazyRetriggerMap.set(element, sourceLazy);
+		},
+		afterUpdate: function(element) {
+			const pendingId = lazyRetriggerMap.get(element);
+			if (pendingId) {
+				lazyRetriggerMap.delete(element);
+				setTimeout(async () => {
+					await postBackElement(element, pendingId, "LAZY_LOAD", { validate: false });
+				}, 0);
+			}
 		}
 	});
 	if ("wfc" in window) {

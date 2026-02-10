@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.UI;
+using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI.Skeleton;
 using WebFormsCore.UI.WebControls;
 
@@ -240,5 +241,262 @@ public class LazyLoaderTests(SeleniumFixture fixture)
 
         Assert.Equal("Loaded", result.Browser.QuerySelector("span")?.Text);
         Assert.Equal("Clicked", result.Browser.QuerySelector("button")?.Text);
+    }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task WhenRetriggerCalledThenContentLoadedFiresAgain(Browser type)
+    {
+        var contentLoadedCount = 0;
+        Ref<Label>? label = null;
+        Ref<LazyLoader>? loaderRef = null;
+
+        await using var result = await fixture.StartAsync(type, () =>
+        {
+            label = new Ref<Label>();
+            loaderRef = new Ref<LazyLoader>();
+
+            var loader = new LazyLoader
+            {
+                Ref = loaderRef,
+                Controls =
+                [
+                    new Label { Ref = label, Text = "count: 0" },
+                    new Button
+                    {
+                        ID = "btnRetrigger",
+                        Text = "Retrigger",
+                        OnClick = (_, _) =>
+                        {
+                            loaderRef!.Value.Retrigger();
+                        }
+                    }
+                ]
+            };
+
+            loader.ContentLoaded += (_, _) =>
+            {
+                contentLoadedCount++;
+                label!.Value.Text = $"count: {contentLoadedCount}";
+                return Task.CompletedTask;
+            };
+
+            return loader;
+        }, SkeletonOptions);
+
+        // Wait for initial lazy load
+        await WaitForLazyLoadAsync(result.Browser);
+        Assert.Equal("count: 1", result.Browser.QuerySelector("span")?.Text);
+
+        // Click retrigger button — this triggers a postback that calls Retrigger(),
+        // which resets IsLoaded. The response renders data-wfc-lazy with UniqueID again,
+        // so the client auto-triggers another lazy-load postback.
+        await result.Browser.QuerySelector("button")!.ClickAsync();
+
+        // Wait for the re-triggered lazy load to complete
+        await WaitForLazyLoadAsync(result.Browser);
+        Assert.Equal("count: 2", result.Browser.QuerySelector("span")?.Text);
+
+        // Verify the lazy loader is in loaded state
+        var html = await result.Browser.GetHtmlAsync();
+        Assert.DoesNotContain("aria-busy", html);
+    }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task WhenRetriggerCalledFromOutsideFormThenContentLoadedFiresAgain(Browser type)
+    {
+        var contentLoadedCount = 0;
+        Ref<Label>? label = null;
+        Ref<LazyLoader>? loaderRef = null;
+
+        await using var result = await fixture.StartAsync(type, () =>
+        {
+            label = new Ref<Label>();
+            loaderRef = new Ref<LazyLoader>();
+
+            var loader = new LazyLoader
+            {
+                Ref = loaderRef,
+                Controls =
+                [
+                    new Label { Ref = label, Text = "count: 0" }
+                ]
+            };
+
+            loader.ContentLoaded += (_, _) =>
+            {
+                contentLoadedCount++;
+                label!.Value.Text = $"count: {contentLoadedCount}";
+                return Task.CompletedTask;
+            };
+
+            // Button is outside the lazy loader's scoped form
+            var outerButton = new Button
+            {
+                Text = "Retrigger from outside",
+                OnClick = (_, _) =>
+                {
+                    loaderRef!.Value.Retrigger();
+                }
+            };
+
+            return new Panel
+            {
+                Controls = [loader, outerButton]
+            };
+        }, SkeletonOptions);
+
+        // Wait for initial lazy load
+        await WaitForLazyLoadAsync(result.Browser);
+        Assert.Equal("count: 1", result.Browser.QuerySelector("span")?.Text);
+
+        // Click the button outside the lazy loader form
+        await result.Browser.QuerySelector("button")!.ClickAsync();
+
+        // Wait for the re-triggered lazy load to complete
+        await WaitForLazyLoadAsync(result.Browser);
+        Assert.Equal("count: 2", result.Browser.QuerySelector("span")?.Text);
+    }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task WhenRetriggerLazyJsCalledByIdThenContentReloads(Browser type)
+    {
+        var contentLoadedCount = 0;
+        Ref<Label>? label = null;
+        Ref<LazyLoader>? loaderRef = null;
+
+        await using var result = await fixture.StartAsync(type, () =>
+        {
+            label = new Ref<Label>();
+            loaderRef = new Ref<LazyLoader>();
+
+            var loader = new LazyLoader
+            {
+                ID = "lazyTarget",
+                Ref = loaderRef,
+                Controls =
+                [
+                    new Label { Ref = label, Text = "count: 0" }
+                ]
+            };
+
+            loader.ContentLoaded += (_, _) =>
+            {
+                contentLoadedCount++;
+                label!.Value.Text = $"count: {contentLoadedCount}";
+                return Task.CompletedTask;
+            };
+
+            return loader;
+        }, SkeletonOptions);
+
+        // Wait for initial lazy load
+        await WaitForLazyLoadAsync(result.Browser);
+        Assert.Equal("count: 1", result.Browser.QuerySelector("span")?.Text);
+
+        // Use the JS API to retrigger by element ID
+        var clientId = loaderRef!.Value.ClientID;
+        await result.Browser.ExecuteScriptAsync($"wfc.retriggerLazy('{clientId}')");
+
+        // Wait for the re-triggered lazy load to complete
+        await WaitForLazyLoadAsync(result.Browser);
+        Assert.Equal("count: 2", result.Browser.QuerySelector("span")?.Text);
+
+        // Verify loaded state
+        var html = await result.Browser.GetHtmlAsync();
+        Assert.DoesNotContain("aria-busy", html);
+    }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task WhenRetriggerLazyJsCalledByElementThenContentReloads(Browser type)
+    {
+        var contentLoadedCount = 0;
+        Ref<Label>? label = null;
+        Ref<LazyLoader>? loaderRef = null;
+
+        await using var result = await fixture.StartAsync(type, () =>
+        {
+            label = new Ref<Label>();
+            loaderRef = new Ref<LazyLoader>();
+
+            var loader = new LazyLoader
+            {
+                ID = "lazyEl",
+                Ref = loaderRef,
+                Controls =
+                [
+                    new Label { Ref = label, Text = "count: 0" }
+                ]
+            };
+
+            loader.ContentLoaded += (_, _) =>
+            {
+                contentLoadedCount++;
+                label!.Value.Text = $"count: {contentLoadedCount}";
+                return Task.CompletedTask;
+            };
+
+            return loader;
+        }, SkeletonOptions);
+
+        // Wait for initial lazy load
+        await WaitForLazyLoadAsync(result.Browser);
+        Assert.Equal("count: 1", result.Browser.QuerySelector("span")?.Text);
+
+        // Use the JS API to retrigger by passing an element reference
+        var clientId = loaderRef!.Value.ClientID;
+        await result.Browser.ExecuteScriptAsync(
+            $"wfc.retriggerLazy(document.getElementById('{clientId}'))");
+
+        // Wait for the re-triggered lazy load to complete
+        await WaitForLazyLoadAsync(result.Browser);
+        Assert.Equal("count: 2", result.Browser.QuerySelector("span")?.Text);
+    }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task WhenRetriggerLazyJsCalledMultipleTimesThenEachFiresContentLoaded(Browser type)
+    {
+        var contentLoadedCount = 0;
+        Ref<Label>? label = null;
+        Ref<LazyLoader>? loaderRef = null;
+
+        await using var result = await fixture.StartAsync(type, () =>
+        {
+            label = new Ref<Label>();
+            loaderRef = new Ref<LazyLoader>();
+
+            var loader = new LazyLoader
+            {
+                ID = "lazyMulti",
+                Ref = loaderRef,
+                Controls =
+                [
+                    new Label { Ref = label, Text = "count: 0" }
+                ]
+            };
+
+            loader.ContentLoaded += (_, _) =>
+            {
+                contentLoadedCount++;
+                label!.Value.Text = $"count: {contentLoadedCount}";
+                return Task.CompletedTask;
+            };
+
+            return loader;
+        }, SkeletonOptions);
+
+        // Wait for initial lazy load
+        await WaitForLazyLoadAsync(result.Browser);
+        Assert.Equal("count: 1", result.Browser.QuerySelector("span")?.Text);
+
+        var clientId = loaderRef!.Value.ClientID;
+
+        // Retrigger twice sequentially
+        await result.Browser.ExecuteScriptAsync($"wfc.retriggerLazy('{clientId}')");
+        await WaitForLazyLoadAsync(result.Browser);
+        Assert.Equal("count: 2", result.Browser.QuerySelector("span")?.Text);
+
+        await result.Browser.ExecuteScriptAsync($"wfc.retriggerLazy('{clientId}')");
+        await WaitForLazyLoadAsync(result.Browser);
+        Assert.Equal("count: 3", result.Browser.QuerySelector("span")?.Text);
     }
 }

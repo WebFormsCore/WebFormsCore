@@ -875,6 +875,40 @@ const wfc: WebFormsCore = {
     postBackChange,
     postBack,
 
+    retriggerLazy: async function(elementOrId: HTMLElement | string) {
+        const element = typeof elementOrId === 'string'
+            ? document.getElementById(elementOrId)
+            : elementOrId;
+
+        if (!element) {
+            throw new Error(`Lazy loader element not found: ${elementOrId}`);
+        }
+
+        const uniqueId = element.getAttribute('data-wfc-lazy');
+
+        if (uniqueId === null) {
+            throw new Error('Element is not a lazy loader (missing data-wfc-lazy attribute)');
+        }
+
+        // If already loaded (empty value), read the UniqueID from the wfcForm hidden input
+        let targetId = uniqueId;
+
+        if (!targetId) {
+            const formInput = element.querySelector<HTMLInputElement>('input[name="wfcForm"]');
+            targetId = formInput?.value ?? '';
+        }
+
+        if (!targetId) {
+            throw new Error('Cannot determine lazy loader UniqueID');
+        }
+
+        // Reset the attribute to signal "not loaded" so morphdom treats the response correctly
+        element.setAttribute('data-wfc-lazy', targetId);
+        element.setAttribute('aria-busy', 'true');
+
+        await postBackElement(element, targetId, 'LAZY_LOAD', { validate: false });
+    },
+
     get hasPendingPostbacks() {
         return pendingPostbacks > 0;
     },
@@ -1242,6 +1276,10 @@ wfc.bind('[data-wfc-stream]', {
 })
 
 // Lazy loader: triggers postback after page load to replace skeletons with real content
+// Use a WeakMap to signal between update and afterUpdate, because morphAttrs runs
+// between them and removes any marker attributes we set on the DOM element.
+const lazyRetriggerMap = new WeakMap<HTMLElement, string>();
+
 wfc.bind('[data-wfc-lazy]', {
     init: async function(element: HTMLElement) {
         const uniqueId = element.getAttribute('data-wfc-lazy');
@@ -1260,8 +1298,22 @@ wfc.bind('[data-wfc-lazy]', {
         const elementLazy = element.getAttribute('data-wfc-lazy');
         const sourceLazy = source.getAttribute('data-wfc-lazy');
 
+        // When the server sends back an unloaded lazy loader (Retrigger),
+        // allow morphdom to update it and mark it for a new lazy-load postback.
         if (elementLazy === '' && sourceLazy) {
-            return true;
+            lazyRetriggerMap.set(element, sourceLazy);
+        }
+    },
+    afterUpdate: function(element: HTMLElement) {
+        const pendingId = lazyRetriggerMap.get(element);
+
+        if (pendingId) {
+            lazyRetriggerMap.delete(element);
+
+            // Trigger a new lazy-load postback since the server retriggered this loader
+            setTimeout(async () => {
+                await postBackElement(element, pendingId, 'LAZY_LOAD', { validate: false });
+            }, 0);
         }
     }
 });

@@ -13,7 +13,7 @@ namespace WebFormsCore.UI.Skeleton;
 /// Extends <see cref="HtmlForm"/> with <see cref="Scoped"/> set to true so that
 /// lazy loaders have their own postback scope and don't block other elements.
 /// </summary>
-public partial class LazyLoader : HtmlForm
+public partial class LazyLoader : HtmlForm, IPostBackAsyncEventHandler
 {
     private bool _lazyProcessControl;
     private bool _initComplete;
@@ -41,6 +41,18 @@ public partial class LazyLoader : HtmlForm
     /// </summary>
     [ViewState]
     public bool IsLoaded { get; private set; }
+
+    /// <summary>
+    /// Resets the lazy loader so that the <see cref="ContentLoaded"/> event fires again
+    /// on the next render cycle. The client-side script will detect the non-empty
+    /// <c>data-wfc-lazy</c> attribute and automatically trigger a new postback.
+    /// This can be called from any control, even outside the lazy loader's form.
+    /// </summary>
+    public void Retrigger()
+    {
+        IsLoaded = false;
+        _lazyProcessControl = false;
+    }
 
     /// <summary>
     /// The LazyLoader container itself always participates in the control lifecycle
@@ -166,6 +178,24 @@ public partial class LazyLoader : HtmlForm
             await ContentLoaded.InvokeAsync(this, EventArgs.Empty);
         }
     }
+
+    /// <summary>
+    /// Handles a client-side retrigger (<c>wfc.retriggerLazy</c>): the JS function sends
+    /// a <c>LAZY_LOAD</c> postback even when <see cref="IsLoaded"/> is still <c>true</c>
+    /// in ViewState. Since children were already processed during Load, we just re-fire
+    /// <see cref="ContentLoaded"/>. The initial lazy-load case is handled in
+    /// <see cref="OnLoadAsync"/> (which sets <c>_lazyProcessControl</c>) and is skipped here.
+    /// </summary>
+    protected virtual async Task RaisePostBackEventAsync(string? eventArgument)
+    {
+        if (eventArgument == "LAZY_LOAD" && !_lazyProcessControl)
+        {
+            await ContentLoaded.InvokeAsync(this, EventArgs.Empty);
+        }
+    }
+
+    Task IPostBackAsyncEventHandler.RaisePostBackEventAsync(string? eventArgument)
+        => RaisePostBackEventAsync(eventArgument);
 
     public override void ClearControl()
     {
