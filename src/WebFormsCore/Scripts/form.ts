@@ -39,15 +39,50 @@ const morphdom = morphdomFactory((fromEl, toEl) => {
 
 const postbackMutex = new Mutex();
 
-const formMutexes = new WeakMap<HTMLElement, Mutex>();
+// Per-element state: scoped-form mutex and/or in-flight lazy-load abort controller.
+interface ElementState {
+    mutex?: Mutex;
+    lazyAbort?: AbortController;
+}
+
+const elementStates = new WeakMap<HTMLElement, ElementState>();
+
+function getElementState(element: HTMLElement): ElementState {
+    let state = elementStates.get(element);
+    if (!state) {
+        state = {};
+        elementStates.set(element, state);
+    }
+    return state;
+}
 
 function getFormMutex(form: HTMLElement): Mutex {
-    let mutex = formMutexes.get(form);
-    if (!mutex) {
-        mutex = new Mutex();
-        formMutexes.set(form, mutex);
+    const state = getElementState(form);
+    return state.mutex ??= new Mutex();
+}
+
+/**
+ * Cancels any in-flight lazy-load request for the element, creates a new
+ * AbortController, and returns it. Call this before starting a lazy-load
+ * postback to ensure only one request is active per element.
+ */
+function lazyAbort(element: HTMLElement): AbortController {
+    const state = getElementState(element);
+    state.lazyAbort?.abort();
+    const controller = new AbortController();
+    state.lazyAbort = controller;
+    return controller;
+}
+
+/**
+ * Cleans up the AbortController for a completed lazy-load request, but only
+ * if it hasn't been superseded by a newer one.
+ */
+function lazyAbortCleanup(element: HTMLElement, controller: AbortController): void {
+    const state = elementStates.get(element);
+    if (state?.lazyAbort === controller) {
+        state.lazyAbort = undefined;
     }
-    return mutex;
 }
 
 function isScopedForm(form: HTMLElement | null | undefined): boolean {
@@ -129,10 +164,10 @@ async function postBackElement(element: Element, eventTarget?: string, eventArgu
             const scopedForm = getScopedForm(element);
 
             if (scopedForm) {
-                await submitForm(element, scopedForm, eventTarget, eventArgument);
+                await submitForm(element, scopedForm, eventTarget, eventArgument, options?.signal);
             } else {
                 const form = getRootForm(element);
-                await submitForm(element, form, eventTarget, eventArgument);
+                await submitForm(element, form, eventTarget, eventArgument, options?.signal);
             }
         }
     } finally {
@@ -311,7 +346,7 @@ function getOptions(data: string): JavaScriptOptions {
     }
 }
 
-async function submitForm(element: Element, form?: HTMLElement, eventTarget?: string, eventArgument?: string) {
+async function submitForm(element: Element, form?: HTMLElement, eventTarget?: string, eventArgument?: string, signal?: AbortSignal) {
     const baseElement = element.closest('[data-wfc-base]') as HTMLElement;
     let target: HTMLElement;
 
@@ -376,7 +411,8 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
             credentials: "include",
             headers: {
                 'X-IsPostback': 'true',
-            }
+            },
+            signal: signal,
         };
 
         request.body = hasElementFile(document.body) ? formData : new URLSearchParams(formData as any);
@@ -394,6 +430,11 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
         try {
             response = await fetch(url, request);
         } catch(e) {
+            if (e instanceof DOMException && e.name === 'AbortError') {
+                // Request was intentionally cancelled (e.g. lazy-load retrigger)
+                return;
+            }
+
             target.dispatchEvent(new CustomEvent("wfc:submitError", {
                 bubbles: true,
                 detail: {
@@ -902,11 +943,17 @@ const wfc: WebFormsCore = {
             throw new Error('Cannot determine lazy loader UniqueID');
         }
 
+        const abortController = lazyAbort(element);
+
         // Reset the attribute to signal "not loaded" so morphdom treats the response correctly
         element.setAttribute('data-wfc-lazy', targetId);
         element.setAttribute('aria-busy', 'true');
 
-        await postBackElement(element, targetId, 'LAZY_LOAD', { validate: false });
+        try {
+            await postBackElement(element, targetId, 'LAZY_LOAD', { validate: false, signal: abortController.signal });
+        } finally {
+            lazyAbortCleanup(element, abortController);
+        }
     },
 
     get hasPendingPostbacks() {
@@ -1289,9 +1336,15 @@ wfc.bind('[data-wfc-lazy]', {
             return;
         }
 
+        const abortController = lazyAbort(element);
+
         // Defer the postback to allow the page to finish loading
         setTimeout(async () => {
-            await postBackElement(element, uniqueId, 'LAZY_LOAD', { validate: false });
+            try {
+                await postBackElement(element, uniqueId, 'LAZY_LOAD', { validate: false, signal: abortController.signal });
+            } finally {
+                lazyAbortCleanup(element, abortController);
+            }
         }, 0);
     },
     update: function(element: HTMLElement, source: HTMLElement) {
@@ -1310,9 +1363,15 @@ wfc.bind('[data-wfc-lazy]', {
         if (pendingId) {
             lazyRetriggerMap.delete(element);
 
+            const abortController = lazyAbort(element);
+
             // Trigger a new lazy-load postback since the server retriggered this loader
             setTimeout(async () => {
-                await postBackElement(element, pendingId, 'LAZY_LOAD', { validate: false });
+                try {
+                    await postBackElement(element, pendingId, 'LAZY_LOAD', { validate: false, signal: abortController.signal });
+                } finally {
+                    lazyAbortCleanup(element, abortController);
+                }
             }, 0);
         }
     }

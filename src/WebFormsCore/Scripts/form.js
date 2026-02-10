@@ -2252,14 +2252,38 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 		}))) return;
 	});
 	const postbackMutex = new Mutex();
-	const formMutexes = /* @__PURE__ */ new WeakMap();
-	function getFormMutex(form) {
-		let mutex = formMutexes.get(form);
-		if (!mutex) {
-			mutex = new Mutex();
-			formMutexes.set(form, mutex);
+	const elementStates = /* @__PURE__ */ new WeakMap();
+	function getElementState(element) {
+		let state = elementStates.get(element);
+		if (!state) {
+			state = {};
+			elementStates.set(element, state);
 		}
-		return mutex;
+		return state;
+	}
+	function getFormMutex(form) {
+		const state = getElementState(form);
+		return state.mutex ??= new Mutex();
+	}
+	/**
+	* Cancels any in-flight lazy-load request for the element, creates a new
+	* AbortController, and returns it. Call this before starting a lazy-load
+	* postback to ensure only one request is active per element.
+	*/
+	function lazyAbort(element) {
+		const state = getElementState(element);
+		state.lazyAbort?.abort();
+		const controller = new AbortController();
+		state.lazyAbort = controller;
+		return controller;
+	}
+	/**
+	* Cleans up the AbortController for a completed lazy-load request, but only
+	* if it hasn't been superseded by a newer one.
+	*/
+	function lazyAbortCleanup(element, controller) {
+		const state = elementStates.get(element);
+		if (state?.lazyAbort === controller) state.lazyAbort = void 0;
 	}
 	function isScopedForm(form) {
 		return form?.getAttribute("data-wfc-form") === "self";
@@ -2308,8 +2332,8 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 			if (streamPanel) await sendToStream(streamPanel, eventTarget, eventArgument);
 			else {
 				const scopedForm = getScopedForm(element);
-				if (scopedForm) await submitForm(element, scopedForm, eventTarget, eventArgument);
-				else await submitForm(element, getRootForm(element), eventTarget, eventArgument);
+				if (scopedForm) await submitForm(element, scopedForm, eventTarget, eventArgument, options?.signal);
+				else await submitForm(element, getRootForm(element), eventTarget, eventArgument, options?.signal);
 			}
 		} finally {
 			element.dispatchEvent(new CustomEvent("wfc:afterPostbackTriggered"));
@@ -2399,7 +2423,7 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 			updateStyles: data[1] === "1"
 		};
 	}
-	async function submitForm(element, form, eventTarget, eventArgument) {
+	async function submitForm(element, form, eventTarget, eventArgument, signal) {
 		const baseElement = element.closest("[data-wfc-base]");
 		let target;
 		if (baseElement) target = baseElement;
@@ -2435,7 +2459,8 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 				method: "POST",
 				redirect: "error",
 				credentials: "include",
-				headers: { "X-IsPostback": "true" }
+				headers: { "X-IsPostback": "true" },
+				signal
 			};
 			request.body = hasElementFile(document.body) ? formData : new URLSearchParams(formData);
 			for (const interceptor of interceptors) {
@@ -2446,6 +2471,7 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 			try {
 				response = await fetch(url, request);
 			} catch (e) {
+				if (e instanceof DOMException && e.name === "AbortError") return;
 				target.dispatchEvent(new CustomEvent("wfc:submitError", {
 					bubbles: true,
 					detail: {
@@ -2793,9 +2819,17 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 			let targetId = uniqueId;
 			if (!targetId) targetId = element.querySelector("input[name=\"wfcForm\"]")?.value ?? "";
 			if (!targetId) throw new Error("Cannot determine lazy loader UniqueID");
+			const abortController = lazyAbort(element);
 			element.setAttribute("data-wfc-lazy", targetId);
 			element.setAttribute("aria-busy", "true");
-			await postBackElement(element, targetId, "LAZY_LOAD", { validate: false });
+			try {
+				await postBackElement(element, targetId, "LAZY_LOAD", {
+					validate: false,
+					signal: abortController.signal
+				});
+			} finally {
+				lazyAbortCleanup(element, abortController);
+			}
 		},
 		get hasPendingPostbacks() {
 			return pendingPostbacks > 0;
@@ -3014,8 +3048,16 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 		init: async function(element) {
 			const uniqueId = element.getAttribute("data-wfc-lazy");
 			if (!uniqueId) return;
+			const abortController = lazyAbort(element);
 			setTimeout(async () => {
-				await postBackElement(element, uniqueId, "LAZY_LOAD", { validate: false });
+				try {
+					await postBackElement(element, uniqueId, "LAZY_LOAD", {
+						validate: false,
+						signal: abortController.signal
+					});
+				} finally {
+					lazyAbortCleanup(element, abortController);
+				}
 			}, 0);
 		},
 		update: function(element, source) {
@@ -3027,8 +3069,16 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 			const pendingId = lazyRetriggerMap.get(element);
 			if (pendingId) {
 				lazyRetriggerMap.delete(element);
+				const abortController = lazyAbort(element);
 				setTimeout(async () => {
-					await postBackElement(element, pendingId, "LAZY_LOAD", { validate: false });
+					try {
+						await postBackElement(element, pendingId, "LAZY_LOAD", {
+							validate: false,
+							signal: abortController.signal
+						});
+					} finally {
+						lazyAbortCleanup(element, abortController);
+					}
 				}, 0);
 			}
 		}

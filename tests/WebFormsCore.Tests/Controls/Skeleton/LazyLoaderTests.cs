@@ -244,6 +244,67 @@ public class LazyLoaderTests(SeleniumFixture fixture)
     }
 
     [Theory, ClassData(typeof(BrowserData))]
+    public async Task WhenRetriggeredDuringLoadThenCancelsAndReloads(Browser type)
+    {
+        var loadCount = 0;
+        var firstLoadBlocker = new TaskCompletionSource();
+
+        await using var result = await fixture.StartAsync(type, () =>
+        {
+            var label = new Ref<Label>();
+
+            var loader = new LazyLoader
+            {
+                ID = "lazyCancel",
+                Controls =
+                [
+                    new Label
+                    {
+                        Ref = label,
+                        Text = "initial"
+                    }
+                ],
+                OnContentLoadedAsync = async (sender, _) =>
+                {
+                    var currentLoad = Interlocked.Increment(ref loadCount);
+
+                    if (currentLoad == 1)
+                    {
+                        // First load: block until the test releases it (simulates slow load)
+                        await Task.WhenAny(firstLoadBlocker.Task, Task.Delay(10_000));
+                        label.Value.Text = "first-load";
+                    }
+                    else
+                    {
+                        // Second load (retrigger): complete immediately with new data
+                        label.Value.Text = "retriggered";
+                    }
+                }
+            };
+
+            return loader;
+        }, SkeletonOptions);
+
+        // The initial lazy-load postback is now in-flight but blocked on the server.
+        // Give the request a moment to reach the server.
+        await Task.Delay(300);
+
+        // Retrigger via JS while the first load is still in progress.
+        // This should abort the first request and start a new one.
+        await result.Browser.ExecuteScriptAsync("wfc.retriggerLazy('lazyCancel')");
+
+        // Release the blocker so the first request's server handler can finish
+        // (the response should be discarded because the fetch was aborted).
+        firstLoadBlocker.SetResult();
+
+        // Wait for the retriggered lazy load to complete
+        await WaitForLazyLoadAsync(result.Browser);
+
+        // The label should show data from the second (retriggered) load, not the first
+        Assert.Equal("retriggered", result.Browser.QuerySelector("span")?.Text);
+    }
+
+    [Theory, ClassData(typeof(BrowserData))]
     public async Task WhenRetriggerCalledThenContentLoadedFiresAgain(Browser type)
     {
         var contentLoadedCount = 0;

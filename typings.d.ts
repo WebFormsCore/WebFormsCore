@@ -37,6 +37,7 @@ export interface WebFormsCore {
 
 export interface PostBackOptions {
     validate?: boolean;
+    signal?: AbortSignal;
 }
 
 export interface PageRequestManager {
