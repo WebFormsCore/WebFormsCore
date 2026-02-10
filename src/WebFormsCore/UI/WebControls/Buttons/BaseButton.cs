@@ -18,7 +18,6 @@ public partial class BaseButton<TSelf> : WebControl, IButtonControl, IPostBackAs
     where TSelf : BaseButton<TSelf>
 {
     private AsyncEventHandler? _click;
-    private AttributeCollection? _style;
 
     protected BaseButton(HtmlTextWriterTag tag)
         : base(tag)
@@ -28,13 +27,6 @@ public partial class BaseButton<TSelf> : WebControl, IButtonControl, IPostBackAs
     public event AsyncEventHandler<TSelf, EventArgs>? Click;
 
     public event AsyncEventHandler<TSelf, CommandEventArgs>? Command;
-
-    [ViewState]
-    public AttributeCollection Style
-    {
-        get => _style ??= new AttributeCollection();
-        set => _style = value;
-    }
 
     [ViewState] public string? Text { get; set; }
 
@@ -113,6 +105,5 @@ public partial class BaseButton<TSelf> : WebControl, IButtonControl, IPostBackAs
         Command = null;
         Click = null;
         _click = null;
-        _style?.Clear();
     }
 }

@@ -1,3 +1,5 @@
+using System;
+using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -5,9 +7,43 @@ using Microsoft.Extensions.Options;
 
 namespace WebFormsCore.UI.WebControls;
 
+public static class LiteralMethods
+{
+    public static Literal Text(Func<string> textDelegate) => new(textDelegate);
+    public static Literal Html(Func<string> htmlDelegate) => new(htmlDelegate) { Mode = LiteralMode.PassThrough };
+    public static Literal Text(string text) => new() { Text = text };
+    public static Literal Html(string html) => new() { Text = html, Mode = LiteralMode.PassThrough };
+}
+
 public partial class Literal : Control, ITextControl
 {
+    private Func<Task<string>>? _textDelegate;
+
     [ViewState] private LiteralMode? _mode;
+
+    public Literal()
+    {
+    }
+
+    public Literal(Func<Task<string>> textDelegate)
+    {
+        _textDelegate = textDelegate;
+    }
+
+    public Literal(Func<string> textDelegate)
+    {
+        _textDelegate = () => Task.FromResult(textDelegate());
+    }
+
+    public Literal(Func<Task<object>> textDelegate)
+    {
+        _textDelegate = async () => (await textDelegate())?.ToString() ?? string.Empty;
+    }
+
+    public Literal(Func<object> textDelegate)
+    {
+        _textDelegate = () => Task.FromResult(textDelegate()?.ToString() ?? string.Empty);
+    }
 
     protected override bool EnableViewStateBag => false;
 
@@ -19,15 +55,23 @@ public partial class Literal : Control, ITextControl
         set => _mode = value;
     }
 
-    public override ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
+    public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)
     {
-        if (string.IsNullOrEmpty(Text))
-            return default;
+        var text = _textDelegate is null
+            ? Text
+            : await _textDelegate();
+
+        if (string.IsNullOrEmpty(text))
+            return;
 
         if (Mode == LiteralMode.Encode)
-            return writer.WriteEncodedTextAsync(Text);
-
-        return writer.WriteAsync(Text);
+        {
+            await writer.WriteEncodedTextAsync(text);
+        }
+        else
+        {
+            await writer.WriteAsync(text);
+        }
     }
 
     string ITextControl.Text
@@ -42,5 +86,6 @@ public partial class Literal : Control, ITextControl
 
         Text = null;
         Mode = LiteralMode.Transform;
+        _textDelegate = null;
     }
 }

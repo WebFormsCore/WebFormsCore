@@ -53,7 +53,7 @@ namespace WebFormsCore.UI.WebControls
         [TypeConverter(typeof(MinimizableAttributeTypeConverter))]
         public bool Disabled
         {
-            get => Attributes["disabled"] is "disabled";
+            get => Attributes["disabled"] == "disabled";
             set => Attributes["disabled"] = value ? "disabled" : null;
         }
 
