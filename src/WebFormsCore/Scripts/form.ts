@@ -1170,6 +1170,31 @@ wfc.bind('[data-wfc-stream]', {
     }
 })
 
+// Lazy loader: triggers postback after page load to replace skeletons with real content
+wfc.bind('[data-wfc-lazy]', {
+    init: async function(element: HTMLElement) {
+        const uniqueId = element.getAttribute('data-wfc-lazy');
+
+        // Only trigger postback if not yet loaded (non-empty value)
+        if (!uniqueId) {
+            return;
+        }
+
+        // Defer the postback to allow the page to finish loading
+        setTimeout(async () => {
+            await postBackElement(element, uniqueId, 'LAZY_LOAD', { validate: false });
+        }, 0);
+    },
+    update: function(element: HTMLElement, source: HTMLElement) {
+        const elementLazy = element.getAttribute('data-wfc-lazy');
+        const sourceLazy = source.getAttribute('data-wfc-lazy');
+
+        if (elementLazy === '' && sourceLazy) {
+            return true;
+        }
+    }
+});
+
 if ('wfc' in window) {
     const current = window.wfc;
 

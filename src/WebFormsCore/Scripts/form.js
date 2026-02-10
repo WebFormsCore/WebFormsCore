@@ -2321,11 +2321,6 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 	function getForm(element) {
 		return element.closest("[data-wfc-form]");
 	}
-	/**
-	* Gets the root form (the actual <form> element) for an element.
-	* Nested forms are rendered as <div> elements with data-wfc-form attribute,
-	* so we need to find the outermost form element.
-	*/
 	function getRootForm(element) {
 		let form = element.closest("[data-wfc-form]");
 		if (!form) return null;
@@ -2961,6 +2956,20 @@ var import_purify = /* @__PURE__ */ __toESM(require_purify(), 1);
 		destroy: function(element) {
 			const webSocket = element.webSocket;
 			if (webSocket) webSocket.close();
+		}
+	});
+	wfc.bind("[data-wfc-lazy]", {
+		init: async function(element) {
+			const uniqueId = element.getAttribute("data-wfc-lazy");
+			if (!uniqueId) return;
+			setTimeout(async () => {
+				await postBackElement(element, uniqueId, "LAZY_LOAD", { validate: false });
+			}, 0);
+		},
+		update: function(element, source) {
+			const elementLazy = element.getAttribute("data-wfc-lazy");
+			const sourceLazy = source.getAttribute("data-wfc-lazy");
+			if (elementLazy === "" && sourceLazy) return true;
 		}
 	});
 	if ("wfc" in window) {

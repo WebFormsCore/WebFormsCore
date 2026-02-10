@@ -22,6 +22,7 @@ builder.Services.AddWebFormsCore(b =>
     b.AddControlCompiler();
     b.AddGridCellRenderers();
     b.AddClientResourceManagement();
+    b.AddSkeletonSupport();
 });
 
 builder.Services.Configure<ViewStateOptions>(options =>
