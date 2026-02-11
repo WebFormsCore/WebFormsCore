@@ -13,6 +13,8 @@ public class TemplateNode : ElementNode
 
     public List<ContainerNode> RenderMethods { get; set; } = new();
 
+    public bool IsSingleInstance { get; set; }
+
     public List<ControlId> Ids { get; set; } = new();
 
     public override string? VariableName

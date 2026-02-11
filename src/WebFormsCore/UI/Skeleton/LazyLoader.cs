@@ -44,6 +44,14 @@ public partial class LazyLoader : HtmlForm, IPostBackAsyncEventHandler
     public bool IsLoaded { get; private set; }
 
     /// <summary>
+    /// Gets or sets whether the lazy loader auto-triggers a postback on page load.
+    /// When false, the <c>data-wfc-lazy</c> attribute renders empty, preventing the
+    /// client-side auto-trigger. Content must then be triggered manually via
+    /// <c>wfc.retriggerLazy</c> on the client. Default is <c>true</c>.
+    /// </summary>
+    public bool AutoLoad { get; set; } = true;
+
+    /// <summary>
     /// Resets the lazy loader so that the <see cref="ContentLoaded"/> event fires again
     /// on the next render cycle. The client-side script will detect the non-empty
     /// <c>data-wfc-lazy</c> attribute and automatically trigger a new postback.
@@ -54,6 +62,16 @@ public partial class LazyLoader : HtmlForm, IPostBackAsyncEventHandler
         IsLoaded = false;
         _lazyProcessControl = false;
         _retriggered = true;
+    }
+
+    /// <summary>
+    /// Marks the lazy loader as loaded without triggering a postback.
+    /// Used when the content is known to be available (e.g., the container is
+    /// already active and should render immediately).
+    /// </summary>
+    public void MarkLoaded()
+    {
+        IsLoaded = true;
     }
 
     /// <summary>
@@ -86,8 +104,9 @@ public partial class LazyLoader : HtmlForm, IPostBackAsyncEventHandler
     protected override async ValueTask RenderAttributesAsync(HtmlTextWriter writer)
     {
         await base.RenderAttributesAsync(writer);
-        // Use UniqueID (not UniqueClientID) because the server checks against UniqueID in OnLoadAsync
-        await writer.WriteAttributeAsync("data-wfc-lazy", IsLoaded ? "" : UniqueID);
+        // Use UniqueID (not UniqueClientID) because the server checks against UniqueID in OnLoadAsync.
+        // When AutoLoad is false, render empty to prevent the client-side auto-trigger.
+        await writer.WriteAttributeAsync("data-wfc-lazy", IsLoaded ? "" : (AutoLoad ? UniqueID : ""));
 
         if (!IsLoaded)
         {
@@ -117,6 +136,7 @@ public partial class LazyLoader : HtmlForm, IPostBackAsyncEventHandler
         {
             await writer.WriteBeginTagAsync(TagName);
             await writer.WriteAttributeAsync("id", ClientID);
+            await writer.WriteAttributeAsync("data-wfc-form", "self");
             await writer.WriteAttributeAsync("data-wfc-ignore", null);
             await writer.WriteAsync('>');
             await writer.WriteEndTagAsync(TagName);
@@ -220,6 +240,7 @@ public partial class LazyLoader : HtmlForm, IPostBackAsyncEventHandler
         // Re-enable Scoped since base.ClearControl() resets it
         Scoped = true;
         IsLoaded = false;
+        AutoLoad = true;
         _lazyProcessControl = false;
         _initComplete = false;
         _retriggered = false;

@@ -10,11 +10,31 @@ namespace WebFormsCore.UI.WebControls
     public partial class Label : WebControl, ITextControl
     {
         private string? _associatedControlId;
+        private string _text = string.Empty;
+        private bool _textSetByAddParsedSubObject;
 
         protected override HtmlTextWriterTag TagKey
             => string.IsNullOrEmpty(AssociatedControlID) ? HtmlTextWriterTag.Span : HtmlTextWriterTag.Label;
 
-        [ViewState] public string Text { get; set; } = string.Empty;
+        /// <summary>
+        /// Gets or sets the text content of the Label.
+        /// Setting this property clears any child controls so the new text
+        /// always takes effect, matching classic ASP.NET behavior.
+        /// </summary>
+        [ViewState]
+        public string Text
+        {
+            get => _text;
+            set
+            {
+                if (HasControls())
+                {
+                    Controls.Clear();
+                }
+
+                _text = value ?? string.Empty;
+            }
+        }
 
         [DefaultValue("")]
         [IDReferenceProperty]
@@ -25,12 +45,56 @@ namespace WebFormsCore.UI.WebControls
             set => _associatedControlId = value;
         }
 
+        /// <summary>
+        /// Intercepts parsed sub-objects so that literal children
+        /// (e.g. <c>&lt;wfc:Label&gt;Hello&lt;/wfc:Label&gt;</c>) set
+        /// <see cref="Text"/> instead of being added as child controls.
+        /// When non-literal children are present, falls back to the default
+        /// behavior and moves any accumulated text into a <see cref="LiteralControl"/>.
+        /// This matches classic ASP.NET Label behavior.
+        /// </summary>
+        public override void AddParsedSubObject(Control control)
+        {
+            if (HasControls())
+            {
+                base.AddParsedSubObject(control);
+            }
+            else if (control is LiteralControl literal)
+            {
+                if (_textSetByAddParsedSubObject)
+                {
+                    _text += literal.Text;
+                }
+                else
+                {
+                    _text = literal.Text;
+                }
+
+                _textSetByAddParsedSubObject = true;
+            }
+            else
+            {
+                // Non-literal child: move any existing text into a LiteralControl
+                // and switch to child-control mode.
+                var currentText = Text;
+
+                if (currentText.Length != 0)
+                {
+                    _text = string.Empty;
+                    base.AddParsedSubObject(new LiteralControl { Text = currentText });
+                }
+
+                base.AddParsedSubObject(control);
+            }
+        }
+
         public override void ClearControl()
         {
             base.ClearControl();
 
-            Text = string.Empty;
+            _text = string.Empty;
             _associatedControlId = null;
+            _textSetByAddParsedSubObject = false;
         }
 
         protected override async ValueTask AddAttributesToRender(HtmlTextWriter writer, CancellationToken token)

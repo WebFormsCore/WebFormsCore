@@ -95,7 +95,7 @@
         {{- end }}
 
         {{- if child.FieldName }}
-            {{ $1 }}.{{ child.FieldName }} = {{ child.VariableName }};
+            {{ $2 }}.{{ child.FieldName }} = {{ child.VariableName }};
         {{- end }}
         {{- end }}
 

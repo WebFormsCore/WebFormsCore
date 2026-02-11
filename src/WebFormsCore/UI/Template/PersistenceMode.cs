@@ -104,3 +104,29 @@ public sealed class TemplateContainerAttribute : Attribute
         BindingDirection = bindingDirection;
     }
 }
+
+/// <summary>Specifies the number of times a template can be instantiated.</summary>
+public enum TemplateInstance
+{
+    /// <summary>The template can be instantiated multiple times.</summary>
+    Multiple,
+
+    /// <summary>The template can be instantiated only one time. Child controls within the template are directly accessible on the naming container.</summary>
+    Single,
+}
+
+/// <summary>Defines a metadata attribute that is used to specify the number of allowed instances of a template. This class cannot be inherited.</summary>
+[ExcludeFromCodeCoverage]
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class TemplateInstanceAttribute : Attribute
+{
+    /// <summary>Initializes a new instance of the <see cref="T:System.Web.UI.TemplateInstanceAttribute" /> class with the specified <see cref="T:System.Web.UI.TemplateInstance" /> enumeration value.</summary>
+    /// <param name="instances">A <see cref="T:System.Web.UI.TemplateInstance" /> enumeration value.</param>
+    public TemplateInstanceAttribute(TemplateInstance instances)
+    {
+        Instances = instances;
+    }
+
+    /// <summary>Gets the <see cref="T:System.Web.UI.TemplateInstance" /> enumeration value that the current template instance represents.</summary>
+    public TemplateInstance Instances { get; }
+}

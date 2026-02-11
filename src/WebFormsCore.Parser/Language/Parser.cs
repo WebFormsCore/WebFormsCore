@@ -584,7 +584,8 @@ public class Parser
                         : null,
                     ItemType = parentControl is ControlNode collectionNode
                         ? collectionNode.ItemType
-                        : null
+                        : null,
+                    IsSingleInstance = elementMember.Symbol.IsSingleInstanceTemplate()
                 };
 
                 parentControl.Templates.Add(templateNode);
@@ -668,7 +669,7 @@ public class Parser
 
             if (attributes.TryGetValue("id", out var id))
             {
-                if (_container.Template == null)
+                if (_container.Template == null || _container.Template.IsSingleInstance)
                 {
                     var member = _type?.GetMemberDeep(id.Value);
 
