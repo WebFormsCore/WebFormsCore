@@ -28,7 +28,17 @@ public static class AspNetCoreExtensions
                 continue;
             }
 
-            var fileProvider = new ManifestEmbeddedFileProvider(assembly, attribute.Root);
+            ManifestEmbeddedFileProvider fileProvider;
+            try
+            {
+                fileProvider = new ManifestEmbeddedFileProvider(assembly, attribute.Root);
+            }
+            catch (InvalidOperationException)
+            {
+                // Manifest not embedded in assembly — skip static file serving for this assembly
+                continue;
+            }
+
             builder.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = fileProvider,

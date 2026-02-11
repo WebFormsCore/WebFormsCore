@@ -102,12 +102,10 @@
         <EmbeddedResource Include="wwwroot\**" Exclude="wwwroot\js\**" Condition="Exists('$(MSBuildProjectDirectory)\wwwroot')" />
     </ItemGroup>
 
-    <!-- Only enable manifest generation when we have embedded resources -->
-    <Target Name="_WebFormsCoreCheckEmbeddedResources" BeforeTargets="GenerateEmbeddedFilesManifest">
-        <PropertyGroup Condition="$(WebFormsCoreEnableStaticFiles) == 'true' and '@(EmbeddedResource)' != ''">
-            <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
-        </PropertyGroup>
-    </Target>
+    <!-- Enable manifest generation when we have scripts or wwwroot content to embed -->
+    <PropertyGroup Condition="$(WebFormsCoreEnableStaticFiles) == 'true' and (Exists('$(MSBuildProjectDirectory)\Scripts') or Exists('$(MSBuildProjectDirectory)\wwwroot'))">
+        <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
+    </PropertyGroup>
 
     <!-- Auto-generate WebFormsStaticFilesAttribute when Scripts folder exists (wwwroot/js will be generated) -->
     <ItemGroup Condition="$(WebFormsCoreEnableStaticFiles) == 'true' and Exists('$(MSBuildProjectDirectory)\Scripts')">
