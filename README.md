@@ -1,5 +1,5 @@
 ## What is WebForms Core?
-WebForms Core is a framework for ASP.NET Core 8.0 or higher.
+WebForms Core is a framework for ASP.NET Core 10.0 or higher.
 
 It is heavily inspired by WebForms but is not a direct port. There are many breaking changes. The goal is to provide a framework that is easy to use and offers a familiar experience for developers accustomed to WebForms.
 
@@ -8,8 +8,8 @@ It is heavily inspired by WebForms but is not a direct port. There are many brea
 ## Changes
 Compared to WebForms, there are several changes:
 
-- **NativeAOT support**  
-  WebForms Core supports Native AOT compilation for .NET 8.0 (preview 2 or higher).
+- **Native AOT support**  
+  WebForms Core supports Native AOT compilation.
 - **Rendering is asynchronous**  
   By default, ASP.NET Core does not allow synchronous operations. This is done [to prevent thread starvation and application hangs](https://makolyte.com/aspnet-invalidoperationexception-synchronous-operations-are-disallowed/).
 - **Designer source generators**  
@@ -18,6 +18,8 @@ Compared to WebForms, there are several changes:
   In addition to using the [StateBag](https://learn.microsoft.com/en-us/dotnet/api/system.web.ui.statebag), you can use the `[ViewState]` attribute on properties and fields to store them in the view state.  
 - **Multiple forms**  
   WebForms Core supports multiple forms, each with its own view state, on a single page.
+- **Scoped forms**
+  WebForms Core supports scoped forms. When a postback occurs in a scoped form, only the controls in that form are processed, and the view state of that form is loaded. This allows you to have multiple forms on a page for better performance.
 - **Pre-compiled views**  
   WebForms Core pre-compiles views to improve the application's startup time.
 - **Content Security Policy (CSP) support**  
@@ -26,12 +28,16 @@ Compared to WebForms, there are several changes:
   Experimental support for [Early Hints](https://developer.chrome.com/docs/web-platform/early-hints).
 - **Streaming support**  
   Similar to Blazor Server-Side, it is possible to stream HTML (without ViewState) using WebSockets.
+- **Experimental code-only UI**  
+  In addition to the traditional WebForms way of creating UI with `.aspx` and `.ascx` files, WebForms Core also supports creating UI with code only.
+- **Lazy loading**  
+  WebForms Core supports lazy loading within a page. This allows you to load parts of the page on demand, improving the initial load time of the page.
 
 ## Installation
 Create a new `.csproj` file that uses the SDK `WebFormsCore.SDK`:
 
 ```xml
-<Project Sdk="WebFormsCore.SDK.AspNetCore/0.0.1-alpha.68">
+<Project Sdk="WebFormsCore.SDK.AspNetCore/0.0.1-alpha.80">
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
@@ -52,12 +58,52 @@ var app = builder.Build();
 // Registers static files middleware
 app.UseWebFormsCore();
 
-// Handles .aspx files
-// For example, if the URL is "/Page.aspx", it will render "Pages/Page.aspx" if it exists
-app.UsePage();
+// Registers all pages (from all assemblies) as endpoints.
+// You can also register them manually with `app.MapPage<T>()` or `app.MapPage("/path", typeof(Page))`
+app.MapPages();
 
-// Render the page 'Default'.
-app.RunPage<Default>();
+app.Run();
+```
+
+Create a new page by adding a `.aspx` file to the project:
+
+```aspx
+<%@ Page Language="C#" Route="/" CodeBehind="Default.aspx.cs" Inherits="Example.Default" %>
+```
+
+You can configure the route of the page with the `Route` attribute. If you don't specify a route, it will not be accessible with `app.MapPages()`.
+
+## Code-only UI
+It is also possible to map a control:
+
+```cs
+app.MapControl("/counter", context =>
+{
+    var counter = new Ref<int>();
+
+    return new Panel
+    {
+        Controls =
+        [
+            new Panel
+            {
+                Controls = 
+                [ 
+                    Text(() => $"Counter: {counter.Value}")
+                ],
+                Style =
+                {
+                    ["margin-bottom"] = "10px"
+                }
+            },
+            new Button
+            {
+                Text = "Increment",
+                OnClick = (sender, args) => counter.Value++
+            }
+        ]
+    };
+});
 ```
 
 ## Global controls

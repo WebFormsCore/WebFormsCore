@@ -268,22 +268,37 @@ public partial class PageManager : IPageManager
         var request = context.Request;
 
         HtmlForm? form = null;
-        StringValues formState = default;
 
         if (request.Form.TryGetValue("wfcPageState", out var pageState))
         {
             await _viewStateManager.LoadAsync(page, pageState.ToString()!);
         }
 
-        if (request.Form.TryGetValue("wfcForm", out var formId) &&
-            request.Form.TryGetValue("wfcFormState", out formState))
+        if (request.Form.TryGetValue("wfcForm", out var formIds) &&
+            request.Form.TryGetValue("wfcFormState", out var formStates))
         {
-            form = page.Forms.FirstOrDefault(i => i.UniqueID == formId);
-        }
+            // When scoped forms (e.g. LazyLoader) render their own wfcForm/wfcFormState
+            // hidden fields alongside the root form, the form data may contain multiple
+            // values. Iterate all pairs so each form's ViewState is loaded.
+            var count = Math.Min(formIds.Count, formStates.Count);
 
-        if (form != null && !string.IsNullOrEmpty(formState))
-        {
-            await _viewStateManager.LoadAsync(form, formState.ToString()!);
+            for (var i = 0; i < count; i++)
+            {
+                var candidate = page.Forms.FirstOrDefault(f => f.UniqueID == formIds[i]);
+
+                if (candidate == null || string.IsNullOrEmpty(formStates[i]))
+                {
+                    continue;
+                }
+
+                await _viewStateManager.LoadAsync(candidate, formStates[i]!);
+
+                // The first root form becomes the active form for the request
+                if (form == null && candidate.IsRootForm)
+                {
+                    form = candidate;
+                }
+            }
         }
 
         return form;

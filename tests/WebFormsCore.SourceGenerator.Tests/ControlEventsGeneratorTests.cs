@@ -84,6 +84,7 @@ public class ControlEventsGeneratorTests
             .SourceText
             .ToString();
 
+        Assert.Contains("public static partial class TestControlExtensions", generated, StringComparison.Ordinal);
         Assert.Contains("extension<T>(T control)", generated, StringComparison.Ordinal);
         Assert.Contains("where T : global::Tests.TestControl", generated, StringComparison.Ordinal);
         Assert.Contains("public global::System.Func<T, global::System.EventArgs, global::System.Threading.Tasks.Task> OnClickedAsync", generated, StringComparison.Ordinal);

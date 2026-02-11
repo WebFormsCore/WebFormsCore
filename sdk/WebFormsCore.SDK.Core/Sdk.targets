@@ -10,6 +10,7 @@
         <Using Include="WebFormsCore.UI" />
         <Using Include="WebFormsCore.UI.WebControls" />
         <Using Include="WebFormsCore.UI.WebControls.LiteralMethods" Static="True" />
+        <Using Include="WebFormsCore.UI.InlineTemplateMethods" Static="True" />
     </ItemGroup>
 
     <!-- .NET Framework -->

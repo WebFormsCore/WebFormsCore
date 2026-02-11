@@ -560,4 +560,90 @@ public class LazyLoaderTests(SeleniumFixture fixture)
         await WaitForLazyLoadAsync(result.Browser);
         Assert.Equal("count: 3", result.Browser.QuerySelector("span")?.Text);
     }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task ScopedLazyLoadersPreservedAfterExternalPostback(Browser type)
+    {
+        await using var result = await fixture.StartAsync(type, () =>
+        {
+            var labelA = new Ref<Label>();
+            var labelB = new Ref<Label>();
+
+            return new Panel
+            {
+                Controls =
+                [
+                    new Button
+                    {
+                        Text = "External Postback",
+                        CssClass = "external-btn",
+                    },
+                    new LazyLoader
+                    {
+                        ID = "loaderA",
+                        AutoLoad = true,
+                        Controls =
+                        [
+                            new Label
+                            {
+                                Ref = labelA,
+                                Text = "A:Initial",
+                                CssClass = "label-a",
+                            },
+                            new Button
+                            {
+                                Text = "Update A",
+                                CssClass = "btn-a",
+                                OnClick = (_, _) => labelA.Value.Text = "A:Clicked",
+                            }
+                        ]
+                    },
+                    new LazyLoader
+                    {
+                        ID = "loaderB",
+                        AutoLoad = true,
+                        Controls =
+                        [
+                            new Label
+                            {
+                                Ref = labelB,
+                                Text = "B:Initial",
+                                CssClass = "label-b",
+                            },
+                            new Button
+                            {
+                                Text = "Update B",
+                                CssClass = "btn-b",
+                                OnClick = (_, _) => labelB.Value.Text = "B:Clicked",
+                            }
+                        ]
+                    }
+                ]
+            };
+        });
+
+        // Wait for both lazy loaders to auto-load
+        await WaitForLazyLoadAsync(result.Browser);
+
+        // Verify initial content
+        Assert.Equal("A:Initial", result.Browser.QuerySelector(".label-a")?.Text);
+        Assert.Equal("B:Initial", result.Browser.QuerySelector(".label-b")?.Text);
+
+        // Click buttons to update labels via scoped postbacks
+        await result.Browser.QuerySelector(".btn-a")!.ClickAsync();
+        Assert.Equal("A:Clicked", result.Browser.QuerySelector(".label-a")?.Text);
+
+        await result.Browser.QuerySelector(".btn-b")!.ClickAsync();
+        Assert.Equal("B:Clicked", result.Browser.QuerySelector(".label-b")?.Text);
+
+        // External postback — scoped content should be preserved
+        await result.Browser.QuerySelector(".external-btn")!.ClickAsync();
+        Assert.Equal("A:Clicked", result.Browser.QuerySelector(".label-a")?.Text);
+        Assert.Equal("B:Clicked", result.Browser.QuerySelector(".label-b")?.Text);
+
+        // A second external postback should also preserve
+        await result.Browser.QuerySelector(".external-btn")!.ClickAsync();
+        Assert.Equal("A:Clicked", result.Browser.QuerySelector(".label-a")?.Text);
+        Assert.Equal("B:Clicked", result.Browser.QuerySelector(".label-b")?.Text);
+    }
 }

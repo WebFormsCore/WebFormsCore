@@ -67,6 +67,27 @@ public static class ContextExtensions
         return type.Name == "ITemplate";
     }
 
+    public static bool IsSingleInstanceTemplate(this ISymbol symbol)
+    {
+        foreach (var attribute in symbol.GetAttributes())
+        {
+            if (attribute.AttributeClass?.Name != "TemplateInstanceAttribute")
+            {
+                continue;
+            }
+
+            var firstArgument = attribute.ConstructorArguments.FirstOrDefault();
+
+            // TemplateInstance.Single == 1
+            if (firstArgument.Value is int value && value == 1)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static bool IsCollection(this ITypeSymbol type)
     {
         return type.IsAssignableTo("ICollection");

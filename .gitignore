@@ -408,6 +408,7 @@ FodyWeavers.xsd
 src/WebFormsCore/Scripts/*.js
 src/WebFormsCore.Extensions.Choices/Scripts/*.js
 src/WebFormsCore.Extensions.TinyMCE/Scripts/*.js
+src/WebFormsCore.Extensions.Tabs/Scripts/*.js
 
 # Generated SDK files
 sdk/*/Sdk/

@@ -44,6 +44,8 @@ public class Page : RefControl, INamingContainer, IStateContainer, IInternalPage
         set => EarlyHints.Enabled = value;
     }
 
+    public string? Route { get; set; }
+
     public HtmlHead? Header { get; internal set; }
 
     public HtmlBody? Body { get; internal set; }

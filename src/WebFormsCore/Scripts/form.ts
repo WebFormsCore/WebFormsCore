@@ -489,7 +489,14 @@ async function submitForm(element: Element, form?: HTMLElement, eventTarget?: st
             const htmlDoc = parser.parseFromString(sanitise(text, jsOptions), 'text/html');
 
             if (form && form.getAttribute('data-wfc-form') === 'self') {
-                morphdom(form, htmlDoc.querySelector('[data-wfc-form]'), options);
+                const formId = form.getAttribute('id');
+                const targetForm = (formId ? htmlDoc.getElementById(formId) : null)
+                    ?? htmlDoc.querySelector('[data-wfc-form="self"]')
+                    ?? htmlDoc.querySelector('[data-wfc-form]');
+
+                if (targetForm) {
+                    morphdom(form, targetForm, options);
+                }
             } else if (baseElement) {
                 morphdom(baseElement, htmlDoc.querySelector('[data-wfc-base]'), options);
             } else {
