@@ -561,12 +561,6 @@ public class LazyLoaderTests(SeleniumFixture fixture)
         Assert.Equal("count: 3", result.Browser.QuerySelector("span")?.Text);
     }
 
-    /// <summary>
-    /// Two LazyLoaders with buttons/labels + an external postback button.
-    /// After loading both lazy loaders via retrigger, clicking their buttons,
-    /// and then clicking the external postback button, the scoped content
-    /// should be preserved (data-wfc-ignore prevents morphdom replacement).
-    /// </summary>
     [Theory, ClassData(typeof(BrowserData))]
     public async Task ScopedLazyLoadersPreservedAfterExternalPostback(Browser type)
     {

@@ -7,31 +7,6 @@ using WebFormsCore.UI.Attributes;
 
 namespace WebFormsCore.UI.WebControls;
 
-/// <summary>
-/// A tab control that renders a tabbed interface with client-side switching.
-/// Each tab is defined as a <see cref="Tab"/> child using <c>&lt;TabContent&gt;</c>
-/// templates. Loaded tabs switch client-side (no postback); lazy tabs use a
-/// scoped <see cref="WebFormsCore.UI.Skeleton.LazyLoader"/> so only the tab
-/// content is loaded on activation, not the entire page.
-/// </summary>
-/// <example>
-/// <code>
-/// &lt;wfc:TabControl ID="TabControl1" runat="server"&gt;
-///     &lt;Tabs&gt;
-///         &lt;wfc:Tab Title="Tab 1"&gt;
-///             &lt;TabContent&gt;
-///                 &lt;p&gt;Content for Tab 1&lt;/p&gt;
-///             &lt;/TabContent&gt;
-///         &lt;/wfc:Tab&gt;
-///         &lt;wfc:Tab Title="Tab 2" LazyLoadContent="true"&gt;
-///             &lt;TabContent&gt;
-///                 &lt;p&gt;Content for Tab 2 (loaded on demand)&lt;/p&gt;
-///             &lt;/TabContent&gt;
-///         &lt;/wfc:Tab&gt;
-///     &lt;/Tabs&gt;
-/// &lt;/wfc:TabControl&gt;
-/// </code>
-/// </example>
 [ParseChildren(true, "Tabs")]
 public partial class TabControl : WebControl, INamingContainer, IPostBackAsyncDataHandler
 {
@@ -44,13 +19,11 @@ public partial class TabControl : WebControl, INamingContainer, IPostBackAsyncDa
 
     /// <summary>
     /// Gets the collection of <see cref="Tab"/> items in this control.
-    /// Populated by the parser from the &lt;Tabs&gt; child element.
     /// </summary>
     public List<Tab> Tabs => _tabs;
 
     /// <summary>
-    /// Gets or sets the zero-based index of the currently active tab
-    /// (among visible tabs only).
+    /// Gets or sets the zero-based index of the currently active tab.
     /// </summary>
     [ViewState]
     public int ActiveTabIndex { get; set; }
@@ -67,11 +40,7 @@ public partial class TabControl : WebControl, INamingContainer, IPostBackAsyncDa
 
     /// <summary>
     /// Gets or sets whether switching to any tab triggers a full page postback.
-    /// When true, every tab switch causes a postback so the server-side
-    /// <see cref="ActiveTabChanged"/> event fires immediately.
-    /// When false (default), tab switches are client-side only and
-    /// <see cref="ActiveTabChanged"/> fires on the next postback from another source.
-    /// Individual tabs can override this via <see cref="Tab.AutoPostBack"/>.
+    /// When true, every tab switch causes a postback so the server-side.
     /// </summary>
     [ViewState]
     public bool AutoPostBack { get; set; }
@@ -93,9 +62,9 @@ public partial class TabControl : WebControl, INamingContainer, IPostBackAsyncDa
 
         var visibleTabs = GetVisibleTabs();
 
-        for (var i = 0; i < visibleTabs.Count; i++)
+        foreach (var t in visibleTabs)
         {
-            await Controls.AddAsync(visibleTabs[i]);
+            await Controls.AddAsync(t);
         }
 
         await base.OnInitAsync(token);
@@ -196,10 +165,8 @@ public partial class TabControl : WebControl, INamingContainer, IPostBackAsyncDa
 
         var activeIndex = ClampActiveIndex(visibleTabs);
 
-        // Render tab header list
         await RenderTabHeadersAsync(writer, visibleTabs, activeIndex, token);
 
-        // Render tab panels
         for (var i = 0; i < visibleTabs.Count; i++)
         {
             var tab = visibleTabs[i];

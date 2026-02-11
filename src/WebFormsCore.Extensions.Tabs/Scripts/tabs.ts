@@ -46,25 +46,6 @@ function syncVisibility(container: HTMLElement) {
     }
 }
 
-/**
- * Returns an ordered array of non-disabled tab buttons inside the tablist.
- */
-function getEnabledTabs(container: HTMLElement): HTMLElement[] {
-    const all = container.querySelectorAll<HTMLElement>('[role="tab"]:not([disabled])');
-    return Array.from(all);
-}
-
-/**
- * Returns the LazyLoader element inside a tab panel, or null if the panel
- * is not lazy or is already loaded.
- */
-function getUnloadedLazyLoader(panel: HTMLElement): HTMLElement | null {
-    const loader = panel.querySelector<HTMLElement>('[data-wfc-lazy]');
-    if (!loader) return null;
-    // aria-busy="true" means the lazy loader has not loaded yet
-    return loader.getAttribute('aria-busy') === 'true' ? loader : null;
-}
-
 wfc.bind('[data-wfc-tabs]', {
     init: function (element: HTMLElement) {
         // Click handler for tab activation
@@ -86,23 +67,18 @@ wfc.bind('[data-wfc-tabs]', {
             const panel = document.getElementById(panelId);
             if (!panel) return;
 
-            // Always prevent default and stop propagation — tab buttons no
-            // longer use data-wfc-postback; all switching is handled here.
+            // Prevent default behavior to handle switching manually.
             e.preventDefault();
             e.stopPropagation();
 
-            const lazyLoader = getUnloadedLazyLoader(panel);
+            const lazyLoader = panel.querySelector<HTMLElement>('[data-wfc-lazy]');
 
             // Always switch visually first
             switchTab(element, button, panel);
 
             if (button.hasAttribute('data-wfc-tab-autopostback')) {
-                // AutoPostBack: trigger a full page postback so the server
-                // processes the tab change immediately.
                 wfc.postBack(element);
-            } else if (lazyLoader) {
-                // Lazy tab not yet loaded: trigger a scoped postback via the
-                // LazyLoader so only the tab content section is loaded.
+            } else if (lazyLoader && lazyLoader.getAttribute('aria-busy') === 'true') {
                 wfc.retriggerLazy(lazyLoader).then(function () {
                     syncVisibility(element);
                 });
@@ -116,7 +92,7 @@ wfc.bind('[data-wfc-tabs]', {
                 const currentTab = (e.target as HTMLElement).closest<HTMLElement>('[role="tab"]');
                 if (!currentTab) return;
 
-                const tabs = getEnabledTabs(element);
+                const tabs = Array.from(element.querySelectorAll<HTMLElement>('[role="tab"]:not([disabled])'));
                 const currentIndex = tabs.indexOf(currentTab);
                 if (currentIndex === -1) return;
 

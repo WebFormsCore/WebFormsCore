@@ -381,4 +381,71 @@ public class ScopedFormTests(SeleniumFixture fixture)
         Assert.Equal("parent: 1", spans[0].Text);
         Assert.Equal("child: 1", spans[1].Text);
     }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task ScopedFormNotLoadedWhenDifferentFormPostback(Browser type)
+    {
+        var loadCountA = 0;
+        var loadCountB = 0;
+
+        await using var result = await fixture.StartAsync(type, () =>
+        {
+            return new Panel()
+            {
+                Controls =
+                [
+                    new HtmlForm
+                    {
+                        Scoped = true,
+                        Controls =
+                        [
+                            new Button
+                            {
+                                Text = "Postback A",
+                                CssClass = "form-a-button",
+                            }
+                        ],
+                        OnLoad = (_, _) =>
+                        {
+                            loadCountA++;
+                        }
+                    },
+                    new HtmlForm
+                    {
+                        Scoped = true,
+                        Controls =
+                        [
+                            new Button
+                            {
+                                Text = "Postback B",
+                                CssClass = "form-b-button",
+                            }
+                        ],
+                        OnLoad = (_, _) =>
+                        {
+                            loadCountB++;
+                        }
+                    }
+                ]
+            };
+        });
+
+        // On page load, both forms should have executed their Load handlers once
+        Assert.Equal(1, loadCountA);
+        Assert.Equal(1, loadCountB);
+
+        // Click Form A's button
+        await result.Browser.QuerySelectorRequired(".form-a-button").ClickAsync();
+
+        // Form A should have executed Load again, Form B should NOT have executed Load again
+        Assert.Equal(2, loadCountA);
+        Assert.Equal(1, loadCountB);
+
+        // Click Form B's button
+        await result.Browser.QuerySelectorRequired(".form-b-button").ClickAsync();
+
+        // Form B should have executed Load again, Form A should NOT have executed Load again
+        Assert.Equal(2, loadCountA);
+        Assert.Equal(2, loadCountB);
+    }
 }
