@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 
 namespace WebFormsCore.UI;
 
@@ -14,11 +13,6 @@ public static class ClientScriptManagerExtensions
     public static void RegisterStartupAsyncScriptLink(this ClientScriptManager manager, Type type, string key, string url, bool addScriptTags = true, ScriptPosition? position = null)
     {
         manager.RegisterStartupScriptLink(type, key, url, addScriptTags, SingleAttributeRenderer.Async, position);
-    }
-
-    public static void RegisterStartupDeferStaticScript(this ClientScriptManager manager, Type type, PathString fileName, string url, bool addScriptTags = true, ScriptPosition? position = null)
-    {
-        manager.RegisterStartupStaticScript(type, fileName, url, addScriptTags, SingleAttributeRenderer.Defer, position);
     }
 
     private sealed class SingleAttributeRenderer(string attributeName) : IAttributeRenderer

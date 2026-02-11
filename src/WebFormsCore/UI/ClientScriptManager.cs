@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using JetBrains.Annotations;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
@@ -142,30 +141,6 @@ public sealed class ClientScriptManager(Page page, IOptions<WebFormsCoreOptions>
     public void RegisterStartupScript(Type type, string key, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true, IAttributeRenderer? attributes = null, ScriptPosition? position = null)
     {
         RegisterBlock(ScriptType.Script, type, key, script, ref GetList(position ?? _defaultScriptPosition), addScriptTags ? RegisterType.InlineScript : RegisterType.Raw, attribute: attributes);
-    }
-
-    public void RegisterStartupStaticScript(Type type, PathString fileName, [LanguageInjection(InjectedLanguage.JAVASCRIPT)] string script, bool addScriptTags = true, IAttributeRenderer? linkAttributes = null, ScriptPosition? position = null)
-    {
-        if (StaticFiles.Files.TryGetValue(fileName, out var existingScript))
-        {
-            if (!string.Equals(existingScript, script, StringComparison.Ordinal))
-            {
-                throw new InvalidOperationException($"The file {fileName} is already registered.");
-            }
-        }
-        else
-        {
-            StaticFiles.Files[fileName] = script;
-        }
-
-        if (page.Context.Items.ContainsKey("RegisteredWebFormsCore"))
-        {
-            RegisterStartupScriptLink(type, fileName, fileName, addScriptTags, linkAttributes, position);
-        }
-        else
-        {
-            RegisterStartupScript(type, fileName, script, addScriptTags, position: position);
-        }
     }
 
     public void RegisterStartupScriptLink(Type type, string key, string url, bool addScriptTags = true, IAttributeRenderer? attributes = null, ScriptPosition? position = null)

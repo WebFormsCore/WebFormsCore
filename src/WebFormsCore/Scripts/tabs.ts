@@ -1,4 +1,4 @@
-/// <reference path="../../../../typings.d.ts" />
+/// <reference path="../../../typings.d.ts" />
 
 function switchTab(container: HTMLElement, button: HTMLElement, panel: HTMLElement) {
     // Deselect all tab buttons and set tabindex="-1"

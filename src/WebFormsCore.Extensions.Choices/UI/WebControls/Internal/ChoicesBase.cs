@@ -13,7 +13,7 @@ public abstract class ChoicesBase : Control
         await base.OnInitAsync(token);
 
         Page.ClientScript.RegisterStartupStyleLink(typeof(Choices), "Choices", "https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css");
-        Page.ClientScript.RegisterStartupDeferStaticScript(typeof(Choices), "/js/choices.min.js", Resources.Script);
+        Page.ClientScript.RegisterStartupDeferScriptLink(typeof(Choices), "/js/choices.min.js", "/js/choices.min.js");
     }
 
     protected override async ValueTask OnPreRenderAsync(CancellationToken token)

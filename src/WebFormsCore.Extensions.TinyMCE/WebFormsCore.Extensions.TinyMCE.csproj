@@ -1,5 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+    <Import Project="..\..\sdk\WebFormsCore.SDK.Core\Sdk.props" />
+
     <PropertyGroup>
         <TargetFrameworks>$(DotNetVersions)</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -7,6 +9,7 @@
         <RootNamespace>WebFormsCore</RootNamespace>
         <PolySharpIncludeRuntimeSupportedAttributes>true</PolySharpIncludeRuntimeSupportedAttributes>
         <IsTrimmable Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">true</IsTrimmable>
+        <WebFormsCoreUseNuget>false</WebFormsCoreUseNuget>
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,7 +20,6 @@
         <ProjectReference Include="..\WebFormsCore.SourceGenerator\WebFormsCore.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
-
     <ItemGroup>
         <PackageReference Include="PolySharp" Version="1.15.0">
             <PrivateAssets>all</PrivateAssets>
@@ -25,9 +27,6 @@
         </PackageReference>
     </ItemGroup>
 
-    <ItemGroup>
-        <EmbeddedResource Include="Scripts\**\*.min.js" />
-    </ItemGroup>
-
+    <Import Project="..\..\sdk\WebFormsCore.SDK.Core\Sdk.targets" />
 
 </Project>

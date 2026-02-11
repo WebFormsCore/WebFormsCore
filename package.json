@@ -2,33 +2,18 @@
   "name": "webformscore",
   "version": "1.0.0",
   "description": "WebForms Core is a framework for ASP.NET Core and ASP.NET.",
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "build": "rolldown -c",
-    "watch": "rolldown -c -w"
-  },
+  "private": true,
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/WebFormsCore/WebFormsCore.git"
   },
-  "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/WebFormsCore/WebFormsCore/issues"
-  },
-  "homepage": "https://github.com/WebFormsCore/WebFormsCore#readme",
-  "devDependencies": {
-    "@babel/core": "^7.23.0",
-    "rolldown": "^1.0.0-beta.59",
-    "tslib": "^2.6.1",
-    "typescript": "^5.1.6"
-  },
   "dependencies": {
     "async-mutex": "^0.4.0",
     "choices.js": "^11.0.2",
     "dompurify": "^3.1.6",
     "morphdom": "^2.7.0",
-    "tinymce": "^6.7.0"
+    "tinymce": "^8.3.2"
   }
 }

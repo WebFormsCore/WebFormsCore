@@ -191,8 +191,16 @@ public class ControlTest
 
         context.Value = await contextFactory(host);
 
-        await host.StartAsync();
-        await context.Value.GoToUrlAsync(context.Value.Url);
+        try
+        {
+            await host.StartAsync();
+            await context.Value.GoToUrlAsync(context.Value.Url);
+        }
+        catch
+        {
+            await context.Value.DisposeAsync();
+            throw;
+        }
 
         return context.Value;
     }

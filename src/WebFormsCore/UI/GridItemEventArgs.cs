@@ -1,4 +1,6 @@
-﻿namespace WebFormsCore.UI;
+using System;
+
+namespace WebFormsCore.UI;
 
 /// <summary>
 /// Provides data for the <see cref="E:System.Web.UI.WebControls.Repeater.ItemCreated" /> and <see cref="E:System.Web.UI.WebControls.Repeater.ItemDataBound" /> events of a <see cref="T:System.Web.UI.WebControls.Repeater" />.
