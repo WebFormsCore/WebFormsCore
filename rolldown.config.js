@@ -5,7 +5,7 @@ export default defineConfig([
     transformTypeScript('./src/WebFormsCore/Scripts/webforms-polyfill.ts'),
     transformTypeScript('./src/WebFormsCore.Extensions.Choices/Scripts/choices.ts'),
     transformTypeScript('./src/WebFormsCore.Extensions.TinyMCE/Scripts/tiny.ts'),
-    transformTypeScript('./src/WebFormsCore.Extensions.Tabs/Scripts/tabs.ts')
+    transformTypeScript('./src/WebFormsCore/Scripts/tabs.ts')
 ])
 
 function transformTypeScript(path) {

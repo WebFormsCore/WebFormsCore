@@ -7,11 +7,13 @@ internal static class Resources
 {
     public static readonly string Script;
     public static readonly string Polyfill;
+    public static readonly string TabsScript;
 
     static Resources()
     {
         Script = GetString("form.min.js");
         Polyfill = GetString("webforms-polyfill.min.js");
+        TabsScript = GetString("tabs.min.js");
     }
 
     private static string GetString(string fileName)

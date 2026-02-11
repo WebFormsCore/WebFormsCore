@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using WebFormsCore.UI.CellRenderers;
 using WebFormsCore.UI.Skeleton.Renderers;
 using WebFormsCore.UI.WebControls;
