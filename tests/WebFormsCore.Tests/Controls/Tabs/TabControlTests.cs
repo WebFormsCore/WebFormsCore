@@ -890,4 +890,214 @@ public class TabControlTests(SeleniumFixture fixture)
         Assert.True(eventFired);
         Assert.Contains("Changed", await result.Browser.GetHtmlAsync());
     }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task ActiveTabChanged_TabControlAutoPostBackTrue_FiresImmediately(Browser type)
+    {
+        var eventFired = false;
+
+        await using var result = await fixture.StartAsync(type, () =>
+        {
+            var label = new Ref<Label>();
+
+            var tabControl = new TabControl
+            {
+                ID = "tabs",
+                AutoPostBack = true,
+                Tabs =
+                {
+                    new Tab
+                    {
+                        Title = "Tab 1",
+                        TabContent = new InlineTemplate(c =>
+                            c.Controls.AddWithoutPageEvents(new Label { Ref = label, Text = "Initial" }))
+                    },
+                    new Tab
+                    {
+                        Title = "Tab 2",
+                        TabContent = TextTemplate("Content 2")
+                    }
+                }
+            };
+
+            tabControl.ActiveTabChanged += (_, _) =>
+            {
+                eventFired = true;
+                label.Value.Text = "Changed";
+                return Task.CompletedTask;
+            };
+
+            return tabControl;
+        });
+
+        // Click Tab 2 — TabControl.AutoPostBack causes full postback
+        var tabButtons = await result.Browser.QuerySelectorAll("[role=tab]").ToListAsync();
+        await tabButtons[1].ClickAsync();
+
+        // ActiveTabChanged should have fired immediately via the postback
+        Assert.True(eventFired);
+        Assert.Contains("Changed", await result.Browser.GetHtmlAsync());
+    }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task ActiveTabChanged_TabControlAutoPostBackFalse_RequiresExternalPostback(Browser type)
+    {
+        var eventFired = false;
+
+        await using var result = await fixture.StartAsync(type, () =>
+        {
+            var label = new Ref<Label>();
+            var button = new Button { ID = "postbackBtn", Text = "Submit" };
+
+            var tabControl = new TabControl
+            {
+                ID = "tabs",
+                AutoPostBack = false,
+                Tabs =
+                {
+                    new Tab
+                    {
+                        Title = "Tab 1",
+                        TabContent = new InlineTemplate(c =>
+                            c.Controls.AddWithoutPageEvents(new Label { Ref = label, Text = "Initial" }))
+                    },
+                    new Tab
+                    {
+                        Title = "Tab 2",
+                        TabContent = TextTemplate("Content 2")
+                    }
+                }
+            };
+
+            tabControl.ActiveTabChanged += (_, _) =>
+            {
+                eventFired = true;
+                label.Value.Text = "Changed";
+                return Task.CompletedTask;
+            };
+
+            return new Panel { Controls = [tabControl, button] };
+        });
+
+        // Click Tab 2 — client-side switch only, no postback
+        var tabButtons = await result.Browser.QuerySelectorAll("[role=tab]").ToListAsync();
+        await tabButtons[1].ClickAsync();
+
+        // Event should NOT have fired yet (no postback)
+        Assert.False(eventFired);
+
+        // Trigger external postback via button
+        var submitBtn = result.Browser.QuerySelector("#postbackBtn");
+        Assert.NotNull(submitBtn);
+        await submitBtn.ClickAsync();
+
+        // Now ActiveTabChanged should have fired
+        Assert.True(eventFired);
+        Assert.Contains("Changed", await result.Browser.GetHtmlAsync());
+    }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task ActiveTabChanged_TabAutoPostBackTrue_FiresImmediately(Browser type)
+    {
+        var eventFired = false;
+
+        await using var result = await fixture.StartAsync(type, () =>
+        {
+            var label = new Ref<Label>();
+
+            var tabControl = new TabControl
+            {
+                ID = "tabs",
+                Tabs =
+                {
+                    new Tab
+                    {
+                        Title = "Tab 1",
+                        TabContent = new InlineTemplate(c =>
+                            c.Controls.AddWithoutPageEvents(new Label { Ref = label, Text = "Initial" }))
+                    },
+                    new Tab
+                    {
+                        Title = "Tab 2",
+                        AutoPostBack = true,
+                        TabContent = TextTemplate("Content 2")
+                    }
+                }
+            };
+
+            tabControl.ActiveTabChanged += (_, _) =>
+            {
+                eventFired = true;
+                label.Value.Text = "Changed";
+                return Task.CompletedTask;
+            };
+
+            return tabControl;
+        });
+
+        // Click Tab 2 — Tab.AutoPostBack causes full postback
+        var tabButtons = await result.Browser.QuerySelectorAll("[role=tab]").ToListAsync();
+        await tabButtons[1].ClickAsync();
+
+        // ActiveTabChanged should have fired immediately
+        Assert.True(eventFired);
+        Assert.Contains("Changed", await result.Browser.GetHtmlAsync());
+    }
+
+    [Theory, ClassData(typeof(BrowserData))]
+    public async Task ActiveTabChanged_TabAutoPostBackFalse_RequiresExternalPostback(Browser type)
+    {
+        var eventFired = false;
+
+        await using var result = await fixture.StartAsync(type, () =>
+        {
+            var label = new Ref<Label>();
+            var button = new Button { ID = "postbackBtn", Text = "Submit" };
+
+            var tabControl = new TabControl
+            {
+                ID = "tabs",
+                Tabs =
+                {
+                    new Tab
+                    {
+                        Title = "Tab 1",
+                        TabContent = new InlineTemplate(c =>
+                            c.Controls.AddWithoutPageEvents(new Label { Ref = label, Text = "Initial" }))
+                    },
+                    new Tab
+                    {
+                        Title = "Tab 2",
+                        AutoPostBack = false,
+                        TabContent = TextTemplate("Content 2")
+                    }
+                }
+            };
+
+            tabControl.ActiveTabChanged += (_, _) =>
+            {
+                eventFired = true;
+                label.Value.Text = "Changed";
+                return Task.CompletedTask;
+            };
+
+            return new Panel { Controls = [tabControl, button] };
+        });
+
+        // Click Tab 2 — client-side switch only (AutoPostBack=false)
+        var tabButtons = await result.Browser.QuerySelectorAll("[role=tab]").ToListAsync();
+        await tabButtons[1].ClickAsync();
+
+        // Event should NOT have fired yet
+        Assert.False(eventFired);
+
+        // Trigger external postback via button
+        var submitBtn = result.Browser.QuerySelector("#postbackBtn");
+        Assert.NotNull(submitBtn);
+        await submitBtn.ClickAsync();
+
+        // Now ActiveTabChanged should have fired
+        Assert.True(eventFired);
+        Assert.Contains("Changed", await result.Browser.GetHtmlAsync());
+    }
 }

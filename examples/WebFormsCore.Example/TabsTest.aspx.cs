@@ -14,7 +14,7 @@ public partial class TabsTest : Page
         await Task.Delay(2000);
     }
 
-    private Task OnEventTabChanged(TabControl sender, EventArgs e)
+    protected Task OnEventTabChanged(TabControl sender, EventArgs e)
     {
         lblEventLog.Text = $"ActiveTabChanged fired! New index: {sender.ActiveTabIndex}";
         return Task.CompletedTask;

@@ -136,7 +136,7 @@
                     <strong>AutoPostBack Event</strong>
                 </div>
                 <div class="card-body">
-                    <wfc:TabControl runat="server" ID="eventTabs" ActiveTabChanged="OnEventTabChanged">
+                    <wfc:TabControl runat="server" ID="eventTabs" OnActiveTabChanged="OnEventTabChanged">
                         <Tabs>
                             <wfc:Tab runat="server" Title="Tab A">
                                 <TabContent>

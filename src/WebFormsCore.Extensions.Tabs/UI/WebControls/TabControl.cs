@@ -66,6 +66,17 @@ public partial class TabControl : WebControl, INamingContainer, IPostBackAsyncDa
     public string? ActiveTabCssClass { get; set; }
 
     /// <summary>
+    /// Gets or sets whether switching to any tab triggers a full page postback.
+    /// When true, every tab switch causes a postback so the server-side
+    /// <see cref="ActiveTabChanged"/> event fires immediately.
+    /// When false (default), tab switches are client-side only and
+    /// <see cref="ActiveTabChanged"/> fires on the next postback from another source.
+    /// Individual tabs can override this via <see cref="Tab.AutoPostBack"/>.
+    /// </summary>
+    [ViewState]
+    public bool AutoPostBack { get; set; }
+
+    /// <summary>
     /// Gets or sets the accessible label for the tab list.
     /// Rendered as <c>aria-label</c> on the <c>tablist</c> element.
     /// </summary>
@@ -250,7 +261,7 @@ public partial class TabControl : WebControl, INamingContainer, IPostBackAsyncDa
                 writer.AddAttribute("disabled", "disabled");
             }
 
-            if (tab.AutoPostBack)
+            if (tab.AutoPostBack || AutoPostBack)
             {
                 writer.AddAttribute("data-wfc-tab-autopostback", null);
             }
@@ -291,6 +302,7 @@ public partial class TabControl : WebControl, INamingContainer, IPostBackAsyncDa
 
         _tabs.Clear();
         ActiveTabIndex = 0;
+        AutoPostBack = false;
         HeaderCssClass = null;
         ActiveTabCssClass = null;
         ActiveTabChanged = null;
