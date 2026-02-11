@@ -8,8 +8,8 @@ It is heavily inspired by WebForms but is not a direct port. There are many brea
 ## Changes
 Compared to WebForms, there are several changes:
 
-- **NativeAOT support**  
-  WebForms Core supports Native AOT compilation .
+- **Native AOT support**  
+  WebForms Core supports Native AOT compilation.
 - **Rendering is asynchronous**  
   By default, ASP.NET Core does not allow synchronous operations. This is done [to prevent thread starvation and application hangs](https://makolyte.com/aspnet-invalidoperationexception-synchronous-operations-are-disallowed/).
 - **Designer source generators**  
@@ -19,7 +19,7 @@ Compared to WebForms, there are several changes:
 - **Multiple forms**  
   WebForms Core supports multiple forms, each with its own view state, on a single page.
 - **Scoped forms**
-  WebForms Core supports scoped forms, when there is postback in a scoped form, only the controls in that form are processed and the view state of that form is loaded. This allows you to have multiple forms on a page for better performance.
+  WebForms Core supports scoped forms. When a postback occurs in a scoped form, only the controls in that form are processed, and the view state of that form is loaded. This allows you to have multiple forms on a page for better performance.
 - **Pre-compiled views**  
   WebForms Core pre-compiles views to improve the application's startup time.
 - **Content Security Policy (CSP) support**  
@@ -29,7 +29,7 @@ Compared to WebForms, there are several changes:
 - **Streaming support**  
   Similar to Blazor Server-Side, it is possible to stream HTML (without ViewState) using WebSockets.
 - **Experimental code-only UI**  
-  Next to the traditional WebForms way of creating UI with `.aspx` and `.ascx` files, WebForms Core also supports creating UI with code only.
+  In addition to the traditional WebForms way of creating UI with `.aspx` and `.ascx` files, WebForms Core also supports creating UI with code only.
 - **Lazy loading**  
   WebForms Core supports lazy loading within a page. This allows you to load parts of the page on demand, improving the initial load time of the page.
 
@@ -71,7 +71,7 @@ Create a new page by adding a `.aspx` file to the project:
 <%@ Page Language="C#" Route="/" CodeBehind="Default.aspx.cs" Inherits="Example.Default" %>
 ```
 
-You can configure the route of the page with the `Route` attribute. If you don't specify a route, it'll not be accessible with `app.MapPages()`.
+You can configure the route of the page with the `Route` attribute. If you don't specify a route, it will not be accessible with `app.MapPages()`.
 
 ## Code-only UI
 It is also possible to map a control:
