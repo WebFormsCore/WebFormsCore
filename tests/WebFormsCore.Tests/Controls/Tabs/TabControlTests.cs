@@ -668,12 +668,12 @@ public class TabControlTests(SeleniumFixture fixture)
         await WaitForLazyLoadAsync(result.Browser);
 
         Assert.Equal("B:Initial", result.Browser.QuerySelector(".lazy-b-label")?.Text);
-        await result.Browser.QuerySelector(".lazy-b-submit")!.ClickAsync(); 
+        await result.Browser.QuerySelector(".lazy-b-submit")!.ClickAsync();
         Assert.Equal("B:Clicked", result.Browser.QuerySelector(".lazy-b-label")?.Text);
 
         await result.Browser.QuerySelector(".postback-btn")!.ClickAsync();
         Assert.Equal("B:Clicked", result.Browser.QuerySelector(".lazy-b-label")?.Text);
-        
+
         await result.Browser.QuerySelector("[data-wfc-tab-index='0']")!.ClickAsync();
         Assert.Equal("A:Clicked", result.Browser.QuerySelector(".lazy-a-label")?.Text);
 
@@ -1005,7 +1005,7 @@ public class TabControlTests(SeleniumFixture fixture)
         {
             var label = new Ref<Label>();
 
-            var tabControl = new TabControl
+            return new TabControl
             {
                 ID = "tabs",
                 Tabs =
@@ -1013,8 +1013,14 @@ public class TabControlTests(SeleniumFixture fixture)
                     new Tab
                     {
                         Title = "Tab 1",
-                        TabContent = new InlineTemplate(c =>
-                            c.Controls.AddWithoutPageEvents(new Label { Ref = label, Text = "Initial" }))
+                        TabContent = Template(() =>
+                        [
+                            new Label
+                            {
+                                Ref = label,
+                                Text = "Initial"
+                            }
+                        ])
                     },
                     new Tab
                     {
@@ -1022,17 +1028,13 @@ public class TabControlTests(SeleniumFixture fixture)
                         AutoPostBack = true,
                         TabContent = TextTemplate("Content 2")
                     }
+                },
+                OnActiveTabChanged = (_, _) =>
+                {
+                    eventFired = true;
+                    label.Value.Text = "Changed";
                 }
             };
-
-            tabControl.ActiveTabChanged += (_, _) =>
-            {
-                eventFired = true;
-                label.Value.Text = "Changed";
-                return Task.CompletedTask;
-            };
-
-            return tabControl;
         });
 
         // Click Tab 2 — Tab.AutoPostBack causes full postback

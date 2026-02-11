@@ -17,8 +17,7 @@ public class Parser
         "Description",
         "LinePragmas",
         "Src",
-        "Strict",
-        "Route"
+        "Strict"
     };
 
     private readonly Compilation _compilation;

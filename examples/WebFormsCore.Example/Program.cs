@@ -72,7 +72,7 @@ app.UseWebSockets();
 
 app.UseWebFormsCore();
 
-app.MapControl("/button", () =>
+app.MapControl("/counter", context =>
 {
     var counter = new Ref<int>();
 
@@ -80,14 +80,6 @@ app.MapControl("/button", () =>
     {
         Controls =
         [
-            new Button
-            {
-                Text = "Increment",
-                OnClick = (_, _) =>
-                {
-                    counter.Value++;
-                }
-            },
             new Panel
             {
                 Controls =
@@ -96,9 +88,14 @@ app.MapControl("/button", () =>
                 ],
                 Style =
                 {
-                    { "padding", () => $"{counter.Value}px" }
+                    ["margin-bottom"] = "10px"
                 }
             },
+            new Button
+            {
+                Text = "Increment",
+                OnClick = (_, _) => counter.Value++
+            }
         ]
     };
 });
