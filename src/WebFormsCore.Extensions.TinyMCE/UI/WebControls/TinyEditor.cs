@@ -21,7 +21,7 @@ public class TinyEditor : TextBox
 
         Page.Csp.StyleSrc.Add("'unsafe-inline'");
         Page.ClientScript.RegisterStartupStyleLink(typeof(TinyEditor), "Oxide", "https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.7.0/skins/ui/oxide/skin.min.css");
-        Page.ClientScript.RegisterStartupDeferStaticScript(typeof(TinyEditor), "/js/tiny.min.js", Resources.Script);
+        Page.ClientScript.RegisterStartupDeferScriptLink(typeof(TinyEditor), "/js/tiny.min.js", "/js/tiny.min.js");
     }
 
     public override async ValueTask RenderAsync(HtmlTextWriter writer, CancellationToken token)

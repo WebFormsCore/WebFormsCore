@@ -2,4 +2,11 @@
     <ItemGroup>
         <ProjectCapability Include="Web" />
     </ItemGroup>
+
+    <PropertyGroup>
+        <!-- Enable ESBuild for TypeScript/JavaScript compilation -->
+        <WebFormsCoreEnableESBuild Condition="$(WebFormsCoreEnableESBuild) == ''">true</WebFormsCoreEnableESBuild>
+        <!-- Enable embedded static files for wwwroot -->
+        <WebFormsCoreEnableStaticFiles Condition="$(WebFormsCoreEnableStaticFiles) == ''">true</WebFormsCoreEnableStaticFiles>
+    </PropertyGroup>
 </Project>

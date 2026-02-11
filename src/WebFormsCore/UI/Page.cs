@@ -154,10 +154,10 @@ public class Page : RefControl, INamingContainer, IStateContainer, IInternalPage
 
         if (options?.AddWebFormsCoreScript ?? true)
         {
-            Page.ClientScript.RegisterStartupDeferStaticScript(
+            Page.ClientScript.RegisterStartupDeferScriptLink(
                 typeof(Page),
                 "/js/form.min.js",
-                Resources.Script);
+                "/js/form.min.js");
         }
 
         if (options?.AddWebFormsCoreHeadScript ?? true)
@@ -171,10 +171,10 @@ public class Page : RefControl, INamingContainer, IStateContainer, IInternalPage
 
         if (options?.EnableWebFormsPolyfill ?? true)
         {
-            Page.ClientScript.RegisterStartupScript(
+            Page.ClientScript.RegisterStartupScriptLink(
                 typeof(Page),
                 "WebFormsCorePolyfill",
-                Resources.Polyfill,
+                "/js/webforms-polyfill.min.js",
                 position: ScriptPosition.HeadStart);
         }
     }

@@ -58,7 +58,7 @@ public partial class TabControl : WebControl, INamingContainer, IPostBackAsyncDa
 
     protected override async ValueTask OnInitAsync(CancellationToken token)
     {
-        Page.ClientScript.RegisterStartupDeferStaticScript(typeof(TabControl), "/js/tabs.min.js", Resources.TabsScript);
+        Page.ClientScript.RegisterStartupDeferScriptLink(typeof(TabControl), "/js/tabs.min.js", "/js/tabs.min.js");
 
         var visibleTabs = GetVisibleTabs();
 

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using WebFormsCore.UI.HtmlControls;
 using WebFormsCore.UI;
 
@@ -18,17 +19,27 @@ public static class AspNetCoreExtensions
 {
     public static IApplicationBuilder UseWebFormsCore(this IApplicationBuilder builder)
     {
+        // Auto-discover assemblies with embedded static files and register file providers
+        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            var attribute = assembly.GetCustomAttribute<WebFormsStaticFilesAttribute>();
+            if (attribute == null)
+            {
+                continue;
+            }
+
+            var fileProvider = new ManifestEmbeddedFileProvider(assembly, attribute.Root);
+            builder.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = fileProvider,
+                RequestPath = ""
+            });
+        }
+
+        // Mark that WebFormsCore middleware is registered so controls can use script links
         builder.Use(async (context, next) =>
         {
             context.Items["RegisteredWebFormsCore"] = null;
-
-            if (StaticFiles.Files.TryGetValue(context.Request.Path, out var content))
-            {
-                context.Response.ContentType = "application/javascript";
-                await context.Response.WriteAsync(content);
-                return;
-            }
-
             await next();
         });
 

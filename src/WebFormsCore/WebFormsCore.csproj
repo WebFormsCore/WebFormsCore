@@ -1,5 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+    <Import Project="..\..\sdk\WebFormsCore.SDK.Core\Sdk.props" />
+
     <PropertyGroup>
         <TargetFrameworks>$(DotNetVersions)</TargetFrameworks>
 		<LangVersion>preview</LangVersion>
@@ -8,6 +10,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<PolySharpIncludeRuntimeSupportedAttributes>true</PolySharpIncludeRuntimeSupportedAttributes>
 		<IsTrimmable Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">true</IsTrimmable>
+        <WebFormsCoreUseNuget>false</WebFormsCoreUseNuget>
     </PropertyGroup>
 
 	<ItemGroup>
@@ -29,12 +32,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <EmbeddedResource Include="Scripts\**\*.min.js" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<InternalsVisibleTo Include="WebFormsCore.Tests" />
 		<InternalsVisibleTo Include="WebFormsCore.SourceGenerator.Tests" />
 	</ItemGroup>
+
+    <Import Project="..\..\sdk\WebFormsCore.SDK.Core\Sdk.targets" />
 
 </Project>
