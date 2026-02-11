@@ -4,7 +4,7 @@
     <DebugType Condition=" '$(Configuration)' == 'Debug' ">Full</DebugType>
   </PropertyGroup>
 
-  <Target Name="IncludeGeneratedSdkFiles" AfterTargets="ReplaceVersion;CopyCommon" BeforeTargets="GenerateNuspec">
+  <Target Name="IncludeGeneratedSdkFiles" DependsOnTargets="ReplaceVersion" AfterTargets="CopyCommon" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
       <None Include="Sdk\**" Pack="true" PackagePath="Sdk\" />
     </ItemGroup>
