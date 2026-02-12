@@ -1,0 +1,96 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <PackageId>WebFormsCore.Templates</PackageId>
+        <PackageType>Template</PackageType>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <NoDefaultExcludes>true</NoDefaultExcludes>
+        <NoWarn>$(NoWarn);NU5128</NoWarn>
+        <Description>Project and item templates for WebFormsCore. Use 'dotnet new wfc' to create a new WebForms Core web application, 'dotnet new wfc-tests' for a test project, 'dotnet new wfc-page' for a page, 'dotnet new wfc-control' for a user control, and 'dotnet new wfc-master' for a master page.</Description>
+    </PropertyGroup>
+
+    <!-- Exclude everything from build - this is a template package, not a code project -->
+    <ItemGroup>
+        <Compile Remove="**" />
+        <Content Remove="**" />
+        <None Remove="**" />
+    </ItemGroup>
+
+    <Target Name="PrepareTemplateContent" BeforeTargets="_GetPackageFiles">
+        <!-- Copy all template directories to intermediate directory -->
+        <ItemGroup>
+            <_TemplateSource Include="WebFormsCore.Web\**\*" />
+            <_TemplateSource Include="WebFormsCore.Page\**\*" />
+            <_TemplateSource Include="WebFormsCore.UserControl\**\*" />
+            <_TemplateSource Include="WebFormsCore.MasterPage\**\*" />
+            <_TemplateSource Include="WebFormsCore.Tests\**\*" />
+        </ItemGroup>
+        <Copy SourceFiles="@(_TemplateSource)"
+              DestinationFiles="@(_TemplateSource->'$(IntermediateOutputPath)template\%(Identity)')" />
+
+        <!-- Replace $version$ with the actual version in the project templates' template.json -->
+        <ReplaceFileText
+            InputFilename="$(IntermediateOutputPath)template\WebFormsCore.Web\.template.config\template.json"
+            OutputFilename="$(IntermediateOutputPath)template\WebFormsCore.Web\.template.config\template.json"
+            MatchExpression="\$version\$"
+            ReplacementText="$(Version)" />
+        <ReplaceFileText
+            InputFilename="$(IntermediateOutputPath)template\WebFormsCore.Tests\.template.config\template.json"
+            OutputFilename="$(IntermediateOutputPath)template\WebFormsCore.Tests\.template.config\template.json"
+            MatchExpression="\$version\$"
+            ReplacementText="$(Version)" />
+
+        <!-- Include processed content for packing -->
+        <ItemGroup>
+            <None Include="$(IntermediateOutputPath)template\WebFormsCore.Web\**\*"
+                  Pack="true"
+                  PackagePath="content\WebFormsCore.Web" />
+            <None Include="$(IntermediateOutputPath)template\WebFormsCore.Page\**\*"
+                  Pack="true"
+                  PackagePath="content\WebFormsCore.Page" />
+            <None Include="$(IntermediateOutputPath)template\WebFormsCore.UserControl\**\*"
+                  Pack="true"
+                  PackagePath="content\WebFormsCore.UserControl" />
+            <None Include="$(IntermediateOutputPath)template\WebFormsCore.MasterPage\**\*"
+                  Pack="true"
+                  PackagePath="content\WebFormsCore.MasterPage" />
+            <None Include="$(IntermediateOutputPath)template\WebFormsCore.Tests\**\*"
+                  Pack="true"
+                  PackagePath="content\WebFormsCore.Tests" />
+        </ItemGroup>
+    </Target>
+
+    <UsingTask TaskName="ReplaceFileText" TaskFactory="RoslynCodeTaskFactory"
+               AssemblyFile="$(MSBuildBinPath)\Microsoft.Build.Tasks.Core.dll">
+        <ParameterGroup>
+            <InputFilename ParameterType="System.String" Required="true" />
+            <OutputFilename ParameterType="System.String" Required="true" />
+            <MatchExpression ParameterType="System.String" Required="true" />
+            <ReplacementText ParameterType="System.String" Required="true" />
+        </ParameterGroup>
+        <Task>
+            <Using Namespace="System" />
+            <Using Namespace="System.IO" />
+            <Using Namespace="System.Text.RegularExpressions" />
+            <Code Type="Fragment" Language="cs">
+                <![CDATA[
+                    if (File.Exists(InputFilename))
+                    {
+                        string result = File.ReadAllText(InputFilename);
+                        result = Regex.Replace(result, MatchExpression, ReplacementText);
+
+                        var outputDir = Path.GetDirectoryName(OutputFilename);
+                        if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
+                        {
+                            Directory.CreateDirectory(outputDir);
+                        }
+
+                        File.WriteAllText(OutputFilename, result);
+                    }
+                ]]>
+            </Code>
+        </Task>
+    </UsingTask>
+
+</Project>

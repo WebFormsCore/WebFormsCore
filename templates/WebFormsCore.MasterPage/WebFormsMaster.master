@@ -1,0 +1,14 @@
+<%@ Master Language="C#" Inherits="WebFormsItemTemplates.WebFormsMaster" %>
+
+<!DOCTYPE html>
+<html>
+<head runat="server">
+    <title>WebFormsMaster</title>
+    <wfc:ContentPlaceHolder ID="head" runat="server" />
+</head>
+<body>
+    <form id="form1" runat="server">
+        <wfc:ContentPlaceHolder ID="main" runat="server" />
+    </form>
+</body>
+</html>

@@ -5,6 +5,19 @@ It is heavily inspired by WebForms but is not a direct port. There are many brea
 
 > **Note:** This project is still in early development and is not ready for production use.
 
+## Quick Start
+
+The fastest way to get started is with the project template:
+
+```bash
+dotnet new install WebFormsCore.Templates
+dotnet new wfc -n MyWebFormsApp
+cd MyWebFormsApp
+dotnet run
+```
+
+See the [Getting Started](docs/getting-started.md) guide for more details.
+
 ## Changes
 Compared to WebForms, there are several changes:
 
@@ -33,11 +46,11 @@ Compared to WebForms, there are several changes:
 - **Lazy loading**  
   WebForms Core supports lazy loading within a page. This allows you to load parts of the page on demand, improving the initial load time of the page.
 
-## Installation
+## Manual Installation
 Create a new `.csproj` file that uses the SDK `WebFormsCore.SDK`:
 
 ```xml
-<Project Sdk="WebFormsCore.SDK.AspNetCore/0.0.1-alpha.80">
+<Project Sdk="WebFormsCore.SDK.AspNetCore/0.0.1-alpha.81">
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
@@ -51,7 +64,7 @@ In `Program.cs`, add WebFormsCore to the services and application builder:
 ```cs
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddWebForms();
+builder.Services.AddWebFormsCore();
 
 var app = builder.Build();
 

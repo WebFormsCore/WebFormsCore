@@ -89,6 +89,7 @@ jobs:
             src/WebFormsCore.Extensions.TinyMCE/WebFormsCore.Extensions.TinyMCE.csproj
             src/WebFormsCore.TestFramework/WebFormsCore.TestFramework.csproj
             src/WebFormsCore.TestFramework.Selenium/WebFormsCore.TestFramework.Selenium.csproj
+            templates/WebFormsCore.Templates.csproj
       
   test:
     name: test summary

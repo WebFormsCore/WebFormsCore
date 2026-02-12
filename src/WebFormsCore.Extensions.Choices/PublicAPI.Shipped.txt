@@ -1,0 +1,68 @@
+#nullable enable
+WebFormsCore.UI.ChoicesExtensions
+WebFormsCore.UI.TextChoicesExtensions
+WebFormsCore.UI.WebControls.Choices
+WebFormsCore.UI.WebControls.Choices.AutoPostBack.get -> bool
+WebFormsCore.UI.WebControls.Choices.AutoPostBack.set -> void
+WebFormsCore.UI.WebControls.Choices.Choices(Microsoft.Extensions.Options.IOptions<WebFormsCore.WebFormsCoreOptions!>? options = null) -> void
+WebFormsCore.UI.WebControls.Choices.IsReadOnly.get -> bool
+WebFormsCore.UI.WebControls.Choices.IsReadOnly.set -> void
+WebFormsCore.UI.WebControls.Choices.Items.get -> System.Collections.Generic.List<WebFormsCore.UI.WebControls.ListItem!>!
+WebFormsCore.UI.WebControls.Choices.Multiple.get -> bool
+WebFormsCore.UI.WebControls.Choices.Multiple.set -> void
+WebFormsCore.UI.WebControls.Choices.Values.get -> WebFormsCore.UI.WebControls.ListItemValues!
+WebFormsCore.UI.WebControls.Choices.ValuesChanged -> WebFormsCore.AsyncEventHandler<WebFormsCore.UI.WebControls.Choices!, System.EventArgs!>?
+WebFormsCore.UI.WebControls.Internal.ChoicesBase
+WebFormsCore.UI.WebControls.Internal.ChoicesBase.ChoicesBase() -> void
+WebFormsCore.UI.WebControls.ListItemValues
+WebFormsCore.UI.WebControls.ListItemValues.Add(string! item) -> void
+WebFormsCore.UI.WebControls.ListItemValues.Clear() -> void
+WebFormsCore.UI.WebControls.ListItemValues.Contains(string! item) -> bool
+WebFormsCore.UI.WebControls.ListItemValues.CopyTo(string![]! array, int arrayIndex) -> void
+WebFormsCore.UI.WebControls.ListItemValues.Count.get -> int
+WebFormsCore.UI.WebControls.ListItemValues.Enumerator
+WebFormsCore.UI.WebControls.ListItemValues.Enumerator.Current.get -> string!
+WebFormsCore.UI.WebControls.ListItemValues.Enumerator.Enumerator() -> void
+WebFormsCore.UI.WebControls.ListItemValues.Enumerator.Enumerator(System.Collections.Generic.List<WebFormsCore.UI.WebControls.ListItem!>.Enumerator enumerator) -> void
+WebFormsCore.UI.WebControls.ListItemValues.Enumerator.MoveNext() -> bool
+WebFormsCore.UI.WebControls.ListItemValues.Enumerator.Reset() -> void
+WebFormsCore.UI.WebControls.ListItemValues.GetEnumerator() -> WebFormsCore.UI.WebControls.ListItemValues.Enumerator
+WebFormsCore.UI.WebControls.ListItemValues.IsReadOnly.get -> bool
+WebFormsCore.UI.WebControls.ListItemValues.ListItemValues(System.Collections.Generic.List<WebFormsCore.UI.WebControls.ListItem!>! items) -> void
+WebFormsCore.UI.WebControls.ListItemValues.Remove(string! item) -> bool
+WebFormsCore.UI.WebControls.ListItemValues.SequenceEqual(System.ReadOnlySpan<string!> other) -> bool
+WebFormsCore.UI.WebControls.TextChoices
+WebFormsCore.UI.WebControls.TextChoices.AutoPostBack.get -> bool
+WebFormsCore.UI.WebControls.TextChoices.AutoPostBack.set -> void
+WebFormsCore.UI.WebControls.TextChoices.IsReadOnly.get -> bool
+WebFormsCore.UI.WebControls.TextChoices.IsReadOnly.set -> void
+WebFormsCore.UI.WebControls.TextChoices.TextChoices(Microsoft.Extensions.Options.IOptions<WebFormsCore.WebFormsCoreOptions!>? options = null, Microsoft.Extensions.Logging.ILogger<WebFormsCore.UI.WebControls.TextChoices!>? logger = null) -> void
+WebFormsCore.UI.WebControls.TextChoices.Values.get -> System.Collections.Generic.ICollection<string!>!
+WebFormsCore.UI.WebControls.TextChoices.ValuesChanged -> WebFormsCore.AsyncEventHandler<WebFormsCore.UI.WebControls.TextChoices!, System.EventArgs!>?
+override WebFormsCore.UI.WebControls.Choices.OnLoadViewState(ref WebFormsCore.ViewStateReader reader) -> void
+override WebFormsCore.UI.WebControls.Choices.OnWriteViewState(ref WebFormsCore.ViewStateWriter writer) -> void
+override WebFormsCore.UI.WebControls.Choices.RenderAsync(WebFormsCore.UI.HtmlTextWriter! writer, System.Threading.CancellationToken token) -> System.Threading.Tasks.ValueTask
+override WebFormsCore.UI.WebControls.Choices.TrackViewState(WebFormsCore.ViewStateProvider provider) -> void
+override WebFormsCore.UI.WebControls.Internal.ChoicesBase.OnInitAsync(System.Threading.CancellationToken token) -> System.Threading.Tasks.ValueTask
+override WebFormsCore.UI.WebControls.Internal.ChoicesBase.OnPreRenderAsync(System.Threading.CancellationToken token) -> System.Threading.Tasks.ValueTask
+override WebFormsCore.UI.WebControls.ListItemValues.ToString() -> string!
+override WebFormsCore.UI.WebControls.TextChoices.OnLoadViewState(ref WebFormsCore.ViewStateReader reader) -> void
+override WebFormsCore.UI.WebControls.TextChoices.OnPreRenderAsync(System.Threading.CancellationToken token) -> System.Threading.Tasks.ValueTask
+override WebFormsCore.UI.WebControls.TextChoices.OnWriteViewState(ref WebFormsCore.ViewStateWriter writer) -> void
+override WebFormsCore.UI.WebControls.TextChoices.RenderAsync(WebFormsCore.UI.HtmlTextWriter! writer, System.Threading.CancellationToken token) -> System.Threading.Tasks.ValueTask
+override WebFormsCore.UI.WebControls.TextChoices.TrackViewState(WebFormsCore.ViewStateProvider provider) -> void
+virtual WebFormsCore.UI.WebControls.Choices.RaisePostBackEventAsync(string? eventArgument) -> System.Threading.Tasks.Task!
+virtual WebFormsCore.UI.WebControls.Choices.RaisePostDataChangedEventAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+virtual WebFormsCore.UI.WebControls.TextChoices.RaisePostBackEventAsync(string? eventArgument) -> System.Threading.Tasks.Task!
+virtual WebFormsCore.UI.WebControls.TextChoices.RaisePostDataChangedEventAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+virtual WebFormsCore.UI.WebControls.TextChoices.SaveTextViewState.get -> bool
+~WebFormsCore.UI.ChoicesExtensions.extension<T>(T)
+~WebFormsCore.UI.ChoicesExtensions.extension<T>(T).OnValuesChanged.set -> void
+~WebFormsCore.UI.ChoicesExtensions.extension<T>(T).OnValuesChangedAsync.set -> void
+~WebFormsCore.UI.TextChoicesExtensions.extension<T>(T)
+~WebFormsCore.UI.TextChoicesExtensions.extension<T>(T).OnValuesChanged.set -> void
+~WebFormsCore.UI.TextChoicesExtensions.extension<T>(T).OnValuesChangedAsync.set -> void
+~static WebFormsCore.UI.ChoicesExtensions.set_OnValuesChanged<T>(T control, System.Action<T, System.EventArgs> value) -> void
+~static WebFormsCore.UI.ChoicesExtensions.set_OnValuesChangedAsync<T>(T control, System.Func<T, System.EventArgs, System.Threading.Tasks.Task> value) -> void
+~static WebFormsCore.UI.TextChoicesExtensions.set_OnValuesChanged<T>(T control, System.Action<T, System.EventArgs> value) -> void
+~static WebFormsCore.UI.TextChoicesExtensions.set_OnValuesChangedAsync<T>(T control, System.Func<T, System.EventArgs, System.Threading.Tasks.Task> value) -> void

@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "WebFormsCore",
+  "classifications": ["Web", "ASP.NET", "WebForms"],
+  "identity": "WebFormsCore.Templates.MasterPage",
+  "name": "WebForms Core Master Page",
+  "shortName": "wfc-master",
+  "sourceName": "WebFormsMaster",
+  "tags": {
+    "language": "C#",
+    "type": "item"
+  },
+  "symbols": {
+    "namespace": {
+      "type": "bind",
+      "binding": "namespace",
+      "replaces": "WebFormsItemTemplates",
+      "defaultValue": "MyApp"
+    }
+  }
+}

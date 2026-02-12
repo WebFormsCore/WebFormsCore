@@ -1,0 +1,16 @@
+<Project>
+
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+    <PropertyGroup Condition="'$(MSBuildProjectName)' != 'WebFormsCore.SourceGenerator'">
+        <WarningsNotAsErrors>$(WarningsNotAsErrors);RS0026;RS0027;RS0041;RS0017</WarningsNotAsErrors>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(MSBuildProjectName)' != 'WebFormsCore.SourceGenerator'">
+        <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="4.14.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+</Project>
