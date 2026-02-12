@@ -6,6 +6,11 @@
     <ReplaceFileText InputFilename="Sdk.targets" OutputFilename="Sdk\Sdk.targets" MatchExpression="\$version\$" ReplacementText="$(Version)" />
   </Target>
 
+  <Target Name="ReplaceVersionCore" AfterTargets="CopyCommon" BeforeTargets="_GetPackageFiles" Condition="Exists('Sdk\Core.props') Or Exists('Sdk\Core.targets')">
+    <ReplaceFileText Condition="Exists('Sdk\Core.props')" InputFilename="Sdk\Core.props" OutputFilename="Sdk\Core.props" MatchExpression="\$version\$" ReplacementText="$(Version)" />
+    <ReplaceFileText Condition="Exists('Sdk\Core.targets')" InputFilename="Sdk\Core.targets" OutputFilename="Sdk\Core.targets" MatchExpression="\$version\$" ReplacementText="$(Version)" />
+  </Target>
+
   <UsingTask TaskName="ReplaceFileText" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildBinPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <InputFilename ParameterType="System.String" Required="true" />

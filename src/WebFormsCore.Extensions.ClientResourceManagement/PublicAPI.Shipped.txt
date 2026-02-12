@@ -1,0 +1,112 @@
+#nullable enable
+WebFormsCore.ClientDependencyType
+WebFormsCore.ClientDependencyType.Css = 1 -> WebFormsCore.ClientDependencyType
+WebFormsCore.ClientDependencyType.Javascript = 0 -> WebFormsCore.ClientDependencyType
+WebFormsCore.ClientResourceManagementBuilder
+WebFormsCore.ClientResourceManagementBuilder.ClientResourceManagementBuilder(Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> void
+WebFormsCore.ClientResourceManagementBuilder.Services.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+WebFormsCore.ClientResourceManagementExtensions
+WebFormsCore.Features.IClientDependencyCollection
+WebFormsCore.Features.IClientDependencyCollection.Add(WebFormsCore.IClientDependencyFile! file) -> void
+WebFormsCore.Features.IClientDependencyCollection.Files.get -> System.Collections.Generic.IReadOnlyList<WebFormsCore.IClientDependencyFile!>!
+WebFormsCore.Features.IClientDependencyCollection.Remove(WebFormsCore.ClientDependencyType dependencyType, string! name) -> void
+WebFormsCore.Features.IClientDependencyCollection.Remove(WebFormsCore.IClientDependencyFile! file) -> void
+WebFormsCore.Features.IClientDependencyCollection.RemoveAll(System.Predicate<WebFormsCore.IClientDependencyFile!>! predicate) -> void
+WebFormsCore.IClientDependencyFile
+WebFormsCore.IClientDependencyFile.Attributes.get -> WebFormsCore.UI.AttributeCollection!
+WebFormsCore.IClientDependencyFile.DependencyType.get -> WebFormsCore.ClientDependencyType
+WebFormsCore.IClientDependencyFile.FilePath.get -> string?
+WebFormsCore.IClientDependencyFile.FilePath.set -> void
+WebFormsCore.IClientDependencyFile.ForceBundle.get -> bool
+WebFormsCore.IClientDependencyFile.ForceBundle.set -> void
+WebFormsCore.IClientDependencyFile.ForceProvider.get -> string?
+WebFormsCore.IClientDependencyFile.ForceProvider.set -> void
+WebFormsCore.IClientDependencyFile.ForceVersion.get -> bool
+WebFormsCore.IClientDependencyFile.ForceVersion.set -> void
+WebFormsCore.IClientDependencyFile.Group.get -> int
+WebFormsCore.IClientDependencyFile.Group.set -> void
+WebFormsCore.IClientDependencyFile.Name.get -> string?
+WebFormsCore.IClientDependencyFile.Name.set -> void
+WebFormsCore.IClientDependencyFile.PathNameAlias.get -> string?
+WebFormsCore.IClientDependencyFile.PathNameAlias.set -> void
+WebFormsCore.IClientDependencyFile.Position.get -> WebFormsCore.UI.ScriptPosition?
+WebFormsCore.IClientDependencyFile.Position.set -> void
+WebFormsCore.IClientDependencyFile.Priority.get -> int
+WebFormsCore.IClientDependencyFile.Priority.set -> void
+WebFormsCore.IClientDependencyFile.Version.get -> string?
+WebFormsCore.IClientDependencyFile.Version.set -> void
+WebFormsCore.Providers.IClientDependencyPathProvider
+WebFormsCore.Providers.IClientDependencyPathProvider.GetPathAsync(WebFormsCore.UI.Page! page, WebFormsCore.IClientDependencyFile! file, System.Threading.CancellationToken token) -> System.Threading.Tasks.ValueTask<string?>
+WebFormsCore.Providers.PrefixClientDependencyPathProvider<T>
+WebFormsCore.Providers.PrefixClientDependencyPathProvider<T>.Alias.get -> string!
+WebFormsCore.Providers.PrefixClientDependencyPathProvider<T>.GetPathAsync(WebFormsCore.UI.Page! page, WebFormsCore.IClientDependencyFile! file, System.Threading.CancellationToken token) -> System.Threading.Tasks.ValueTask<string?>
+WebFormsCore.Providers.PrefixClientDependencyPathProvider<T>.PrefixClientDependencyPathProvider(string! alias, System.Func<T, string!>! getter) -> void
+WebFormsCore.UI.ClientDependencyExclude
+WebFormsCore.UI.ClientDependencyExclude.ClientDependencyExclude() -> void
+WebFormsCore.UI.ClientDependencyExclude.DependencyType.get -> WebFormsCore.ClientDependencyType
+WebFormsCore.UI.ClientDependencyExclude.Name.get -> string?
+WebFormsCore.UI.ClientDependencyExclude.Name.set -> void
+WebFormsCore.UI.ClientDependencyInclude
+WebFormsCore.UI.ClientDependencyInclude.AddTag.get -> bool
+WebFormsCore.UI.ClientDependencyInclude.AddTag.set -> void
+WebFormsCore.UI.ClientDependencyInclude.Attributes.get -> WebFormsCore.UI.AttributeCollection!
+WebFormsCore.UI.ClientDependencyInclude.Attributes.set -> void
+WebFormsCore.UI.ClientDependencyInclude.ClientDependencyInclude() -> void
+WebFormsCore.UI.ClientDependencyInclude.ClientDependencyInclude(WebFormsCore.IClientDependencyFile! file) -> void
+WebFormsCore.UI.ClientDependencyInclude.DependencyType.get -> WebFormsCore.ClientDependencyType
+WebFormsCore.UI.ClientDependencyInclude.Equals(WebFormsCore.UI.ClientDependencyInclude! other) -> bool
+WebFormsCore.UI.ClientDependencyInclude.FilePath.get -> string?
+WebFormsCore.UI.ClientDependencyInclude.FilePath.set -> void
+WebFormsCore.UI.ClientDependencyInclude.ForceBundle.get -> bool
+WebFormsCore.UI.ClientDependencyInclude.ForceBundle.set -> void
+WebFormsCore.UI.ClientDependencyInclude.ForceProvider.get -> string?
+WebFormsCore.UI.ClientDependencyInclude.ForceProvider.set -> void
+WebFormsCore.UI.ClientDependencyInclude.ForceVersion.get -> bool
+WebFormsCore.UI.ClientDependencyInclude.ForceVersion.set -> void
+WebFormsCore.UI.ClientDependencyInclude.Group.get -> int
+WebFormsCore.UI.ClientDependencyInclude.Group.set -> void
+WebFormsCore.UI.ClientDependencyInclude.HtmlAttributes.get -> WebFormsCore.UI.AttributeCollection!
+WebFormsCore.UI.ClientDependencyInclude.HtmlAttributesAsString.get -> string?
+WebFormsCore.UI.ClientDependencyInclude.HtmlAttributesAsString.set -> void
+WebFormsCore.UI.ClientDependencyInclude.Name.get -> string?
+WebFormsCore.UI.ClientDependencyInclude.Name.set -> void
+WebFormsCore.UI.ClientDependencyInclude.PathNameAlias.get -> string?
+WebFormsCore.UI.ClientDependencyInclude.PathNameAlias.set -> void
+WebFormsCore.UI.ClientDependencyInclude.Position.get -> WebFormsCore.UI.ScriptPosition?
+WebFormsCore.UI.ClientDependencyInclude.Position.set -> void
+WebFormsCore.UI.ClientDependencyInclude.Priority.get -> int
+WebFormsCore.UI.ClientDependencyInclude.Priority.set -> void
+WebFormsCore.UI.ClientDependencyInclude.Version.get -> string?
+WebFormsCore.UI.ClientDependencyInclude.Version.set -> void
+WebFormsCore.UI.CssExclude
+WebFormsCore.UI.CssExclude.CssExclude() -> void
+WebFormsCore.UI.CssInclude
+WebFormsCore.UI.CssInclude.CssInclude() -> void
+WebFormsCore.UI.CssInclude.CssInclude(WebFormsCore.IClientDependencyFile! file) -> void
+WebFormsCore.UI.CssInclude.CssMedia.get -> WebFormsCore.UI.CssMediaType
+WebFormsCore.UI.CssInclude.CssMedia.set -> void
+WebFormsCore.UI.CssMediaType
+WebFormsCore.UI.CssMediaType.All = 0 -> WebFormsCore.UI.CssMediaType
+WebFormsCore.UI.CssMediaType.Print = 2 -> WebFormsCore.UI.CssMediaType
+WebFormsCore.UI.CssMediaType.Screen = 1 -> WebFormsCore.UI.CssMediaType
+WebFormsCore.UI.JsExclude
+WebFormsCore.UI.JsExclude.JsExclude() -> void
+WebFormsCore.UI.JsInclude
+WebFormsCore.UI.JsInclude.JsInclude() -> void
+WebFormsCore.UI.JsInclude.JsInclude(WebFormsCore.IClientDependencyFile! file) -> void
+override WebFormsCore.UI.ClientDependencyExclude.OnInitAsync(System.Threading.CancellationToken token) -> System.Threading.Tasks.ValueTask
+override WebFormsCore.UI.ClientDependencyExclude.OnLoadViewState(ref WebFormsCore.ViewStateReader reader) -> void
+override WebFormsCore.UI.ClientDependencyExclude.OnWriteViewState(ref WebFormsCore.ViewStateWriter writer) -> void
+override WebFormsCore.UI.ClientDependencyExclude.TrackViewState(WebFormsCore.ViewStateProvider provider) -> void
+override WebFormsCore.UI.ClientDependencyInclude.Equals(object? obj) -> bool
+override WebFormsCore.UI.ClientDependencyInclude.GetHashCode() -> int
+override WebFormsCore.UI.ClientDependencyInclude.OnInitAsync(System.Threading.CancellationToken token) -> System.Threading.Tasks.ValueTask
+override WebFormsCore.UI.ClientDependencyInclude.OnLoadViewState(ref WebFormsCore.ViewStateReader reader) -> void
+override WebFormsCore.UI.ClientDependencyInclude.OnUnloadAsync(System.Threading.CancellationToken token) -> System.Threading.Tasks.ValueTask
+override WebFormsCore.UI.ClientDependencyInclude.OnWriteViewState(ref WebFormsCore.ViewStateWriter writer) -> void
+override WebFormsCore.UI.ClientDependencyInclude.TrackViewState(WebFormsCore.ViewStateProvider provider) -> void
+static WebFormsCore.ClientResourceManagementExtensions.AddClientResourceManagement(this WebFormsCore.IWebFormsCoreBuilder! builder) -> WebFormsCore.ClientResourceManagementBuilder!
+static WebFormsCore.ClientResourceManagementExtensions.AddClientResourceManagement(this WebFormsCore.IWebFormsCoreBuilder! builder, System.Action<WebFormsCore.ClientResourceManagementBuilder!>! configure) -> WebFormsCore.IWebFormsCoreBuilder!
+static WebFormsCore.ClientResourceManagementExtensions.RegisterPrefix(this WebFormsCore.ClientResourceManagementBuilder! builder, string! alias, System.Func<WebFormsCore.UI.Page!, string!>! getter) -> WebFormsCore.ClientResourceManagementBuilder!
+static WebFormsCore.ClientResourceManagementExtensions.RegisterPrefix(this WebFormsCore.ClientResourceManagementBuilder! builder, string! alias, string! path) -> WebFormsCore.ClientResourceManagementBuilder!
+static WebFormsCore.ClientResourceManagementExtensions.RegisterPrefix<TPage>(this WebFormsCore.ClientResourceManagementBuilder! builder, string! alias, System.Func<TPage, string!>! getter) -> WebFormsCore.ClientResourceManagementBuilder!

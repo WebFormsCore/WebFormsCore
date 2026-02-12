@@ -1,0 +1,90 @@
+#nullable enable
+WebFormsCore.Containers.IControlAccessor
+WebFormsCore.Containers.IControlAccessor.Control.get -> WebFormsCore.UI.Control!
+WebFormsCore.ControlExtensions
+WebFormsCore.ControlTest
+WebFormsCore.ControlTest.ControlTest() -> void
+WebFormsCore.Features.ITestContextFeature
+WebFormsCore.Features.ITestContextFeature.TestContext.get -> WebFormsCore.ITestContext!
+WebFormsCore.Features.TestContextFeature
+WebFormsCore.Features.TestContextFeature.TestContext.get -> WebFormsCore.ITestContext!
+WebFormsCore.Features.TestContextFeature.TestContextFeature(WebFormsCore.ITestContext! testContext) -> void
+WebFormsCore.IElement
+WebFormsCore.IElement.ClearAsync() -> System.Threading.Tasks.ValueTask
+WebFormsCore.IElement.ClickAsync() -> System.Threading.Tasks.ValueTask
+WebFormsCore.IElement.GetAttributeAsync(string! name) -> System.Threading.Tasks.ValueTask<string!>
+WebFormsCore.IElement.IsVisibleAsync() -> System.Threading.Tasks.ValueTask<bool>
+WebFormsCore.IElement.PostBackAsync(string? argument = null, WebFormsCore.PostBackOptions? options = null) -> System.Threading.Tasks.ValueTask
+WebFormsCore.IElement.SelectAsync(string! value) -> System.Threading.Tasks.ValueTask
+WebFormsCore.IElement.Text.get -> string!
+WebFormsCore.IElement.TypeAsync(string! text) -> System.Threading.Tasks.ValueTask
+WebFormsCore.IElement.Value.get -> string!
+WebFormsCore.ITestContext
+WebFormsCore.ITestContext.ExecuteScriptAsync(string! script) -> System.Threading.Tasks.ValueTask<string?>
+WebFormsCore.ITestContext.GetElementById(string! id) -> WebFormsCore.IElement?
+WebFormsCore.ITestContext.GetHtmlAsync() -> System.Threading.Tasks.ValueTask<string!>
+WebFormsCore.ITestContext.HttpContext.get -> Microsoft.AspNetCore.Http.HttpContext!
+WebFormsCore.ITestContext.LastException.get -> System.Exception?
+WebFormsCore.ITestContext.QuerySelector(string! selector) -> WebFormsCore.IElement?
+WebFormsCore.ITestContext.QuerySelectorAll(string! selector) -> System.Collections.Generic.IAsyncEnumerable<WebFormsCore.IElement!>!
+WebFormsCore.ITestContext.ReloadAsync() -> System.Threading.Tasks.ValueTask
+WebFormsCore.ITestContext<T>
+WebFormsCore.ITestContext<T>.Control.get -> T!
+WebFormsCore.ITestContextState<TState, T>
+WebFormsCore.ITestContextState<TState, T>.State.get -> TState
+WebFormsCore.IWebServerContext<T>
+WebFormsCore.IWebServerContext<T>.Url.get -> string!
+WebFormsCore.Internal.EnumerableExtensions
+WebFormsCore.PostBackOptions
+WebFormsCore.PostBackOptions.PostBackOptions() -> void
+WebFormsCore.PostBackOptions.Validate.get -> bool?
+WebFormsCore.PostBackOptions.Validate.set -> void
+WebFormsCore.SeleniumFixtureOptions
+WebFormsCore.SeleniumFixtureOptions.Clone() -> WebFormsCore.SeleniumFixtureOptions!
+WebFormsCore.SeleniumFixtureOptions.Configure.get -> System.Action<Microsoft.Extensions.DependencyInjection.IServiceCollection!>?
+WebFormsCore.SeleniumFixtureOptions.Configure.set -> void
+WebFormsCore.SeleniumFixtureOptions.ConfigureApp.get -> System.Action<Microsoft.AspNetCore.Builder.IApplicationBuilder!>?
+WebFormsCore.SeleniumFixtureOptions.ConfigureApp.set -> void
+WebFormsCore.SeleniumFixtureOptions.EnableViewState.get -> bool
+WebFormsCore.SeleniumFixtureOptions.EnableViewState.set -> void
+WebFormsCore.SeleniumFixtureOptions.EnableWebFormsCoreMiddleware.get -> bool
+WebFormsCore.SeleniumFixtureOptions.EnableWebFormsCoreMiddleware.set -> void
+WebFormsCore.SeleniumFixtureOptions.EnableWebSockets.get -> bool
+WebFormsCore.SeleniumFixtureOptions.EnableWebSockets.set -> void
+WebFormsCore.SeleniumFixtureOptions.Headless.get -> bool?
+WebFormsCore.SeleniumFixtureOptions.Headless.set -> void
+WebFormsCore.SeleniumFixtureOptions.Protocols.get -> Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols
+WebFormsCore.SeleniumFixtureOptions.Protocols.set -> void
+WebFormsCore.SeleniumFixtureOptions.SeleniumFixtureOptions() -> void
+WebFormsCore.TestContextExtensions
+WebFormsCore.WebServerContext<T>
+WebFormsCore.WebServerContext<T>.Control.get -> T!
+WebFormsCore.WebServerContext<T>.DisposeAsync() -> System.Threading.Tasks.ValueTask
+WebFormsCore.WebServerContext<T>.HttpContext.get -> Microsoft.AspNetCore.Http.HttpContext!
+WebFormsCore.WebServerContext<T>.LastException.get -> System.Exception?
+WebFormsCore.WebServerContext<T>.SetControlAsync(T! control) -> System.Threading.Tasks.Task!
+WebFormsCore.WebServerContext<T>.SetException(System.Exception! exception) -> void
+WebFormsCore.WebServerContext<T>.Url.get -> string!
+WebFormsCore.WebServerContext<T>.WebServerContext(Microsoft.Extensions.Hosting.IHost! host) -> void
+abstract WebFormsCore.WebServerContext<T>.ExecuteScriptAsync(string! script) -> System.Threading.Tasks.ValueTask<string?>
+abstract WebFormsCore.WebServerContext<T>.GetElementById(string! id) -> WebFormsCore.IElement?
+abstract WebFormsCore.WebServerContext<T>.GetHtmlAsync() -> System.Threading.Tasks.ValueTask<string!>
+abstract WebFormsCore.WebServerContext<T>.GoToUrlAsync(string! url) -> System.Threading.Tasks.Task!
+abstract WebFormsCore.WebServerContext<T>.QuerySelector(string! selector) -> WebFormsCore.IElement?
+abstract WebFormsCore.WebServerContext<T>.QuerySelectorAll(string! selector) -> System.Collections.Generic.IAsyncEnumerable<WebFormsCore.IElement!>!
+abstract WebFormsCore.WebServerContext<T>.ReloadAsync() -> System.Threading.Tasks.ValueTask
+static WebFormsCore.ControlExtensions.ClearAsync(this WebFormsCore.UI.Control! control) -> System.Threading.Tasks.ValueTask
+static WebFormsCore.ControlExtensions.ClickAsync(this WebFormsCore.UI.Control! control) -> System.Threading.Tasks.ValueTask
+static WebFormsCore.ControlExtensions.FindBrowserElement(this WebFormsCore.UI.Control! control) -> WebFormsCore.IElement!
+static WebFormsCore.ControlExtensions.GetBrowserAttributeAsync(this WebFormsCore.UI.Control! control, string! name) -> System.Threading.Tasks.ValueTask<string!>
+static WebFormsCore.ControlExtensions.GetBrowserText(this WebFormsCore.UI.Control! control) -> string!
+static WebFormsCore.ControlExtensions.PostBackAsync(this WebFormsCore.UI.Control! control, string? argument = null, WebFormsCore.PostBackOptions? options = null) -> System.Threading.Tasks.ValueTask
+static WebFormsCore.ControlExtensions.SelectAsync(this WebFormsCore.UI.Control! control, string! value) -> System.Threading.Tasks.ValueTask
+static WebFormsCore.ControlExtensions.TypeAsync(this WebFormsCore.UI.Control! control, string! text) -> System.Threading.Tasks.ValueTask
+static WebFormsCore.ControlTest.StartBrowserAsync<TControl>(System.Func<Microsoft.Extensions.Hosting.IHost!, System.Threading.Tasks.Task<WebFormsCore.WebServerContext<TControl!>!>!>! contextFactory, WebFormsCore.SeleniumFixtureOptions? options = null) -> System.Threading.Tasks.Task<WebFormsCore.ITestContext<TControl!>!>!
+static WebFormsCore.Internal.EnumerableExtensions.AsAsyncEnumerable<T>(this System.Collections.Generic.IEnumerable<T>! enumerable) -> System.Collections.Generic.IAsyncEnumerable<T>!
+static WebFormsCore.TestContextExtensions.GetElement(this WebFormsCore.ITestContext! context, WebFormsCore.UI.Control? control) -> WebFormsCore.IElement?
+static WebFormsCore.TestContextExtensions.GetRequiredElement(this WebFormsCore.ITestContext! context, WebFormsCore.UI.Control? control) -> WebFormsCore.IElement!
+static WebFormsCore.TestContextExtensions.GetRequiredElementById(this WebFormsCore.ITestContext! context, string! id) -> WebFormsCore.IElement!
+static WebFormsCore.TestContextExtensions.QuerySelectorRequired(this WebFormsCore.ITestContext! context, string! selector) -> WebFormsCore.IElement!
+virtual WebFormsCore.WebServerContext<T>.DisposeCoreAsync() -> System.Threading.Tasks.ValueTask

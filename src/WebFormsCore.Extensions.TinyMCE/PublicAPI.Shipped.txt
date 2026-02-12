@@ -1,0 +1,17 @@
+#nullable enable
+WebFormsCore.Options.TinyOptions
+WebFormsCore.Options.TinyOptions.Branding.get -> bool?
+WebFormsCore.Options.TinyOptions.Branding.set -> void
+WebFormsCore.Options.TinyOptions.Height.get -> int?
+WebFormsCore.Options.TinyOptions.Height.set -> void
+WebFormsCore.Options.TinyOptions.Promotion.get -> bool?
+WebFormsCore.Options.TinyOptions.Promotion.set -> void
+WebFormsCore.Options.TinyOptions.TinyOptions() -> void
+WebFormsCore.Options.TinyOptions.Toolbar.get -> string?
+WebFormsCore.Options.TinyOptions.Toolbar.set -> void
+WebFormsCore.UI.WebControls.TinyEditor
+WebFormsCore.UI.WebControls.TinyEditor.Options.get -> WebFormsCore.Options.TinyOptions?
+WebFormsCore.UI.WebControls.TinyEditor.Options.set -> void
+WebFormsCore.UI.WebControls.TinyEditor.TinyEditor() -> void
+override WebFormsCore.UI.WebControls.TinyEditor.OnInitAsync(System.Threading.CancellationToken token) -> System.Threading.Tasks.ValueTask
+override WebFormsCore.UI.WebControls.TinyEditor.RenderAsync(WebFormsCore.UI.HtmlTextWriter! writer, System.Threading.CancellationToken token) -> System.Threading.Tasks.ValueTask

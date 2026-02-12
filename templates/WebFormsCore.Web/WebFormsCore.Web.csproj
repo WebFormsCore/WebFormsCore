@@ -1,0 +1,9 @@
+<Project Sdk="WebFormsCore.SDK.AspNetCore/{WebFormsCoreVersion}">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+</Project>

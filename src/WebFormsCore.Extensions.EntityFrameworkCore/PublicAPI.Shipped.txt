@@ -1,0 +1,3 @@
+#nullable enable
+WebFormsCore.EntityFrameworkServiceExtensions
+static WebFormsCore.EntityFrameworkServiceExtensions.AddEntityFrameworkCore(this WebFormsCore.IWebFormsCoreBuilder! builder) -> WebFormsCore.IWebFormsCoreBuilder!

@@ -1,0 +1,563 @@
+#nullable enable
+WebFormsCore.Collections.Comparers.AttributeCompare
+WebFormsCore.Collections.Comparers.AttributeCompare.AttributeCompare(System.StringComparer! comparer) -> void
+WebFormsCore.Collections.Comparers.AttributeCompare.Compare(WebFormsCore.Models.TokenString x, WebFormsCore.Models.TokenString y) -> int
+WebFormsCore.Collections.Comparers.AttributeCompare.Equals(WebFormsCore.Models.TokenString x, WebFormsCore.Models.TokenString y) -> bool
+WebFormsCore.Collections.Comparers.AttributeCompare.GetHashCode(WebFormsCore.Models.TokenString obj) -> int
+WebFormsCore.Collections.Comparers.ControlKeyCompare
+WebFormsCore.Collections.Comparers.ControlKeyCompare.ControlKeyCompare(System.StringComparer! comparer) -> void
+WebFormsCore.Collections.Comparers.ControlKeyCompare.Equals(WebFormsCore.Models.ControlKey x, WebFormsCore.Models.ControlKey y) -> bool
+WebFormsCore.Collections.Comparers.ControlKeyCompare.GetHashCode(WebFormsCore.Models.ControlKey obj) -> int
+WebFormsCore.ContextExtensions
+WebFormsCore.Language.Lexer
+WebFormsCore.Language.Lexer.File.get -> string!
+WebFormsCore.Language.Lexer.Forward() -> void
+WebFormsCore.Language.Lexer.Forward(int length) -> void
+WebFormsCore.Language.Lexer.GetAll() -> System.Collections.Generic.List<WebFormsCore.Models.Token>!
+WebFormsCore.Language.Lexer.HasNext.get -> bool
+WebFormsCore.Language.Lexer.Lexer() -> void
+WebFormsCore.Language.Lexer.Lexer(string! file, System.ReadOnlySpan<char> input) -> void
+WebFormsCore.Language.Lexer.Lines.get -> System.Collections.Generic.List<int>!
+WebFormsCore.Language.Lexer.Next() -> WebFormsCore.Models.Token?
+WebFormsCore.Language.Lexer.Peek(int offset = 1) -> WebFormsCore.Models.Token?
+WebFormsCore.Language.Lexer.Position.get -> WebFormsCore.Models.TokenPosition
+WebFormsCore.Language.Lexer.ReadAttribute() -> bool
+WebFormsCore.Language.Lexer.ReadTagName() -> WebFormsCore.Models.TokenString
+WebFormsCore.Language.Lexer.SkipWhiteSpace() -> void
+WebFormsCore.Language.Parser
+WebFormsCore.Language.Parser.AddNamespace(string! tagPrefix, string! ns) -> void
+WebFormsCore.Language.Parser.Diagnostics.get -> System.Collections.Generic.List<WebFormsCore.SourceGenerator.Models.ReportedDiagnostic!>!
+WebFormsCore.Language.Parser.Parse(ref WebFormsCore.Language.Lexer lexer) -> void
+WebFormsCore.Language.Parser.Parser(Microsoft.CodeAnalysis.Compilation! compilation, string? rootNamespace, bool addFields, string? rootDirectory = null) -> void
+WebFormsCore.Language.Parser.Root.get -> WebFormsCore.Nodes.RootNode!
+WebFormsCore.MemberResult
+WebFormsCore.MemberResult.CanWrite.get -> bool
+WebFormsCore.MemberResult.CanWrite.init -> void
+WebFormsCore.MemberResult.Deconstruct(out string! Name, out Microsoft.CodeAnalysis.ITypeSymbol! Type, out bool CanWrite, out Microsoft.CodeAnalysis.ISymbol! Symbol) -> void
+WebFormsCore.MemberResult.DisplayType.get -> string!
+WebFormsCore.MemberResult.MemberResult(WebFormsCore.MemberResult! original) -> void
+WebFormsCore.MemberResult.MemberResult(string! Name, Microsoft.CodeAnalysis.ITypeSymbol! Type, bool CanWrite, Microsoft.CodeAnalysis.ISymbol! Symbol) -> void
+WebFormsCore.MemberResult.Name.get -> string!
+WebFormsCore.MemberResult.Name.init -> void
+WebFormsCore.MemberResult.Symbol.get -> Microsoft.CodeAnalysis.ISymbol!
+WebFormsCore.MemberResult.Symbol.init -> void
+WebFormsCore.MemberResult.Type.get -> Microsoft.CodeAnalysis.ITypeSymbol!
+WebFormsCore.MemberResult.Type.init -> void
+WebFormsCore.Models.AttributeValue
+WebFormsCore.Models.AttributeValue.AttributeValue() -> void
+WebFormsCore.Models.AttributeValue.AttributeValue(bool IsCode, WebFormsCore.Models.TokenString Token) -> void
+WebFormsCore.Models.AttributeValue.CodeString.get -> string!
+WebFormsCore.Models.AttributeValue.Deconstruct(out bool IsCode, out WebFormsCore.Models.TokenString Token) -> void
+WebFormsCore.Models.AttributeValue.Equals(WebFormsCore.Models.AttributeValue other) -> bool
+WebFormsCore.Models.AttributeValue.IsCode.get -> bool
+WebFormsCore.Models.AttributeValue.IsCode.set -> void
+WebFormsCore.Models.AttributeValue.Range.get -> WebFormsCore.Models.TokenRange
+WebFormsCore.Models.AttributeValue.Token.get -> WebFormsCore.Models.TokenString
+WebFormsCore.Models.AttributeValue.Token.set -> void
+WebFormsCore.Models.AttributeValue.Value.get -> string!
+WebFormsCore.Models.AttributeValue.VbCodeString.get -> string!
+WebFormsCore.Models.ControlKey
+WebFormsCore.Models.ControlKey.ControlKey() -> void
+WebFormsCore.Models.ControlKey.ControlKey(string! Namespace, string! Name) -> void
+WebFormsCore.Models.ControlKey.Deconstruct(out string! Namespace, out string! Name) -> void
+WebFormsCore.Models.ControlKey.Equals(WebFormsCore.Models.ControlKey other) -> bool
+WebFormsCore.Models.ControlKey.Name.get -> string!
+WebFormsCore.Models.ControlKey.Name.set -> void
+WebFormsCore.Models.ControlKey.Namespace.get -> string!
+WebFormsCore.Models.ControlKey.Namespace.set -> void
+WebFormsCore.Models.OffsetRange
+WebFormsCore.Models.OffsetRange.Deconstruct(out int Start, out int End) -> void
+WebFormsCore.Models.OffsetRange.End.get -> int
+WebFormsCore.Models.OffsetRange.End.set -> void
+WebFormsCore.Models.OffsetRange.Equals(WebFormsCore.Models.OffsetRange other) -> bool
+WebFormsCore.Models.OffsetRange.OffsetRange() -> void
+WebFormsCore.Models.OffsetRange.OffsetRange(int Start, int End) -> void
+WebFormsCore.Models.OffsetRange.Start.get -> int
+WebFormsCore.Models.OffsetRange.Start.set -> void
+WebFormsCore.Models.RunAt
+WebFormsCore.Models.RunAt.Client = 1 -> WebFormsCore.Models.RunAt
+WebFormsCore.Models.RunAt.Server = 0 -> WebFormsCore.Models.RunAt
+WebFormsCore.Models.Token
+WebFormsCore.Models.Token.Deconstruct(out WebFormsCore.Models.TokenType Type, out WebFormsCore.Models.TokenRange Range, out WebFormsCore.Models.TokenString Text) -> void
+WebFormsCore.Models.Token.Equals(WebFormsCore.Models.Token other) -> bool
+WebFormsCore.Models.Token.Range.get -> WebFormsCore.Models.TokenRange
+WebFormsCore.Models.Token.Range.set -> void
+WebFormsCore.Models.Token.Text.get -> WebFormsCore.Models.TokenString
+WebFormsCore.Models.Token.Text.set -> void
+WebFormsCore.Models.Token.Token() -> void
+WebFormsCore.Models.Token.Token(WebFormsCore.Models.TokenType Type, WebFormsCore.Models.TokenRange Range, WebFormsCore.Models.TokenString Text) -> void
+WebFormsCore.Models.Token.Type.get -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.Token.Type.set -> void
+WebFormsCore.Models.TokenPosition
+WebFormsCore.Models.TokenPosition.Column.get -> int
+WebFormsCore.Models.TokenPosition.Column.init -> void
+WebFormsCore.Models.TokenPosition.ColumnOffsetString.get -> string!
+WebFormsCore.Models.TokenPosition.Deconstruct(out int Offset, out int Line, out int Column) -> void
+WebFormsCore.Models.TokenPosition.Equals(WebFormsCore.Models.TokenPosition other) -> bool
+WebFormsCore.Models.TokenPosition.Line.get -> int
+WebFormsCore.Models.TokenPosition.Line.init -> void
+WebFormsCore.Models.TokenPosition.Offset.get -> int
+WebFormsCore.Models.TokenPosition.Offset.init -> void
+WebFormsCore.Models.TokenPosition.TokenPosition() -> void
+WebFormsCore.Models.TokenPosition.TokenPosition(int Offset, int Line, int Column) -> void
+WebFormsCore.Models.TokenRange
+WebFormsCore.Models.TokenRange.Deconstruct(out string! File, out WebFormsCore.Models.TokenPosition Start, out WebFormsCore.Models.TokenPosition End) -> void
+WebFormsCore.Models.TokenRange.End.get -> WebFormsCore.Models.TokenPosition
+WebFormsCore.Models.TokenRange.End.init -> void
+WebFormsCore.Models.TokenRange.Equals(WebFormsCore.Models.TokenRange other) -> bool
+WebFormsCore.Models.TokenRange.File.get -> string!
+WebFormsCore.Models.TokenRange.File.init -> void
+WebFormsCore.Models.TokenRange.Includes(int line, int column) -> bool
+WebFormsCore.Models.TokenRange.Slice(int offset) -> WebFormsCore.Models.TokenRange
+WebFormsCore.Models.TokenRange.Slice(int offset, int length) -> WebFormsCore.Models.TokenRange
+WebFormsCore.Models.TokenRange.Start.get -> WebFormsCore.Models.TokenPosition
+WebFormsCore.Models.TokenRange.Start.init -> void
+WebFormsCore.Models.TokenRange.TokenRange() -> void
+WebFormsCore.Models.TokenRange.TokenRange(string! File, WebFormsCore.Models.TokenPosition Start, WebFormsCore.Models.TokenPosition End) -> void
+WebFormsCore.Models.TokenRange.WithEnd(WebFormsCore.Models.TokenPosition end) -> WebFormsCore.Models.TokenRange
+WebFormsCore.Models.TokenString
+WebFormsCore.Models.TokenString.CodeString.get -> string!
+WebFormsCore.Models.TokenString.Equals(WebFormsCore.Models.TokenString other) -> bool
+WebFormsCore.Models.TokenString.Range.get -> WebFormsCore.Models.TokenRange
+WebFormsCore.Models.TokenString.TokenString() -> void
+WebFormsCore.Models.TokenString.TokenString(string! value, WebFormsCore.Models.TokenRange range) -> void
+WebFormsCore.Models.TokenString.Value.get -> string!
+WebFormsCore.Models.TokenString.VbCodeString.get -> string!
+WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.Attribute = 17 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.AttributeValue = 18 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.Comment = 15 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.DocType = 14 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.ElementName = 9 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.ElementNamespace = 8 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.EncodeExpression = 4 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.EndDirective = 2 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.EvalExpression = 5 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.Expression = 3 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.None = 0 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.ServerComment = 7 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.StartDirective = 1 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.Statement = 6 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.TagClose = 12 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.TagOpen = 10 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.TagOpenSlash = 11 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.TagSlashClose = 13 -> WebFormsCore.Models.TokenType
+WebFormsCore.Models.TokenType.Text = 16 -> WebFormsCore.Models.TokenType
+WebFormsCore.Nodes.CollectionNode
+WebFormsCore.Nodes.CollectionNode.CollectionNode() -> void
+WebFormsCore.Nodes.CollectionNode.Events.get -> System.Collections.Generic.List<WebFormsCore.Nodes.EventNode!>!
+WebFormsCore.Nodes.CollectionNode.Events.set -> void
+WebFormsCore.Nodes.CollectionNode.ParseChildren.get -> bool
+WebFormsCore.Nodes.CollectionNode.Properties.get -> System.Collections.Generic.List<WebFormsCore.Nodes.PropertyNode!>!
+WebFormsCore.Nodes.CollectionNode.Properties.set -> void
+WebFormsCore.Nodes.CollectionNode.Property.get -> string!
+WebFormsCore.Nodes.CollectionNode.Property.set -> void
+WebFormsCore.Nodes.CollectionNode.PropertyType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol!
+WebFormsCore.Nodes.CollectionNode.PropertyType.set -> void
+WebFormsCore.Nodes.CollectionNode.Templates.get -> System.Collections.Generic.List<WebFormsCore.Nodes.TemplateNode!>!
+WebFormsCore.Nodes.CollectionNode.Templates.set -> void
+WebFormsCore.Nodes.CompileContext
+WebFormsCore.Nodes.CompileContext.Builder.get -> System.Text.StringBuilder!
+WebFormsCore.Nodes.CompileContext.CompileContext(System.Text.StringBuilder! builder) -> void
+WebFormsCore.Nodes.CompileContext.ControlId.get -> int
+WebFormsCore.Nodes.CompileContext.ControlId.set -> void
+WebFormsCore.Nodes.CompileContext.GenerateFields.get -> bool
+WebFormsCore.Nodes.CompileContext.GenerateFields.set -> void
+WebFormsCore.Nodes.CompileContext.TemplateId.get -> int
+WebFormsCore.Nodes.CompileContext.TemplateId.set -> void
+WebFormsCore.Nodes.CompileContext.Type.get -> Microsoft.CodeAnalysis.INamedTypeSymbol?
+WebFormsCore.Nodes.CompileContext.Type.set -> void
+WebFormsCore.Nodes.Constructor
+WebFormsCore.Nodes.Constructor.Arguments.get -> string!
+WebFormsCore.Nodes.Constructor.Arguments.set -> void
+WebFormsCore.Nodes.Constructor.Constructor() -> void
+WebFormsCore.Nodes.Constructor.Parameters.get -> string!
+WebFormsCore.Nodes.Constructor.Parameters.set -> void
+WebFormsCore.Nodes.ContainerNode
+WebFormsCore.Nodes.ContainerNode.AllChildren.get -> System.Collections.Generic.IEnumerable<WebFormsCore.Nodes.Node!>!
+WebFormsCore.Nodes.ContainerNode.Children.get -> System.Collections.Generic.List<WebFormsCore.Nodes.Node!>!
+WebFormsCore.Nodes.ContainerNode.Children.set -> void
+WebFormsCore.Nodes.ContainerNode.ContainerNode(WebFormsCore.Nodes.NodeType type) -> void
+WebFormsCore.Nodes.ContainerNode.RenderName.get -> string?
+WebFormsCore.Nodes.ContainerNode.RenderName.set -> void
+WebFormsCore.Nodes.ControlId
+WebFormsCore.Nodes.ControlId.ControlId(WebFormsCore.Nodes.ControlId! original) -> void
+WebFormsCore.Nodes.ControlId.ControlId(bool Designer, string! Name, Microsoft.CodeAnalysis.INamedTypeSymbol! Type, WebFormsCore.MemberResult? Member) -> void
+WebFormsCore.Nodes.ControlId.Deconstruct(out bool Designer, out string! Name, out Microsoft.CodeAnalysis.INamedTypeSymbol! Type, out WebFormsCore.MemberResult? Member) -> void
+WebFormsCore.Nodes.ControlId.Designer.get -> bool
+WebFormsCore.Nodes.ControlId.Designer.init -> void
+WebFormsCore.Nodes.ControlId.DisplayType.get -> string!
+WebFormsCore.Nodes.ControlId.Member.get -> WebFormsCore.MemberResult?
+WebFormsCore.Nodes.ControlId.Member.init -> void
+WebFormsCore.Nodes.ControlId.Name.get -> string!
+WebFormsCore.Nodes.ControlId.Name.init -> void
+WebFormsCore.Nodes.ControlId.Type.get -> Microsoft.CodeAnalysis.INamedTypeSymbol!
+WebFormsCore.Nodes.ControlId.Type.init -> void
+WebFormsCore.Nodes.ControlNode
+WebFormsCore.Nodes.ControlNode.ControlNode(Microsoft.CodeAnalysis.INamedTypeSymbol! controlType, string? controlPath) -> void
+WebFormsCore.Nodes.ControlNode.ControlPath.get -> string?
+WebFormsCore.Nodes.ControlNode.ControlType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol!
+WebFormsCore.Nodes.ControlNode.DisplayControlType.get -> string!
+WebFormsCore.Nodes.ControlNode.Events.get -> System.Collections.Generic.List<WebFormsCore.Nodes.EventNode!>!
+WebFormsCore.Nodes.ControlNode.Events.set -> void
+WebFormsCore.Nodes.ControlNode.FieldName.get -> string?
+WebFormsCore.Nodes.ControlNode.FieldName.set -> void
+WebFormsCore.Nodes.ControlNode.Id.get -> string?
+WebFormsCore.Nodes.ControlNode.Id.set -> void
+WebFormsCore.Nodes.ControlNode.ItemType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol?
+WebFormsCore.Nodes.ControlNode.ItemType.set -> void
+WebFormsCore.Nodes.ControlNode.ParseChildren.get -> bool
+WebFormsCore.Nodes.ControlNode.Properties.get -> System.Collections.Generic.List<WebFormsCore.Nodes.PropertyNode!>!
+WebFormsCore.Nodes.ControlNode.Properties.set -> void
+WebFormsCore.Nodes.ControlNode.Templates.get -> System.Collections.Generic.List<WebFormsCore.Nodes.TemplateNode!>!
+WebFormsCore.Nodes.ControlNode.Templates.set -> void
+WebFormsCore.Nodes.DesignerModel
+WebFormsCore.Nodes.DesignerModel.AddFields.get -> bool
+WebFormsCore.Nodes.DesignerModel.AddFields.init -> void
+WebFormsCore.Nodes.DesignerModel.Deconstruct(out System.Collections.Generic.IReadOnlyList<WebFormsCore.Nodes.RootNode!>! Types, out string? RootNamespace, out bool AddFields) -> void
+WebFormsCore.Nodes.DesignerModel.DesignerModel(System.Collections.Generic.IReadOnlyList<WebFormsCore.Nodes.RootNode!>! Types, string? RootNamespace, bool AddFields = true) -> void
+WebFormsCore.Nodes.DesignerModel.DesignerModel(WebFormsCore.Nodes.DesignerModel! original) -> void
+WebFormsCore.Nodes.DesignerModel.RootNamespace.get -> string?
+WebFormsCore.Nodes.DesignerModel.RootNamespace.init -> void
+WebFormsCore.Nodes.DesignerModel.Types.get -> System.Collections.Generic.IReadOnlyList<WebFormsCore.Nodes.RootNode!>!
+WebFormsCore.Nodes.DesignerModel.Types.init -> void
+WebFormsCore.Nodes.DirectiveNode
+WebFormsCore.Nodes.DirectiveNode.Attributes.get -> System.Collections.Generic.Dictionary<WebFormsCore.Models.TokenString, WebFormsCore.Models.AttributeValue>!
+WebFormsCore.Nodes.DirectiveNode.Attributes.set -> void
+WebFormsCore.Nodes.DirectiveNode.DirectiveNode() -> void
+WebFormsCore.Nodes.DirectiveNode.DirectiveType.get -> WebFormsCore.Nodes.DirectiveType
+WebFormsCore.Nodes.DirectiveNode.DirectiveType.set -> void
+WebFormsCore.Nodes.DirectiveNode.Properties.get -> System.Collections.Generic.List<WebFormsCore.Nodes.PropertyNode!>!
+WebFormsCore.Nodes.DirectiveNode.Properties.set -> void
+WebFormsCore.Nodes.DirectiveType
+WebFormsCore.Nodes.DirectiveType.Assembly = 1 -> WebFormsCore.Nodes.DirectiveType
+WebFormsCore.Nodes.DirectiveType.Control = 2 -> WebFormsCore.Nodes.DirectiveType
+WebFormsCore.Nodes.DirectiveType.Implements = 3 -> WebFormsCore.Nodes.DirectiveType
+WebFormsCore.Nodes.DirectiveType.Import = 4 -> WebFormsCore.Nodes.DirectiveType
+WebFormsCore.Nodes.DirectiveType.Master = 5 -> WebFormsCore.Nodes.DirectiveType
+WebFormsCore.Nodes.DirectiveType.MasterType = 6 -> WebFormsCore.Nodes.DirectiveType
+WebFormsCore.Nodes.DirectiveType.OutputCache = 7 -> WebFormsCore.Nodes.DirectiveType
+WebFormsCore.Nodes.DirectiveType.Page = 8 -> WebFormsCore.Nodes.DirectiveType
+WebFormsCore.Nodes.DirectiveType.PreviousPageType = 9 -> WebFormsCore.Nodes.DirectiveType
+WebFormsCore.Nodes.DirectiveType.Reference = 10 -> WebFormsCore.Nodes.DirectiveType
+WebFormsCore.Nodes.DirectiveType.Register = 11 -> WebFormsCore.Nodes.DirectiveType
+WebFormsCore.Nodes.DirectiveType.Unknown = 0 -> WebFormsCore.Nodes.DirectiveType
+WebFormsCore.Nodes.ElementNode
+WebFormsCore.Nodes.ElementNode.Attributes.get -> System.Collections.Generic.Dictionary<WebFormsCore.Models.TokenString, WebFormsCore.Models.AttributeValue>!
+WebFormsCore.Nodes.ElementNode.Attributes.set -> void
+WebFormsCore.Nodes.ElementNode.ElementNode() -> void
+WebFormsCore.Nodes.ElementNode.ElementNode(WebFormsCore.Nodes.NodeType type) -> void
+WebFormsCore.Nodes.ElementNode.EndTag.get -> WebFormsCore.Nodes.HtmlTagNode?
+WebFormsCore.Nodes.ElementNode.EndTag.set -> void
+WebFormsCore.Nodes.ElementNode.Name.get -> WebFormsCore.Models.TokenString
+WebFormsCore.Nodes.ElementNode.Namespace.get -> WebFormsCore.Models.TokenString?
+WebFormsCore.Nodes.ElementNode.StartTag.get -> WebFormsCore.Nodes.HtmlTagNode!
+WebFormsCore.Nodes.ElementNode.StartTag.set -> void
+WebFormsCore.Nodes.EventNode
+WebFormsCore.Nodes.EventNode.Arguments.get -> string!
+WebFormsCore.Nodes.EventNode.DisplayReturnType.get -> string?
+WebFormsCore.Nodes.EventNode.Event.get -> Microsoft.CodeAnalysis.IEventSymbol!
+WebFormsCore.Nodes.EventNode.Event.init -> void
+WebFormsCore.Nodes.EventNode.EventName.get -> string!
+WebFormsCore.Nodes.EventNode.EventNode(Microsoft.CodeAnalysis.IEventSymbol! event, Microsoft.CodeAnalysis.IMethodSymbol! method) -> void
+WebFormsCore.Nodes.EventNode.Invoke.get -> Microsoft.CodeAnalysis.IMethodSymbol?
+WebFormsCore.Nodes.EventNode.IsReturnTypeSame.get -> bool
+WebFormsCore.Nodes.EventNode.IsVoid.get -> bool
+WebFormsCore.Nodes.EventNode.Method.get -> Microsoft.CodeAnalysis.IMethodSymbol!
+WebFormsCore.Nodes.EventNode.Method.init -> void
+WebFormsCore.Nodes.EventNode.MethodName.get -> string!
+WebFormsCore.Nodes.EventNode.ReturnValue.get -> string?
+WebFormsCore.Nodes.ExpressionNode
+WebFormsCore.Nodes.ExpressionNode.ExpressionNode() -> void
+WebFormsCore.Nodes.ExpressionNode.IsEncode.get -> bool
+WebFormsCore.Nodes.ExpressionNode.IsEncode.set -> void
+WebFormsCore.Nodes.ExpressionNode.IsEval.get -> bool
+WebFormsCore.Nodes.ExpressionNode.IsEval.set -> void
+WebFormsCore.Nodes.ExpressionNode.ItemType.get -> string?
+WebFormsCore.Nodes.ExpressionNode.ItemType.set -> void
+WebFormsCore.Nodes.ExpressionNode.Text.get -> WebFormsCore.Models.TokenString
+WebFormsCore.Nodes.ExpressionNode.Text.set -> void
+WebFormsCore.Nodes.ExpressionNode.VariableName.get -> string?
+WebFormsCore.Nodes.ExpressionNode.VariableName.set -> void
+WebFormsCore.Nodes.HtmlTagNode
+WebFormsCore.Nodes.HtmlTagNode.ElementRange.get -> WebFormsCore.Models.TokenRange
+WebFormsCore.Nodes.HtmlTagNode.HtmlTagNode() -> void
+WebFormsCore.Nodes.HtmlTagNode.Name.get -> WebFormsCore.Models.TokenString
+WebFormsCore.Nodes.HtmlTagNode.Name.set -> void
+WebFormsCore.Nodes.HtmlTagNode.Namespace.get -> WebFormsCore.Models.TokenString?
+WebFormsCore.Nodes.HtmlTagNode.Namespace.set -> void
+WebFormsCore.Nodes.HtmlTagNode.Range.get -> WebFormsCore.Models.TokenRange
+WebFormsCore.Nodes.HtmlTagNode.Range.set -> void
+WebFormsCore.Nodes.IAttributeNode
+WebFormsCore.Nodes.IAttributeNode.Attributes.get -> System.Collections.Generic.Dictionary<WebFormsCore.Models.TokenString, WebFormsCore.Models.AttributeValue>!
+WebFormsCore.Nodes.ITypedNode
+WebFormsCore.Nodes.ITypedNode.Attributes.get -> System.Collections.Generic.Dictionary<WebFormsCore.Models.TokenString, WebFormsCore.Models.AttributeValue>!
+WebFormsCore.Nodes.ITypedNode.Children.get -> System.Collections.Generic.List<WebFormsCore.Nodes.Node!>!
+WebFormsCore.Nodes.ITypedNode.Events.get -> System.Collections.Generic.List<WebFormsCore.Nodes.EventNode!>!
+WebFormsCore.Nodes.ITypedNode.ParseChildren.get -> bool
+WebFormsCore.Nodes.ITypedNode.Properties.get -> System.Collections.Generic.List<WebFormsCore.Nodes.PropertyNode!>!
+WebFormsCore.Nodes.ITypedNode.Templates.get -> System.Collections.Generic.List<WebFormsCore.Nodes.TemplateNode!>!
+WebFormsCore.Nodes.ITypedNode.Type.get -> Microsoft.CodeAnalysis.INamedTypeSymbol!
+WebFormsCore.Nodes.IncludeFile
+WebFormsCore.Nodes.IncludeFile.Deconstruct(out string! Path, out string! Hash) -> void
+WebFormsCore.Nodes.IncludeFile.Hash.get -> string!
+WebFormsCore.Nodes.IncludeFile.Hash.init -> void
+WebFormsCore.Nodes.IncludeFile.IncludeFile(WebFormsCore.Nodes.IncludeFile! original) -> void
+WebFormsCore.Nodes.IncludeFile.IncludeFile(string! Path, string! Hash) -> void
+WebFormsCore.Nodes.IncludeFile.Path.get -> string!
+WebFormsCore.Nodes.IncludeFile.Path.init -> void
+WebFormsCore.Nodes.Language
+WebFormsCore.Nodes.Language.CSharp = 0 -> WebFormsCore.Nodes.Language
+WebFormsCore.Nodes.Language.VisualBasic = 1 -> WebFormsCore.Nodes.Language
+WebFormsCore.Nodes.Node
+WebFormsCore.Nodes.Node.Node(WebFormsCore.Nodes.NodeType type) -> void
+WebFormsCore.Nodes.Node.Parent.get -> WebFormsCore.Nodes.ElementNode?
+WebFormsCore.Nodes.Node.Parent.set -> void
+WebFormsCore.Nodes.Node.ParentVariableName.get -> string?
+WebFormsCore.Nodes.Node.Range.get -> WebFormsCore.Models.TokenRange
+WebFormsCore.Nodes.Node.Range.set -> void
+WebFormsCore.Nodes.Node.Type.get -> WebFormsCore.Nodes.NodeType
+WebFormsCore.Nodes.NodeType
+WebFormsCore.Nodes.NodeType.Collection = 9 -> WebFormsCore.Nodes.NodeType
+WebFormsCore.Nodes.NodeType.Control = 2 -> WebFormsCore.Nodes.NodeType
+WebFormsCore.Nodes.NodeType.Directive = 5 -> WebFormsCore.Nodes.NodeType
+WebFormsCore.Nodes.NodeType.Element = 1 -> WebFormsCore.Nodes.NodeType
+WebFormsCore.Nodes.NodeType.Event = 7 -> WebFormsCore.Nodes.NodeType
+WebFormsCore.Nodes.NodeType.Expression = 3 -> WebFormsCore.Nodes.NodeType
+WebFormsCore.Nodes.NodeType.Property = 8 -> WebFormsCore.Nodes.NodeType
+WebFormsCore.Nodes.NodeType.Root = 0 -> WebFormsCore.Nodes.NodeType
+WebFormsCore.Nodes.NodeType.Statement = 4 -> WebFormsCore.Nodes.NodeType
+WebFormsCore.Nodes.NodeType.Text = 6 -> WebFormsCore.Nodes.NodeType
+WebFormsCore.Nodes.PropertyNode
+WebFormsCore.Nodes.PropertyNode.Converter.get -> Microsoft.CodeAnalysis.INamedTypeSymbol?
+WebFormsCore.Nodes.PropertyNode.Converter.set -> void
+WebFormsCore.Nodes.PropertyNode.DisplayConverter.get -> string?
+WebFormsCore.Nodes.PropertyNode.DisplayType.get -> string!
+WebFormsCore.Nodes.PropertyNode.Member.get -> WebFormsCore.MemberResult!
+WebFormsCore.Nodes.PropertyNode.Member.set -> void
+WebFormsCore.Nodes.PropertyNode.PropertyNode(WebFormsCore.MemberResult! member, WebFormsCore.Models.AttributeValue value, Microsoft.CodeAnalysis.INamedTypeSymbol? converter) -> void
+WebFormsCore.Nodes.PropertyNode.Value.get -> WebFormsCore.Models.AttributeValue
+WebFormsCore.Nodes.PropertyNode.Value.set -> void
+WebFormsCore.Nodes.RootNode
+WebFormsCore.Nodes.RootNode.Add(WebFormsCore.Nodes.RootNode! type) -> void
+WebFormsCore.Nodes.RootNode.AddFields.get -> bool
+WebFormsCore.Nodes.RootNode.AddFields.set -> void
+WebFormsCore.Nodes.RootNode.AssemblyName.get -> string?
+WebFormsCore.Nodes.RootNode.AssemblyName.set -> void
+WebFormsCore.Nodes.RootNode.ClassName.get -> string?
+WebFormsCore.Nodes.RootNode.ClassName.set -> void
+WebFormsCore.Nodes.RootNode.Constructors.get -> System.Collections.Generic.IEnumerable<WebFormsCore.Nodes.Constructor!>!
+WebFormsCore.Nodes.RootNode.DesignerFullTypeName.get -> string!
+WebFormsCore.Nodes.RootNode.Diagnostics.get -> System.Collections.Generic.List<Microsoft.CodeAnalysis.Diagnostic!>!
+WebFormsCore.Nodes.RootNode.Directives.get -> System.Collections.Generic.List<WebFormsCore.Nodes.DirectiveNode!>!
+WebFormsCore.Nodes.RootNode.Directives.set -> void
+WebFormsCore.Nodes.RootNode.Directory.get -> string?
+WebFormsCore.Nodes.RootNode.FieldVisibility.get -> string!
+WebFormsCore.Nodes.RootNode.FullInheritsClassName.get -> string!
+WebFormsCore.Nodes.RootNode.GenerateCode(string? rootNamespace) -> Microsoft.CodeAnalysis.SyntaxTree!
+WebFormsCore.Nodes.RootNode.GetClassName(string? ns, string? inherits) -> string!
+WebFormsCore.Nodes.RootNode.Hash.get -> string?
+WebFormsCore.Nodes.RootNode.Hash.set -> void
+WebFormsCore.Nodes.RootNode.Ids.get -> System.Collections.Generic.List<WebFormsCore.Nodes.ControlId!>!
+WebFormsCore.Nodes.RootNode.Ids.set -> void
+WebFormsCore.Nodes.RootNode.IncludeFiles.get -> System.Collections.Generic.List<WebFormsCore.Nodes.IncludeFile!>!
+WebFormsCore.Nodes.RootNode.IncludeFiles.set -> void
+WebFormsCore.Nodes.RootNode.Inherits.get -> Microsoft.CodeAnalysis.INamedTypeSymbol?
+WebFormsCore.Nodes.RootNode.Inherits.set -> void
+WebFormsCore.Nodes.RootNode.InheritsClassName.get -> string?
+WebFormsCore.Nodes.RootNode.InlineScripts.get -> System.Collections.Generic.List<WebFormsCore.Models.TokenString>!
+WebFormsCore.Nodes.RootNode.InlineScripts.set -> void
+WebFormsCore.Nodes.RootNode.Language.get -> WebFormsCore.Nodes.Language
+WebFormsCore.Nodes.RootNode.Language.set -> void
+WebFormsCore.Nodes.RootNode.MasterTypeName.get -> string?
+WebFormsCore.Nodes.RootNode.MasterTypeName.set -> void
+WebFormsCore.Nodes.RootNode.Namespace.get -> string?
+WebFormsCore.Nodes.RootNode.Namespace.set -> void
+WebFormsCore.Nodes.RootNode.Namespaces.get -> System.Collections.Generic.List<string!>!
+WebFormsCore.Nodes.RootNode.Namespaces.set -> void
+WebFormsCore.Nodes.RootNode.Path.get -> string?
+WebFormsCore.Nodes.RootNode.Path.set -> void
+WebFormsCore.Nodes.RootNode.RelativePath.get -> string?
+WebFormsCore.Nodes.RootNode.RelativePath.set -> void
+WebFormsCore.Nodes.RootNode.RenderMethods.get -> System.Collections.Generic.List<WebFormsCore.Nodes.ContainerNode!>!
+WebFormsCore.Nodes.RootNode.RenderMethods.set -> void
+WebFormsCore.Nodes.RootNode.RootNode() -> void
+WebFormsCore.Nodes.RootNode.Route.get -> string?
+WebFormsCore.Nodes.RootNode.Route.set -> void
+WebFormsCore.Nodes.RootNode.ScriptBlocks.get -> System.Collections.Generic.List<WebFormsCore.Models.TokenString>!
+WebFormsCore.Nodes.RootNode.ScriptBlocks.set -> void
+WebFormsCore.Nodes.RootNode.Templates.get -> System.Collections.Generic.List<WebFormsCore.Nodes.TemplateNode!>!
+WebFormsCore.Nodes.RootNode.Templates.set -> void
+WebFormsCore.Nodes.RootNode.VbNamespace.get -> string?
+WebFormsCore.Nodes.RootNode.VbNamespace.set -> void
+WebFormsCore.Nodes.StatementNode
+WebFormsCore.Nodes.StatementNode.StatementNode() -> void
+WebFormsCore.Nodes.StatementNode.Text.get -> WebFormsCore.Models.TokenString
+WebFormsCore.Nodes.StatementNode.Text.set -> void
+WebFormsCore.Nodes.TemplateNode
+WebFormsCore.Nodes.TemplateNode.ClassName.get -> string!
+WebFormsCore.Nodes.TemplateNode.ClassName.set -> void
+WebFormsCore.Nodes.TemplateNode.ControlsType.get -> string?
+WebFormsCore.Nodes.TemplateNode.ControlsType.set -> void
+WebFormsCore.Nodes.TemplateNode.Ids.get -> System.Collections.Generic.List<WebFormsCore.Nodes.ControlId!>!
+WebFormsCore.Nodes.TemplateNode.Ids.set -> void
+WebFormsCore.Nodes.TemplateNode.IsSingleInstance.get -> bool
+WebFormsCore.Nodes.TemplateNode.IsSingleInstance.set -> void
+WebFormsCore.Nodes.TemplateNode.ItemType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol?
+WebFormsCore.Nodes.TemplateNode.ItemType.set -> void
+WebFormsCore.Nodes.TemplateNode.Property.get -> WebFormsCore.Models.Token
+WebFormsCore.Nodes.TemplateNode.Property.set -> void
+WebFormsCore.Nodes.TemplateNode.RenderMethods.get -> System.Collections.Generic.List<WebFormsCore.Nodes.ContainerNode!>!
+WebFormsCore.Nodes.TemplateNode.RenderMethods.set -> void
+WebFormsCore.Nodes.TemplateNode.TemplateNode() -> void
+WebFormsCore.Nodes.TextNode
+WebFormsCore.Nodes.TextNode.Text.get -> WebFormsCore.Models.TokenString
+WebFormsCore.Nodes.TextNode.Text.set -> void
+WebFormsCore.Nodes.TextNode.TextNode() -> void
+WebFormsCore.SourceGenerator.Models.EquatableArray<T>
+WebFormsCore.SourceGenerator.Models.EquatableArray<T>.AsImmutableArray() -> System.Collections.Immutable.ImmutableArray<T>
+WebFormsCore.SourceGenerator.Models.EquatableArray<T>.AsSpan() -> System.ReadOnlySpan<T>
+WebFormsCore.SourceGenerator.Models.EquatableArray<T>.Equals(WebFormsCore.SourceGenerator.Models.EquatableArray<T> array) -> bool
+WebFormsCore.SourceGenerator.Models.EquatableArray<T>.EquatableArray() -> void
+WebFormsCore.SourceGenerator.Models.EquatableArray<T>.EquatableArray(System.Collections.Immutable.ImmutableArray<T> array) -> void
+WebFormsCore.SourceGenerator.Models.EquatableArray<T>.GetEnumerator() -> System.Collections.Immutable.ImmutableArray<T>.Enumerator
+WebFormsCore.SourceGenerator.Models.EquatableArray<T>.GetUnsafeArray() -> T[]!
+WebFormsCore.SourceGenerator.Models.EquatableArray<T>.IsEmpty.get -> bool
+WebFormsCore.SourceGenerator.Models.EquatableArray<T>.Length.get -> int
+WebFormsCore.SourceGenerator.Models.EquatableArray<T>.ToArray() -> T[]!
+WebFormsCore.SourceGenerator.Models.EquatableArray<T>.this[int index].get -> T
+WebFormsCore.SourceGenerator.Models.ReportedDiagnostic
+WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.<Clone>$() -> WebFormsCore.SourceGenerator.Models.ReportedDiagnostic!
+WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.Arguments.get -> WebFormsCore.SourceGenerator.Models.EquatableArray<object!>
+WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.Arguments.init -> void
+WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.Deconstruct(out Microsoft.CodeAnalysis.DiagnosticDescriptor! Descriptor, out Microsoft.CodeAnalysis.Text.TextSpan TextSpan, out Microsoft.CodeAnalysis.FileLinePositionSpan FileLineSpan, out WebFormsCore.SourceGenerator.Models.EquatableArray<object!> Arguments) -> void
+WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.Descriptor.get -> Microsoft.CodeAnalysis.DiagnosticDescriptor!
+WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.Descriptor.init -> void
+WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.Equals(WebFormsCore.SourceGenerator.Models.ReportedDiagnostic? other) -> bool
+WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.FileLineSpan.get -> Microsoft.CodeAnalysis.FileLinePositionSpan
+WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.FileLineSpan.init -> void
+WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.ReportedDiagnostic(Microsoft.CodeAnalysis.DiagnosticDescriptor! Descriptor, Microsoft.CodeAnalysis.Text.TextSpan TextSpan, Microsoft.CodeAnalysis.FileLinePositionSpan FileLineSpan, WebFormsCore.SourceGenerator.Models.EquatableArray<object!> Arguments) -> void
+WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.TextSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.TextSpan.init -> void
+WebFormsCore.StringExtensions
+override WebFormsCore.MemberResult.Equals(object? obj) -> bool
+override WebFormsCore.MemberResult.GetHashCode() -> int
+override WebFormsCore.MemberResult.ToString() -> string!
+override WebFormsCore.Models.AttributeValue.GetHashCode() -> int
+override WebFormsCore.Models.AttributeValue.ToString() -> string!
+override WebFormsCore.Models.ControlKey.GetHashCode() -> int
+override WebFormsCore.Models.OffsetRange.GetHashCode() -> int
+override WebFormsCore.Models.Token.GetHashCode() -> int
+override WebFormsCore.Models.Token.ToString() -> string!
+override WebFormsCore.Models.TokenPosition.GetHashCode() -> int
+override WebFormsCore.Models.TokenPosition.ToString() -> string!
+override WebFormsCore.Models.TokenRange.GetHashCode() -> int
+override WebFormsCore.Models.TokenRange.ToString() -> string!
+override WebFormsCore.Models.TokenString.Equals(object? obj) -> bool
+override WebFormsCore.Models.TokenString.GetHashCode() -> int
+override WebFormsCore.Models.TokenString.ToString() -> string!
+override WebFormsCore.Nodes.ContainerNode.WriteClass(WebFormsCore.Nodes.CompileContext! context) -> void
+override WebFormsCore.Nodes.ControlId.Equals(object? obj) -> bool
+override WebFormsCore.Nodes.ControlId.GetHashCode() -> int
+override WebFormsCore.Nodes.ControlId.ToString() -> string!
+override WebFormsCore.Nodes.DesignerModel.Equals(object? obj) -> bool
+override WebFormsCore.Nodes.DesignerModel.GetHashCode() -> int
+override WebFormsCore.Nodes.DesignerModel.ToString() -> string!
+override WebFormsCore.Nodes.IncludeFile.Equals(object? obj) -> bool
+override WebFormsCore.Nodes.IncludeFile.GetHashCode() -> int
+override WebFormsCore.Nodes.IncludeFile.ToString() -> string!
+override WebFormsCore.Nodes.TemplateNode.VariableName.get -> string?
+override WebFormsCore.Nodes.TemplateNode.VariableName.set -> void
+override WebFormsCore.SourceGenerator.Models.EquatableArray<T>.Equals(object? obj) -> bool
+override WebFormsCore.SourceGenerator.Models.EquatableArray<T>.GetHashCode() -> int
+override WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.Equals(object? obj) -> bool
+override WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.GetHashCode() -> int
+override WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.ToString() -> string!
+static WebFormsCore.ContextExtensions.GetDeep<T>(this Microsoft.CodeAnalysis.ITypeSymbol! type, string! name) -> T?
+static WebFormsCore.ContextExtensions.GetMemberDeep(this Microsoft.CodeAnalysis.ITypeSymbol! type, string! name) -> WebFormsCore.MemberResult?
+static WebFormsCore.ContextExtensions.GetNamespace(this Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax! syntax) -> string!
+static WebFormsCore.ContextExtensions.GetType(this Microsoft.CodeAnalysis.Compilation! context, string! ns, string! typeName) -> Microsoft.CodeAnalysis.INamedTypeSymbol?
+static WebFormsCore.ContextExtensions.GetType(this Microsoft.CodeAnalysis.Compilation! context, string! typeName) -> Microsoft.CodeAnalysis.INamedTypeSymbol?
+static WebFormsCore.ContextExtensions.IsAssignableTo(this Microsoft.CodeAnalysis.ITypeSymbol? type, string! name) -> bool
+static WebFormsCore.ContextExtensions.IsCollection(this Microsoft.CodeAnalysis.ITypeSymbol! type) -> bool
+static WebFormsCore.ContextExtensions.IsSingleInstanceTemplate(this Microsoft.CodeAnalysis.ISymbol! symbol) -> bool
+static WebFormsCore.ContextExtensions.IsTemplate(this Microsoft.CodeAnalysis.ITypeSymbol! type) -> bool
+static WebFormsCore.ContextExtensions.ParseChildren(this Microsoft.CodeAnalysis.ITypeSymbol! type) -> bool
+static WebFormsCore.Language.Parser.FileSpan.get -> System.ReadOnlySpan<char>
+static WebFormsCore.Language.Parser.IncludeSpan.get -> System.ReadOnlySpan<char>
+static WebFormsCore.Language.Parser.VirtualSpan.get -> System.ReadOnlySpan<char>
+static WebFormsCore.MemberResult.operator !=(WebFormsCore.MemberResult? left, WebFormsCore.MemberResult? right) -> bool
+static WebFormsCore.MemberResult.operator ==(WebFormsCore.MemberResult? left, WebFormsCore.MemberResult? right) -> bool
+static WebFormsCore.Models.AttributeValue.implicit operator string!(WebFormsCore.Models.AttributeValue attributeValue) -> string!
+static WebFormsCore.Models.AttributeValue.operator !=(WebFormsCore.Models.AttributeValue left, WebFormsCore.Models.AttributeValue right) -> bool
+static WebFormsCore.Models.AttributeValue.operator ==(WebFormsCore.Models.AttributeValue left, WebFormsCore.Models.AttributeValue right) -> bool
+static WebFormsCore.Models.ControlKey.operator !=(WebFormsCore.Models.ControlKey left, WebFormsCore.Models.ControlKey right) -> bool
+static WebFormsCore.Models.ControlKey.operator ==(WebFormsCore.Models.ControlKey left, WebFormsCore.Models.ControlKey right) -> bool
+static WebFormsCore.Models.OffsetRange.operator !=(WebFormsCore.Models.OffsetRange left, WebFormsCore.Models.OffsetRange right) -> bool
+static WebFormsCore.Models.OffsetRange.operator ==(WebFormsCore.Models.OffsetRange left, WebFormsCore.Models.OffsetRange right) -> bool
+static WebFormsCore.Models.Token.operator !=(WebFormsCore.Models.Token left, WebFormsCore.Models.Token right) -> bool
+static WebFormsCore.Models.Token.operator ==(WebFormsCore.Models.Token left, WebFormsCore.Models.Token right) -> bool
+static WebFormsCore.Models.TokenPosition.implicit operator Microsoft.CodeAnalysis.Text.LinePosition(WebFormsCore.Models.TokenPosition position) -> Microsoft.CodeAnalysis.Text.LinePosition
+static WebFormsCore.Models.TokenPosition.operator !=(WebFormsCore.Models.TokenPosition left, WebFormsCore.Models.TokenPosition right) -> bool
+static WebFormsCore.Models.TokenPosition.operator ==(WebFormsCore.Models.TokenPosition left, WebFormsCore.Models.TokenPosition right) -> bool
+static WebFormsCore.Models.TokenRange.implicit operator Microsoft.CodeAnalysis.Location!(WebFormsCore.Models.TokenRange range) -> Microsoft.CodeAnalysis.Location!
+static WebFormsCore.Models.TokenRange.implicit operator Microsoft.CodeAnalysis.Text.LinePositionSpan(WebFormsCore.Models.TokenRange range) -> Microsoft.CodeAnalysis.Text.LinePositionSpan
+static WebFormsCore.Models.TokenRange.implicit operator Microsoft.CodeAnalysis.Text.TextSpan(WebFormsCore.Models.TokenRange range) -> Microsoft.CodeAnalysis.Text.TextSpan
+static WebFormsCore.Models.TokenRange.implicit operator WebFormsCore.Models.OffsetRange(WebFormsCore.Models.TokenRange range) -> WebFormsCore.Models.OffsetRange
+static WebFormsCore.Models.TokenRange.operator !=(WebFormsCore.Models.TokenRange left, WebFormsCore.Models.TokenRange right) -> bool
+static WebFormsCore.Models.TokenRange.operator ==(WebFormsCore.Models.TokenRange left, WebFormsCore.Models.TokenRange right) -> bool
+static WebFormsCore.Models.TokenString.implicit operator WebFormsCore.Models.TokenString(string! nodeString) -> WebFormsCore.Models.TokenString
+static WebFormsCore.Models.TokenString.implicit operator string!(WebFormsCore.Models.TokenString tokenString) -> string!
+static WebFormsCore.Models.TokenString.operator !=(WebFormsCore.Models.TokenString left, WebFormsCore.Models.TokenString right) -> bool
+static WebFormsCore.Models.TokenString.operator ==(WebFormsCore.Models.TokenString left, WebFormsCore.Models.TokenString right) -> bool
+static WebFormsCore.Nodes.ControlId.operator !=(WebFormsCore.Nodes.ControlId? left, WebFormsCore.Nodes.ControlId? right) -> bool
+static WebFormsCore.Nodes.ControlId.operator ==(WebFormsCore.Nodes.ControlId? left, WebFormsCore.Nodes.ControlId? right) -> bool
+static WebFormsCore.Nodes.DesignerModel.operator !=(WebFormsCore.Nodes.DesignerModel? left, WebFormsCore.Nodes.DesignerModel? right) -> bool
+static WebFormsCore.Nodes.DesignerModel.operator ==(WebFormsCore.Nodes.DesignerModel? left, WebFormsCore.Nodes.DesignerModel? right) -> bool
+static WebFormsCore.Nodes.IncludeFile.operator !=(WebFormsCore.Nodes.IncludeFile? left, WebFormsCore.Nodes.IncludeFile? right) -> bool
+static WebFormsCore.Nodes.IncludeFile.operator ==(WebFormsCore.Nodes.IncludeFile? left, WebFormsCore.Nodes.IncludeFile? right) -> bool
+static WebFormsCore.Nodes.RootNode.DetectInherits(string! text) -> string?
+static WebFormsCore.Nodes.RootNode.DetectLanguage(string! text) -> WebFormsCore.Nodes.Language
+static WebFormsCore.Nodes.RootNode.GenerateHash(string! text) -> string!
+static WebFormsCore.Nodes.RootNode.GetNamespaces(string? webConfigText) -> System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<string!, string!>>
+static WebFormsCore.Nodes.RootNode.NormalizePath(string! path) -> string!
+static WebFormsCore.Nodes.RootNode.Parse(out System.Collections.Immutable.ImmutableArray<WebFormsCore.SourceGenerator.Models.ReportedDiagnostic!> diagnostics, Microsoft.CodeAnalysis.Compilation! compilation, string! fullPath, string? text, string? rootNamespace = null, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string!>>? namespaces = null, bool addFields = true, string? relativePath = null, string? rootDirectory = null, bool generateHash = true) -> WebFormsCore.Nodes.RootNode?
+static WebFormsCore.SourceGenerator.Models.EquatableArray<T>.FromImmutableArray(System.Collections.Immutable.ImmutableArray<T> array) -> WebFormsCore.SourceGenerator.Models.EquatableArray<T>
+static WebFormsCore.SourceGenerator.Models.EquatableArray<T>.implicit operator System.Collections.Immutable.ImmutableArray<T>(WebFormsCore.SourceGenerator.Models.EquatableArray<T> array) -> System.Collections.Immutable.ImmutableArray<T>
+static WebFormsCore.SourceGenerator.Models.EquatableArray<T>.implicit operator WebFormsCore.SourceGenerator.Models.EquatableArray<T>(System.Collections.Immutable.ImmutableArray<T> array) -> WebFormsCore.SourceGenerator.Models.EquatableArray<T>
+static WebFormsCore.SourceGenerator.Models.EquatableArray<T>.operator !=(WebFormsCore.SourceGenerator.Models.EquatableArray<T> left, WebFormsCore.SourceGenerator.Models.EquatableArray<T> right) -> bool
+static WebFormsCore.SourceGenerator.Models.EquatableArray<T>.operator ==(WebFormsCore.SourceGenerator.Models.EquatableArray<T> left, WebFormsCore.SourceGenerator.Models.EquatableArray<T> right) -> bool
+static WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.Create(Microsoft.CodeAnalysis.DiagnosticDescriptor! descriptor, Microsoft.CodeAnalysis.Location! location, params object![]! arguments) -> WebFormsCore.SourceGenerator.Models.ReportedDiagnostic!
+static WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.implicit operator Microsoft.CodeAnalysis.Diagnostic!(WebFormsCore.SourceGenerator.Models.ReportedDiagnostic! diagnostic) -> Microsoft.CodeAnalysis.Diagnostic!
+static WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.operator !=(WebFormsCore.SourceGenerator.Models.ReportedDiagnostic? left, WebFormsCore.SourceGenerator.Models.ReportedDiagnostic? right) -> bool
+static WebFormsCore.SourceGenerator.Models.ReportedDiagnostic.operator ==(WebFormsCore.SourceGenerator.Models.ReportedDiagnostic? left, WebFormsCore.SourceGenerator.Models.ReportedDiagnostic? right) -> bool
+static readonly WebFormsCore.Collections.Comparers.AttributeCompare.IgnoreCase -> WebFormsCore.Collections.Comparers.AttributeCompare!
+static readonly WebFormsCore.Collections.Comparers.ControlKeyCompare.OrdinalIgnoreCase -> WebFormsCore.Collections.Comparers.ControlKeyCompare!
+virtual WebFormsCore.MemberResult.<Clone>$() -> WebFormsCore.MemberResult!
+virtual WebFormsCore.MemberResult.EqualityContract.get -> System.Type!
+virtual WebFormsCore.MemberResult.Equals(WebFormsCore.MemberResult? other) -> bool
+virtual WebFormsCore.MemberResult.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual WebFormsCore.Nodes.ControlId.<Clone>$() -> WebFormsCore.Nodes.ControlId!
+virtual WebFormsCore.Nodes.ControlId.EqualityContract.get -> System.Type!
+virtual WebFormsCore.Nodes.ControlId.Equals(WebFormsCore.Nodes.ControlId? other) -> bool
+virtual WebFormsCore.Nodes.ControlId.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual WebFormsCore.Nodes.DesignerModel.<Clone>$() -> WebFormsCore.Nodes.DesignerModel!
+virtual WebFormsCore.Nodes.DesignerModel.EqualityContract.get -> System.Type!
+virtual WebFormsCore.Nodes.DesignerModel.Equals(WebFormsCore.Nodes.DesignerModel? other) -> bool
+virtual WebFormsCore.Nodes.DesignerModel.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual WebFormsCore.Nodes.ElementNode.VariableName.get -> string?
+virtual WebFormsCore.Nodes.ElementNode.VariableName.set -> void
+virtual WebFormsCore.Nodes.IncludeFile.<Clone>$() -> WebFormsCore.Nodes.IncludeFile!
+virtual WebFormsCore.Nodes.IncludeFile.EqualityContract.get -> System.Type!
+virtual WebFormsCore.Nodes.IncludeFile.Equals(WebFormsCore.Nodes.IncludeFile? other) -> bool
+virtual WebFormsCore.Nodes.IncludeFile.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual WebFormsCore.Nodes.Node.WriteClass(WebFormsCore.Nodes.CompileContext! context) -> void
+~override WebFormsCore.Models.AttributeValue.Equals(object obj) -> bool
+~override WebFormsCore.Models.ControlKey.Equals(object obj) -> bool
+~override WebFormsCore.Models.ControlKey.ToString() -> string
+~override WebFormsCore.Models.OffsetRange.Equals(object obj) -> bool
+~override WebFormsCore.Models.OffsetRange.ToString() -> string
+~override WebFormsCore.Models.Token.Equals(object obj) -> bool
+~override WebFormsCore.Models.TokenPosition.Equals(object obj) -> bool
+~override WebFormsCore.Models.TokenRange.Equals(object obj) -> bool
+static WebFormsCore.StringExtensions.ReplaceLineEndings(this string! str, string! replacement) -> string!

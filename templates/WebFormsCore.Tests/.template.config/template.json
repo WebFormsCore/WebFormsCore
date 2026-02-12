@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "WebFormsCore",
+  "classifications": ["Web", "ASP.NET", "WebForms", "Test"],
+  "identity": "WebFormsCore.Templates.Tests",
+  "name": "WebForms Core Test Project",
+  "shortName": "wfc-tests",
+  "sourceName": "WebFormsCore.Tests1",
+  "preferNameDirectory": true,
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "symbols": {
+    "WebFormsCoreVersion": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "$version$",
+      "replaces": "{WebFormsCoreVersion}",
+      "description": "The version of the WebFormsCore SDK and test packages to use."
+    }
+  }
+}

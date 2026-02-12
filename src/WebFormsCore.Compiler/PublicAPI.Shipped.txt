@@ -1,0 +1,27 @@
+#nullable enable
+WebFormsCore.Compiler.ViewCompileResult
+WebFormsCore.Compiler.ViewCompileResult.Compilation.get -> Microsoft.CodeAnalysis.Compilation!
+WebFormsCore.Compiler.ViewCompileResult.Compilation.set -> void
+WebFormsCore.Compiler.ViewCompileResult.Deconstruct(out Microsoft.CodeAnalysis.Compilation! Compilation, out WebFormsCore.Nodes.RootNode! Type) -> void
+WebFormsCore.Compiler.ViewCompileResult.Equals(WebFormsCore.Compiler.ViewCompileResult other) -> bool
+WebFormsCore.Compiler.ViewCompileResult.Type.get -> WebFormsCore.Nodes.RootNode!
+WebFormsCore.Compiler.ViewCompileResult.Type.set -> void
+WebFormsCore.Compiler.ViewCompileResult.ViewCompileResult() -> void
+WebFormsCore.Compiler.ViewCompileResult.ViewCompileResult(Microsoft.CodeAnalysis.Compilation! Compilation, WebFormsCore.Nodes.RootNode! Type) -> void
+WebFormsCore.Compiler.ViewCompiler
+WebFormsCore.ControlManager
+WebFormsCore.ControlManager.ControlManager(WebFormsCore.IControlTypeProvider! provider, WebFormsCore.IWebFormsEnvironment! environment, Microsoft.Extensions.Logging.ILogger<WebFormsCore.ControlManager!>? logger = null) -> void
+WebFormsCore.ControlManager.Dispose() -> void
+WebFormsCore.ControlManager.GetType(string! path) -> System.Type!
+WebFormsCore.ControlManager.GetTypeAsync(string! path) -> System.Threading.Tasks.ValueTask<System.Type!>
+WebFormsCore.ControlManager.GetTypeAsync(string! path, bool allowBackgroundCompile) -> System.Threading.Tasks.ValueTask<System.Type!>
+WebFormsCore.ControlManager.TryGetPath(string! fullPath, out string? path) -> bool
+WebFormsCore.ControlManager.ViewTypes.get -> System.Collections.Generic.IReadOnlyDictionary<string!, System.Type!>!
+WebFormsCore.HostingServiceExtensions
+override WebFormsCore.Compiler.ViewCompileResult.GetHashCode() -> int
+static WebFormsCore.Compiler.ViewCompileResult.operator !=(WebFormsCore.Compiler.ViewCompileResult left, WebFormsCore.Compiler.ViewCompileResult right) -> bool
+static WebFormsCore.Compiler.ViewCompileResult.operator ==(WebFormsCore.Compiler.ViewCompileResult left, WebFormsCore.Compiler.ViewCompileResult right) -> bool
+static WebFormsCore.Compiler.ViewCompiler.Compile(string! path, string? text = null, string? rootDirectory = null, bool generateHash = true, bool concurrentBuild = true, System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.MetadataReference!>? references = null) -> WebFormsCore.Compiler.ViewCompileResult
+static WebFormsCore.HostingServiceExtensions.AddControlCompiler(this WebFormsCore.IWebFormsCoreBuilder! builder) -> WebFormsCore.IWebFormsCoreBuilder!
+~override WebFormsCore.Compiler.ViewCompileResult.Equals(object obj) -> bool
+~override WebFormsCore.Compiler.ViewCompileResult.ToString() -> string
